@@ -10,10 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.PingMessage;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.*;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -39,12 +36,15 @@ public class AsyncMessageSupplier {
                         queue.poll();
                         continue;
                     }
-                    if (jsonElement == PING_JSON_MSG) {
-                        session.sendMessage(new PingMessage(Constants.PING));
-                        queue.poll();
-                    } else if (session.isOpen()) {
-                        String data = GsonFactory.createGson().toJson(jsonElement);
-                        session.sendMessage(new TextMessage(data));
+                    if (session.isOpen()) {
+                        WebSocketMessage<?> webSocketMessage = null;
+                        if (jsonElement == PING_JSON_MSG) {
+                            webSocketMessage = new PingMessage(Constants.PING);
+                        } else {
+                            String data = GsonFactory.createGson().toJson(jsonElement);
+                            webSocketMessage = new TextMessage(data);
+                        }
+                        session.sendMessage(webSocketMessage);
                         queue.poll();
                     } else {
                         logger.error("Session is closed. Unable to deliver message");
