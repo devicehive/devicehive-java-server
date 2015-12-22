@@ -3,7 +3,6 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -172,7 +171,7 @@ public interface DeviceNotificationResource {
     )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK",
-                    response = NotificationPollManyResponse.class,
+                    response = DeviceNotification.class,
                     responseContainer = "List")
     })
     void pollMany(

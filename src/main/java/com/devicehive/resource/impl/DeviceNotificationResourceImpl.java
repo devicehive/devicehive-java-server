@@ -12,7 +12,6 @@ import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -177,16 +176,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         }
 
         if (!list.isEmpty()) {
-            Response response;
-            if (isMany) {
-                List<NotificationPollManyResponse> resultList = new ArrayList<>(list.size());
-                for (DeviceNotification notification : list) {
-                    resultList.add(new NotificationPollManyResponse(notification, notification.getDeviceGuid()));
-                }
-                response = ResponseFactory.response(Response.Status.OK, resultList, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-            } else {
-                response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-            }
+            Response response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             logger.debug("Notifications poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
@@ -221,9 +211,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
-            return ResponseFactory.response(BAD_REQUEST,
-                                            new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                                                              Messages.INVALID_REQUEST_PARAMETERS));
+            ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                    Messages.INVALID_REQUEST_PARAMETERS);
+            return ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
         }
         Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {

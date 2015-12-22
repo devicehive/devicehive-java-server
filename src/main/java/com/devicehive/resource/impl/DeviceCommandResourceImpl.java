@@ -9,7 +9,6 @@ import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.*;
-import com.devicehive.model.response.CommandPollManyResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -111,16 +110,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         }
 
         if (!list.isEmpty()) {
-            Response response;
-            if (isMany) {
-                List<CommandPollManyResponse> resultList = new ArrayList<>(list.size());
-                for (DeviceCommand command : list) {
-                    resultList.add(new CommandPollManyResponse(command, command.getDeviceGuid()));
-                }
-                response = ResponseFactory.response(Response.Status.OK, resultList, Policy.COMMAND_LISTED);
-            } else {
-                response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
-            }
+            Response response = ResponseFactory.response(Response.Status.OK, list, Policy.COMMAND_LISTED);
             LOGGER.debug("Commands poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
