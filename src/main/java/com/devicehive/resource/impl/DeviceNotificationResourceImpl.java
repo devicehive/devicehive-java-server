@@ -193,13 +193,15 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             final UUID reqId = UUID.randomUUID();
             NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
             Set<NotificationSubscription> subscriptionSet = new HashSet<>();
+            FutureTask<Void> simpleWaitTask = new FutureTask<Void>(Runnables.doNothing(), null);
 
             if (!availableDevices.isEmpty()) {
-                subscriptionSet.addAll(availableDevices.stream().map(guid -> new NotificationSubscription(principal, guid, reqId, names,
-                        RestHandlerCreator.createNotificationInsert(asyncResponse, isMany))).collect(Collectors.toList()));
+                subscriptionSet.addAll(availableDevices.stream().map(guid ->
+                        getNotificationInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
+                        .collect(Collectors.toList()));
             } else {
-                subscriptionSet.add(new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
-                        RestHandlerCreator.createNotificationInsert(asyncResponse, isMany)));
+                subscriptionSet.add(getNotificationInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
+                        asyncResponse, isMany, simpleWaitTask));
             }
 
             if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
@@ -244,5 +246,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     private void submitEmptyResponse(final AsyncResponse asyncResponse) {
         asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
                 JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+    }
+
+    private NotificationSubscription getNotificationInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
+                          AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){
+        return new NotificationSubscription(principal, guid, reqId, names,
+                RestHandlerCreator.createNotificationInsert(asyncResponse, isMany, waitTask));
     }
 }

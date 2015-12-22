@@ -25,12 +25,13 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
         this.asyncResponse = asyncResponse;
     }
 
-    public static RestHandlerCreator<DeviceNotification> createNotificationInsert(final AsyncResponse asyncResponse, final boolean isMany) {
+    public static RestHandlerCreator<DeviceNotification> createNotificationInsert(final AsyncResponse asyncResponse, final boolean isMany, final FutureTask<Void> waitTask) {
         return new RestHandlerCreator<DeviceNotification>(asyncResponse) {
             @Override
             protected Response createResponse(DeviceNotification message) {
                 logger.debug("NotificationInsert created for message: {}", message);
                 final HiveEntity responseMessage = isMany ? new NotificationPollManyResponse(message, message.getDeviceGuid()) : message;
+                waitTask.cancel(false);
                 return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             }
         };
