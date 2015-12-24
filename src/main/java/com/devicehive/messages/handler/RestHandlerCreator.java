@@ -3,16 +3,13 @@ package com.devicehive.messages.handler;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.HiveEntity;
-import com.devicehive.model.response.CommandPollManyResponse;
-import com.devicehive.model.response.NotificationPollManyResponse;
 import com.devicehive.resource.util.ResponseFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.FutureTask;
 
@@ -30,9 +27,8 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
             @Override
             protected Response createResponse(DeviceNotification message) {
                 logger.debug("NotificationInsert created for message: {}", message);
-                final HiveEntity responseMessage = isMany ? new NotificationPollManyResponse(message, message.getDeviceGuid()) : message;
                 waitTask.cancel(false);
-                return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                return ResponseFactory.response(Response.Status.OK, Collections.singletonList(message), JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
             }
         };
     }
@@ -42,9 +38,8 @@ public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
             @Override
             protected Response createResponse(DeviceCommand message) {
                 logger.debug("CommandInsert created for message: {}", message);
-                final HiveEntity responseMessage = isMany ? new CommandPollManyResponse(message, message.getDeviceGuid()) : message;
                 waitTask.cancel(false);
-                return ResponseFactory.response(Response.Status.OK, Arrays.asList(responseMessage), JsonPolicyDef.Policy.COMMAND_LISTED);
+                return ResponseFactory.response(Response.Status.OK, Collections.singletonList(message), JsonPolicyDef.Policy.COMMAND_LISTED);
             }
         };
     }
