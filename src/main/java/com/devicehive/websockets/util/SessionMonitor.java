@@ -36,6 +36,8 @@ public class SessionMonitor {
     private DeviceActivityService deviceActivityService;
     @Autowired
     private SubscriptionManager subscriptionManager;
+    @Autowired
+    private AsyncMessageSupplier asyncMessageSupplier;
 
     public void registerSession(final WebSocketSession session) {
         sessionMap.put(session.getId(), session);
@@ -66,29 +68,13 @@ public class SessionMonitor {
     public synchronized void ping() {
         for (WebSocketSession session : sessionMap.values()) {
             if (session.isOpen()) {
-                logger.debug("Pinging session " + session.getId());
-                Lock lock = HiveWebsocketSessionState.get(session).getQueueLock();
-                lock.lock();
-                try {
-                    session.sendMessage(new PingMessage(Constants.PING));
-                } catch (IOException ex) {
-                    logger.error("Error sending ping", ex);
-                    closePing(session);
-                } finally {
-                    lock.unlock();
-                }
+                logger.debug("Pinging session {}", session.getId());
+                HiveWebsocketSessionState.get(session).getQueue().offer(AsyncMessageSupplier.PING_JSON_MSG);
+                asyncMessageSupplier.deliverMessages(session);
             } else {
-                logger.debug("Session " + session.getId() + " is closed.");
+                logger.debug("Session {} is closed.", session.getId());
                 sessionMap.remove(session.getId());
             }
-        }
-    }
-
-    public void closePing(WebSocketSession session) {
-        try {
-            session.close(CloseStatus.NO_CLOSE_FRAME);
-        } catch (IOException ex) {
-            logger.error("Error closing session", ex);
         }
     }
 
