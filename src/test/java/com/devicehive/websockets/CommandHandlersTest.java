@@ -1,40 +1,25 @@
 package com.devicehive.websockets;
 
-import com.devicehive.base.AbstractWebSocketTest;
+import com.devicehive.base.AbstractWebSocketMethodTest;
 import com.devicehive.base.fixture.JsonFixture;
-import com.devicehive.base.fixture.WebSocketFixture;
-import com.devicehive.base.websocket.WebSocketSynchronousConnection;
-import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
-import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.junit.After;
 import org.junit.Test;
-import org.springframework.web.socket.TextMessage;
 
 import java.util.HashMap;
 import java.util.Optional;
 
-import static com.devicehive.base.websocket.WebSocketSynchronousConnection.WAIT_TIMEOUT;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class CommandHandlersTest extends AbstractWebSocketTest {
-
-    @After
-    public void tearDown() throws Exception {
-        clearWSConnections();
-    }
+public class CommandHandlersTest extends AbstractWebSocketMethodTest {
 
     @Test
     public void should_insert_command_signed_in_as_admin() throws Exception {
-        WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
-        WebSocketFixture.authenticateUser(ADMIN_LOGIN, ADMIN_PASS, connection);
-
         DeviceCommandWrapper command = new DeviceCommandWrapper();
         command.setCommand(Optional.of("test command"));
 
@@ -43,8 +28,10 @@ public class CommandHandlersTest extends AbstractWebSocketTest {
             put("command", gson.toJsonTree(command));
         }});
         long time = System.currentTimeMillis();
-        TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(commandInsert)), WAIT_TIMEOUT);
-        JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
+
+        String payload = runMethod(commandInsert, auth(ADMIN_LOGIN, ADMIN_PASS));
+        JsonObject jsonResp = gson.fromJson(payload, JsonObject.class);
+
         assertThat(jsonResp.get("action").getAsString(), is("command/insert"));
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
@@ -57,9 +44,6 @@ public class CommandHandlersTest extends AbstractWebSocketTest {
 
     @Test
     public void should_insert_command_signed_in_as_key() throws Exception {
-        WebSocketSynchronousConnection connection = syncConnection("/websocket/client");
-        WebSocketFixture.authenticateKey(ACCESS_KEY, connection);
-
         DeviceCommandWrapper command = new DeviceCommandWrapper();
         command.setCommand(Optional.of("test command"));
 
@@ -68,8 +52,10 @@ public class CommandHandlersTest extends AbstractWebSocketTest {
             put("command", gson.toJsonTree(command));
         }});
         long time = System.currentTimeMillis();
-        TextMessage response = connection.sendMessage(new TextMessage(gson.toJson(commandInsert)), WAIT_TIMEOUT);
-        JsonObject jsonResp = gson.fromJson(response.getPayload(), JsonObject.class);
+
+        String payload = runMethod(commandInsert, auth(ACCESS_KEY));
+        JsonObject jsonResp = gson.fromJson(payload, JsonObject.class);
+
         assertThat(jsonResp.get("action").getAsString(), is("command/insert"));
         assertThat(jsonResp.get("requestId").getAsString(), is("1"));
         assertThat(jsonResp.get("status").getAsString(), is("success"));
