@@ -66,14 +66,16 @@ public abstract class AbstractHazelcastEntityService {
                               Date timestamp, String status,
                               Integer take, Boolean hasResponse,
                               HivePrincipal principal, Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(getAvailableDevices(devices, principal), names, timestamp, status, hasResponse);
+        List<String> availableDevicesGUIDs = getAvailableDevices(devices, principal);
+        final Predicate filters = hazelcastHelper.prepareFilters(availableDevicesGUIDs, names, timestamp, status, hasResponse);
         return retrieve(filters, take, entityClass);
     }
 
     protected  <T extends HazelcastEntity> Collection<T> find(Long id, String guid, Collection<String> devices,
                               Collection<String> names, Date timestamp, Integer take,
                               HivePrincipal principal, Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, getAvailableDevices(devices, principal), names,
+        List<String> availableDevicesGUIDs = getAvailableDevices(devices, principal);
+        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, availableDevicesGUIDs, names,
                 timestamp);
         return retrieve(filters, take, entityClass);
     }
