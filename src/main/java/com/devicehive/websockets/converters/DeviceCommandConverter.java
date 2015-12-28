@@ -10,13 +10,18 @@ import kafka.utils.VerifiableProperties;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by tmatvienko on 12/24/14.
  */
-public class DeviceCommandConverter implements Encoder<DeviceCommand>, Decoder<DeviceCommand>{
+public class DeviceCommandConverter implements Encoder<DeviceCommand>, Decoder<DeviceCommand>,
+        org.apache.kafka.common.serialization.Serializer<DeviceCommand>,
+        org.apache.kafka.common.serialization.Deserializer<DeviceCommand>{
+
     private Gson gson;
-    public DeviceCommandConverter(VerifiableProperties verifiableProperties) {
+
+    public DeviceCommandConverter() {
         gson = new GsonBuilder().disableHtmlEscaping().registerTypeAdapter(Date.class, new TimestampAdapter()).create();
     }
 
@@ -41,5 +46,25 @@ public class DeviceCommandConverter implements Encoder<DeviceCommand>, Decoder<D
 
     public DeviceCommand fromString(String string) {
         return gson.fromJson(string, DeviceCommand.class);
+    }
+
+    @Override
+    public void configure(Map<String, ?> map, boolean b) {
+
+    }
+
+    @Override
+    public DeviceCommand deserialize(String s, byte[] bytes) {
+        return fromBytes(bytes);
+    }
+
+    @Override
+    public byte[] serialize(String s, DeviceCommand deviceCommand) {
+        return toBytes(deviceCommand);
+    }
+
+    @Override
+    public void close() {
+
     }
 }

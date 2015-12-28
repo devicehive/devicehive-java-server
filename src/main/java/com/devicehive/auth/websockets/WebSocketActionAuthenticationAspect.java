@@ -24,6 +24,9 @@ public class WebSocketActionAuthenticationAspect {
     @Pointcut("execution(public * com.devicehive.websockets.handlers.WebsocketHandlers+.*(..))")
     public void publicHandlerMethod() {}
 
+    @Pointcut("execution(public * com.devicehive.websockets.handlers.NotificationHandlers.*(..))")
+    public void notNotification() {}
+
     @Pointcut("@annotation(com.devicehive.websockets.handlers.annotations.Action)")
     public void annotatedWithAction() {}
 

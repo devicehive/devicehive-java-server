@@ -1,16 +1,19 @@
 package com.devicehive.websockets.handlers;
 
-
+import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.GenericDatabaseAccessDAO;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
+import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.Network;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -26,7 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -42,8 +45,11 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 @Component
 public class NotificationHandlers extends WebsocketHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationHandlers.class);
 
+    @Autowired
+    private GenericDatabaseAccessDAO genericDatabaseAccessDAO;
     @Autowired
     private SubscriptionManager subscriptionManager;
     @Autowired
@@ -58,7 +64,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     private AsyncMessageSupplier messageSupplier;
 
     @Action(value = "notification/subscribe")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationSubscribe(@WsParam(TIMESTAMP) Date timestamp,
                                                           @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                           @WsParam(NAMES) Set<String> names,
@@ -66,6 +72,9 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                           WebSocketSession session) throws IOException {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        checkKeyAdminClient(authentication, AccessKeyAction.GET_DEVICE_NOTIFICATION);
+
         devices = prepareActualList(devices, deviceId);
         UUID subId = notificationSubscribeAction(session, devices, names, timestamp);
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
@@ -86,11 +95,10 @@ public class NotificationHandlers extends WebsocketHandlers {
 
         if (deviceIdSet == null) {
             return new HashSet<String>() {
+                private static final long serialVersionUID = 955343867580964077L;
                 {
                     add(deviceId);
                 }
-
-                private static final long serialVersionUID = 955343867580964077L;
             };
 
         }
@@ -115,12 +123,12 @@ public class NotificationHandlers extends WebsocketHandlers {
                 List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (Device d : actualDevices) {
                     nsList.add(new NotificationSubscription(principal, d.getGuid(), reqId, StringUtils.join(names, ","),
-                                                            WebsocketHandlerCreator.createNotificationInsert(session)));
+                            WebsocketHandlerCreator.createNotificationInsert(session)));
                 }
             } else {
                 NotificationSubscription forAll =
-                    new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, StringUtils.join(names, ","),
-                                                 WebsocketHandlerCreator.createNotificationInsert(session));
+                        new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, StringUtils.join(names, ","),
+                                WebsocketHandlerCreator.createNotificationInsert(session));
                 nsList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
@@ -153,14 +161,16 @@ public class NotificationHandlers extends WebsocketHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
-     *         {object} } </code>
+     * {object} } </code>
      */
     @Action(value = "notification/unsubscribe")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(WebSocketSession session,
                                                             @WsParam(SUBSCRIPTION_ID) UUID subId,
                                                             @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        checkKeyAdminClient(authentication, AccessKeyAction.GET_DEVICE_NOTIFICATION);
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
         state.getNotificationSubscriptionsLock().lock();
         try {
@@ -168,11 +178,11 @@ public class NotificationHandlers extends WebsocketHandlers {
             if (subId == null) {
                 if (deviceGuids == null) {
                     Set<String> subForAll = new HashSet<String>() {
+                        private static final long serialVersionUID = 2484204746448211456L;
+
                         {
                             add(Constants.NULL_SUBSTITUTE);
                         }
-
-                        private static final long serialVersionUID = 2484204746448211456L;
                     };
                     subscriptions.addAll(state.removeOldFormatNotificationSubscription(subForAll));
                 } else {
@@ -198,26 +208,22 @@ public class NotificationHandlers extends WebsocketHandlers {
     }
 
     @Action("notification/insert")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY', 'DEVICE') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
                                                        DeviceNotificationWrapper notificationSubmit,
                                                        WebSocketSession session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        checkDeviceKeyAdminClient(authentication, AccessKeyAction.CREATE_DEVICE_NOTIFICATION);
+        HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
-            logger.debug(
-                    "notification/insert proceed with error. Bad notification: notification is required.");
+            logger.debug("notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
+        Device device = findDeviceFromRequestAndPrincipal(deviceGuid, principal);
 
-        Device device;
-        if (deviceGuid == null) {
-            device = principal.getDevice();
-        } else {
-            device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
-        }
         if (device == null) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
@@ -233,5 +239,85 @@ public class NotificationHandlers extends WebsocketHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
         return response;
+    }
+
+
+    private Device findDeviceFromRequestAndPrincipal(String requestDeviceGuid, HivePrincipal principal) {
+        if (requestDeviceGuid == null) {
+            return principal.getDevice();
+        }
+        //device including own UUID in request
+        if (principal.getDevice() != null) {
+            //TODO check if this device has enough access rights
+            if (requestDeviceGuid.equals(principal.getDevice().getGuid())) {
+                return principal.getDevice();
+            }
+        }
+
+        if (principal.getUser() != null) {
+            if (principal.getUser().isAdmin()) {
+                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            } else {
+                Set<Network> userNetworks = principal.getUser().getNetworks();
+                Device device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+                for (Network userNetwork : userNetworks) {
+                    if (Objects.equals(userNetwork, device.getNetwork())) {
+                        return device;
+                    }
+                }
+            }
+        }
+
+        if (principal.getKey() != null) {
+            if (principal.getKey().getPermissions() != null) {
+                return findDeviceFromGateway(requestDeviceGuid, principal.getKey().getPermissions());
+            } else {
+                return genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+            }
+        }
+        return null;
+    }
+
+    private Device findDeviceFromGateway(String requestDeviceGuid, Set<AccessKeyPermission> principal) {
+        LazyDeviceHolder deviceHolder = new LazyDeviceHolder();
+        for (AccessKeyPermission accessKeyPermission : principal) {
+            //TODO also needs to if we have appropriate action
+            //TODO quite slow method is called
+            Set<String> deviceGuidsAsSet = accessKeyPermission.getDeviceGuidsAsSet();
+            if (filterAgainstDeviceGuidSet(requestDeviceGuid, deviceGuidsAsSet)
+                    || filterAgainstDeviceNetworkSet(requestDeviceGuid, deviceHolder, accessKeyPermission.getNetworkIdsAsSet())) {
+                if (deviceHolder.device == null) {
+                    deviceHolder.device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+                }
+                return deviceHolder.device;
+            }
+        }
+        return null;
+    }
+
+    static class LazyDeviceHolder {
+        Device device;
+    }
+
+    private boolean filterAgainstDeviceGuidSet(String requestDeviceGuid, Set<String> guids) {
+        if (guids == null) {
+            return true;
+        }
+
+        return guids.contains(requestDeviceGuid);
+    }
+
+    private boolean filterAgainstDeviceNetworkSet(String requestDeviceGuid, LazyDeviceHolder ldh, Set<Long> networkIds) {
+        if (networkIds == null) {
+            return true;
+        }
+
+        if (ldh.device == null) {
+            ldh.device = genericDatabaseAccessDAO.findDevice(requestDeviceGuid);
+        }
+
+        Network deviceNetwork = ldh.device != null ? ldh.device.getNetwork() : null;
+
+        return deviceNetwork != null && networkIds.contains(deviceNetwork.getId());
     }
 }

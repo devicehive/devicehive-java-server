@@ -13,6 +13,11 @@ public class HazelcastTimestampService implements TimestampService {
 
     @Override
     public Date getTimestamp() {
-        return new Date(instance.getCluster().getClusterTime());
+        return new Date(getTime());
+    }
+
+    @Override
+    public long getTime() {
+        return instance.getCluster().getClusterTime();
     }
 }

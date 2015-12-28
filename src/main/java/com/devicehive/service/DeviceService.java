@@ -39,6 +39,8 @@ public class DeviceService {
     @Autowired
     private GenericDAO genericDAO;
     @Autowired
+    private GenericDatabaseAccessDAO genericDatabaseAccessDAO;
+    @Autowired
     private NetworkService networkService;
     @Autowired
     private UserService userService;
@@ -256,6 +258,16 @@ public class DeviceService {
             }
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
+    }
+
+    /**
+     *
+     * @param deviceGuid
+     * @param principal
+     * @return
+     */
+    public Device findDeviceByGuidNonTransactional(final String deviceGuid, final HivePrincipal principal) {
+        return genericDatabaseAccessDAO.findDevice(deviceGuid);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

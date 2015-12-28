@@ -13,11 +13,10 @@ import kafka.consumer.Consumer;
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
 import kafka.serializer.Decoder;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,27 +71,35 @@ public class KafkaConfig {
     @Profile({"!test"})
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
     @Lazy(false)
-    public Producer<String, DeviceNotification> notificationProducer() {
+    public org.apache.kafka.clients.producer.KafkaProducer<String, DeviceNotification> notificationProducer() {
         Properties properties = new Properties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, env.getProperty("notification.serializer.class"));
+
         properties.put("metadata.broker.list", brokerList);
         properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
         properties.put("serializer.class", env.getProperty("notification.serializer.class"));
         properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         logger.info("Creating kafka producer {} for broker list {}", NOTIFICATION_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
+        return new org.apache.kafka.clients.producer.KafkaProducer<String, DeviceNotification>(properties);
     }
 
     @Profile({"!test"})
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
     @Lazy(false)
-    public Producer<String, DeviceCommand> commandProducer() {
+    public org.apache.kafka.clients.producer.KafkaProducer<String, DeviceCommand> commandProducer() {
         Properties properties = new Properties();
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, env.getProperty("command.serializer.class"));
+
         properties.put("metadata.broker.list", brokerList);
         properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
         properties.put("serializer.class", env.getProperty("command.serializer.class"));
         properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
         logger.info("Creating kafka producer {} for broker list {}", COMMAND_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
+        return new org.apache.kafka.clients.producer.KafkaProducer<String, DeviceCommand>(properties);
     }
 
     @Profile({"!test"})
@@ -101,7 +108,7 @@ public class KafkaConfig {
     public ConsumerConnector notificationConsumerConnector() {
         String groupId = NOTIFICATION_GROUP_ID + UUID.randomUUID().toString();
         return createAndSubscribe(groupId, Constants.NOTIFICATION_TOPIC_NAME, this::notificationConsumer,
-                new DeviceNotificationConverter(new VerifiableProperties()));
+                new DeviceNotificationConverter());
     }
 
     @Profile({"!test"})
@@ -110,7 +117,7 @@ public class KafkaConfig {
     public ConsumerConnector commandConsumerConnector() {
         String groupId = COMMAND_GROUP_ID + UUID.randomUUID().toString();
         return createAndSubscribe(groupId, Constants.COMMAND_TOPIC_NAME, this::commandConsumer,
-                new DeviceCommandConverter(new VerifiableProperties()));
+                new DeviceCommandConverter());
     }
 
     @Profile({"!test"})
@@ -119,7 +126,7 @@ public class KafkaConfig {
     public ConsumerConnector commandUpdateConsumerConnector() {
         String groupId = COMMAND_UPDATE_GROUP_ID + UUID.randomUUID().toString();
         return createAndSubscribe(groupId, Constants.COMMAND_UPDATE_TOPIC_NAME, this::commandUpdateConsumer,
-                new DeviceCommandConverter(new VerifiableProperties()));
+                new DeviceCommandConverter());
     }
 
     private <T> ConsumerConnector createAndSubscribe(String groupId, String topicName, Supplier<AbstractConsumer<T>> consumerCreator, Decoder<T> decoder) {
