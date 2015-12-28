@@ -1,11 +1,8 @@
 package com.devicehive.service.helpers;
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.service.DeviceService;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,32 +15,26 @@ import static com.devicehive.model.enums.SearchableField.*;
 @Component
 public class HazelcastHelper {
 
-    @Autowired
-    private DeviceService deviceService;
-
     public Predicate prepareFilters(final Long id, final String guid) {
-        return prepareFilters(id, guid, null, null, null, null, null, null, null);
+        return prepareFilters(id, guid, null, null, null, null, null, null);
     }
 
     public Predicate prepareFilters(final Collection<String> devices,
                                                               final Collection<String> commands,
                                                               final Date timestamp, final String status,
-                                                              final Boolean hasResponse,
-                                                              final HivePrincipal principal) {
-        return prepareFilters(null, null, devices, null, commands, timestamp, status, hasResponse, principal);
+                                                              final Boolean hasResponse) {
+        return prepareFilters(null, null, devices, null, commands, timestamp, status, hasResponse);
     }
 
     public Predicate prepareFilters(final Long id, final String guid,
                                                               final Collection<String> devices,
                                                               final Collection<String> notifications,
-                                                              final Date timestamp,
-                                                              final HivePrincipal principal) {
-        return prepareFilters(id, guid, devices, notifications, null, timestamp, null, null, principal);
+                                                              final Date timestamp) {
+        return prepareFilters(id, guid, devices, notifications, null, timestamp, null, null);
     }
 
     public Predicate prepareFilters(Long id, String guid, Collection<String> devices, Collection<String> notifications,
-                                    Collection<String> commands, Date timestamp, String status, Boolean hasResponse,
-                                    HivePrincipal principal) {
+                                    Collection<String> commands, Date timestamp, String status, Boolean hasResponse) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
             predicates.add(Predicates.equal(ID.getField(), id));
@@ -53,9 +44,8 @@ public class HazelcastHelper {
             predicates.add(Predicates.equal(GUID.getField(),guid));
         }
 
-        if (devices != null && !devices.isEmpty() && principal != null) {
-            final List<String> availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-            predicates.add(Predicates.in(DEVICE_GUID.getField(), availableDevices.toArray(new String[availableDevices.size()])));
+        if (devices != null && !devices.isEmpty()) {
+            predicates.add(Predicates.in(DEVICE_GUID.getField(), devices.toArray(new String[devices.size()])));
         }
 
         if (notifications != null && !notifications.isEmpty()) {
