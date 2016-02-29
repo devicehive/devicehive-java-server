@@ -76,9 +76,9 @@ public class Constants {
     public static final String COMMAND_UPDATE_TOPIC_NAME = "device_command_update";
     public static final String ZOOKEEPER_CONNECT = "zookeeper.connect";
     public static final String GROOP_ID = "group.id";
-    public static final String ZOOKEEPER_SESSION_TIMEOUT_MS = "zookeeper.session.timeout.ms";
-    public static final String ZOOKEEPER_CONNECTION_TIMEOUT_MS = "zookeeper.connection.timeout.ms";
-    public static final String ZOOKEEPER_SYNC_TIME_MS = "zookeeper.sync.time.ms";
+    public static final String ZOOKEEPER_SESSION_TIMEOUT_MS = "session.timeout.ms";
+    public static final String ZOOKEEPER_CONNECTION_TIMEOUT_MS = "connection.timeout.ms";
+    public static final String ZOOKEEPER_SYNC_TIME_MS = "sync.time.ms";
     public static final String AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
     public static final String THREADS_COUNT = "threads.count";
 

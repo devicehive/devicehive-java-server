@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 12/24/14.
  */
-public class NotificationConsumer extends AbstractConsumer<DeviceNotification>{
+public class NotificationConsumer implements IConsumer<DeviceNotification>{
     private static final Logger logger = LoggerFactory.getLogger(NotificationConsumer.class);
 
     @Autowired
@@ -32,7 +32,6 @@ public class NotificationConsumer extends AbstractConsumer<DeviceNotification>{
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
-    @Override
     public void submitMessage(final DeviceNotification message) {
         Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =

@@ -34,6 +34,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     @Autowired
     private TimestampService timestampService;
+
     @Autowired
     private ConfigurationService configurationService;
 
@@ -43,11 +44,20 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     @Value("${server.context-path}")
     private String contextPath;
 
+    @Value("${build.version}")
+    private String appVersion;
+
     @Override
     public Response getApiInfo(UriInfo uriInfo) {
         logger.debug("ApiInfo requested");
         ApiInfo apiInfo = new ApiInfo();
-        apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
+        String version = Constants.class.getPackage().getImplementationVersion();
+
+        if(version == null) {
+            apiInfo.setApiVersion(appVersion);
+        } else {
+            apiInfo.setApiVersion(version);
+        }
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         
         // Generate websocket url based on current request url
