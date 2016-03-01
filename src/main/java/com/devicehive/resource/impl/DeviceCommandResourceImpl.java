@@ -104,6 +104,20 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 : new ArrayList<>();
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
+        CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
+        UUID reqId = UUID.randomUUID();
+        Set<CommandSubscription> subscriptionSet = new HashSet<>();
+        FutureTask<Void> simpleWaitTask = new FutureTask<>(Runnables.doNothing(), null);
+
+        if (!availableDevices.isEmpty()) {
+            List<CommandSubscription> commandSubscriptions = availableDevices.stream()
+                    .map(guid -> getInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
+                    .collect(Collectors.toList());
+            subscriptionSet.addAll(commandSubscriptions);
+        } else {
+            subscriptionSet.add(getInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
+                    asyncResponse, isMany, simpleWaitTask));
+        }
 
         if (timestamp != null && !availableDevices.isEmpty()) {
             list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
@@ -114,20 +128,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             LOGGER.debug("Commands poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
-            CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
-            UUID reqId = UUID.randomUUID();
-            Set<CommandSubscription> subscriptionSet = new HashSet<>();
-            FutureTask<Void> simpleWaitTask = new FutureTask<Void>(Runnables.doNothing(), null);
-
-            if (!availableDevices.isEmpty()) {
-                List<CommandSubscription> commandSubscriptions = availableDevices.stream()
-                        .map(guid -> getInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
-                        .collect(Collectors.toList());
-                subscriptionSet.addAll(commandSubscriptions);
-            } else {
-                subscriptionSet.add(getInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
-                        asyncResponse, isMany, simpleWaitTask));
-            }
             if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, simpleWaitTask, timeout)) {
                 submitEmptyResponse(asyncResponse);
             }

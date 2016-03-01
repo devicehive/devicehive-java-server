@@ -19,7 +19,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 1/29/15.
  */
-public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
+public class CommandConsumer  implements IConsumer<DeviceCommand>{
     private static final Logger logger = LoggerFactory.getLogger(CommandConsumer.class);
 
     @Autowired
@@ -30,7 +30,6 @@ public class CommandConsumer extends AbstractConsumer<DeviceCommand> {
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
-    @Override
     public void submitMessage(final DeviceCommand message) {
         logger.debug("Device command was submitted: {}", message);
 

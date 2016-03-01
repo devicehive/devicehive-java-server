@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 1/30/15.
  */
-public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommand> {
+public class CommandUpdateConsumer implements IConsumer<DeviceCommand>{
     private static final Logger logger = LoggerFactory.getLogger(CommandUpdateConsumer.class);
 
     @Autowired
@@ -24,7 +24,6 @@ public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommand> {
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
-    @Override
     public void submitMessage(DeviceCommand message) {
         logger.debug("Device command update was submitted: {}", message.getId());
 

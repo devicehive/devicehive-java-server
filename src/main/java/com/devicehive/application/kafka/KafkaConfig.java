@@ -1,32 +1,33 @@
 package com.devicehive.application.kafka;
 
+import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.configuration.Constants;
-import com.devicehive.messages.kafka.AbstractConsumer;
 import com.devicehive.messages.kafka.CommandConsumer;
 import com.devicehive.messages.kafka.CommandUpdateConsumer;
 import com.devicehive.messages.kafka.NotificationConsumer;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.websockets.converters.DeviceCommandConverter;
-import com.devicehive.websockets.converters.DeviceNotificationConverter;
-import kafka.consumer.Consumer;
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.javaapi.producer.Producer;
-import kafka.producer.ProducerConfig;
-import kafka.serializer.Decoder;
-import kafka.serializer.StringDecoder;
-import kafka.utils.VerifiableProperties;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class KafkaConfig {
@@ -34,22 +35,35 @@ public class KafkaConfig {
 
     public static final String NOTIFICATION_PRODUCER = "notificationProducer";
     public static final String COMMAND_PRODUCER = "commandProducer";
-    public static final String NOTIFICATION_CONSUMER_CONNECTOR = "notificationConnector";
-    public static final String COMMAND_CONSUMER_CONNECTOR = "commandConnector";
-    public static final String COMMAND_UPDATE_CONSUMER_CONNECTOR = "commandUpdateConnector";
+    public static final String NOTIFICATION_CONSUMER_WORKABLE = "notificationWorkable";
+    public static final String COMMAND_CONSUMER_WORKABLE = "commandWorkable";
+    public static final String COMMAND_UPDATE_CONSUMER_WORKABLE = "commandUpdateWorkable";
 
     private static final String NOTIFICATION_GROUP_ID = "notification.group";
     private static final String COMMAND_GROUP_ID = "command.group";
     private static final String COMMAND_UPDATE_GROUP_ID = "command.update.group";
 
+    private static final String NOTIFICATION_SERIALIZER = "notification.serializer.class";
+    private static final String COMMAND_SERIALIZER = "command.serializer.class";
+
     @Autowired
     private Environment env;
 
-    @Value("${threads.count:1}")
-    private Integer threadCount;
+    @Value("${command.partitions.count:1}")
+    private Integer commandPartitionsCount;
 
-    @Value("${metadata.broker.list}")
+    @Value("${command.update.partitions.count:1}")
+    private Integer commandUpdPartitionsCount;
+
+    @Value("${device.partitions.count:1}")
+    private Integer devicePartitionsCount;
+
+    @Value("${bootstrap.servers}")
     private String brokerList;
+
+    @Autowired
+    @Qualifier(DeviceHiveApplication.CONSUMER_EXECUTOR)
+    private ExecutorService executorService;
 
     @Bean
     @Scope("prototype")
@@ -73,88 +87,114 @@ public class KafkaConfig {
     @Bean(name = NOTIFICATION_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceNotification> notificationProducer() {
-        Properties properties = new Properties();
-        properties.put("metadata.broker.list", brokerList);
-        properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        properties.put("serializer.class", env.getProperty("notification.serializer.class"));
-        properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
-        logger.info("Creating kafka producer {} for broker list {}", NOTIFICATION_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
+        return provideProducer(env.getProperty(NOTIFICATION_SERIALIZER), NOTIFICATION_PRODUCER);
     }
 
     @Profile({"!test"})
     @Bean(name = COMMAND_PRODUCER, destroyMethod = "close")
     @Lazy(false)
     public Producer<String, DeviceCommand> commandProducer() {
-        Properties properties = new Properties();
-        properties.put("metadata.broker.list", brokerList);
-        properties.put("key.serializer.class", "kafka.serializer.StringEncoder");
-        properties.put("serializer.class", env.getProperty("command.serializer.class"));
-        properties.put("partitioner.class", "kafka.producer.DefaultPartitioner");
-        logger.info("Creating kafka producer {} for broker list {}", COMMAND_PRODUCER, brokerList);
-        return new Producer<>(new ProducerConfig(properties));
+        return provideProducer(env.getProperty(COMMAND_SERIALIZER), COMMAND_PRODUCER);
     }
 
     @Profile({"!test"})
-    @Bean(name = NOTIFICATION_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
+    @Bean(name = NOTIFICATION_CONSUMER_WORKABLE)
     @Lazy(false)
-    public ConsumerConnector notificationConsumerConnector() {
+    public List<ConsumerWorkable> notificationConsumerWorkable() {
         String groupId = NOTIFICATION_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.NOTIFICATION_TOPIC_NAME, this::notificationConsumer,
-                new DeviceNotificationConverter(new VerifiableProperties()));
-    }
+        Properties properties = consumerSharedProps(groupId, env.getProperty(NOTIFICATION_SERIALIZER), NOTIFICATION_CONSUMER_WORKABLE);
 
-    @Profile({"!test"})
-    @Bean(name = COMMAND_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
-    @Lazy(false)
-    public ConsumerConnector commandConsumerConnector() {
-        String groupId = COMMAND_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.COMMAND_TOPIC_NAME, this::commandConsumer,
-                new DeviceCommandConverter(new VerifiableProperties()));
-    }
-
-    @Profile({"!test"})
-    @Bean(name = COMMAND_UPDATE_CONSUMER_CONNECTOR, destroyMethod = "shutdown")
-    @Lazy(false)
-    public ConsumerConnector commandUpdateConsumerConnector() {
-        String groupId = COMMAND_UPDATE_GROUP_ID + UUID.randomUUID().toString();
-        return createAndSubscribe(groupId, Constants.COMMAND_UPDATE_TOPIC_NAME, this::commandUpdateConsumer,
-                new DeviceCommandConverter(new VerifiableProperties()));
-    }
-
-    private <T> ConsumerConnector createAndSubscribe(String groupId, String topicName, Supplier<AbstractConsumer<T>> consumerCreator, Decoder<T> decoder) {
-        Properties properties = consumerSharedProps();
-        properties.put(Constants.GROOP_ID, groupId);
-        ConsumerConnector connector = Consumer.createJavaConsumerConnector(new ConsumerConfig(properties));
-
-        logger.info("Creating consumer for topic {}, group {}, thread count {}", topicName, groupId, threadCount);
-        Map<String, Integer> topicCountMap = new HashMap<>();
-        topicCountMap.put(topicName, threadCount);
-
-        Map<String, List<KafkaStream<String, T>>> streams = connector.createMessageStreams(topicCountMap, new StringDecoder(new VerifiableProperties()), decoder);
-        List<KafkaStream<String, T>> stream = streams.get(topicName);
-
-        int thread = 0;
-        for (final KafkaStream sm : stream) {
-            AbstractConsumer<T> consumer = consumerCreator.get();
-            logger.info("Subscribing to topic {}, thread {}, consumer {}", topicName, thread, consumer.toString());
-            consumer.subscribe(sm, thread);
-            thread++;
+        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        for (int i = 0; i < devicePartitionsCount; i++) {
+            KafkaConsumer<String, DeviceNotification> c = new KafkaConsumer<>(properties);
+            ConsumerWorkable<DeviceNotification> consumer = new ConsumerWorkable<>(c,
+                    Constants.NOTIFICATION_TOPIC_NAME, notificationConsumer());
+            consumers.add(consumer);
+            executorService.submit(consumer);
         }
-        return connector;
+
+        shutdownConsumers(consumers);
+
+        return consumers;
     }
 
-    private Properties consumerSharedProps() {
-        String zkConnect = env.getProperty(Constants.ZOOKEEPER_CONNECT);
+    @Profile({"!test"})
+    @Bean(name = COMMAND_CONSUMER_WORKABLE)
+    @Lazy(false)
+    public List<ConsumerWorkable> commandConsumerWorkable() {
+        String groupId = COMMAND_GROUP_ID + UUID.randomUUID().toString();
+        Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_CONSUMER_WORKABLE);
 
-        logger.info("Consumer properties zookeeper.connect={}", zkConnect);
+        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        for (int i = 0; i < commandPartitionsCount; i++) {
+            KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
+            ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
+                    Constants.COMMAND_TOPIC_NAME, commandConsumer());
+            consumers.add(consumer);
+            executorService.submit(consumer);
+        }
+
+        shutdownConsumers(consumers);
+
+        return consumers;
+    }
+
+    @Profile({"!test"})
+    @Bean(name = COMMAND_UPDATE_CONSUMER_WORKABLE)
+    @Lazy(false)
+    public List<ConsumerWorkable> commandUpdateConsumerWorkable() {
+        String groupId = COMMAND_UPDATE_GROUP_ID + UUID.randomUUID().toString();
+        Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_UPDATE_CONSUMER_WORKABLE);
+
+        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        for (int i = 0; i < commandUpdPartitionsCount; i++) {
+            KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
+            ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
+                    Constants.COMMAND_UPDATE_TOPIC_NAME, commandUpdateConsumer());
+            consumers.add(consumer);
+            executorService.submit(consumer);
+        }
+
+        shutdownConsumers(consumers);
+
+        return consumers;
+    }
+
+    private void shutdownConsumers(List<ConsumerWorkable> consumerWorkables) {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                consumerWorkables.forEach(ConsumerWorkable::shutdown);
+                executorService.shutdown();
+                try {
+                    executorService.awaitTermination(5000, TimeUnit.MILLISECONDS);
+                } catch (InterruptedException e) {
+                    logger.error("Exception occurred while shutting executor service: {}", e.getMessage());
+                }
+            }
+        });
+    }
+
+    private Properties consumerSharedProps(String groupId, String deserializer, String consumerName) {
+        logger.info("Consumer properties {} for bootstrap.servers {}", consumerName, brokerList);
 
         Properties props = new Properties();
-        props.put(Constants.ZOOKEEPER_CONNECT, zkConnect);
-        props.put(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_SESSION_TIMEOUT_MS));
-        props.put(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS, env.getProperty(Constants.ZOOKEEPER_CONNECTION_TIMEOUT_MS));
-        props.put(Constants.ZOOKEEPER_SYNC_TIME_MS, env.getProperty(Constants.ZOOKEEPER_SYNC_TIME_MS));
-        props.put(Constants.AUTO_COMMIT_INTERVAL_MS, env.getProperty(Constants.AUTO_COMMIT_INTERVAL_MS));
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializer);
+        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
+    }
+
+    private <T> Producer<String, T> provideProducer(String serializer, String producerName) {
+        Properties properties = new Properties();
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializer);
+
+        logger.info("Creating kafka producer {} for bootstrap.servers {}", producerName, brokerList);
+        return new KafkaProducer<>(properties);
     }
 }
