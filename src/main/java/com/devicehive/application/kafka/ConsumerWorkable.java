@@ -18,9 +18,9 @@ import java.util.Collections;
 public class ConsumerWorkable<T> implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerWorkable.class);
-    private KafkaConsumer<String, T> consumer;
-    private String topic;
-    private IConsumer<T> provider;
+    private final KafkaConsumer<String, T> consumer;
+    private final String topic;
+    private final IConsumer<T> provider;
 
     public ConsumerWorkable(KafkaConsumer<String, T> consumer,
                             String topic, IConsumer<T> provider) {
@@ -35,9 +35,9 @@ public class ConsumerWorkable<T> implements Runnable {
             consumer.subscribe(Collections.singletonList(topic));
 
             while (!Thread.currentThread().isInterrupted()) {
-                ConsumerRecords<String, T> records = consumer.poll(Long.MAX_VALUE);
+                final ConsumerRecords<String, T> records = consumer.poll(Long.MAX_VALUE);
                 for (ConsumerRecord<String, T> record : records) {
-                    T message = record.value();
+                    final T message = record.value();
                     LOGGER.debug("Topic {}, partition {}, message {} ", topic, record.partition(), message);
                     provider.submitMessage(message);
                 }

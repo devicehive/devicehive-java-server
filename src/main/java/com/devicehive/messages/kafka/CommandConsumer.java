@@ -30,6 +30,7 @@ public class CommandConsumer  implements IConsumer<DeviceCommand>{
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
+    @Override
     public void submitMessage(final DeviceCommand message) {
         logger.debug("Device command was submitted: {}", message);
 

@@ -24,6 +24,7 @@ public class CommandUpdateConsumer implements IConsumer<DeviceCommand>{
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
+    @Override
     public void submitMessage(DeviceCommand message) {
         logger.debug("Device command update was submitted: {}", message.getId());
 

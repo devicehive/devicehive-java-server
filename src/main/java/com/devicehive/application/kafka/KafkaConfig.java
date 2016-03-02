@@ -22,16 +22,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class KafkaConfig {
-    private static final Logger logger = LoggerFactory.getLogger(KafkaConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConfig.class);
 
     public static final String NOTIFICATION_PRODUCER = "notificationProducer";
     public static final String COMMAND_PRODUCER = "commandProducer";
@@ -62,7 +59,7 @@ public class KafkaConfig {
     private String brokerList;
 
     @Autowired
-    @Qualifier(DeviceHiveApplication.CONSUMER_EXECUTOR)
+    @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService executorService;
 
     @Bean
@@ -102,12 +99,12 @@ public class KafkaConfig {
     @Lazy(false)
     public List<ConsumerWorkable> notificationConsumerWorkable() {
         String groupId = NOTIFICATION_GROUP_ID + UUID.randomUUID().toString();
-        Properties properties = consumerSharedProps(groupId, env.getProperty(NOTIFICATION_SERIALIZER), NOTIFICATION_CONSUMER_WORKABLE);
+        final Properties properties = consumerSharedProps(groupId, env.getProperty(NOTIFICATION_SERIALIZER), NOTIFICATION_CONSUMER_WORKABLE);
 
-        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        final List<ConsumerWorkable> consumers = new LinkedList<>();
         for (int i = 0; i < devicePartitionsCount; i++) {
-            KafkaConsumer<String, DeviceNotification> c = new KafkaConsumer<>(properties);
-            ConsumerWorkable<DeviceNotification> consumer = new ConsumerWorkable<>(c,
+            final KafkaConsumer<String, DeviceNotification> c = new KafkaConsumer<>(properties);
+            final ConsumerWorkable<DeviceNotification> consumer = new ConsumerWorkable<>(c,
                     Constants.NOTIFICATION_TOPIC_NAME, notificationConsumer());
             consumers.add(consumer);
             executorService.submit(consumer);
@@ -123,12 +120,12 @@ public class KafkaConfig {
     @Lazy(false)
     public List<ConsumerWorkable> commandConsumerWorkable() {
         String groupId = COMMAND_GROUP_ID + UUID.randomUUID().toString();
-        Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_CONSUMER_WORKABLE);
+        final Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_CONSUMER_WORKABLE);
 
-        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        final List<ConsumerWorkable> consumers = new LinkedList<>();
         for (int i = 0; i < commandPartitionsCount; i++) {
-            KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
-            ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
+            final KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
+            final ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
                     Constants.COMMAND_TOPIC_NAME, commandConsumer());
             consumers.add(consumer);
             executorService.submit(consumer);
@@ -144,12 +141,12 @@ public class KafkaConfig {
     @Lazy(false)
     public List<ConsumerWorkable> commandUpdateConsumerWorkable() {
         String groupId = COMMAND_UPDATE_GROUP_ID + UUID.randomUUID().toString();
-        Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_UPDATE_CONSUMER_WORKABLE);
+        final Properties properties = consumerSharedProps(groupId, env.getProperty(COMMAND_SERIALIZER), COMMAND_UPDATE_CONSUMER_WORKABLE);
 
-        final List<ConsumerWorkable> consumers = new ArrayList<>();
+        final List<ConsumerWorkable> consumers = new LinkedList<>();
         for (int i = 0; i < commandUpdPartitionsCount; i++) {
-            KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
-            ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
+            final KafkaConsumer<String, DeviceCommand> c = new KafkaConsumer<>(properties);
+            final ConsumerWorkable<DeviceCommand> consumer = new ConsumerWorkable<>(c,
                     Constants.COMMAND_UPDATE_TOPIC_NAME, commandUpdateConsumer());
             consumers.add(consumer);
             executorService.submit(consumer);
@@ -170,14 +167,14 @@ public class KafkaConfig {
                 try {
                     executorService.awaitTermination(5000, TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
-                    logger.error("Exception occurred while shutting executor service: {}", e.getMessage());
+                    LOGGER.error("Exception occurred while shutting executor service: {}", e);
                 }
             }
         });
     }
 
     private Properties consumerSharedProps(String groupId, String deserializer, String consumerName) {
-        logger.info("Consumer properties {} for bootstrap.servers {}", consumerName, brokerList);
+        LOGGER.info("Consumer properties {} for bootstrap.servers {}", consumerName, brokerList);
 
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
@@ -194,7 +191,7 @@ public class KafkaConfig {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializer);
 
-        logger.info("Creating kafka producer {} for bootstrap.servers {}", producerName, brokerList);
+        LOGGER.info("Creating kafka producer {} for bootstrap.servers {}", producerName, brokerList);
         return new KafkaProducer<>(properties);
     }
 }

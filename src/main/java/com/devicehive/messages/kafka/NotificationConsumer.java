@@ -32,6 +32,7 @@ public class NotificationConsumer implements IConsumer<DeviceNotification>{
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
 
+    @Override
     public void submitMessage(final DeviceNotification message) {
         Set<UUID> subscribersIds = new HashSet<>();
         Set<NotificationSubscription> subs =
