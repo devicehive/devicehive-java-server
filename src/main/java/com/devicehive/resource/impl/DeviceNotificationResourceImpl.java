@@ -161,6 +161,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                                                final String names, final Date timestamp, long timeout,
                                                                final AsyncResponse asyncResponse, final boolean isMany) {
         logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
+
         if (timeout < 0) {
             submitEmptyResponse(asyncResponse);
         }
@@ -170,6 +171,19 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 : new ArrayList<>();
         final List<String> notificationNames = ParseUtil.getList(names);
         Collection<DeviceNotification> list = new ArrayList<>();
+        final UUID reqId = UUID.randomUUID();
+        NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
+        Set<NotificationSubscription> subscriptionSet = new HashSet<>();
+        FutureTask<Void> simpleWaitTask = new FutureTask<>(Runnables.doNothing(), null);
+
+        if (!availableDevices.isEmpty()) {
+            subscriptionSet.addAll(availableDevices.stream().map(guid ->
+                    getNotificationInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
+                    .collect(Collectors.toList()));
+        } else {
+            subscriptionSet.add(getNotificationInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
+                    asyncResponse, isMany, simpleWaitTask));
+        }
 
         if (timestamp != null && !availableDevices.isEmpty()) {
             list = notificationService.find(null, null, availableDevices, notificationNames, timestamp, DEFAULT_TAKE, principal);
@@ -180,25 +194,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             logger.debug("Notifications poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
-            final UUID reqId = UUID.randomUUID();
-            NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-            Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-            FutureTask<Void> simpleWaitTask = new FutureTask<Void>(Runnables.doNothing(), null);
-
-            if (!availableDevices.isEmpty()) {
-                subscriptionSet.addAll(availableDevices.stream().map(guid ->
-                        getNotificationInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
-                        .collect(Collectors.toList()));
-            } else {
-                subscriptionSet.add(getNotificationInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
-                        asyncResponse, isMany, simpleWaitTask));
-            }
-
             if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
                 submitEmptyResponse(asyncResponse);
             }
         }
-
     }
 
     /**
