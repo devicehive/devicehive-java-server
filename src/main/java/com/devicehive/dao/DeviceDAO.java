@@ -17,6 +17,7 @@ public class DeviceDAO {
                                                                         "ON dc.id = d.device_class_id " +
                                                                         "WHERE d.guid IN (:guids)";
     private static final String UPDATE_DEVICES_STATUSES = "UPDATE device SET status =:status WHERE guid IN (:guids)";
+    private static final String GET_ONLINE_DEVICE_GUIDS = "SELECT guid FROM device WHERE LOWER(status) = LOWER('Online')";
 
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -53,5 +54,8 @@ public class DeviceDAO {
         return deviceInfo;
     }
 
+    public List<String> getDeviceOnlineGuids() {
+        return jdbcTemplate.getJdbcOperations().queryForList(GET_ONLINE_DEVICE_GUIDS, String.class);
+    }
 
 }

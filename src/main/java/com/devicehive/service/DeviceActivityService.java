@@ -36,6 +36,10 @@ public class DeviceActivityService {
     @PostConstruct
     public void postConstruct() {
         deviceActivityMap = hzInstance.getMap(DEVICE_ACTIVITY_MAP);
+        final List<String> deviceOnlineGuids = deviceDAO.getDeviceOnlineGuids();
+        if(!deviceOnlineGuids.isEmpty()) {
+            deviceDAO.changeStatusForDevices(DEVICE_OFFLINE_STATUS, deviceOnlineGuids);
+        }
     }
 
     public void update(String deviceGuid) {
