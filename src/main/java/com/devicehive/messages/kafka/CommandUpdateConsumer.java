@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Created by tmatvienko on 1/30/15.
  */
-public class CommandUpdateConsumer extends AbstractConsumer<DeviceCommand> {
+public class CommandUpdateConsumer implements IConsumer<DeviceCommand>{
     private static final Logger logger = LoggerFactory.getLogger(CommandUpdateConsumer.class);
 
     @Autowired
