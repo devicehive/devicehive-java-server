@@ -7,15 +7,19 @@ import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.apache.curator.x.discovery.UriSpec;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
 
 @Configuration
 public class CuratorConfiguration {
+
+    @Autowired
+    private Environment env;
 
     @Bean(initMethod = "start", destroyMethod = "close")
     ServiceDiscovery<Void> serviceDiscovery(CuratorFramework curatorFramework, ServiceInstance<Void> serviceInstance) throws Exception {
@@ -34,14 +38,12 @@ public class CuratorConfiguration {
     }
 
     @Bean
-    ServiceInstance<Void> serviceInstance(@Value("${hazelcast.port}") int port, ApplicationContext applicationContext,
-                                          CuratorFramework curatorFramework) throws Exception {
-        final String hostName = InetAddress.getLocalHost().getHostName();
+    ServiceInstance<Void> serviceInstance(@Value("${hazelcast.port}") int port) throws Exception {
         return ServiceInstance
                 .<Void>builder()
-                .name(applicationContext.getId())
+                .name(env.getProperty("curator.service"))
                 .uriSpec(new UriSpec("{address}:{port}"))
-                .address(hostName)
+                .address(InetAddress.getLocalHost().getHostName())
                 .port(port)
                 .build();
     }

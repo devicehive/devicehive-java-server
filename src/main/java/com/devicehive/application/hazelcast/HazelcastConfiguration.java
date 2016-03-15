@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -34,15 +33,10 @@ public class HazelcastConfiguration {
     @Lazy(value = false)
     @Order(value = Ordered.HIGHEST_PRECEDENCE)
     public HazelcastInstance hazelcast(Config config) {
-        logger.debug("Initializing Hazelcast, checking for instance {}", INSTANCE_NAME);
         logger.debug("Creating new Hazelcast instance {}", INSTANCE_NAME);
-        HazelcastInstance instance = Hazelcast.getHazelcastInstanceByName(INSTANCE_NAME);
-        if (instance == null) {
-            config.setInstanceName(INSTANCE_NAME);
-            config.setManagedContext(hzSpringManagedContext());
-
-            instance = Hazelcast.newHazelcastInstance(config);
-        }
+        config.setInstanceName(INSTANCE_NAME);
+        config.setManagedContext(hzSpringManagedContext());
+        HazelcastInstance instance = Hazelcast.newHazelcastInstance(config);
         logger.info("Initializing Hazelcast is complete");
         return instance;
     }
@@ -78,9 +72,9 @@ public class HazelcastConfiguration {
 
 
     @Bean
-    public TcpIpConfig tcpIpConfig(ServiceDiscovery<Void> serviceDiscovery, ApplicationContext context) throws Exception {
+    public TcpIpConfig tcpIpConfig(ServiceDiscovery<Void> serviceDiscovery) throws Exception {
         final TcpIpConfig tcpIpConfig = new TcpIpConfig();
-        final List<String> instances = queryOtherInstancesInZk(context.getId(), serviceDiscovery);
+        final List<String> instances = queryOtherInstancesInZk(env.getProperty("curator.service"), serviceDiscovery);
         tcpIpConfig.setMembers(instances);
         tcpIpConfig.setEnabled(true);
         return tcpIpConfig;
