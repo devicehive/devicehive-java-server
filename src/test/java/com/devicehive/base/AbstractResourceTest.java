@@ -52,7 +52,7 @@ public abstract class AbstractResourceTest {
     @ClassRule
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
-    @Value("${server.port}")
+    @Value("${server.port ?: 8080}")
     protected Integer port;
 
     private String httpBaseUri;
