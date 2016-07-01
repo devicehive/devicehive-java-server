@@ -611,6 +611,7 @@
                     <version>${springboot.version}</version>
                     <configuration>
                         <classifier>boot</classifier>
+                        <layout>ZIP</layout>
                         <addResources>false</addResources>
                     </configuration>
                     <executions>
