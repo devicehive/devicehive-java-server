@@ -20,7 +20,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity(name = "User")
 @Table(name = "\"user\"")
 @NamedQueries({
-        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"),
+        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"), //TODO this actually finds by login, not name - consider refactoring
         @NamedQuery(name = "User.findByGoogleName", query = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3"),
         @NamedQuery(name = "User.findByFacebookName", query = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3"),
         @NamedQuery(name = "User.findByGithubName", query = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3"),

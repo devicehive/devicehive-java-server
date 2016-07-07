@@ -5,7 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.UserDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
@@ -50,7 +50,7 @@ public class UserService {
     @Autowired
     private PasswordProcessor passwordService;
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private UserDaoImpl userDao;
     @Autowired
     private TimestampService timestampService;
     @Autowired
@@ -66,10 +66,7 @@ public class UserService {
      */
     @Transactional(noRollbackFor = ActionNotAllowedException.class)
     public User authenticate(String login, String password) {
-        Optional<User> userOpt = genericDAO.createNamedQuery(User.class, "User.findByName", of(CacheConfig.get()))
-                .setParameter("login", login)
-                .getResultList()
-                .stream().findFirst();
+        Optional<User> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             return null;
         }
@@ -79,18 +76,15 @@ public class UserService {
 
     @Transactional(noRollbackFor = AccessDeniedException.class)
     public User findUser(String login, String password) {
-        User user = genericDAO.createNamedQuery(User.class, "User.findByName", empty())
-                .setParameter("login", login)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        if (user == null) {
+        Optional<User> userOpt = userDao.findByName(login);
+        if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
             throw new AccessDeniedException(Messages.USER_NOT_FOUND);
-        } else if (user.getStatus() != UserStatus.ACTIVE) {
+        } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
             logger.error("User with login {} is not active", login);
             throw new AccessDeniedException(Messages.USER_NOT_ACTIVE);
         }
-        return checkPassword(user, password)
+        return checkPassword(userOpt.get(), password)
                 .orElseThrow(() -> new AccessDeniedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
@@ -111,7 +105,7 @@ public class UserService {
                 user.setStatus(UserStatus.LOCKED_OUT);
                 user.setLoginAttempts(0);
             }
-            genericDAO.merge(user);
+            userDao.merge(user);
             return empty();
         }
         return of(user);
@@ -127,12 +121,12 @@ public class UserService {
             update = true;
             user.setLastLogin(timestampService.getTimestamp());
         }
-        return update ? genericDAO.merge(user) : user;
+        return update ? userDao.merge(user) : user;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
-        User existing = genericDAO.find(User.class, id);
+        User existing = userDao.find(User.class, id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
@@ -144,11 +138,9 @@ public class UserService {
         if (userToUpdate.getLogin() != null) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             final String oldLogin = existing.getLogin();
-            User withSuchLogin = genericDAO.createNamedQuery(User.class, "User.findByName", empty())
-                    .setParameter("login", newLogin)
-                    .getResultList()
-                    .stream().findFirst().orElse(null);
-            if (withSuchLogin != null && !withSuchLogin.getId().equals(id)) {
+            Optional<User> withSuchLogin = userDao.findByName(newLogin);
+
+            if (withSuchLogin.isPresent() && !withSuchLogin.get().getId().equals(id)) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
             }
             existing.setLogin(newLogin);
@@ -161,13 +153,8 @@ public class UserService {
                     userToUpdate.getGithubLogin().orElse(null) : null;
 
             if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                Optional<User> userWithSameIdentity = genericDAO.createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
-                        .setParameter("login", oldLogin)
-                        .setParameter("googleLogin", googleLogin)
-                        .setParameter("facebookLogin", facebookLogin)
-                        .setParameter("githubLogin", githubLogin)
-                        .getResultList()
-                        .stream().findFirst();
+                Optional<User> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
+                        facebookLogin, githubLogin);
                 if (userWithSameIdentity.isPresent()) {
                     throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
                 }
@@ -211,7 +198,7 @@ public class UserService {
             existing.setData(userToUpdate.getData().orElse(null));
         }
         hiveValidator.validate(existing);
-        return genericDAO.merge(existing);
+        return userDao.merge(existing);
     }
 
     /**
@@ -222,12 +209,12 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = genericDAO.find(User.class, userId);
+        User existingUser = userDao.find(User.class, userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        Network existingNetwork = genericDAO.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
+        Network existingNetwork = userDao.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
                 .setParameter("id", networkId)
                 .getResultList()
                 .stream().findFirst()
@@ -235,7 +222,7 @@ public class UserService {
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
         existingNetwork.setUsers(usersSet);
-        genericDAO.merge(existingNetwork);
+        userDao.merge(existingNetwork);
     }
 
     /**
@@ -246,25 +233,25 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = genericDAO.find(User.class, userId);
+        User existingUser = userDao.find(User.class, userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        genericDAO.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
+        userDao.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
                 .setParameter("id", networkId)
                 .getResultList()
                 .stream().findFirst()
                 .ifPresent(existingNetwork -> {
                     existingNetwork.getUsers().remove(existingUser);
-                    genericDAO.merge(existingNetwork);
+                    userDao.merge(existingNetwork);
                 });
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
-        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaBuilder cb = userDao.criteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
         Root<User> from = cq.from(User.class);
 
@@ -272,8 +259,8 @@ public class UserService {
         cq.where(predicates);
         CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
 
-        TypedQuery<User> query = genericDAO.createQuery(cq);
-        genericDAO.cacheQuery(query, of(CacheConfig.refresh()));
+        TypedQuery<User> query = userDao.createQuery(cq);
+        userDao.cacheQuery(query, of(CacheConfig.refresh()));
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
         return query.getResultList();
@@ -287,7 +274,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public User findById(@NotNull long id) {
-        return genericDAO.find(User.class, id);
+        return userDao.find(User.class, id);
     }
 
     /**
@@ -299,10 +286,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findUserWithNetworks(@NotNull long id) {
-        return genericDAO.createNamedQuery(User.class, "User.getWithNetworksById", of(CacheConfig.refresh()))
-                .setParameter("id", id)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return userDao.getWithNetworksById(id);
 
     }
 
@@ -313,10 +297,7 @@ public class UserService {
         }
         final String userLogin = StringUtils.trim(user.getLogin());
         user.setLogin(userLogin);
-        Optional<User> existing = genericDAO.createNamedQuery(User.class, "User.findByName", of(CacheConfig.bypass()))
-                .setParameter("login", user.getLogin())
-                .getResultList()
-                .stream().findFirst();
+        Optional<User> existing = userDao.findByName(user.getLogin());
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
@@ -330,13 +311,8 @@ public class UserService {
         final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
         final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
         if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-            Optional<User> userWithSameIdentity = genericDAO.createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
-                    .setParameter("login", userLogin)
-                    .setParameter("googleLogin", googleLogin)
-                    .setParameter("facebookLogin", facebookLogin)
-                    .setParameter("githubLogin", githubLogin)
-                    .getResultList()
-                    .stream().findFirst();
+            Optional<User> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
+                    facebookLogin, githubLogin);
             if (userWithSameIdentity.isPresent()) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
             }
@@ -346,7 +322,7 @@ public class UserService {
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         hiveValidator.validate(user);
-        genericDAO.persist(user);
+        userDao.persist(user);
         return user;
     }
 
@@ -358,19 +334,14 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean deleteUser(long id) {
-        int result = genericDAO.createNamedQuery("User.deleteById", of(CacheConfig.bypass()))
-                .setParameter("id", id)
-                .executeUpdate();
+        int result = userDao.deleteById(id);
         return result > 0;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToDevice(User user, String deviceGuid) {
         if (!user.isAdmin()) {
-            long count = genericDAO.createNamedQuery(Long.class, "User.hasAccessToDevice", empty())
-                    .setParameter("user", user)
-                    .setParameter("guid", deviceGuid)
-                    .getSingleResult();
+            long count = userDao.hasAccessToDevice(user, deviceGuid);
             return count > 0;
         }
         return true;
@@ -379,10 +350,7 @@ public class UserService {
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToNetwork(User user, Network network) {
         if (!user.isAdmin()) {
-            long count = genericDAO.createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())
-                    .setParameter("user", user)
-                    .setParameter("network", network)
-                    .getSingleResult();
+            long count = userDao.hasAccessToNetwork(user, network);
             return count > 0;
         }
         return true;
@@ -390,26 +358,17 @@ public class UserService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findGoogleUser(String login) {
-        return genericDAO.createNamedQuery(User.class, "User.findByGoogleName", empty())
-                .setParameter("login", login)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return userDao.findByGoogleName(login);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findFacebookUser(String login) {
-        return genericDAO.createNamedQuery(User.class, "User.findByFacebookName", empty())
-                .setParameter("login", login)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return userDao.findByFacebookName(login);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public User findGithubUser(String login) {
-        return genericDAO.createNamedQuery(User.class, "User.findByGithubName", empty())
-                .setParameter("login", login)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return userDao.findByGithubName(login);
     }
 
     @Transactional
