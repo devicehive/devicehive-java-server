@@ -3,9 +3,10 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -61,7 +62,7 @@ public class AccessKeyService {
     private TimestampService timestampService;
 
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private AccessKeyDaoImpl accessKeyDao;
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -71,10 +72,7 @@ public class AccessKeyService {
         if (accessKey.getLabel() == null) {
             throw new IllegalParametersException(Messages.LABEL_IS_REQUIRED);
         }
-        Optional<AccessKey> akOpt = genericDAO.createNamedQuery(AccessKey.class, "AccessKey.getByUserAndLabel", Optional.<CacheConfig>empty())
-                .setParameter("userId", user.getId())
-                .setParameter("label", accessKey.getLabel())
-                .getResultList().stream().findFirst();
+        Optional<AccessKey> akOpt = accessKeyDao.getByUserAndLabel(user, accessKey.getLabel());
         if (akOpt.isPresent()) {
             logger.error("Access key with label {} already exists", accessKey.getLabel());
             throw new ActionNotAllowedException(Messages.DUPLICATE_LABEL_FOUND);
@@ -88,13 +86,13 @@ public class AccessKeyService {
         String key = keyProcessor.generateKey();
         accessKey.setKey(key);
         accessKey.setUser(user);
-        genericDAO.persist(accessKey);
+        accessKeyDao.persist(accessKey);
         for (AccessKeyPermission current : accessKey.getPermissions()) {
             AccessKeyPermission permission = preparePermission(current);
             permission.setAccessKey(accessKey);
-            genericDAO.persist(permission);
+            accessKeyDao.persist(permission);
         }
-        return genericDAO.find(AccessKey.class, accessKey.getId());
+        return accessKeyDao.find(AccessKey.class, accessKey.getId());
     }
 
     @Transactional
@@ -129,7 +127,7 @@ public class AccessKeyService {
             for (AccessKeyPermission current : permissionsToReplace) {
                 AccessKeyPermission permission = preparePermission(current);
                 permission.setAccessKey(existing);
-                genericDAO.persist(permission);
+                accessKeyDao.persist(permission);
             }
         }
         return true;
@@ -137,9 +135,7 @@ public class AccessKeyService {
 
     @Transactional
     public AccessKey authenticate(@NotNull String key) {
-        Optional<AccessKey> accessKeyOpt = genericDAO.createNamedQuery(AccessKey.class, "AccessKey.getByKey", Optional.of(CacheConfig.get()))
-                .setParameter("someKey", key)
-                .getResultList().stream().findFirst();
+        Optional<AccessKey> accessKeyOpt = accessKeyDao.getByKey(key);
         if (!accessKeyOpt.isPresent()) {
             return null;
         }
@@ -150,7 +146,7 @@ public class AccessKeyService {
             if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod / 2) {
                 em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
                 accessKey.setExpirationDate(new Date(timestampService.getTimestamp().getTime() + expirationPeriod));
-                return genericDAO.merge(accessKey);
+                return accessKeyDao.merge(accessKey);
             }
         }
         return accessKey;
@@ -180,20 +176,16 @@ public class AccessKeyService {
         final AccessKeyPermission permission = authenticationUtils.preparePermission(user.getRole());
         permissions.add(permission);
         accessKey.setPermissions(permissions);
-        genericDAO.persist(accessKey);
+        accessKeyDao.persist(accessKey);
 
         permission.setAccessKey(accessKey);
-        genericDAO.persist(permission);
+        accessKeyDao.persist(permission);
         return accessKey;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public AccessKey find(@NotNull Long keyId, @NotNull Long userId) {
-        return genericDAO.createNamedQuery(AccessKey.class, "AccessKey.getById", Optional.of(CacheConfig.refresh()))
-                .setParameter("userId", userId)
-                .setParameter("accessKeyId", keyId)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return accessKeyDao.getById(keyId, userId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -222,7 +214,7 @@ public class AccessKeyService {
         User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
         Set<AccessKeyPermission> toRemove = new HashSet<>();
 
-        Device device = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", of(CacheConfig.refresh()))
+        Device device = accessKeyDao.createNamedQuery(Device.class, "Device.findByUUID", of(CacheConfig.refresh()))
                 .setParameter("guid", deviceGuid)
                 .getSingleResult();
 
@@ -286,7 +278,7 @@ public class AccessKeyService {
 
     private void deleteAccessKeyPermissions(AccessKey key) {
         logger.debug("Deleting all permission of access key {}", key.getId());
-        int deleted = genericDAO.createNamedQuery("AccessKeyPermission.deleteByAccessKey", Optional.<CacheConfig>empty())
+        int deleted = accessKeyDao.createNamedQuery("AccessKeyPermission.deleteByAccessKey", Optional.<CacheConfig>empty())
                 .setParameter("accessKey", key)
                 .executeUpdate();
         logger.info("Deleted {} permissions by access key {}", deleted, key.getId());
@@ -316,7 +308,7 @@ public class AccessKeyService {
         existing.setKey(key);
         for (AccessKeyPermission current : permissions) {
             current.setAccessKey(existing);
-            genericDAO.persist(current);
+            accessKeyDao.persist(current);
         }
         return existing;
     }
@@ -326,7 +318,7 @@ public class AccessKeyService {
                                 String labelPattern, Integer type,
                                 String sortField, Boolean sortOrderAsc,
                                 Integer take, Integer skip) {
-        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaBuilder cb = accessKeyDao.criteriaBuilder();
         CriteriaQuery<AccessKey> cq = cb.createQuery(AccessKey.class);
         Root<AccessKey> from = cq.from(AccessKey.class);
 
@@ -334,23 +326,17 @@ public class AccessKeyService {
         cq.where(predicates);
         CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
 
-        TypedQuery<AccessKey> query = genericDAO.createQuery(cq);
+        TypedQuery<AccessKey> query = accessKeyDao.createQuery(cq);
         ofNullable(skip).ifPresent(query::setFirstResult);
         ofNullable(take).ifPresent(query::setMaxResults);
-        genericDAO.cacheQuery(query, of(CacheConfig.bypass()));
+        accessKeyDao.cacheQuery(query, of(CacheConfig.bypass()));
         return query.getResultList();
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean delete(Long userId, @NotNull Long keyId) {
-        int removed = ofNullable(userId).map(id ->
-                genericDAO.createNamedQuery("AccessKey.deleteByIdAndUser", Optional.<CacheConfig>empty())
-                        .setParameter("accessKeyId", keyId)
-                        .setParameter("userId", id)
-                        .executeUpdate())
-                .orElseGet(() -> genericDAO.createNamedQuery("AccessKey.deleteById", Optional.<CacheConfig>empty())
-                        .setParameter("accessKeyId", keyId)
-                        .executeUpdate());
+        int removed = ofNullable(userId).map(id -> accessKeyDao.deleteByIdAndUser(keyId, id))
+                .orElseGet(() -> accessKeyDao.deleteById(keyId));
         return removed > 0;
     }
 
@@ -378,9 +364,7 @@ public class AccessKeyService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void removeExpiredKeys() {
         logger.debug("Removing expired access keys");
-        int removed = genericDAO.createNamedQuery("AccessKey.deleteOlderThan", Optional.<CacheConfig>empty())
-                .setParameter("expirationDate", timestampService.getTimestamp())
-                .executeUpdate();
+        int removed = accessKeyDao.deleteOlderThan(timestampService.getTimestamp());
         logger.info("Removed {} expired access keys", removed);
     }
 }
