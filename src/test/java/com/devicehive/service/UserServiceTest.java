@@ -4,7 +4,7 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.Network;
@@ -38,7 +38,7 @@ public class UserServiceTest extends AbstractResourceTest {
     @Autowired
     private NetworkService networkService;
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private UserDao userDao;
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
@@ -244,7 +244,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (ActionNotAllowedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = genericDAO.find(User.class, user.getId());
+            User updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -274,7 +274,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (ActionNotAllowedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = genericDAO.find(User.class, user.getId());
+            User updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -287,7 +287,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = genericDAO.find(User.class, user.getId());
+        User updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(0));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.LOCKED_OUT));
@@ -318,7 +318,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = genericDAO.find(User.class, user.getId());
+        User updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(1));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -418,7 +418,7 @@ public class UserServiceTest extends AbstractResourceTest {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
 
-        User updatedUser = genericDAO.find(User.class, user.getId());
+        User updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(1));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -471,7 +471,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (AccessDeniedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = genericDAO.find(User.class, user.getId());
+            User updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -484,7 +484,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = genericDAO.find(User.class, user.getId());
+        User updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(0));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.LOCKED_OUT));

@@ -79,4 +79,9 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .setParameter("id", id)
                 .executeUpdate();
     }
+
+    @Override
+    public User find(Long id) {
+        return find(User.class, id);
+    }
 }

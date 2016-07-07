@@ -15,4 +15,6 @@ public interface UserDao {
     long hasAccessToDevice(User user, String deviceGuid);
     User getWithNetworksById(long id);
     int deleteById(long id);
+
+    User find(Long id);
 }

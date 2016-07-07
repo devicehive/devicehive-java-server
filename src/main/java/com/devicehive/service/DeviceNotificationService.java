@@ -1,8 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.DeviceDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -21,7 +20,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
     @Autowired
     private TimestampService timestampService;
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private DeviceDao deviceDao;
 
     public DeviceNotification find(Long id, String guid) {
         return find(id, guid, DeviceNotification.class);
@@ -76,10 +75,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
 
     }
     private DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, Device device) {
-        device = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", device.getGuid())
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        device = deviceDao.findByUUID(device.getGuid());
         String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
         device.setStatus(status);
         return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);

@@ -6,7 +6,6 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.*;
 import com.devicehive.dao.rdbms.DeviceDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -38,8 +37,6 @@ public class DeviceService {
 
     @Autowired
     private DeviceNotificationService deviceNotificationService;
-    @Autowired
-    private GenericDaoImpl genericDAO;
     @Autowired
     private NetworkService networkService;
     @Autowired
@@ -99,7 +96,7 @@ public class DeviceService {
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
             }
-            genericDAO.persist(device);
+            deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
@@ -144,7 +141,7 @@ public class DeviceService {
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(deviceClass);
             device.setNetwork(network);
-            genericDAO.persist(device);
+            deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().orElse(null))) {
@@ -228,7 +225,7 @@ public class DeviceService {
             if (network != null) {
                 device.setNetwork(network);
             }
-            genericDAO.persist(device);
+            deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (deviceUpdate.getDeviceClass() != null) {
@@ -313,9 +310,7 @@ public class DeviceService {
     @Transactional
     public boolean deleteDevice(@NotNull String guid, HivePrincipal principal) {
         List<Device> existing = getDeviceList(Arrays.asList(guid), principal);
-        return existing.isEmpty() || genericDAO.createNamedQuery("Device.deleteByUUID", Optional.<CacheConfig>empty())
-                .setParameter("guid", guid)
-                .executeUpdate() != 0;
+        return existing.isEmpty() || deviceDao.deleteByUUID(guid) != 0;
     }
 
     @Transactional(readOnly = true)
@@ -332,34 +327,14 @@ public class DeviceService {
                                 Integer take,
                                 Integer skip,
                                 HivePrincipal principal) {
-        final CriteriaBuilder cb = genericDAO.criteriaBuilder();
-        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
-        final Root<Device> from = criteria.from(Device.class);
-
-        final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern),
-                ofNullable(status), ofNullable(networkId), ofNullable(networkName), ofNullable(deviceClassId),
-                ofNullable(deviceClassName), ofNullable(deviceClassVersion), ofNullable(principal));
-
-        criteria.where(predicates);
-        CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);
-
-        final TypedQuery<Device> query = genericDAO.createQuery(criteria);
-        genericDAO.cacheQuery(query, of(CacheConfig.refresh()));
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-        return query.getResultList();
+        return deviceDao.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
+                deviceClassVersion, sortField, sortOrderAsc, take, skip, principal);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> guids) {
-        final CriteriaBuilder cb = genericDAO.criteriaBuilder();
-        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
-        final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, guids, Optional.ofNullable(principal));
-        criteria.where(predicates);
-        final TypedQuery<Device> query = genericDAO.createQuery(criteria);
-        return query.getResultList().size();
+        return deviceDao.getAllowedDeviceCount(principal, guids);
     }
 
     @Transactional
@@ -381,14 +356,7 @@ public class DeviceService {
     }
 
     private List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
-        final CriteriaBuilder cb = genericDAO.criteriaBuilder();
-        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
-        final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, guids, Optional.ofNullable(principal));
-        criteria.where(predicates);
-        final TypedQuery<Device> query = genericDAO.createQuery(criteria);
-        CacheHelper.cacheable(query);
-        return query.getResultList();
+        return deviceDao.getDeviceList(guids, principal);
     }
 
 

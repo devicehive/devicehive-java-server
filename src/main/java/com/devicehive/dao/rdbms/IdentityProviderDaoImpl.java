@@ -37,4 +37,9 @@ public class IdentityProviderDaoImpl extends GenericDaoImpl implements IdentityP
     public IdentityProvider merge(IdentityProvider existing) {
         return super.merge(existing);
     }
+
+    @Override
+    public void persist(IdentityProvider identityProvider) {
+        super.persist(identityProvider);
+    }
 }

@@ -1,8 +1,6 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.EquipmentDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
@@ -25,8 +23,6 @@ import java.util.Optional;
 public class EquipmentService {
 
     @Autowired
-    private GenericDaoImpl genericDAO;
-    @Autowired
     private HiveValidator validationUtil;
     @Autowired
     private EquipmentDao equipmentDao;
@@ -45,7 +41,7 @@ public class EquipmentService {
 
     @Transactional
     public Equipment create(Equipment equipment) {
-        genericDAO.persist(equipment);
+        equipmentDao.persist(equipment);
         return equipment;
     }
 
@@ -83,7 +79,7 @@ public class EquipmentService {
         if (equipmentUpdate == null) {
             return true;
         }
-        Equipment stored = genericDAO.find(Equipment.class, equipmentId);
+        Equipment stored = equipmentDao.find(equipmentId);
         if (stored == null || stored.getDeviceClass().getId() != deviceClassId) {
             return false; // equipment with id = equipmentId does not exists
         }
@@ -100,7 +96,7 @@ public class EquipmentService {
             stored.setData(equipmentUpdate.getData().orElse(null));
         }
         validationUtil.validate(stored);
-        genericDAO.merge(stored);
+        equipmentDao.merge(stored);
         return true;
     }
 }

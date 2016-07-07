@@ -1,8 +1,6 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.DeviceEquipmentDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-import static java.util.Optional.of;
 
 //TODO:javadoc
 @Component

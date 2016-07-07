@@ -16,4 +16,6 @@ public interface IdentityProviderDao {
     IdentityProvider find(@NotNull Long id);
 
     IdentityProvider merge(IdentityProvider existing);
+
+    void persist(IdentityProvider identityProvider);
 }

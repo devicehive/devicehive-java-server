@@ -45,4 +45,19 @@ public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
                 .setParameter("deviceClassId", deviceClassId)
                 .executeUpdate() != 0;
     }
+
+    @Override
+    public void persist(Equipment equipment) {
+        super.persist(equipment);
+    }
+
+    @Override
+    public Equipment find(long equipmentId) {
+        return super.find(Equipment.class, equipmentId);
+    }
+
+    @Override
+    public Equipment merge(Equipment equipment) {
+        return super.merge(equipment);
+    }
 }

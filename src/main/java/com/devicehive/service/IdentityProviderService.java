@@ -1,9 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.IdentityProviderDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.util.HiveValidator;
@@ -13,7 +11,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
 
 /**
  * Created by tmatvienko on 11/17/14.

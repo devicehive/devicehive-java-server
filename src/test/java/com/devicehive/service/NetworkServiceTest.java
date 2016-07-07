@@ -5,7 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -44,7 +44,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private NetworkDao networkDao;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -91,7 +91,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getName(), is(network.getName()));
         assertThat(created.getDescription(), is(network.getDescription()));
 
-        created = genericDAO.find(Network.class, created.getId());
+        created = networkDao.find(created.getId());
         assertThat(created.getName(), is(network.getName()));
         assertThat(created.getDescription(), is(network.getDescription()));
     }
@@ -108,7 +108,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         boolean deleted = networkService.delete(created.getId());
         assertTrue(deleted);
 
-        created = genericDAO.find(Network.class, created.getId());
+        created = networkDao.find(created.getId());
         assertThat(created, nullValue());
     }
 
@@ -142,7 +142,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(update.getDescription().get(), is(updated.getDescription()));
         assertThat(update.getKey().get(), is(updated.getKey()));
 
-        network = genericDAO.find(Network.class, updated.getId());
+        network = networkDao.find(updated.getId());
         assertThat(update.getName().get(), is(network.getName()));
         assertThat(update.getDescription().get(), is(network.getDescription()));
         assertThat(update.getKey().get(), is(network.getKey()));
