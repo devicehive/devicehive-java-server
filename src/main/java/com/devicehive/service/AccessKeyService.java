@@ -7,6 +7,8 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
 import com.devicehive.dao.rdbms.AccesskeyPermissionDaoImpl;
+import com.devicehive.dao.rdbms.DeviceDao;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -66,6 +68,10 @@ public class AccessKeyService {
 
     @Autowired
     private AccesskeyPermissionDaoImpl accessKeyPermissionDao;
+    private GenericDaoImpl genericDAO;
+    @Autowired
+    private DeviceDao deviceDao;
+
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -217,9 +223,7 @@ public class AccessKeyService {
         User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
         Set<AccessKeyPermission> toRemove = new HashSet<>();
 
-        Device device = accessKeyDao.createNamedQuery(Device.class, "Device.findByUUID", of(CacheConfig.refresh()))
-                .setParameter("guid", deviceGuid)
-                .getSingleResult();
+        Device device = deviceDao.findByUUID(deviceGuid);
 
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getDeviceGuidsAsSet() == null) {

@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.*;
+import com.devicehive.dao.rdbms.DeviceDao;
 import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
@@ -51,6 +52,8 @@ public class DeviceService {
     private AccessKeyService accessKeyService;
     @Autowired
     private HiveValidator hiveValidator;
+    @Autowired
+    private DeviceDao deviceDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet,
@@ -84,10 +87,7 @@ public class DeviceService {
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
         network = findNetworkForAuth(network);
         DeviceClass deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().orElse(null))
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
             if (deviceClass != null) {
@@ -132,10 +132,7 @@ public class DeviceService {
                                               Set<Equipment> equipmentSet,
                                               AccessKey key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().orElse(null))
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
             logger.error("Access key {} has no access to device network {}", key, existingDevice.getNetwork().getId());
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
@@ -191,10 +188,7 @@ public class DeviceService {
         }
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().orElse(null))
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
             existingDevice.setDeviceClass(deviceClass);
         }
@@ -224,10 +218,7 @@ public class DeviceService {
         Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
         DeviceClass deviceClass = deviceClassService
             .createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), equipmentSet);
-        Device existingDevice = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", deviceUpdate.getGuid().orElse(null))
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 
         if (existingDevice == null) {
             Device device = deviceUpdate.convertTo();
@@ -309,10 +300,7 @@ public class DeviceService {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
 
-        Device device = genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.<CacheConfig>empty())
-                .setParameter("guid", deviceId)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        Device device = deviceDao.findByUUID(deviceId);
 
         if (device == null) {
             logger.error("Device with guid {} not found", deviceId);
@@ -387,10 +375,7 @@ public class DeviceService {
                 return false;
             }
             return CheckPermissionsHelper.checkFilteredPermissions(filtered.getKey().getPermissions(),
-                    genericDAO.createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                            .setParameter("guid", deviceGuid)
-                            .getResultList()
-                            .stream().findFirst().orElse(null));
+                    deviceDao.findByUUID(deviceGuid));
         }
         return false;
     }

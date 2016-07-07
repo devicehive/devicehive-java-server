@@ -4,6 +4,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
@@ -37,6 +38,8 @@ public class DeviceClassService {
     private EquipmentService equipmentService;
     @Autowired
     private HiveValidator hiveValidator;
+    @Autowired
+    private DeviceClassDao deviceClassDao;
 
     @Transactional
     public void delete(@NotNull long id) {
@@ -63,11 +66,8 @@ public class DeviceClassService {
         if (deviceClassFromMessage.getId() != null) {
             stored = genericDAO.find(DeviceClass.class, deviceClassFromMessage.getId());
         } else {
-            stored = genericDAO.createNamedQuery(DeviceClass.class, "DeviceClass.findByNameAndVersion", Optional.of(CacheConfig.get()))
-                    .setParameter("name", deviceClassFromMessage.getName())
-                    .setParameter("version", deviceClassFromMessage.getVersion())
-                    .getResultList()
-                    .stream().findFirst().orElse(null);
+            stored = deviceClassDao.findByNameAndVersion(deviceClassFromMessage.getName(),
+                    deviceClassFromMessage.getVersion());
         }
         if (stored != null) {
             //update
@@ -112,14 +112,9 @@ public class DeviceClassService {
         if (deviceClass.getId() != null) {
             throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
         }
-
-        genericDAO.createNamedQuery(DeviceClass.class, "DeviceClass.findByNameAndVersion", Optional.of(CacheConfig.get()))
-                .setParameter("name", deviceClass.getName())
-                .setParameter("version", deviceClass.getVersion())
-                .getResultList().stream().findFirst()
-                .ifPresent(r -> {
-                    throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
-                });
+        if (deviceClassDao.findByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
+            throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
+        }
         if (deviceClass.getPermanent() == null) {
             deviceClass.setPermanent(false);
         }

@@ -1,5 +1,7 @@
 package com.devicehive.dao.rdbms;
 
+import com.devicehive.dao.CacheConfig;
+import com.devicehive.model.Device;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -9,9 +11,10 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
-public class DeviceDaoImpl {
+public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
                                                                         "LEFT JOIN device_class dc " +
                                                                         "ON dc.id = d.device_class_id " +
@@ -54,4 +57,11 @@ public class DeviceDaoImpl {
     }
 
 
+    @Override
+    public Device findByUUID(String uuid) {
+        return createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
+                .setParameter("guid", uuid)
+                .getResultList()
+                .stream().findFirst().orElse(null);
+    }
 }
