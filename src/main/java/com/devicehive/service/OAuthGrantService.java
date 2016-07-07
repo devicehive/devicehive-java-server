@@ -2,7 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.OAuthGrantDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.OAuthClient;
@@ -35,7 +35,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 public class OAuthGrantService {
 
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private OAuthGrantDaoImpl oAuthGrantDao;
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
@@ -47,14 +47,11 @@ public class OAuthGrantService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public OAuthGrant get(@NotNull User user, @NotNull Long grantId) {
-        String queryName = user.isAdmin() ? "OAuthGrant.getById" : "OAuthGrant.getByIdAndUser";
-        TypedQuery<OAuthGrant> query = genericDAO.createNamedQuery(OAuthGrant.class, queryName, of(CacheConfig.refresh()))
-                .setParameter("grantId", grantId);
-        if (!user.isAdmin()) {
-            query.setParameter("user", user);
+        if (user.isAdmin()) {
+            return oAuthGrantDao.getById(grantId);
+        } else {
+            return oAuthGrantDao.getByIdAndUser(user, grantId);
         }
-        return query.getResultList()
-                .stream().findFirst().orElse(null);
     }
 
     @Transactional
@@ -74,29 +71,26 @@ public class OAuthGrantService {
             grant.setAuthCode(UUID.randomUUID().toString());
         }
 
-        genericDAO.persist(grant);
+        oAuthGrantDao.persist(grant);
         return grant;
     }
 
     @Transactional
     public boolean delete(@NotNull User user, @NotNull Long grantId) {
-        String queryName = user.isAdmin() ? "OAuthGrant.getById" : "OAuthGrant.getByIdAndUser";
-        TypedQuery<OAuthGrant> query = genericDAO.createNamedQuery(OAuthGrant.class, queryName, of(CacheConfig.get()))
-                .setParameter("grantId", grantId);
-        if (!user.isAdmin()) {
-            query.setParameter("user", user);
+        OAuthGrant existing;
+        if (user.isAdmin()) {
+            existing = oAuthGrantDao.getById(grantId);
+        } else {
+            existing = oAuthGrantDao.getByIdAndUser(user, grantId);
         }
-        Optional<OAuthGrant> existingOpt = query.getResultList().stream().findFirst();
-        if (!existingOpt.isPresent()) {
+
+        if (existing == null) {
             return true;
         }
-        OAuthGrant existing = existingOpt.get();
+
         accessKeyService.delete(user.isAdmin() ? null : user.getId(), existing.getAccessKey().getId());
 
-        int result = genericDAO.createNamedQuery("OAuthGrant.deleteByUserAndId", of(CacheConfig.refresh()))
-                .setParameter("grantId", grantId)
-                .setParameter("user", user)
-                .executeUpdate();
+        int result = oAuthGrantDao.deleteByUserAndId(user, grantId);
         return result > 0;
     }
 
@@ -159,7 +153,7 @@ public class OAuthGrantService {
                                  Integer take,
                                  Integer skip) {
 
-        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaBuilder cb = oAuthGrantDao.criteriaBuilder();
         CriteriaQuery<OAuthGrant> cq = cb.createQuery(OAuthGrant.class);
         Root<OAuthGrant> from = cq.from(OAuthGrant.class);
         from.fetch("accessKey", JoinType.LEFT).fetch("permissions");
@@ -170,7 +164,7 @@ public class OAuthGrantService {
         cq.where(predicates);
         order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrder));
 
-        TypedQuery<OAuthGrant> query = genericDAO.createQuery(cq);
+        TypedQuery<OAuthGrant> query = oAuthGrantDao.createQuery(cq);
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
 
@@ -179,11 +173,7 @@ public class OAuthGrantService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthGrant get(@NotNull String authCode, @NotNull String clientOAuthID) {
-        return genericDAO.createNamedQuery(OAuthGrant.class, "OAuthGrant.getByCodeAndOAuthID", of(CacheConfig.refresh()))
-                .setParameter("authCode", authCode)
-                .setParameter("oauthId", clientOAuthID)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return oAuthGrantDao.getByCodeAndOAuthID(authCode, clientOAuthID);
     }
 
 
@@ -229,7 +219,7 @@ public class OAuthGrantService {
             grant.setType(Type.PASSWORD);
             AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
             grant.setAccessKey(key);
-            genericDAO.persist(grant);
+            oAuthGrantDao.persist(grant);
         } else {
             AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(grant, user, now);
             grant.setAccessKey(key);
