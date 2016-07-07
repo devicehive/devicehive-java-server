@@ -6,6 +6,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.rdbms.UserDaoImpl;
+import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
@@ -49,6 +50,8 @@ public class UserService {
 
     @Autowired
     private PasswordProcessor passwordService;
+    @Autowired
+    private NetworkDao networkDao;
     @Autowired
     private UserDaoImpl userDao;
     @Autowired
@@ -214,15 +217,12 @@ public class UserService {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        Network existingNetwork = userDao.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
-                .setParameter("id", networkId)
-                .getResultList()
-                .stream().findFirst()
+        Network existingNetwork = networkDao.findWithUsers(networkId)
                 .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
         Set<User> usersSet = existingNetwork.getUsers();
         usersSet.add(existingUser);
         existingNetwork.setUsers(usersSet);
-        userDao.merge(existingNetwork);
+        networkDao.merge(existingNetwork);
     }
 
     /**

@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.IdentityProvider;
@@ -21,29 +22,23 @@ import java.util.Optional;
 public class IdentityProviderService {
 
     @Autowired
-    private GenericDaoImpl genericDAO;
-    @Autowired
     private HiveValidator hiveValidator;
+    @Autowired
+    IdentityProviderDao identityProviderDao;
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public IdentityProvider find(@NotNull Long id) {
-        return genericDAO.find(IdentityProvider.class, id);
+        return identityProviderDao.find(id);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public IdentityProvider find(@NotNull String name) {
-        return genericDAO.createNamedQuery(IdentityProvider.class, "IdentityProvider.getByName", Optional.of(CacheConfig.refresh()))
-                .setParameter("name", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return identityProviderDao.getByName(name);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean delete(@NotNull Long id) {
-        int result = genericDAO.createNamedQuery("IdentityProvider.deleteById", Optional.of(CacheConfig.bypass()))
-                .setParameter("id", id)
-                .executeUpdate();
-        return result > 0;
+        return identityProviderDao.deleteById(id);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -59,6 +54,6 @@ public class IdentityProviderService {
             existing.setApiEndpoint(identityProvider.getApiEndpoint());
         }
         hiveValidator.validate(existing);
-        return genericDAO.merge(existing);
+        return identityProviderDao.merge(existing);
     }
 }
