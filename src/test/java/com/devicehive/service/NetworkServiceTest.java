@@ -5,7 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -44,7 +44,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Autowired
     private ConfigurationService configurationService;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

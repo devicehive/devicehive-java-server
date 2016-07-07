@@ -5,7 +5,7 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -45,7 +45,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     @Autowired
     private DeviceService deviceService;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

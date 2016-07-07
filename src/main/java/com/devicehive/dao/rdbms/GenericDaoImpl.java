@@ -1,6 +1,7 @@
-package com.devicehive.dao;
+package com.devicehive.dao.rdbms;
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.CacheConfig;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,8 +13,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
+
 @Repository
-public class GenericDAO {
+public class GenericDaoImpl {
     public static final String CACHEABLE = "org.hibernate.cacheable";
     public static final String RETRIEVE_MODE = "javax.persistence.cache.retrieveMode";
     public static final String STORE_MODE = "javax.persistence.cache.storeMode";

@@ -1,7 +1,7 @@
 package com.devicehive.configuration;
 
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public class ConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     @Transactional
     public <T> void save(@NotNull String name, T value) {

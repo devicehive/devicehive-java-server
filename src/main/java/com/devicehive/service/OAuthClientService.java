@@ -4,7 +4,7 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.OAuthClient;
@@ -35,7 +35,7 @@ public class OAuthClientService {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientService.class);
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 

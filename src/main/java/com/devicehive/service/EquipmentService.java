@@ -1,7 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class EquipmentService {
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
     @Autowired
     private HiveValidator validationUtil;
 

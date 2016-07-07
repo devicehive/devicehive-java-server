@@ -1,6 +1,6 @@
 package com.devicehive.service;
 
-import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.rdbms.DeviceDaoImpl;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class DeviceActivityService {
     private static final String DEVICE_ACTIVITY_MAP = "DEVICE-ACTIVITY";
 
     @Autowired
-    private DeviceDAO deviceDAO;
+    private DeviceDaoImpl deviceDAO;
 
     @Autowired
     private HazelcastInstance hzInstance;

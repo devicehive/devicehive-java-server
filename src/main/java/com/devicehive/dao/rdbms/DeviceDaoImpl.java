@@ -1,4 +1,4 @@
-package com.devicehive.dao;
+package com.devicehive.dao.rdbms;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class DeviceDAO {
+public class DeviceDaoImpl {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
                                                                         "LEFT JOIN device_class dc " +
                                                                         "ON dc.id = d.device_class_id " +

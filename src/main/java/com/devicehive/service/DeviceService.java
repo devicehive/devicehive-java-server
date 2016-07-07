@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.*;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -37,7 +38,7 @@ public class DeviceService {
     @Autowired
     private DeviceNotificationService deviceNotificationService;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
     @Autowired
     private NetworkService networkService;
     @Autowired

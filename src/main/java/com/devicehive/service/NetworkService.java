@@ -8,7 +8,7 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -49,7 +49,7 @@ public class NetworkService {
     @Autowired
     private HiveValidator hiveValidator;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {

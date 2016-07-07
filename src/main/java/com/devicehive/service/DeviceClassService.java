@@ -4,7 +4,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -32,7 +32,7 @@ import static javax.ws.rs.core.Response.Status.*;
 public class DeviceClassService {
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
     @Autowired
     private EquipmentService equipmentService;
     @Autowired

@@ -1,7 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
@@ -23,7 +23,7 @@ import static java.util.Optional.of;
 public class DeviceEquipmentService {
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
     @Autowired
     private TimestampService timestampService;
 

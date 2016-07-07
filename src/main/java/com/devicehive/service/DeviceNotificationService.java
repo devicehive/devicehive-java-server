@@ -2,7 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -21,7 +21,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
     @Autowired
     private TimestampService timestampService;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     public DeviceNotification find(Long id, String guid) {
         return find(id, guid, DeviceNotification.class);

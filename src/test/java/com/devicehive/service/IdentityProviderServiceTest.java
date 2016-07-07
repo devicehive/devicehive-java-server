@@ -2,7 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.IdentityProvider;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -28,7 +28,7 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
     @Autowired
     private IdentityProviderService identityProviderService;
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

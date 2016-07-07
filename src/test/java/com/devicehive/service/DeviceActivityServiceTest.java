@@ -1,7 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.dao.DeviceDAO;
+import com.devicehive.dao.rdbms.DeviceDaoImpl;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.junit.Before;
@@ -29,7 +29,7 @@ public class DeviceActivityServiceTest {
 
 
     @Mock
-    private DeviceDAO deviceDAO;
+    private DeviceDaoImpl deviceDAO;
 
     @Mock
     private HazelcastInstance hzInstance;

@@ -2,7 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.GenericDAO;
+import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.OAuthClient;
@@ -35,7 +35,7 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 public class OAuthGrantService {
 
     @Autowired
-    private GenericDAO genericDAO;
+    private GenericDaoImpl genericDAO;
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
