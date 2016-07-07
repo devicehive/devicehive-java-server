@@ -4,7 +4,7 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.OAuthClientDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.OAuthClient;
@@ -35,13 +35,13 @@ public class OAuthClientService {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientService.class);
 
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private OAuthClientDaoImpl oAuthClientDao;
 
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient get(@NotNull Long id) {
-        return genericDAO.find(OAuthClient.class, id);
+        return oAuthClientDao.find(OAuthClient.class, id);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -53,7 +53,7 @@ public class OAuthClientService {
                                  Boolean sortOrderAsc,
                                  Integer take,
                                  Integer skip) {
-        CriteriaBuilder cb = genericDAO.criteriaBuilder();
+        CriteriaBuilder cb = oAuthClientDao.criteriaBuilder();
         CriteriaQuery<OAuthClient> cq = cb.createQuery(OAuthClient.class);
         Root<OAuthClient> from = cq.from(OAuthClient.class);
 
@@ -61,7 +61,7 @@ public class OAuthClientService {
         cq.where(predicates);
         CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
 
-        TypedQuery<OAuthClient> query = genericDAO.createQuery(cq);
+        TypedQuery<OAuthClient> query = oAuthClientDao.createQuery(cq);
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
 
@@ -80,13 +80,13 @@ public class OAuthClientService {
             throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
         }
         client.setOauthSecret(secretGenerator.generateSalt());
-        genericDAO.persist(client);
+        oAuthClientDao.persist(client);
         return client;
     }
 
     @Transactional
     public boolean update(OAuthClientUpdate client, Long clientId) {
-        OAuthClient existing = genericDAO.find(OAuthClient.class, clientId);
+        OAuthClient existing = oAuthClientDao.find(OAuthClient.class, clientId);
         if (existing == null) {
             logger.error("OAuth client with id {} not found", clientId);
             throw new NoSuchElementException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId));
@@ -116,41 +116,29 @@ public class OAuthClientService {
         if (client.getOauthId() != null) {
             existing.setOauthId(client.getOauthId().orElse(null));
         }
-        genericDAO.merge(existing);
+        oAuthClientDao.merge(existing);
         return true;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public boolean delete(@NotNull Long id) {
-        int result = genericDAO.createNamedQuery("OAuthClient.deleteById", Optional.<CacheConfig>empty())
-                .setParameter("id", id)
-                .executeUpdate();
+        int result = oAuthClientDao.deleteById(id);
         return result > 0;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient getByOAuthID(String oauthID) {
-        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthId", Optional.of(CacheConfig.refresh()))
-                .setParameter("oauthId", oauthID)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return oAuthClientDao.getByOAuthId(oauthID);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient authenticate(@NotNull String id, @NotNull String secret) {
-        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthIdAndSecret", Optional.of(CacheConfig.get()))
-                .setParameter("oauthId", id)
-                .setParameter("secret", secret)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return oAuthClientDao.getByOAuthIdAndSecret(id, secret);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient getByName(String name) {
-        return genericDAO.createNamedQuery(OAuthClient.class, "OAuthClient.getByName", Optional.of(CacheConfig.refresh()))
-                .setParameter("name", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return oAuthClientDao.getByName(name);
     }
 }
 
