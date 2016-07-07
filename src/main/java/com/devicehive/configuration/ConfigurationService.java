@@ -1,7 +1,7 @@
 package com.devicehive.configuration;
 
 import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
+import com.devicehive.dao.rdbms.ConfigurationDaoImpl;
 import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ public class ConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
     @Autowired
-    private GenericDaoImpl genericDAO;
+    private ConfigurationDaoImpl configurationDao;
 
     @Transactional
     public <T> void save(@NotNull String name, T value) {
@@ -28,20 +28,17 @@ public class ConfigurationService {
         if (existingOpt.isPresent()) {
             Configuration existing = existingOpt.get();
             existing.setValue(str);
-            genericDAO.merge(existing);
+            configurationDao.merge(existing);
         } else {
             Configuration configuration = new Configuration();
             configuration.setName(name);
             configuration.setValue(str);
-            genericDAO.persist(configuration);
+            configurationDao.persist(configuration);
         }
     }
 
     private Optional<Configuration> findByName(String name) {
-        return genericDAO.createNamedQuery(Configuration.class, "Configuration.getByName", Optional.<CacheConfig>empty())
-                .setParameter("name", name)
-                .getResultList()
-                .stream().findFirst();
+        return configurationDao.getByName(name);
     }
 
     public String get(@NotNull String name) {
@@ -70,9 +67,7 @@ public class ConfigurationService {
 
     @Transactional
     public <T> void delete(@NotNull String name) {
-        int result = genericDAO.createNamedQuery("Configuration.delete", Optional.<CacheConfig>empty())
-                .setParameter("name", name)
-                .executeUpdate();
+        int result = configurationDao.delete(name);
         logger.info("Deleted {} configuration entries by name {}", result, name);
     }
 
