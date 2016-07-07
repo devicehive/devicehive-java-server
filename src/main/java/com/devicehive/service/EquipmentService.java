@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.EquipmentDao;
 import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -27,6 +28,8 @@ public class EquipmentService {
     private GenericDaoImpl genericDAO;
     @Autowired
     private HiveValidator validationUtil;
+    @Autowired
+    private EquipmentDao equipmentDao;
 
     /**
      * Delete Equipment (not DeviceEquipment, but whole equipment with appropriate device Equipments)
@@ -37,10 +40,7 @@ public class EquipmentService {
      */
     @Transactional
     public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
-        return genericDAO.createNamedQuery("Equipment.deleteByIdAndDeviceClass", Optional.<CacheConfig>empty())
-                .setParameter("id", equipmentId)
-                .setParameter("deviceClassId", deviceClassId)
-                .executeUpdate() != 0;
+        return equipmentDao.deleteByIdAndDeviceClass(equipmentId, deviceClassId);
     }
 
     @Transactional
@@ -57,25 +57,17 @@ public class EquipmentService {
      */
     @Transactional(readOnly = true)
     public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        return genericDAO.createNamedQuery(Equipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
-                .setParameter("id", equipmentId)
-                .setParameter("deviceClassId", deviceClassId)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return equipmentDao.getByDeviceClassAndId(deviceClassId, equipmentId);
     }
 
     @Transactional(readOnly = true)
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return genericDAO.createNamedQuery(Equipment.class, "Equipment.getByDeviceClass", Optional.of(CacheConfig.get()))
-                .setParameter("deviceClass", deviceClass)
-                .getResultList();
+        return equipmentDao.getByDeviceClass(deviceClass);
     }
 
     @Transactional
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return genericDAO.createNamedQuery("Equipment.deleteByDeviceClass", Optional.<CacheConfig>empty())
-                .setParameter("deviceClass", deviceClass)
-                .executeUpdate();
+        return equipmentDao.deleteByDeviceClass(deviceClass);
     }
 
     /**

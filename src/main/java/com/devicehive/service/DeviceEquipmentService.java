@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
@@ -26,6 +27,9 @@ public class DeviceEquipmentService {
     private GenericDaoImpl genericDAO;
     @Autowired
     private TimestampService timestampService;
+    @Autowired
+    private DeviceEquipmentDao deviceEquipmentDao;
+
 
 
     /**
@@ -36,18 +40,12 @@ public class DeviceEquipmentService {
      */
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceEquipment> findByFK(@NotNull Device device) {
-        return genericDAO.createNamedQuery(DeviceEquipment.class, "DeviceEquipment.getByDevice", of(CacheConfig.refresh()))
-                .setParameter("device", device)
-                .getResultList();
+        return deviceEquipmentDao.getByDevice(device);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
-        return genericDAO.createNamedQuery(DeviceEquipment.class, "DeviceEquipment.getByDeviceAndCode", of(CacheConfig.refresh()))
-                .setParameter("code", code)
-                .setParameter("device", device)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return deviceEquipmentDao.getByDeviceAndCode(code, device);
     }
 
     @Transactional

@@ -110,22 +110,22 @@ public class DeviceEquipment implements HiveEntity {
 
     public static class Queries {
 
-        public static interface Names {
+        public interface Names {
 
-            static final String DELETE_BY_ID = "DeviceEquipment.deleteById";
-            static final String GET_BY_DEVICE_AND_CODE = "DeviceEquipment.getByDeviceAndCode";
-            static final String DELETE_BY_FK = "DeviceEquipment.deleteByFK";
-            static final String GET_BY_DEVICE = "DeviceEquipment.getByDevice";
+            String DELETE_BY_ID = "DeviceEquipment.deleteById";
+            String GET_BY_DEVICE_AND_CODE = "DeviceEquipment.getByDeviceAndCode";
+            String DELETE_BY_FK = "DeviceEquipment.deleteByFK";
+            String GET_BY_DEVICE = "DeviceEquipment.getByDevice";
         }
 
-        static interface Values {
+        interface Values {
 
-            static final String DELETE_BY_ID = "delete from DeviceEquipment de where de.id = :id";
-            static final String GET_BY_DEVICE_AND_CODE =
+            String DELETE_BY_ID = "delete from DeviceEquipment de where de.id = :id";
+            String GET_BY_DEVICE_AND_CODE =
                 "select de from DeviceEquipment de " +
                 "where de.device = :device and de.code = :code";
-            static final String DELETE_BY_FK = "delete from DeviceEquipment de where de.device = :device";
-            static final String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device = :device";
+            String DELETE_BY_FK = "delete from DeviceEquipment de where de.device = :device";
+            String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device = :device";
         }
 
         public static interface Parameters {
