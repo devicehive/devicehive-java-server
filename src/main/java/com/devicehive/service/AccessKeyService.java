@@ -8,7 +8,6 @@ import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
 import com.devicehive.dao.rdbms.AccesskeyPermissionDaoImpl;
 import com.devicehive.dao.rdbms.DeviceDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -68,7 +67,7 @@ public class AccessKeyService {
 
     @Autowired
     private AccesskeyPermissionDaoImpl accessKeyPermissionDao;
-    private GenericDaoImpl genericDAO;
+
     @Autowired
     private DeviceDao deviceDao;
 

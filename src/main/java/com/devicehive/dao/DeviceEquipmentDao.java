@@ -10,6 +10,12 @@ import java.util.List;
  * Created by Gleb on 07.07.2016.
  */
 public interface DeviceEquipmentDao {
+
     List<DeviceEquipment> getByDevice(Device device);
+
     DeviceEquipment getByDeviceAndCode(@NotNull String code, @NotNull Device device);
+
+    DeviceEquipment merge(DeviceEquipment deviceEquipment);
+
+    void persist(DeviceEquipment deviceEquipment);
 }

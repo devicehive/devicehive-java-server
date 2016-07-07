@@ -33,4 +33,14 @@ public class DeviceEquipmentDaoImpl extends GenericDaoImpl implements DeviceEqui
                 .getResultList()
                 .stream().findFirst().orElse(null);
     }
+
+    @Override
+    public DeviceEquipment merge(DeviceEquipment deviceEquipment) {
+        return super.merge(deviceEquipment);
+    }
+
+    @Override
+    public void persist(DeviceEquipment deviceEquipment) {
+        super.persist(deviceEquipment);
+    }
 }

@@ -1,11 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CacheHelper;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.DeviceClassDao;
-import com.devicehive.dao.rdbms.GenericDaoImpl;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -17,23 +13,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.LockModeType;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static java.util.Optional.ofNullable;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Component
 public class DeviceClassService {
 
-    @Autowired
-    private GenericDaoImpl genericDAO;
     @Autowired
     private EquipmentService equipmentService;
     @Autowired
@@ -43,14 +31,14 @@ public class DeviceClassService {
 
     @Transactional
     public void delete(@NotNull long id) {
-        if (genericDAO.isExist(DeviceClass.class, id)) {
-            genericDAO.remove(genericDAO.getReference(DeviceClass.class, id));
+        if (deviceClassDao.isExist(id)) {
+            deviceClassDao.remove(deviceClassDao.getReference(id));
         }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceClass getWithEquipment(@NotNull long id) {
-        return genericDAO.find(DeviceClass.class, id);
+        return deviceClassDao.find(id);
     }
 
     @Transactional
@@ -64,7 +52,7 @@ public class DeviceClassService {
         //check is already done
         DeviceClass deviceClassFromMessage = deviceClass.orElse(null).convertTo();
         if (deviceClassFromMessage.getId() != null) {
-            stored = genericDAO.find(DeviceClass.class, deviceClassFromMessage.getId());
+            stored = deviceClassDao.find(deviceClassFromMessage.getId());
         } else {
             stored = deviceClassDao.findByNameAndVersion(deviceClassFromMessage.getName(),
                     deviceClassFromMessage.getVersion());
@@ -72,7 +60,7 @@ public class DeviceClassService {
         if (stored != null) {
             //update
             if (Boolean.FALSE.equals(stored.getPermanent())) {
-                genericDAO.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
+                deviceClassDao.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
                 if (deviceClass.orElse(null).getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());
                 }
@@ -97,7 +85,7 @@ public class DeviceClassService {
             if (deviceClassFromMessage.getPermanent() == null) {
                 deviceClassFromMessage.setPermanent(false);
             }
-            genericDAO.persist(deviceClassFromMessage);
+            deviceClassDao.persist(deviceClassFromMessage);
             Set<Equipment> eq = deviceClassFromMessage.getEquipment();
             eq = eq != null ? eq : customEquipmentSet;
             if (eq != null) {
@@ -118,7 +106,7 @@ public class DeviceClassService {
         if (deviceClass.getPermanent() == null) {
             deviceClass.setPermanent(false);
         }
-        genericDAO.persist(deviceClass);
+        deviceClassDao.persist(deviceClass);
         if (deviceClass.getEquipment() != null) {
             Set<Equipment> resultEquipment = createEquipment(deviceClass, deviceClass.getEquipment());
             deviceClass.setEquipment(resultEquipment);
@@ -128,7 +116,7 @@ public class DeviceClassService {
 
     @Transactional
     public void update(@NotNull Long id, DeviceClassUpdate update) {
-        DeviceClass stored = genericDAO.find(DeviceClass.class, id);
+        DeviceClass stored = deviceClassDao.find(id);
         if (stored == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, id),
                                     Response.Status.NOT_FOUND.getStatusCode());
@@ -156,7 +144,7 @@ public class DeviceClassService {
             stored.setVersion(update.getVersion().orElse(null));
         }
         hiveValidator.validate(stored);
-        genericDAO.merge(stored);
+        deviceClassDao.merge(stored);
     }
 
     @Transactional
@@ -195,7 +183,7 @@ public class DeviceClassService {
 
     @Transactional
     public Equipment createEquipment(Long classId, Equipment equipment) {
-        DeviceClass deviceClass = genericDAO.find(DeviceClass.class, classId);
+        DeviceClass deviceClass = deviceClassDao.find(classId);
 
         if (deviceClass == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, classId), NOT_FOUND.getStatusCode());
@@ -221,21 +209,7 @@ public class DeviceClassService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
-        final CriteriaBuilder cb = genericDAO.criteriaBuilder();
-        final CriteriaQuery<DeviceClass> criteria = cb.createQuery(DeviceClass.class);
-        final Root<DeviceClass> from = criteria.from(DeviceClass.class);
-
-        final Predicate[] predicates = CriteriaHelper.deviceClassListPredicates(cb, from, ofNullable(name),
-                ofNullable(namePattern), ofNullable(version));
-        criteria.where(predicates);
-        CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
-
-        final TypedQuery<DeviceClass> query = genericDAO.createQuery(criteria);
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-
-        CacheHelper.cacheable(query);
-        return query.getResultList();
+        return deviceClassDao.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);
     }
 
 }

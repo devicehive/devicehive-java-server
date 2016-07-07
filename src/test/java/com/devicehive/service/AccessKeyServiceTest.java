@@ -44,8 +44,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     private NetworkService networkService;
     @Autowired
     private DeviceService deviceService;
-    @Autowired
-    private GenericDaoImpl genericDAO;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

@@ -24,13 +24,9 @@ import static java.util.Optional.of;
 public class DeviceEquipmentService {
 
     @Autowired
-    private GenericDaoImpl genericDAO;
-    @Autowired
     private TimestampService timestampService;
     @Autowired
     private DeviceEquipmentDao deviceEquipmentDao;
-
-
 
     /**
      * find Device equipment by device
@@ -54,10 +50,10 @@ public class DeviceEquipmentService {
         if (equipment != null) {
             equipment.setTimestamp(timestampService.getTimestamp());
             equipment.setParameters(deviceEquipment.getParameters());
-            genericDAO.merge(equipment);
+            deviceEquipmentDao.merge(equipment);
         } else {
             deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            genericDAO.persist(deviceEquipment);
+            deviceEquipmentDao.persist(deviceEquipment);
         }
     }
 
