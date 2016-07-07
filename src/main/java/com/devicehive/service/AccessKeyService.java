@@ -3,10 +3,10 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
+import com.devicehive.dao.rdbms.AccesskeyPermissionDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -63,6 +63,9 @@ public class AccessKeyService {
 
     @Autowired
     private AccessKeyDaoImpl accessKeyDao;
+
+    @Autowired
+    private AccesskeyPermissionDaoImpl accessKeyPermissionDao;
 
     @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
     private EntityManager em;
@@ -278,9 +281,7 @@ public class AccessKeyService {
 
     private void deleteAccessKeyPermissions(AccessKey key) {
         logger.debug("Deleting all permission of access key {}", key.getId());
-        int deleted = accessKeyDao.createNamedQuery("AccessKeyPermission.deleteByAccessKey", Optional.<CacheConfig>empty())
-                .setParameter("accessKey", key)
-                .executeUpdate();
+        int deleted = accessKeyPermissionDao.deleteByAccessKey(key);
         logger.info("Deleted {} permissions by access key {}", deleted, key.getId());
     }
 
