@@ -7,7 +7,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
 import com.devicehive.dao.rdbms.AccesskeyPermissionDaoImpl;
-import com.devicehive.dao.rdbms.DeviceDao;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;

@@ -4,11 +4,13 @@ import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.Optional;
 
+@Profile({"rdbms"})
 @Repository
 public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
 

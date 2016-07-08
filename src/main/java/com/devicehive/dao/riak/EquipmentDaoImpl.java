@@ -11,9 +11,6 @@ import org.springframework.stereotype.Repository;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-/**
- * Created by Gleb on 08.07.2016.
- */
 @Profile("riak")
 @Repository
 public class EquipmentDaoImpl implements EquipmentDao {

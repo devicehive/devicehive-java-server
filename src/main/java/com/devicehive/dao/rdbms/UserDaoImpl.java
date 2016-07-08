@@ -4,6 +4,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.UserDao;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -11,6 +12,7 @@ import java.util.Optional;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 
+@Profile({"rdbms"})
 @Repository
 public class UserDaoImpl extends GenericDaoImpl implements UserDao {
 

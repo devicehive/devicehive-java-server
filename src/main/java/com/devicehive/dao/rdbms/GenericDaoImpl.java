@@ -2,6 +2,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.CacheConfig;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-
+@Profile({"rdbms"})
 @Repository
 public class GenericDaoImpl {
     public static final String CACHEABLE = "org.hibernate.cacheable";

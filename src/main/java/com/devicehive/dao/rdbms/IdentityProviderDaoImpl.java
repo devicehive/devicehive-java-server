@@ -3,14 +3,13 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.model.IdentityProvider;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
-/**
- * Created by Gleb on 07.07.2016.
- */
+@Profile({"rdbms"})
 @Repository
 public class IdentityProviderDaoImpl extends GenericDaoImpl implements IdentityProviderDao {
     @Override

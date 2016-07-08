@@ -3,10 +3,12 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.model.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+@Profile({"rdbms"})
 @Repository
 public class ConfigurationDaoImpl extends GenericDaoImpl implements ConfigurationDao {
 

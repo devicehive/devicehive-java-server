@@ -4,8 +4,7 @@ import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.*;
-import com.devicehive.dao.rdbms.DeviceDao;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -19,17 +18,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
-import static java.util.Optional.*;
 
 @Component
 public class DeviceService {

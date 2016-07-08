@@ -5,6 +5,7 @@ import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
@@ -18,9 +19,7 @@ import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
 
-/**
- * Created by Gleb on 07.07.2016.
- */
+@Profile({"rdbms"})
 @Repository
 public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao {
     @Override

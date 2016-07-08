@@ -4,15 +4,14 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.EquipmentDao;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Created by Gleb on 07.07.2016.
- */
+@Profile({"rdbms"})
 @Repository
 public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
     @Override

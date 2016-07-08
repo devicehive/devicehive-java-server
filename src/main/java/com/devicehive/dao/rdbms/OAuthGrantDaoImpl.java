@@ -4,10 +4,12 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import static java.util.Optional.of;
 
+@Profile({"rdbms"})
 @Repository
 public class OAuthGrantDaoImpl extends GenericDaoImpl implements OAuthGrantDao {
 

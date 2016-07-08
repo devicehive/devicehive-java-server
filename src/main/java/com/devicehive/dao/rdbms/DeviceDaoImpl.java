@@ -4,8 +4,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
+@Profile({"rdbms"})
 @Repository
 public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +

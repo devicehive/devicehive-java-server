@@ -5,6 +5,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.model.Network;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -20,9 +21,7 @@ import java.util.Set;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-/**
- * Created by Gleb on 07.07.2016.
- */
+@Profile({"rdbms"})
 @Repository
 public class NetworkDaoImpl extends GenericDaoImpl implements NetworkDao {
     @Override

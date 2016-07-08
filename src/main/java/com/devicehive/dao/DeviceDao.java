@@ -1,4 +1,4 @@
-package com.devicehive.dao.rdbms;
+package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.Device;

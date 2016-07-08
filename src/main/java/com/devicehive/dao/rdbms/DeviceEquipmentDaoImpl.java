@@ -4,6 +4,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import static java.util.Optional.of;
 /**
  * Created by Gleb on 07.07.2016.
  */
+@Profile({"rdbms"})
 @Repository
 public class DeviceEquipmentDaoImpl extends GenericDaoImpl implements DeviceEquipmentDao {
     @Override
