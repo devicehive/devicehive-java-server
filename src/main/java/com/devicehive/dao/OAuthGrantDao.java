@@ -5,7 +5,16 @@ import com.devicehive.model.User;
 
 public interface OAuthGrantDao {
     OAuthGrant getByIdAndUser(User user, Long grantId);
+
     OAuthGrant getById(Long grantId);
+
     int deleteByUserAndId(User user, Long grantId);
+
     OAuthGrant getByCodeAndOAuthID(String authCode, String clientOAuthID);
+
+    OAuthGrant find(Long id);
+
+    void persist(OAuthGrant oAuthGrant);
+
+    OAuthGrant merge(OAuthGrant existing);
 }

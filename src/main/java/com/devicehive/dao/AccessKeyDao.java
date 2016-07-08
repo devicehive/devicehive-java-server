@@ -8,9 +8,20 @@ import java.util.Optional;
 
 public interface AccessKeyDao {
     AccessKey getById(Long keyId, Long userId);
+
     Optional<AccessKey> getByKey(String key);
+
     Optional<AccessKey> getByUserAndLabel(User user, String label);
+
     int deleteByIdAndUser(Long keyId, Long userId);
+
     int deleteById(Long keyId);
+
     int deleteOlderThan(Date date);
+
+    AccessKey find(Long id);
+
+    void persist(AccessKey accessKey);
+
+    AccessKey merge(AccessKey existing);
 }

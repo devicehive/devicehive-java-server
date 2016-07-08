@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
 
+    @Override
     public AccessKey getById(Long keyId, Long userId) {
         return createNamedQuery(AccessKey.class, "AccessKey.getById", Optional.of(CacheConfig.refresh()))
                 .setParameter("userId", userId)
@@ -20,12 +21,14 @@ public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
                 .stream().findFirst().orElse(null);
     }
 
+    @Override
     public Optional<AccessKey> getByKey(String key) {
         return createNamedQuery(AccessKey.class, "AccessKey.getByKey", Optional.of(CacheConfig.get()))
                 .setParameter("someKey", key)
                 .getResultList().stream().findFirst();
     }
 
+    @Override
     public Optional<AccessKey> getByUserAndLabel(User user, String label) {
         return createNamedQuery(AccessKey.class, "AccessKey.getByUserAndLabel", Optional.<CacheConfig>empty())
                 .setParameter("userId", user.getId())
@@ -33,6 +36,7 @@ public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
                 .getResultList().stream().findFirst();
     }
 
+    @Override
     public int deleteByIdAndUser(Long keyId, Long userId) {
         return createNamedQuery("AccessKey.deleteByIdAndUser", Optional.<CacheConfig>empty())
                 .setParameter("accessKeyId", keyId)
@@ -52,6 +56,21 @@ public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
         return createNamedQuery("AccessKey.deleteOlderThan", Optional.<CacheConfig>empty())
                 .setParameter("expirationDate", date)
                 .executeUpdate();
+    }
+
+    @Override
+    public AccessKey find(Long id) {
+        return find(AccessKey.class, id);
+    }
+
+    @Override
+    public void persist(AccessKey accessKey) {
+        super.persist(accessKey);
+    }
+
+    @Override
+    public AccessKey merge(AccessKey existing) {
+        return super.merge(existing);
     }
 
 }

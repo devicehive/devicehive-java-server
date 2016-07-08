@@ -14,6 +14,7 @@ import static java.util.Optional.of;
 @Repository
 public class UserDaoImpl extends GenericDaoImpl implements UserDao {
 
+    @Override
     public Optional<User> findByName(String name) {
         return createNamedQuery(User.class, "User.findByName", of(CacheConfig.get()))
                 .setParameter("login", name)
@@ -21,6 +22,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .stream().findFirst();
     }
 
+    @Override
     public User findByGoogleName(String name) {
         return createNamedQuery(User.class, "User.findByGoogleName", empty())
                 .setParameter("login", name)
@@ -28,6 +30,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .stream().findFirst().orElse(null);
     }
 
+    @Override
     public User findByFacebookName(String name) {
         return createNamedQuery(User.class, "User.findByFacebookName", empty())
                 .setParameter("login", name)
@@ -35,6 +38,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .stream().findFirst().orElse(null);
     }
 
+    @Override
     public User findByGithubName(String name) {
         return createNamedQuery(User.class, "User.findByGithubName", empty())
                 .setParameter("login", name)
@@ -42,6 +46,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .stream().findFirst().orElse(null);
     }
 
+    @Override
     public Optional<User> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
         return createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
                 .setParameter("login", login)
@@ -52,6 +57,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .stream().findFirst();
     }
 
+    @Override
     public long hasAccessToNetwork(User user, Network network) {
         return createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())
                 .setParameter("user", user)
@@ -59,6 +65,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .getSingleResult();
     }
 
+    @Override
     public long hasAccessToDevice(User user, String deviceGuid) {
         return createNamedQuery(Long.class, "User.hasAccessToDevice", empty())
                 .setParameter("user", user)
@@ -66,6 +73,7 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                 .getSingleResult();
     }
 
+    @Override
     public User getWithNetworksById(long id) {
         return createNamedQuery(User.class, "User.getWithNetworksById", of(CacheConfig.refresh()))
                 .setParameter("id", id)
@@ -83,5 +91,15 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
     @Override
     public User find(Long id) {
         return find(User.class, id);
+    }
+
+    @Override
+    public void persist(User user) {
+        super.persist(user);
+    }
+
+    @Override
+    public User merge(User existing) {
+        return super.merge(existing);
     }
 }
