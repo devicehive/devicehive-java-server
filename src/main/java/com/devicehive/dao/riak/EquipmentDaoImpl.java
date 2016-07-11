@@ -1,5 +1,6 @@
 package com.devicehive.dao.riak;
 
+import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.core.RiakCluster;
 import com.devicehive.dao.EquipmentDao;
 import com.devicehive.model.DeviceClass;
@@ -11,12 +12,12 @@ import org.springframework.stereotype.Repository;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
-@Profile("riak")
+@Profile({"riak"})
 @Repository
 public class EquipmentDaoImpl implements EquipmentDao {
 
     @Autowired
-    private RiakCluster riakCluster;
+    private RiakClient client;
 
     @Override
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {

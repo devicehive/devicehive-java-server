@@ -1,28 +1,37 @@
 package com.devicehive.dao.riak;
 
+import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.core.RiakCluster;
 import com.basho.riak.client.core.RiakNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
 import java.net.UnknownHostException;
 
 
-/**
- * Created by Gleb on 08.07.2016.
- */
-
-@Profile("riak")
+@Profile({"riak"})
 @Configuration
 public class RiakClusterBuilder {
 
+    private static final Logger logger = LoggerFactory.getLogger(RiakClusterBuilder.class);
 
-    @Bean
-    RiakCluster setUpCluster(@Value("${riak.host}") String riakHost, @Value("${riak.port}") int riakPort) throws UnknownHostException {
+    private RiakCluster cluster;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    private void init() throws UnknownHostException {
+        logger.debug("RiakClusterBuilder initialization started.");
+
+        String riakHost = env.getProperty("riak.host");
+        int riakPort = Integer.parseInt(env.getProperty("riak.port"));
+
         // This example will use only one node listening on localhost:10017
         RiakNode node = new RiakNode.Builder()
                 .withRemoteAddress(riakHost)
@@ -30,12 +39,17 @@ public class RiakClusterBuilder {
                 .build();
 
         // This cluster object takes our one node as an argument
-        RiakCluster cluster = new RiakCluster.Builder(node)
-                .build();
+        cluster = new RiakCluster.Builder(node).build();
 
         // The cluster must be started to work, otherwise you will see errors
         cluster.start();
 
-        return cluster;
+        logger.debug("RiakClusterBuilder initialization finished.");
+    }
+
+    @Bean
+    @Lazy(false)
+    public RiakClient riakClient() {
+        return new RiakClient(cluster);
     }
 }
