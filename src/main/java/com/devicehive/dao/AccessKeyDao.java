@@ -4,6 +4,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 public interface AccessKeyDao {
@@ -24,4 +25,9 @@ public interface AccessKeyDao {
     void persist(AccessKey accessKey);
 
     AccessKey merge(AccessKey existing);
+
+    List<AccessKey> list(Long userId, String label,
+                         String labelPattern, Integer type,
+                         String sortField, Boolean sortOrderAsc,
+                         Integer take, Integer skip);
 }

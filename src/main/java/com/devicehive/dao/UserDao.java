@@ -3,6 +3,8 @@ package com.devicehive.dao;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 
+import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserDao {
@@ -29,4 +31,9 @@ public interface UserDao {
     void persist(User user);
 
     User merge(User existing);
+
+    void unassignNetwork(@NotNull User existingUser, @NotNull long networkId);
+
+    List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
+                       Boolean sortOrderAsc, Integer take, Integer skip);
 }

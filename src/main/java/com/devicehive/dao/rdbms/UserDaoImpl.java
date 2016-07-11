@@ -1,16 +1,27 @@
 package com.devicehive.dao.rdbms;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.UserDao;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
@@ -103,5 +114,37 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
     @Override
     public User merge(User existing) {
         return super.merge(existing);
+    }
+
+    @Override
+    public void unassignNetwork(@NotNull User existingUser, @NotNull long networkId) {
+        createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
+                .setParameter("id", networkId)
+                .getResultList()
+                .stream().findFirst()
+                .ifPresent(existingNetwork -> {
+                    existingNetwork.getUsers().remove(existingUser);
+                    merge(existingNetwork);
+                });
+    }
+
+    @Override
+    public List<User> getList(String login, String loginPattern,
+                              Integer role, Integer status,
+                              String sortField, Boolean sortOrderAsc,
+                              Integer take, Integer skip) {
+        CriteriaBuilder cb = criteriaBuilder();
+        CriteriaQuery<User> cq = cb.createQuery(User.class);
+        Root<User> from = cq.from(User.class);
+
+        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
+        cq.where(predicates);
+        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+
+        TypedQuery<User> query = createQuery(cq);
+        cacheQuery(query, of(CacheConfig.refresh()));
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+        return query.getResultList();
     }
 }

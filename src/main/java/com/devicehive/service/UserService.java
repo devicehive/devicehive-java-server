@@ -5,6 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.UserDao;
 import com.devicehive.dao.rdbms.UserDaoImpl;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -53,7 +54,7 @@ public class UserService {
     @Autowired
     private NetworkDao networkDao;
     @Autowired
-    private UserDaoImpl userDao;
+    private UserDao userDao;
     @Autowired
     private TimestampService timestampService;
     @Autowired
@@ -129,7 +130,7 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public User updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
-        User existing = userDao.find(User.class, id);
+        User existing = userDao.find(id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
@@ -212,7 +213,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDao.find(User.class, userId);
+        User existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
@@ -233,37 +234,21 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDao.find(User.class, userId);
+        User existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        userDao.createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
-                .setParameter("id", networkId)
-                .getResultList()
-                .stream().findFirst()
-                .ifPresent(existingNetwork -> {
-                    existingNetwork.getUsers().remove(existingUser);
-                    userDao.merge(existingNetwork);
-                });
+        userDao.unassignNetwork(existingUser, networkId);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
-        CriteriaBuilder cb = userDao.criteriaBuilder();
-        CriteriaQuery<User> cq = cb.createQuery(User.class);
-        Root<User> from = cq.from(User.class);
-
-        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
-        cq.where(predicates);
-        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
-
-        TypedQuery<User> query = userDao.createQuery(cq);
-        userDao.cacheQuery(query, of(CacheConfig.refresh()));
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-        return query.getResultList();
+        return userDao.getList(login, loginPattern,
+                role, status,
+                sortField, sortOrderAsc,
+                take, skip);
     }
 
     /**
@@ -274,7 +259,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public User findById(@NotNull long id) {
-        return userDao.find(User.class, id);
+        return userDao.find(id);
     }
 
     /**

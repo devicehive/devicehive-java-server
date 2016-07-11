@@ -1,6 +1,7 @@
 package com.devicehive.configuration;
 
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.dao.rdbms.ConfigurationDaoImpl;
 import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class ConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
     @Autowired
-    private ConfigurationDaoImpl configurationDao;
+    private ConfigurationDao configurationDao;
 
     @Transactional
     public <T> void save(@NotNull String name, T value) {

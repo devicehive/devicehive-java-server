@@ -4,6 +4,7 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.dao.rdbms.OAuthClientDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
@@ -35,13 +36,13 @@ public class OAuthClientService {
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientService.class);
 
     @Autowired
-    private OAuthClientDaoImpl oAuthClientDao;
+    private OAuthClientDao oAuthClientDao;
 
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public OAuthClient get(@NotNull Long id) {
-        return oAuthClientDao.find(OAuthClient.class, id);
+        return oAuthClientDao.find(id);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
@@ -53,19 +54,14 @@ public class OAuthClientService {
                                  Boolean sortOrderAsc,
                                  Integer take,
                                  Integer skip) {
-        CriteriaBuilder cb = oAuthClientDao.criteriaBuilder();
-        CriteriaQuery<OAuthClient> cq = cb.createQuery(OAuthClient.class);
-        Root<OAuthClient> from = cq.from(OAuthClient.class);
-
-        Predicate[] predicates = CriteriaHelper.oAuthClientListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(domain), ofNullable(oauthId));
-        cq.where(predicates);
-        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
-
-        TypedQuery<OAuthClient> query = oAuthClientDao.createQuery(cq);
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-
-        return query.getResultList();
+        return oAuthClientDao.get(name,
+                namePattern,
+                domain,
+                oauthId,
+                sortField,
+                sortOrderAsc,
+                take,
+                skip);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -86,7 +82,7 @@ public class OAuthClientService {
 
     @Transactional
     public boolean update(OAuthClientUpdate client, Long clientId) {
-        OAuthClient existing = oAuthClientDao.find(OAuthClient.class, clientId);
+        OAuthClient existing = oAuthClientDao.find(clientId);
         if (existing == null) {
             logger.error("OAuth client with id {} not found", clientId);
             throw new NoSuchElementException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId));

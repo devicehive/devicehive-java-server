@@ -1,12 +1,21 @@
 package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.model.OAuthClient;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.List;
 import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
@@ -57,5 +66,29 @@ public class OAuthClientDaoImpl extends GenericDaoImpl implements OAuthClientDao
     @Override
     public OAuthClient merge(OAuthClient existing) {
         return super.merge(existing);
+    }
+
+    @Override
+    public List<OAuthClient> get(String name,
+                                 String namePattern,
+                                 String domain,
+                                 String oauthId,
+                                 String sortField,
+                                 Boolean sortOrderAsc,
+                                 Integer take,
+                                 Integer skip) {
+        CriteriaBuilder cb = criteriaBuilder();
+        CriteriaQuery<OAuthClient> cq = cb.createQuery(OAuthClient.class);
+        Root<OAuthClient> from = cq.from(OAuthClient.class);
+
+        Predicate[] predicates = CriteriaHelper.oAuthClientListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(domain), ofNullable(oauthId));
+        cq.where(predicates);
+        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+
+        TypedQuery<OAuthClient> query = createQuery(cq);
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+
+        return query.getResultList();
     }
 }

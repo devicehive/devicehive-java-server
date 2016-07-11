@@ -1,8 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.rdbms.OAuthGrantDaoImpl;
+import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.OAuthClient;
@@ -19,23 +18,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
 
-import static com.devicehive.dao.CriteriaHelper.oAuthGrantsListPredicates;
-import static com.devicehive.dao.CriteriaHelper.order;
-import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Component
 public class OAuthGrantService {
 
     @Autowired
-    private OAuthGrantDaoImpl oAuthGrantDao;
+    private OAuthGrantDao oAuthGrantDao;
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
@@ -153,22 +146,18 @@ public class OAuthGrantService {
                                  Integer take,
                                  Integer skip) {
 
-        CriteriaBuilder cb = oAuthGrantDao.criteriaBuilder();
-        CriteriaQuery<OAuthGrant> cq = cb.createQuery(OAuthGrant.class);
-        Root<OAuthGrant> from = cq.from(OAuthGrant.class);
-        from.fetch("accessKey", JoinType.LEFT).fetch("permissions");
-        from.fetch("client");
-
-        Predicate[] predicates = oAuthGrantsListPredicates(cb, from, user, ofNullable(start), ofNullable(end), ofNullable(clientOAuthId), ofNullable(type), ofNullable(scope),
-                ofNullable(redirectUri), ofNullable(accessType));
-        cq.where(predicates);
-        order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrder));
-
-        TypedQuery<OAuthGrant> query = oAuthGrantDao.createQuery(cq);
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-
-        return query.getResultList();
+        return oAuthGrantDao.list(user,
+                start,
+                end,
+                clientOAuthId,
+                type,
+                scope,
+                redirectUri,
+                accessType,
+                sortField,
+                sortOrder,
+                take,
+                skip);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -246,7 +235,7 @@ public class OAuthGrantService {
         }
         if (!violations.isEmpty()) {
             throw new HiveException(String.format(Messages.VALIDATION_FAILED, StringUtils.join(violations, "; ")),
-                                    Response.Status.BAD_REQUEST.getStatusCode());
+                    Response.Status.BAD_REQUEST.getStatusCode());
         }
     }
 }

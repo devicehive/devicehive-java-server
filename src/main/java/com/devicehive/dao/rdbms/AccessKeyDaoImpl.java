@@ -2,13 +2,23 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.CacheConfig;
+import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
@@ -73,6 +83,26 @@ public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
     @Override
     public AccessKey merge(AccessKey existing) {
         return super.merge(existing);
+    }
+
+    @Override
+    public List<AccessKey> list(Long userId, String label,
+                                String labelPattern, Integer type,
+                                String sortField, Boolean sortOrderAsc,
+                                Integer take, Integer skip) {
+        CriteriaBuilder cb = criteriaBuilder();
+        CriteriaQuery<AccessKey> cq = cb.createQuery(AccessKey.class);
+        Root<AccessKey> from = cq.from(AccessKey.class);
+
+        Predicate[] predicates = CriteriaHelper.accessKeyListPredicates(cb, from, userId, ofNullable(label), ofNullable(labelPattern), ofNullable(type));
+        cq.where(predicates);
+        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+
+        TypedQuery<AccessKey> query = createQuery(cq);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+        ofNullable(take).ifPresent(query::setMaxResults);
+        cacheQuery(query, of(CacheConfig.bypass()));
+        return query.getResultList();
     }
 
 }

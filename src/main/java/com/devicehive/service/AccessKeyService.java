@@ -3,11 +3,9 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
+import com.devicehive.dao.*;
 import com.devicehive.dao.rdbms.AccessKeyDaoImpl;
 import com.devicehive.dao.rdbms.AccesskeyPermissionDaoImpl;
-import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -63,10 +61,10 @@ public class AccessKeyService {
     private TimestampService timestampService;
 
     @Autowired
-    private AccessKeyDaoImpl accessKeyDao;
+    private AccessKeyDao accessKeyDao;
 
     @Autowired
-    private AccesskeyPermissionDaoImpl accessKeyPermissionDao;
+    private AccessKeyPermissionDao accessKeyPermissionDao;
 
     @Autowired
     private DeviceDao deviceDao;
@@ -98,9 +96,9 @@ public class AccessKeyService {
         for (AccessKeyPermission current : accessKey.getPermissions()) {
             AccessKeyPermission permission = preparePermission(current);
             permission.setAccessKey(accessKey);
-            accessKeyDao.persist(permission);
+            accessKeyPermissionDao.persist(permission);
         }
-        return accessKeyDao.find(AccessKey.class, accessKey.getId());
+        return accessKeyDao.find(accessKey.getId());
     }
 
     @Transactional
@@ -113,13 +111,13 @@ public class AccessKeyService {
             return true;
         }
 
-        if(toUpdate.getLabel() != null) {
+        if (toUpdate.getLabel() != null) {
             existing.setLabel(toUpdate.getLabel().orElse(null));
         }
-        if(toUpdate.getExpirationDate() != null) {
+        if (toUpdate.getExpirationDate() != null) {
             existing.setExpirationDate(toUpdate.getExpirationDate().orElse(null));
         }
-        if(toUpdate.getType()!= null) {
+        if (toUpdate.getType() != null) {
             existing.setType(toUpdate.getType().map(v -> toUpdate.getTypeEnum()).orElse(null));
         }
         if (toUpdate.getPermissions() != null) {
@@ -135,7 +133,7 @@ public class AccessKeyService {
             for (AccessKeyPermission current : permissionsToReplace) {
                 AccessKeyPermission permission = preparePermission(current);
                 permission.setAccessKey(existing);
-                accessKeyDao.persist(permission);
+                accessKeyPermissionDao.persist(permission);
             }
         }
         return true;
@@ -187,7 +185,7 @@ public class AccessKeyService {
         accessKeyDao.persist(accessKey);
 
         permission.setAccessKey(accessKey);
-        accessKeyDao.persist(permission);
+        accessKeyPermissionDao.persist(permission);
         return accessKey;
     }
 
@@ -312,7 +310,7 @@ public class AccessKeyService {
         existing.setKey(key);
         for (AccessKeyPermission current : permissions) {
             current.setAccessKey(existing);
-            accessKeyDao.persist(current);
+            accessKeyPermissionDao.persist(current);
         }
         return existing;
     }
@@ -322,19 +320,10 @@ public class AccessKeyService {
                                 String labelPattern, Integer type,
                                 String sortField, Boolean sortOrderAsc,
                                 Integer take, Integer skip) {
-        CriteriaBuilder cb = accessKeyDao.criteriaBuilder();
-        CriteriaQuery<AccessKey> cq = cb.createQuery(AccessKey.class);
-        Root<AccessKey> from = cq.from(AccessKey.class);
-
-        Predicate[] predicates = CriteriaHelper.accessKeyListPredicates(cb, from, userId, ofNullable(label), ofNullable(labelPattern), ofNullable(type));
-        cq.where(predicates);
-        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
-
-        TypedQuery<AccessKey> query = accessKeyDao.createQuery(cq);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-        ofNullable(take).ifPresent(query::setMaxResults);
-        accessKeyDao.cacheQuery(query, of(CacheConfig.bypass()));
-        return query.getResultList();
+        return accessKeyDao.list(userId, label,
+                labelPattern, type,
+                sortField, sortOrderAsc,
+                take, skip);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
