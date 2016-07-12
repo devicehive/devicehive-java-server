@@ -21,12 +21,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                   @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = :deviceClass"),
                   @NamedQuery(name = "Equipment.getByDeviceClassAndId", query =  "select e from Equipment e " +
                                                                                   "join e.deviceClass dc " +
-                                                                                  "where e.id = :id and dc.name = :deviceClassName"),
+                                                                                  "where e.id = :id and dc.id = :deviceClassName"),
                   @NamedQuery(name = "Equipment.deleteByDeviceClass", query = "delete from Equipment e where e.deviceClass = :deviceClass"),
                   @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e " +
                                                                                    "where e.id = :id " +
                                                                                    "and e.deviceClass in " +
-                                                                                   "(select dc from DeviceClass dc where dc.name = :deviceClassName)")
+                                                                                   "(select dc from DeviceClass dc where dc.id = :deviceClassName)")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -71,7 +71,7 @@ public class Equipment implements HiveEntity {
                     DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICECLASS_SUBMITTED})
     private JsonStringWrapper data;
     @ManyToOne
-    @JoinColumn(name = "device_class_name", updatable = false)
+    @JoinColumn(name = "device_class_id", updatable = false)
     @NotNull(message = "device class field cannot be null")
     private DeviceClass deviceClass;
     @Version

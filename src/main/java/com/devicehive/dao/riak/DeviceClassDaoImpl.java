@@ -39,7 +39,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     @Override
     public void remove(DeviceClass reference) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, reference.getName());
+            Location location = new Location(DEVICE_CLASS_NS, reference.getId());
             DeleteValue delete = new DeleteValue.Builder(location).build();
             client.execute(delete);
         } catch (InterruptedException | ExecutionException e) {
@@ -67,7 +67,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     @Override
     public void persist(DeviceClass deviceClass) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getName()));
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             StoreValue storeOp = new StoreValue.Builder(deviceClass)
                     .withLocation(location).build();
             client.execute(storeOp);

@@ -23,14 +23,14 @@ public class DeviceClass implements HiveEntity {
     private static final long serialVersionUID = 8091624406245592117L;
 
     @Id
-    @Column(name = "name")
+    @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
                                         "symbols.")
     @JsonPolicyDef(
         {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
          DEVICECLASS_PUBLISHED})
-    private String name;
+    private String id;
 
     @Column(name = "is_permanent")
     @JsonPolicyDef(
@@ -59,10 +59,6 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
     private Set<Equipment> equipment;
 
-    public DeviceClass() {
-        System.out.println("creation");
-    }
-
     public Long getEntityVersion() {
         return entityVersion;
     }
@@ -71,12 +67,12 @@ public class DeviceClass implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Boolean getPermanent() {
@@ -122,13 +118,13 @@ public class DeviceClass implements HiveEntity {
 
         DeviceClass that = (DeviceClass) o;
 
-        return !(name != null ? !name.equals(that.name) : that.name != null);
+        return !(id != null ? !id.equals(that.id) : that.id != null);
 
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
+        return id != null ? id.hashCode() : 0;
     }
 
     public static class Queries {

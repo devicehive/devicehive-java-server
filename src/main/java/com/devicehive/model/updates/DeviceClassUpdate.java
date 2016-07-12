@@ -16,7 +16,7 @@ public class DeviceClassUpdate implements HiveEntity {
 
     private static final long serialVersionUID = 967472386318199376L;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<String> name;
+    private Optional<String> id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Optional<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
@@ -34,12 +34,12 @@ public class DeviceClassUpdate implements HiveEntity {
         this.equipment = equipment;
     }
 
-    public Optional<String> getName() {
-        return name;
+    public Optional<String> getId() {
+        return id;
     }
 
-    public void setName(Optional<String> name) {
-        this.name = name;
+    public void setId(Optional<String> id) {
+        this.id = id;
     }
 
     public Optional<Boolean> getPermanent() {
@@ -77,8 +77,8 @@ public class DeviceClassUpdate implements HiveEntity {
         if (data != null) {
             deviceClass.setData(data.orElse(null));
         }
-        if (name != null) {
-            deviceClass.setName(name.orElse(null));
+        if (id != null) {
+            deviceClass.setId(id.orElse(null));
         }
         if (equipment != null) {
             deviceClass.setEquipment(equipment.orElse(null));

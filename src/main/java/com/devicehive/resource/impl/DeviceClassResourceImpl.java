@@ -92,10 +92,10 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response updateDeviceClass(String name, DeviceClassUpdate insert) {
-        logger.debug("Device class update requested for id {}", name);
-        deviceClassService.update(name, insert);
-        logger.debug("Device class updated. Id {}", name);
+    public Response updateDeviceClass(String id, DeviceClassUpdate insert) {
+        logger.debug("Device class update requested for id {}", id);
+        deviceClassService.update(id, insert);
+        logger.debug("Device class updated. Id {}", id);
         return ResponseFactory.response(NO_CONTENT);
     }
 
@@ -103,9 +103,9 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response deleteDeviceClass(String name) {
+    public Response deleteDeviceClass(String id) {
         logger.debug("Device class delete requested");
-        deviceClassService.delete(name);
+        deviceClassService.delete(id);
         logger.debug("Device class deleted");
         return ResponseFactory.response(NO_CONTENT);
     }

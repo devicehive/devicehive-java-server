@@ -10,7 +10,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -100,7 +99,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
-        assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
+        assertEquals(dc.getId().orElse(null), existingDevice.getDeviceClass().getId());
     }
 
     /**
@@ -473,7 +472,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getName(), null, false, null, null, null);
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -495,7 +494,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getName(), null, false, null, null, null);
+        final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }

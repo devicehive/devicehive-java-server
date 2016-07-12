@@ -51,7 +51,7 @@ public class DeviceClassService {
         }
         //check is already done
         DeviceClass deviceClassFromMessage = deviceClass.orElse(null).convertTo();
-        stored = deviceClassDao.find(deviceClassFromMessage.getName());
+        stored = deviceClassDao.find(deviceClassFromMessage.getId());
         if (stored != null) {
             //update
             if (Boolean.FALSE.equals(stored.getPermanent())) {
@@ -89,7 +89,7 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClass addDeviceClass(DeviceClass deviceClass) {
-        if (deviceClassDao.find(deviceClass.getName()) != null) {
+        if (deviceClassDao.find(deviceClass.getId()) != null) {
             throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
         }
         if (deviceClass.getPermanent() == null) {
@@ -120,8 +120,8 @@ public class DeviceClassService {
             replaceEquipment(update.getEquipment().orElse(null), stored);
             stored.setEquipment(update.getEquipment().orElse(null));
         }
-        if (update.getName() != null) {
-            stored.setName(update.getName().orElse(null));
+        if (update.getId() != null) {
+            stored.setId(update.getId().orElse(null));
         }
         if (update.getPermanent() != null) {
             stored.setPermanent(update.getPermanent().orElse(null));
@@ -141,7 +141,7 @@ public class DeviceClassService {
         for (Equipment newEquipment : equipmentsToReplace) {
             if (codes.contains(newEquipment.getCode())) {
                 throw new HiveException(
-                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getName()),
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getId()),
                     FORBIDDEN.getStatusCode());
             }
             codes.add(newEquipment.getCode());
@@ -157,7 +157,7 @@ public class DeviceClassService {
         for (Equipment equipment : equipments) {
             if (existingCodesSet.contains(equipment.getCode())) {
                 throw new HiveException(
-                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getName()),
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getId()),
                     FORBIDDEN.getStatusCode());
             }
             existingCodesSet.add(equipment.getCode());

@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This class manages equipment in database. EquipmentDAO shouldn't be used directly from controller, please use this
@@ -80,7 +79,7 @@ public class EquipmentService {
             return true;
         }
         Equipment stored = equipmentDao.find(equipmentId);
-        if (stored == null || stored.getDeviceClass().getName() != deviceClassName) {
+        if (stored == null || stored.getDeviceClass().getId() != deviceClassName) {
             return false; // equipment with id = equipmentId does not exists
         }
         if (equipmentUpdate.getCode() != null) {

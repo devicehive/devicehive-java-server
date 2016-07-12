@@ -75,12 +75,12 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:
      * DeviceClass: get</a> Gets information about device class and its equipment.
      *
-     * @param name Device class identifier.
+     * @param id Device class identifier.
      * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceClass">DeviceClass</a>
      * resource in the response body.
      */
     @GET
-    @Path("/{name}")
+    @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses(value = {
@@ -92,9 +92,9 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If device class not found")
     })
     Response getDeviceClass(
-            @ApiParam(name = "name", value = "Device class identifier.", required = true)
-            @PathParam("name")
-            String name);
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
+            @PathParam("id")
+            String id);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
@@ -134,7 +134,7 @@ public interface DeviceClassResource {
      * @return If successful, this method returns an empty response body.
      */
     @PUT
-    @Path("/{name}")
+    @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
@@ -146,9 +146,9 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If device class is not found")
     })
     Response updateDeviceClass(
-            @ApiParam(name = "name", value = "Device class identifier.", required = true)
-            @PathParam("name")
-            String name,
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
+            @PathParam("id")
+            String id,
 
             @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
             @JsonPolicyApply(DEVICECLASS_PUBLISHED)
@@ -158,11 +158,11 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/delete"> DeviceHive RESTful
      * API: DeviceClass: delete</a> Deletes an existing device class by id.
      *
-     * @param name Device class identifier.
+     * @param id Device class identifier.
      * @return If successful, this method returns an empty response body with 204 status
      */
     @DELETE
-    @Path("/{name}")
+    @Path("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
     @ApiResponses(value = {
@@ -172,6 +172,6 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response deleteDeviceClass(
-            @ApiParam(name = "name", value = "Device class identifier.", required = true)
-            @PathParam("name") String name);
+            @ApiParam(name = "id", value = "Device class identifier.", required = true)
+            @PathParam("id") String id);
 }
