@@ -1,6 +1,7 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
@@ -24,10 +25,6 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     @Autowired
     private RiakClient client;
 
-    @Override
-    public DeviceClass findByNameAndVersion(String name, String version) {
-        return null;
-    }
 
     @Override
     public boolean isExist(long id) {
@@ -35,19 +32,25 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     }
 
     @Override
-    public DeviceClass getReference(long id) {
-        return null;
+    public DeviceClass getReference(String name) {
+        return find(name);
     }
 
     @Override
     public void remove(DeviceClass reference) {
-
+        try {
+            Location location = new Location(DEVICE_CLASS_NS, reference.getName());
+            DeleteValue delete = new DeleteValue.Builder(location).build();
+            client.execute(delete);
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public DeviceClass find(long id) {
+    public DeviceClass find(String id) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
+            Location location = new Location(DEVICE_CLASS_NS, id);
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .build();
             return client.execute(fetchOp).getValue(DeviceClass.class);
@@ -64,9 +67,10 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     @Override
     public void persist(DeviceClass deviceClass) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
-            StoreValue sroreOp = new StoreValue.Builder(deviceClass).withLocation(location).build();
-            client.execute(sroreOp);
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getName()));
+            StoreValue storeOp = new StoreValue.Builder(deviceClass)
+                    .withLocation(location).build();
+            client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }

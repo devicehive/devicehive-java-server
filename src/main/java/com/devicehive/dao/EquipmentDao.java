@@ -13,11 +13,11 @@ public interface EquipmentDao {
 
     List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass);
 
-    Equipment getByDeviceClassAndId(@NotNull long deviceClassId, @NotNull long equipmentId);
+    Equipment getByDeviceClassAndId(@NotNull String deviceClassName, @NotNull long equipmentId);
 
     int deleteByDeviceClass(@NotNull DeviceClass deviceClass);
 
-    boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull long deviceClassId);
+    boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull String deviceClassName);
 
     void persist(Equipment equipment);
 

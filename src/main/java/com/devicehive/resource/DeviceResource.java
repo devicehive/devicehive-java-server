@@ -67,15 +67,9 @@ public interface DeviceResource {
             @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
-            @ApiParam(name = "deviceClassId", value = "Filter by associated device class identifier.")
-            @QueryParam("deviceClassId")
-            Long deviceClassId,
             @ApiParam(name = "deviceClassName", value = "Filter by associated device class name.")
             @QueryParam("deviceClassName")
             String deviceClassName,
-            @ApiParam(name = "deviceClassVersion", value = "Filter by associated device class version.")
-            @QueryParam("deviceClassVersion")
-            String deviceClassVersion,
             @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network,DeviceClass")
             @QueryParam("sortField")
             String sortField,

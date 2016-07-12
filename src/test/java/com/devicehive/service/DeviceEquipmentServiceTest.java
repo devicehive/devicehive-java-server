@@ -30,7 +30,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -54,7 +53,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -82,7 +80,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -106,7 +103,6 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 

@@ -10,15 +10,13 @@ import java.util.List;
  */
 public interface DeviceClassDao {
 
-    DeviceClass findByNameAndVersion(String name, String version);
-
     boolean isExist(long id);
 
-    DeviceClass getReference(long id);
+    DeviceClass getReference(String name);
 
     void remove(DeviceClass reference);
 
-    DeviceClass find(long id);
+    DeviceClass find(String id);
 
     void refresh(DeviceClass stored, LockModeType lockModeType);
 
@@ -26,6 +24,6 @@ public interface DeviceClassDao {
 
     DeviceClass merge(DeviceClass deviceClass);
 
-    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
+    List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
 }

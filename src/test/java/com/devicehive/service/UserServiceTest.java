@@ -720,7 +720,6 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -746,7 +745,6 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -772,7 +770,6 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));

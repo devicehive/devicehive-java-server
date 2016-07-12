@@ -16,26 +16,14 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
  */
 @Entity
 @Table(name = "device_class")
-@NamedQueries({
-          @NamedQuery(name = "DeviceClass.findByNameAndVersion", query = "select d from DeviceClass d where d.name = :name and d.version = :version"),
-          @NamedQuery(name = "DeviceClass.getById", query = "select d from DeviceClass d left join fetch d.equipment where d.id = :id")
-        })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceClass implements HiveEntity {
 
-    public static final String NAME_COLUMN = "name";
-    public static final String VERSION_COLUMN = "version";
     private static final long serialVersionUID = 8091624406245592117L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef(
-        {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
-         DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
-    private Long id;
-
-    @Column
+    @Column(name = "name")
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
                                         "symbols.")
@@ -43,15 +31,6 @@ public class DeviceClass implements HiveEntity {
         {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
          DEVICECLASS_PUBLISHED})
     private String name;
-
-    @Column
-    @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 32, message = "Field cannot be empty. The length of version should not be more than 32 " +
-                                       "symbols.")
-    @JsonPolicyDef(
-        {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
-         DEVICECLASS_PUBLISHED})
-    private String version;
 
     @Column(name = "is_permanent")
     @JsonPolicyDef(
@@ -80,6 +59,10 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
     private Set<Equipment> equipment;
 
+    public DeviceClass() {
+        System.out.println("creation");
+    }
+
     public Long getEntityVersion() {
         return entityVersion;
     }
@@ -88,28 +71,12 @@ public class DeviceClass implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
     }
 
     public Boolean getPermanent() {
@@ -155,20 +122,19 @@ public class DeviceClass implements HiveEntity {
 
         DeviceClass that = (DeviceClass) o;
 
-        return !(id != null ? !id.equals(that.id) : that.id != null);
+        return !(name != null ? !name.equals(that.name) : that.name != null);
 
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return name != null ? name.hashCode() : 0;
     }
 
     public static class Queries {
 
         public interface Names {
 
-            String FIND_BY_NAME_AND_VERSION = "DeviceClass.findByNameAndVersion";
             String GET_WITH_EQUIPMENT = "DeviceClass.getWithEquipment";
             String DELETE_BY_ID = "DeviceClass.deleteById";
             String GET_ALL = "DeviceClass.getAll";
@@ -176,9 +142,6 @@ public class DeviceClass implements HiveEntity {
 
         interface Values {
 
-            String FIND_BY_NAME_AND_VERSION =
-                "select d from DeviceClass d " +
-                "where d.name = :name and d.version = :version";
             String GET_WITH_EQUIPMENT =
                 "select d from DeviceClass d " +
                 "left join fetch d.equipment " +

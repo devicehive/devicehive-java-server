@@ -164,9 +164,7 @@ public class CriteriaHelper {
                                                    Optional<String> status,
                                                    Optional<Long> networkId,
                                                    Optional<String> networkName,
-                                                   Optional<Long> deviceClassId,
                                                    Optional<String> deviceClassName,
-                                                   Optional<String> deviceClassVersion,
                                                    Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
 
@@ -179,9 +177,7 @@ public class CriteriaHelper {
         networkName.ifPresent(nName ->  predicates.add(cb.equal(networkJoin.<String>get("name"), nName)));
 
         final Join<Device, DeviceClass> dcJoin = (Join) from.fetch("deviceClass", JoinType.LEFT);
-        deviceClassId.ifPresent(dcId -> predicates.add(cb.equal(dcJoin.<Long>get("id"), dcId)));
         deviceClassName.ifPresent(dcName -> predicates.add(cb.equal(dcJoin.<String>get("name"), dcName)));
-        deviceClassVersion.ifPresent(dcVersion -> predicates.add(cb.equal(dcJoin.<String>get("version"), dcVersion)));
 
         predicates.addAll(deviceSpecificPrincipalPredicates(cb, from, principal));
 
@@ -197,7 +193,6 @@ public class CriteriaHelper {
             name.ifPresent(n -> predicates.add(cb.equal(from.get("name"), n)));
         }
 
-        version.ifPresent(v -> predicates.add(cb.equal(from.get(DeviceClass.VERSION_COLUMN), v)));
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 

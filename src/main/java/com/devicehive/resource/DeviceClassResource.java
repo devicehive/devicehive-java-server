@@ -75,12 +75,12 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:
      * DeviceClass: get</a> Gets information about device class and its equipment.
      *
-     * @param id Device class identifier.
+     * @param name Device class identifier.
      * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceClass">DeviceClass</a>
      * resource in the response body.
      */
     @GET
-    @Path("/{id}")
+    @Path("/{name}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses(value = {
@@ -92,9 +92,9 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If device class not found")
     })
     Response getDeviceClass(
-            @ApiParam(name = "id", value = "Device class identifier.", required = true)
-            @PathParam("id")
-            long id);
+            @ApiParam(name = "name", value = "Device class identifier.", required = true)
+            @PathParam("name")
+            String name);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
@@ -128,13 +128,13 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful
      * API: DeviceClass: update</a> Updates an existing device class.
      *
-     * @param id     Device class identifier.
+     * @param name     Device class identifier.
      * @param insert In the request body, supply a <a href="http://www.devicehive .com/restful#Reference/DeviceClass">DeviceClass</a>
      *               resource.
      * @return If successful, this method returns an empty response body.
      */
     @PUT
-    @Path("/{id}")
+    @Path("/{name}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
@@ -146,9 +146,9 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If device class is not found")
     })
     Response updateDeviceClass(
-            @ApiParam(name = "id", value = "Device class identifier.", required = true)
-            @PathParam("id")
-            long id,
+            @ApiParam(name = "name", value = "Device class identifier.", required = true)
+            @PathParam("name")
+            String name,
 
             @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
             @JsonPolicyApply(DEVICECLASS_PUBLISHED)
@@ -158,11 +158,11 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/delete"> DeviceHive RESTful
      * API: DeviceClass: delete</a> Deletes an existing device class by id.
      *
-     * @param id Device class identifier.
+     * @param name Device class identifier.
      * @return If successful, this method returns an empty response body with 204 status
      */
     @DELETE
-    @Path("/{id}")
+    @Path("/{name}")
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
     @ApiResponses(value = {
@@ -172,6 +172,6 @@ public interface DeviceClassResource {
             @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response deleteDeviceClass(
-            @ApiParam(name = "id", value = "Device class identifier.", required = true)
-            @PathParam("id") long id);
+            @ApiParam(name = "name", value = "Device class identifier.", required = true)
+            @PathParam("name") String name);
 }

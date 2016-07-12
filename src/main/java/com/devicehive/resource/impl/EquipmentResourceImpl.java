@@ -35,17 +35,17 @@ public class EquipmentResourceImpl implements EquipmentResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getEquipment(long classId, long eqId) {
+    public Response getEquipment(String className, long eqId) {
 
         logger.debug("Device class's equipment get requested");
-        Equipment result = equipmentService.getByDeviceClass(classId, eqId);
+        Equipment result = equipmentService.getByDeviceClass(className, eqId);
 
         if (result == null) {
-            logger.debug("No equipment with id = {} for device class with id = {} found", eqId, classId);
+            logger.debug("No equipment with id = {} for device class with id = {} found", eqId, className);
             return ResponseFactory.response(NOT_FOUND,
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.EQUIPMENT_NOT_FOUND, eqId,
-                                                                            classId)));
+                                                                      className)));
         }
         logger.debug("Device class's equipment get proceed successfully");
 
@@ -56,7 +56,7 @@ public class EquipmentResourceImpl implements EquipmentResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insertEquipment(long classId, Equipment equipment) {
+    public Response insertEquipment(String classId, Equipment equipment) {
 
         logger.debug("Insert device class's equipment requested");
         Equipment result = deviceClassService.createEquipment(classId, equipment);
@@ -69,17 +69,17 @@ public class EquipmentResourceImpl implements EquipmentResource {
      * {@inheritDoc}
      */
     @Override
-    public Response updateEquipment(long classId, long eqId, EquipmentUpdate equipmentUpdate) {
+    public Response updateEquipment(String className, long eqId, EquipmentUpdate equipmentUpdate) {
 
         logger.debug("Update device class's equipment requested");
 
-        if (!equipmentService.update(equipmentUpdate, eqId, classId)) {
+        if (!equipmentService.update(equipmentUpdate, eqId, className)) {
             logger.debug("Unable to update equipment. Equipment with id = {} for device class with id = {} not found",
-                         eqId, classId);
+                         eqId, className);
             return ResponseFactory.response(NOT_FOUND,
                                             new ErrorResponse(NOT_FOUND.getStatusCode(),
                                                               String.format(Messages.EQUIPMENT_NOT_FOUND, eqId,
-                                                                            classId)));
+                                                                      className)));
         }
 
         logger.debug("Update device class's equipment finished successfully");
@@ -91,10 +91,10 @@ public class EquipmentResourceImpl implements EquipmentResource {
      * {@inheritDoc}
      */
     @Override
-    public Response deleteEquipment(long classId, long eqId) {
+    public Response deleteEquipment(String className, long eqId) {
 
         logger.debug("Delete device class's equipment requested");
-        equipmentService.delete(eqId, classId);
+        equipmentService.delete(eqId, className);
         logger.debug("Delete device class's equipment finished");
 
         return ResponseFactory.response(NO_CONTENT);

@@ -30,14 +30,14 @@ public class DeviceClassService {
     private DeviceClassDao deviceClassDao;
 
     @Transactional
-    public void delete(@NotNull long id) {
-        if (deviceClassDao.isExist(id)) {
-            deviceClassDao.remove(deviceClassDao.getReference(id));
+    public void delete(@NotNull String name) {
+        if (deviceClassDao.find(name) != null) {
+            deviceClassDao.remove(deviceClassDao.getReference(name));
         }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public DeviceClass getWithEquipment(@NotNull long id) {
+    public DeviceClass getWithEquipment(@NotNull String id) {
         return deviceClassDao.find(id);
     }
 
@@ -51,12 +51,7 @@ public class DeviceClassService {
         }
         //check is already done
         DeviceClass deviceClassFromMessage = deviceClass.orElse(null).convertTo();
-        if (deviceClassFromMessage.getId() != null) {
-            stored = deviceClassDao.find(deviceClassFromMessage.getId());
-        } else {
-            stored = deviceClassDao.findByNameAndVersion(deviceClassFromMessage.getName(),
-                    deviceClassFromMessage.getVersion());
-        }
+        stored = deviceClassDao.find(deviceClassFromMessage.getName());
         if (stored != null) {
             //update
             if (Boolean.FALSE.equals(stored.getPermanent())) {
@@ -79,9 +74,6 @@ public class DeviceClassService {
             return stored;
         } else {
             //create
-            if (deviceClassFromMessage.getId() != null) {
-                throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
-            }
             if (deviceClassFromMessage.getPermanent() == null) {
                 deviceClassFromMessage.setPermanent(false);
             }
@@ -97,10 +89,7 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClass addDeviceClass(DeviceClass deviceClass) {
-        if (deviceClass.getId() != null) {
-            throw new HiveException(Messages.ID_NOT_ALLOWED, BAD_REQUEST.getStatusCode());
-        }
-        if (deviceClassDao.findByNameAndVersion(deviceClass.getName(), deviceClass.getVersion()) != null) {
+        if (deviceClassDao.find(deviceClass.getName()) != null) {
             throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
         }
         if (deviceClass.getPermanent() == null) {
@@ -115,7 +104,7 @@ public class DeviceClassService {
     }
 
     @Transactional
-    public void update(@NotNull Long id, DeviceClassUpdate update) {
+    public void update(@NotNull String id, DeviceClassUpdate update) {
         DeviceClass stored = deviceClassDao.find(id);
         if (stored == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, id),
@@ -140,9 +129,6 @@ public class DeviceClassService {
         if (update.getOfflineTimeout() != null) {
             stored.setOfflineTimeout(update.getOfflineTimeout().orElse(null));
         }
-        if (update.getVersion() != null) {
-            stored.setVersion(update.getVersion().orElse(null));
-        }
         hiveValidator.validate(stored);
         deviceClassDao.merge(stored);
     }
@@ -155,7 +141,7 @@ public class DeviceClassService {
         for (Equipment newEquipment : equipmentsToReplace) {
             if (codes.contains(newEquipment.getCode())) {
                 throw new HiveException(
-                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getId()),
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, newEquipment.getCode(), deviceClass.getName()),
                     FORBIDDEN.getStatusCode());
             }
             codes.add(newEquipment.getCode());
@@ -171,7 +157,7 @@ public class DeviceClassService {
         for (Equipment equipment : equipments) {
             if (existingCodesSet.contains(equipment.getCode())) {
                 throw new HiveException(
-                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getId()),
+                    String.format(Messages.DUPLICATE_EQUIPMENT_ENTRY, equipment.getCode(), deviceClass.getName()),
                     FORBIDDEN.getStatusCode());
             }
             existingCodesSet.add(equipment.getCode());
@@ -182,7 +168,7 @@ public class DeviceClassService {
     }
 
     @Transactional
-    public Equipment createEquipment(Long classId, Equipment equipment) {
+    public Equipment createEquipment(String classId, Equipment equipment) {
         DeviceClass deviceClass = deviceClassDao.find(classId);
 
         if (deviceClass == null) {

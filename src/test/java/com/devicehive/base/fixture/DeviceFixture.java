@@ -23,7 +23,6 @@ public class DeviceFixture {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
         deviceClass.setName(Optional.ofNullable("device_class-" + uuid));
-        deviceClass.setVersion(Optional.ofNullable("1"));
         deviceClass.setPermanent(Optional.ofNullable(false));
         deviceClass.setOfflineTimeout(Optional.ofNullable(120));
         deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
@@ -32,9 +31,7 @@ public class DeviceFixture {
     public static DeviceClassUpdate createDeviceClassUpdate(DeviceClass dc) {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
-        deviceClass.setId(dc.getId());
         deviceClass.setName(Optional.ofNullable(dc.getName()));
-        deviceClass.setVersion(Optional.ofNullable(dc.getVersion()));
         deviceClass.setPermanent(Optional.ofNullable(false));
         deviceClass.setOfflineTimeout(Optional.ofNullable(dc.getOfflineTimeout()));
         deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
@@ -45,7 +42,6 @@ public class DeviceFixture {
         UUID uuid = UUID.randomUUID();
         DeviceClass deviceClass = new DeviceClass();
         deviceClass.setName("device_class-" + uuid);
-        deviceClass.setVersion("1");
         deviceClass.setPermanent(false);
         deviceClass.setOfflineTimeout(120);
         deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));

@@ -78,7 +78,7 @@ public class Device implements HiveEntity {
 
     @SerializedName("deviceClass")
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "device_class_id")
+    @JoinColumn(name = "device_class_name")
     @NotNull(message = "deviceClass field cannot be null.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;

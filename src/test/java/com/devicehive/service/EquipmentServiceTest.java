@@ -24,7 +24,7 @@ public class EquipmentServiceTest extends AbstractResourceTest {
     public void should_create_equipment() {
         final Equipment equipment = prepareEquipment();
 
-        final Equipment existingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        final Equipment existingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getName(), equipment.getId());
         assertNotNull(existingEquipment);
         assertEquals(equipment.getId(), existingEquipment.getId());
         assertEquals(equipment.getName(), existingEquipment.getName());
@@ -33,21 +33,21 @@ public class EquipmentServiceTest extends AbstractResourceTest {
     @Test
     public void should_delete_by_equipment_and_device_class_id() {
         final Equipment equipment = prepareEquipment();
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getName());
 
-        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getName(), equipment.getId());
         assertNull(notExistingEquipment);
     }
 
     @Test
     public void should_not_fail_deleting_not_existing_equipment() {
         final Equipment equipment = prepareEquipment();
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getName());
 
-        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getName(), equipment.getId());
         assertNull(notExistingEquipment);
 
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getName());
     }
 
     @Test

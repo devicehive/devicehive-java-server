@@ -409,7 +409,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -443,7 +442,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -473,7 +471,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -507,7 +504,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -548,7 +544,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -570,7 +565,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         for (Device device : returnedNetwork.getDevices()) {
             assertThat(device.getDeviceClass(), notNullValue());
-            assertThat(device.getDeviceClass().getId(), notNullValue());
             assertThat(device.getDeviceClass().getName(), notNullValue());
             assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().orElse(null)));
         }
@@ -590,7 +584,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -626,7 +619,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -692,7 +684,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -746,7 +737,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(randomUUID().toString()));
-        dc.setVersion(Optional.ofNullable("1"));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));

@@ -22,10 +22,10 @@ public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public Equipment getByDeviceClassAndId(@NotNull long deviceClassId, @NotNull long equipmentId) {
+    public Equipment getByDeviceClassAndId(@NotNull String deviceClassName, @NotNull long equipmentId) {
         return createNamedQuery(Equipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
                 .setParameter("id", equipmentId)
-                .setParameter("deviceClassId", deviceClassId)
+                .setParameter("deviceClassName", deviceClassName)
                 .getResultList()
                 .stream().findFirst().orElse(null);
     }
@@ -38,10 +38,10 @@ public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull long deviceClassId) {
+    public boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull String deviceClassName) {
         return createNamedQuery("Equipment.deleteByIdAndDeviceClass", Optional.<CacheConfig>empty())
                 .setParameter("id", equipmentId)
-                .setParameter("deviceClassId", deviceClassId)
+                .setParameter("deviceClassName", deviceClassName)
                 .executeUpdate() != 0;
     }
 

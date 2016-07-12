@@ -22,14 +22,6 @@ import static java.util.Optional.ofNullable;
 @Profile({"rdbms"})
 @Repository
 public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao {
-    @Override
-    public DeviceClass findByNameAndVersion(String name, String version) {
-        return createNamedQuery(DeviceClass.class, "DeviceClass.findByNameAndVersion", Optional.of(CacheConfig.get()))
-                .setParameter("name", name)
-                .setParameter("version", version)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-    }
 
     @Override
     public boolean isExist(long id) {
@@ -37,8 +29,8 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
     }
 
     @Override
-    public DeviceClass getReference(long id) {
-        return getReference(DeviceClass.class, id);
+    public DeviceClass getReference(String name) {
+        return getReference(DeviceClass.class, name);
     }
 
     @Override
@@ -47,7 +39,7 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
     }
 
     @Override
-    public DeviceClass find(long id) {
+    public DeviceClass find(String id) {
         return find(DeviceClass.class, id);
     }
 

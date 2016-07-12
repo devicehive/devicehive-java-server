@@ -27,9 +27,9 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClass.setPermanent(null);
         deviceClassService.addDeviceClass(deviceClass);
 
-        final DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        final DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getName());
         assertNotNull(existingDeviceClass);
-        assertEquals(deviceClass.getId(), existingDeviceClass.getId());
+        assertEquals(deviceClass.getName(), existingDeviceClass.getName());
         assertFalse(existingDeviceClass.getPermanent());
     }
 
@@ -39,18 +39,18 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClass.setName("INITIAL_DC_NAME");
         deviceClassService.addDeviceClass(deviceClass);
 
-        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getName());
         assertNotNull(existingDeviceClass);
-        assertEquals(deviceClass.getId(), existingDeviceClass.getId());
+        assertEquals(deviceClass.getName(), existingDeviceClass.getName());
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getName());
 
         deviceClass.setName("CHANGED_DC_NAME");
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
-        deviceClassService.update(dcUpdate.getId(), dcUpdate);
+        deviceClassService.update(dcUpdate.getName().get(), dcUpdate);
 
-        existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getName());
         assertNotNull(existingDeviceClass);
-        assertEquals(deviceClass.getId(), existingDeviceClass.getId());
+        assertEquals(deviceClass.getName(), existingDeviceClass.getName());
         assertEquals("CHANGED_DC_NAME", existingDeviceClass.getName());
     }
 
@@ -61,8 +61,8 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClass.setName("INITIAL_DC_NAME");
         final DeviceClass createdDC = deviceClassService.addDeviceClass(deviceClass);
 
-        final long createdDCUpdateId = createdDC.getId();
-        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
+        final String createdDCUpdateName = createdDC.getName();
+        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(createdDC.getName());
         assertNotNull(existingDeviceClass);
         assertEquals(10, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getName());
@@ -72,7 +72,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         dcUpdate.setName(Optional.ofNullable("CHANGED_DC_NAME"));
         deviceClassService.createOrUpdateDeviceClass(Optional.ofNullable(dcUpdate),
                 Collections.singleton(DeviceFixture.createEquipment()));
-        existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
+        existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateName);
         assertNotNull(existingDeviceClass);
         assertEquals(100, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getName());
@@ -89,7 +89,6 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
     public void should_fail_on_adding_duplicate_name_and_version_device_class() {
         final DeviceClass deviceClass = DeviceFixture.createDC();
         deviceClassService.addDeviceClass(deviceClass);
-        deviceClass.setVersion("10000");
         deviceClassService.addDeviceClass(deviceClass);
     }
 
@@ -100,7 +99,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClass.setEquipment(Collections.singleton(initialEquipment));
 
         final DeviceClass createdDC = deviceClassService.addDeviceClass(deviceClass);
-        DeviceClass existingDC = deviceClassService.getWithEquipment(createdDC.getId());
+        DeviceClass existingDC = deviceClassService.getWithEquipment(createdDC.getName());
         Set<Equipment> existingEquipmentSet = existingDC.getEquipment();
         assertNotNull(existingEquipmentSet);
         assertEquals(1, existingEquipmentSet.size());
@@ -111,7 +110,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
         final Equipment anotherEquipment = DeviceFixture.createEquipment();
         deviceClassService.replaceEquipment(Collections.singleton(anotherEquipment), deviceClass);
-        existingDC = deviceClassService.getWithEquipment(createdDC.getId());
+        existingDC = deviceClassService.getWithEquipment(createdDC.getName());
         existingEquipmentSet = existingDC.getEquipment();
         assertNotNull(existingEquipmentSet);
         assertEquals(1, existingEquipmentSet.size());
@@ -127,14 +126,14 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClass.setEquipment(Collections.emptySet());
 
         final DeviceClass createdDC = deviceClassService.addDeviceClass(deviceClass);
-        DeviceClass existingDC = deviceClassService.getWithEquipment(createdDC.getId());
+        DeviceClass existingDC = deviceClassService.getWithEquipment(createdDC.getName());
         assertNotNull(existingDC);
         assertNotNull(existingDC.getEquipment());
         assertEquals(0, existingDC.getEquipment().size());
 
         final Equipment initialEquipment = DeviceFixture.createEquipment();
         deviceClassService.createEquipment(deviceClass, Collections.singleton(initialEquipment));
-        existingDC = deviceClassService.getWithEquipment(createdDC.getId());
+        existingDC = deviceClassService.getWithEquipment(createdDC.getName());
         assertNotNull(existingDC);
         assertNotNull(existingDC.getEquipment());
         assertEquals(1, existingDC.getEquipment().size());
@@ -145,74 +144,19 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_get_device_class_list() {
-        final DeviceClass deviceClass0 = DeviceFixture.createDC();
-        deviceClass0.setName("COMMON_NAME");
-        final DeviceClass deviceClass1 = DeviceFixture.createDC();
-        deviceClass1.setName("COMMON_NAME1");
-        deviceClass1.setVersion("3");
-        final DeviceClass deviceClass2 = DeviceFixture.createDC();
-        deviceClass2.setName("COMMON_NAME2");
-        deviceClass2.setVersion("5");
-        final DeviceClass deviceClass3 = DeviceFixture.createDC();
-        deviceClass3.setVersion("5");
-        final DeviceClass deviceClass4 = DeviceFixture.createDC();
-        deviceClass4.setVersion("5");
-        final DeviceClass deviceClass5 = DeviceFixture.createDC();
-        deviceClass5.setVersion("5");
-
-        deviceClassService.addDeviceClass(deviceClass0);
-        deviceClassService.addDeviceClass(deviceClass1);
-        deviceClassService.addDeviceClass(deviceClass2);
-        deviceClassService.addDeviceClass(deviceClass3);
-        deviceClassService.addDeviceClass(deviceClass4);
-        deviceClassService.addDeviceClass(deviceClass5);
-
-        List<DeviceClass> deviceClasses = deviceClassService.getDeviceClassList("COMMON_NAME", null, null, null, false, null, null);
-        assertNotNull(deviceClasses);
-        assertEquals(deviceClass0.getId(), deviceClasses.get(0).getId());
-        assertEquals(deviceClass0.getName(), deviceClasses.get(0).getName());
-
-        deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON%", null, null, false, null, null);
-        assertNotNull(deviceClasses);
-        assertEquals(3, deviceClasses.size());
-        assertEquals(deviceClass0.getId(), deviceClasses.get(0).getId());
-        assertEquals(deviceClass1.getId(), deviceClasses.get(1).getId());
-        assertEquals(deviceClass2.getId(), deviceClasses.get(2).getId());
-
-        deviceClasses = deviceClassService.getDeviceClassList(null, null, "5", null, false, null, null);
-        assertNotNull(deviceClasses);
-        assertEquals(4, deviceClasses.size());
-        assertEquals(deviceClass2.getVersion(), deviceClasses.get(0).getVersion());
-        assertEquals(deviceClass3.getVersion(), deviceClasses.get(1).getVersion());
-        assertEquals(deviceClass4.getVersion(), deviceClasses.get(2).getVersion());
-        assertEquals(deviceClass5.getVersion(), deviceClasses.get(3).getVersion());
-
-        deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_NAME%", "3", null, false, null, null);
-        assertNotNull(deviceClasses);
-        assertEquals(1, deviceClasses.size());
-    }
-
-    @Test
     public void should_get_device_class_list_sorted() {
         final DeviceClass deviceClass0 = DeviceFixture.createDC();
         deviceClass0.setName("F_COMMON_SPECIFIC_NAME");
-        deviceClass0.setVersion("5");
         final DeviceClass deviceClass1 = DeviceFixture.createDC();
         deviceClass1.setName("C_COMMON_SPECIFIC_NAME");
-        deviceClass1.setVersion("4");
         final DeviceClass deviceClass2 = DeviceFixture.createDC();
         deviceClass2.setName("E_COMMON_SPECIFIC_NAME");
-        deviceClass2.setVersion("3");
         final DeviceClass deviceClass3 = DeviceFixture.createDC();
         deviceClass3.setName("B_COMMON_SPECIFIC_NAME");
-        deviceClass3.setVersion("2");
         final DeviceClass deviceClass4 = DeviceFixture.createDC();
         deviceClass4.setName("D_COMMON_SPECIFIC_NAME");
-        deviceClass4.setVersion("1");
         final DeviceClass deviceClass5 = DeviceFixture.createDC();
         deviceClass5.setName("A_COMMON_SPECIFIC_NAME");
-        deviceClass5.setVersion("0");
 
         deviceClassService.addDeviceClass(deviceClass0);
         deviceClassService.addDeviceClass(deviceClass1);
@@ -221,27 +165,27 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClassService.addDeviceClass(deviceClass4);
         deviceClassService.addDeviceClass(deviceClass5);
 
-        List<DeviceClass> deviceClasses = deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_SPECIFIC_NAME%", null, "name",
+        List<DeviceClass> deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_SPECIFIC_NAME%", null, "name",
                 true, null, null);
         assertNotNull(deviceClasses);
         assertEquals(6, deviceClasses.size());
-        assertEquals(deviceClass5.getId(), deviceClasses.get(0).getId());
-        assertEquals(deviceClass3.getId(), deviceClasses.get(1).getId());
-        assertEquals(deviceClass1.getId(), deviceClasses.get(2).getId());
-        assertEquals(deviceClass4.getId(), deviceClasses.get(3).getId());
-        assertEquals(deviceClass2.getId(), deviceClasses.get(4).getId());
-        assertEquals(deviceClass0.getId(), deviceClasses.get(5).getId());
+        assertEquals(deviceClass5.getName(), deviceClasses.get(0).getName());
+        assertEquals(deviceClass3.getName(), deviceClasses.get(1).getName());
+        assertEquals(deviceClass1.getName(), deviceClasses.get(2).getName());
+        assertEquals(deviceClass4.getName(), deviceClasses.get(3).getName());
+        assertEquals(deviceClass2.getName(), deviceClasses.get(4).getName());
+        assertEquals(deviceClass0.getName(), deviceClasses.get(5).getName());
 
-        deviceClasses = deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_SPECIFIC_NAME%", null, "version",
+        deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_SPECIFIC_NAME%", null, "version",
                 true, null, null);
         assertNotNull(deviceClasses);
         assertEquals(6, deviceClasses.size());
-        assertEquals(deviceClass5.getId(), deviceClasses.get(0).getId());
-        assertEquals(deviceClass4.getId(), deviceClasses.get(1).getId());
-        assertEquals(deviceClass3.getId(), deviceClasses.get(2).getId());
-        assertEquals(deviceClass2.getId(), deviceClasses.get(3).getId());
-        assertEquals(deviceClass1.getId(), deviceClasses.get(4).getId());
-        assertEquals(deviceClass0.getId(), deviceClasses.get(5).getId());
+        assertEquals(deviceClass5.getName(), deviceClasses.get(0).getName());
+        assertEquals(deviceClass4.getName(), deviceClasses.get(1).getName());
+        assertEquals(deviceClass3.getName(), deviceClasses.get(2).getName());
+        assertEquals(deviceClass2.getName(), deviceClasses.get(3).getName());
+        assertEquals(deviceClass1.getName(), deviceClasses.get(4).getName());
+        assertEquals(deviceClass0.getName(), deviceClasses.get(5).getName());
     }
 
     @Test
@@ -249,17 +193,17 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         final DeviceClass deviceClass = DeviceFixture.createDC();
         deviceClassService.addDeviceClass(deviceClass);
 
-        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        DeviceClass existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getName());
         assertNotNull(existingDeviceClass);
-        assertEquals(deviceClass.getId(), existingDeviceClass.getId());
+        assertEquals(deviceClass.getName(), existingDeviceClass.getName());
 
-        deviceClassService.delete(deviceClass.getId());
-        existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        deviceClassService.delete(deviceClass.getName());
+        existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getName());
         assertNull(existingDeviceClass);
     }
 
     @Test
     public void should_not_throw_exception_delete_device_class_not_exists() {
-        deviceClassService.delete(10000);
+        deviceClassService.delete("10000");
     }
 }

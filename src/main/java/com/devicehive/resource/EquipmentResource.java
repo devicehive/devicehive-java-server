@@ -20,7 +20,7 @@ public interface EquipmentResource {
      * *custom json object* /} }, { "id":2, "timestamp": "1970-01-01 00:00:00.0", "parameters":{/ *custom json object*
      * /} } ] <p/> </code>
      *
-     * @param classId device class id
+     * @param className device class id
      * @param eqId    equipment id
      */
     @GET
@@ -33,9 +33,9 @@ public interface EquipmentResource {
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response getEquipment(
-            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
-            @PathParam("deviceClassId")
-            long classId,
+            @ApiParam(name = "deviceClassName", value = "Device class id", required = true)
+            @PathParam("deviceClassName")
+            String className,
             @ApiParam(name = "id", value = "Equipment id", required = true)
             @PathParam("id")
             long eqId);
@@ -58,7 +58,7 @@ public interface EquipmentResource {
     Response insertEquipment(
             @ApiParam(name = "deviceClassId", value = "Device class {id}", required = true)
             @PathParam("deviceClassId")
-            long classId,
+            String classId,
             @ApiParam(value = "Equipment body", required = true, defaultValue = "{}")
             Equipment equipment);
 
@@ -70,7 +70,7 @@ public interface EquipmentResource {
      * Equipment data, a JSON object with an arbitrary structure. <p/> <code> { "name": "equipment name", "code":
      * "equipment_code", "type": "equipment_type", "data": {/ * json object* /} } </code>
      *
-     * @param classId         id of class
+     * @param className         id of class
      * @param eqId            equipment id
      * @param equipmentUpdate Json  object
      * @return empty response with status 201 in case of success, empty response with status 404, if there's no such
@@ -86,9 +86,9 @@ public interface EquipmentResource {
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response updateEquipment(
-            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
-            @PathParam("deviceClassId")
-            long classId,
+            @ApiParam(name = "deviceClassName", value = "Device class id", required = true)
+            @PathParam("deviceClassName")
+            String className,
             @ApiParam(name = "id", value = "Equipment id", required = true)
             @PathParam("id")
             long eqId,
@@ -99,7 +99,7 @@ public interface EquipmentResource {
     /**
      * Will cascade deletes specified equipment and all data for this equipment for all devise of this type.
      *
-     * @param classId Device class id
+     * @param className Device class id
      * @param eqId    Equipment id
      * @return empty body, 204 if success, 404 if no record found
      */
@@ -113,9 +113,9 @@ public interface EquipmentResource {
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response deleteEquipment(
-            @ApiParam(name = "deviceClassId", value = "Device class id", required = true)
-            @PathParam("deviceClassId")
-            long classId,
+            @ApiParam(name = "deviceClassName", value = "Device class id", required = true)
+            @PathParam("deviceClassName")
+            String className,
             @ApiParam(name = "id", value = "Equipment id", required = true)
             @PathParam("id")
             long eqId);

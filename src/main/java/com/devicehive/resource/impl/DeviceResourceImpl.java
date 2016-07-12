@@ -43,8 +43,8 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response list(String name, String namePattern, String status, Long networkId, String networkName, Long deviceClassId, String deviceClassName,
-                         String deviceClassVersion, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public Response list(String name, String namePattern, String status, Long networkId, String networkName,  String deviceClassName,
+                         String sortField, String sortOrderSt, Integer take, Integer skip) {
 
         logger.debug("Device list requested");
 
@@ -62,8 +62,8 @@ public class DeviceResourceImpl implements DeviceResource {
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                                                    deviceClassName, deviceClassVersion, sortField, sortOrder, take,
+        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName,
+                                                    deviceClassName, sortField, sortOrder, take,
                                                     skip, principal);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());

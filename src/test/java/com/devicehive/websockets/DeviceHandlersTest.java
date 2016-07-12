@@ -66,9 +66,7 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
         DeviceClassUpdate savedClass = deviceResp.getDeviceClass().orElse(null);
         assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName()));
-        assertThat(savedClass.getVersion(), is(deviceClass.getVersion()));
         assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout()));
         assertThat(savedClass.getData().orElse(null), notNullValue());
@@ -117,9 +115,7 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
         DeviceClassUpdate savedClass = deviceResp.getDeviceClass().get();
         assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName()));
-        assertThat(savedClass.getVersion(), is(deviceClass.getVersion()));
         assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout()));
         assertThat(savedClass.getData().get(), notNullValue());

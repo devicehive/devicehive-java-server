@@ -491,7 +491,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
@@ -522,7 +521,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
@@ -555,7 +553,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        dc.setVersion(Optional.ofNullable("0.1"));
         device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
