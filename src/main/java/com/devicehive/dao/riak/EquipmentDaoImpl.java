@@ -1,7 +1,5 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.core.RiakCluster;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.EquipmentDao;
 import com.devicehive.model.DeviceClass;
@@ -11,6 +9,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Profile({"riak"})
@@ -18,43 +18,72 @@ import java.util.List;
 public class EquipmentDaoImpl implements EquipmentDao {
 
     @Autowired
-    private RiakClient client;
-
-    @Autowired
     private DeviceClassDao deviceClassDao;
 
     @Override
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return null;
+        DeviceClass dc = deviceClassDao.find(deviceClass.getId());
+        return dc != null ? new ArrayList<>(dc.getEquipment()) : Collections.emptyList();
     }
 
     @Override
     public Equipment getByDeviceClassAndId(@NotNull String deviceClassName, @NotNull long equipmentId) {
-        return null;
+        return find(equipmentId, deviceClassName);
     }
 
     @Override
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
-        return 0;
+        int result = deviceClass.getEquipment().size();
+        deviceClass.getEquipment().clear();
+        deviceClassDao.merge(deviceClass);
+        return result;
     }
 
     @Override
     public boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull String deviceClassName) {
+        DeviceClass deviceClass = deviceClassDao.find(deviceClassName);
+        Equipment stored = null;
+        for (Equipment equipment : deviceClass.getEquipment()) {
+            if (equipment.getId() == equipmentId) {
+                stored = equipment;
+            }
+        }
+        if (stored != null) {
+            deviceClass.getEquipment().remove(stored);
+            deviceClassDao.merge(deviceClass);
+            return true;
+        }
         return false;
     }
 
     @Override
     public void persist(Equipment equipment) {
-        equipment.getDeviceClass();
+        merge(equipment);
     }
 
     @Override
-    public Equipment find(long equipmentId) {
+    public Equipment find(long equipmentId, String deviceClassName) {
+        DeviceClass deviceClass = deviceClassDao.find(deviceClassName);
+        for (Equipment equipment : deviceClass.getEquipment()) {
+            if (equipment.getId() == equipmentId) {
+                return equipment;
+            }
+        }
         return null;
     }
 
     @Override
     public Equipment merge(Equipment equipment) {
-        return null;
+        DeviceClass deviceClass = equipment.getDeviceClass();
+        //getting it from storage
+        deviceClass = deviceClassDao.find(deviceClass.getId());
+        if (equipment.getId() == null) {
+            // todo: remove id from equipment
+            equipment.setId(System.currentTimeMillis());
+        }
+        deviceClass.getEquipment().add(equipment);
+        deviceClassDao.merge(deviceClass);
+
+        return equipment;
     }
 }

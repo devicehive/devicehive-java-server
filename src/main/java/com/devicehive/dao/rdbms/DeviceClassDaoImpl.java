@@ -24,11 +24,6 @@ import static java.util.Optional.ofNullable;
 public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao {
 
     @Override
-    public boolean isExist(long id) {
-        return isExist(DeviceClass.class, id);
-    }
-
-    @Override
     public DeviceClass getReference(String name) {
         return getReference(DeviceClass.class, name);
     }
@@ -59,13 +54,13 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
     }
 
     @Override
-    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
+    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<DeviceClass> criteria = cb.createQuery(DeviceClass.class);
         final Root<DeviceClass> from = criteria.from(DeviceClass.class);
 
         final Predicate[] predicates = CriteriaHelper.deviceClassListPredicates(cb, from, ofNullable(name),
-                ofNullable(namePattern), ofNullable(version));
+                ofNullable(namePattern));
         criteria.where(predicates);
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
 

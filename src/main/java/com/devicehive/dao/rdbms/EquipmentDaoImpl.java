@@ -51,7 +51,7 @@ public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public Equipment find(long equipmentId) {
+    public Equipment find(long equipmentId, String deviceClassName) {
         return super.find(Equipment.class, equipmentId);
     }
 

@@ -78,7 +78,7 @@ public class EquipmentService {
         if (equipmentUpdate == null) {
             return true;
         }
-        Equipment stored = equipmentDao.find(equipmentId);
+        Equipment stored = equipmentDao.find(equipmentId, deviceClassName);
         if (stored == null || stored.getDeviceClass().getId() != deviceClassName) {
             return false; // equipment with id = equipmentId does not exists
         }

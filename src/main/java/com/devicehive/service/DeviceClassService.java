@@ -195,7 +195,7 @@ public class DeviceClassService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
-        return deviceClassDao.getDeviceClassList(name, namePattern, version, sortField, sortOrderAsc, take, skip);
+        return deviceClassDao.getDeviceClassList(name, namePattern, sortField, sortOrderAsc, take, skip);
     }
 
 }

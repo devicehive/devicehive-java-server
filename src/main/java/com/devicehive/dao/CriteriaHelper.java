@@ -185,7 +185,7 @@ public class CriteriaHelper {
     }
 
     public static Predicate[] deviceClassListPredicates(CriteriaBuilder cb, Root<DeviceClass> from, Optional<String> name,
-                                                 Optional<String>  namePattern, Optional<String>  version) {
+                                                 Optional<String>  namePattern) {
         final List<Predicate> predicates = new LinkedList<>();
         if (namePattern.isPresent()) {
             namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));

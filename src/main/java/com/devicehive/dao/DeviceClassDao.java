@@ -10,8 +10,6 @@ import java.util.List;
  */
 public interface DeviceClassDao {
 
-    boolean isExist(long id);
-
     DeviceClass getReference(String name);
 
     void remove(DeviceClass reference);
@@ -24,6 +22,6 @@ public interface DeviceClassDao {
 
     DeviceClass merge(DeviceClass deviceClass);
 
-    List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
+    List<DeviceClass> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
 }

@@ -52,4 +52,10 @@ public class RiakClusterBuilder {
     public RiakClient riakClient() {
         return new RiakClient(cluster);
     }
+
+    @Bean
+    @Lazy(false)
+    public RiakCluster riakCluster() {
+        return cluster;
+    }
 }

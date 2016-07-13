@@ -21,7 +21,7 @@ public interface EquipmentDao {
 
     void persist(Equipment equipment);
 
-    Equipment find(long equipmentId);
+    Equipment find(long equipmentId, String deviceClassName);
 
     Equipment merge(Equipment equipment);
 }
