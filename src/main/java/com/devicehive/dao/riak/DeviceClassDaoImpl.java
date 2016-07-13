@@ -25,6 +25,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -91,7 +92,17 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
         }
     }
 
-    @Override //todo: process paging
+    private final Map<String, String> sortMap = new HashMap<>();
+
+    public DeviceClassDaoImpl() {
+        sortMap.put("name", "function(a,b){ return a.id %s b.id; }");
+        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
+        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
+        sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
+        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
+    }
+
+    @Override
     public List<DeviceClass> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
 
@@ -101,31 +112,27 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
             if (deviceClass != null) {
                 result.add(deviceClass);
             }
-        } else if (namePattern != null) {
-            try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(DEVICE_CLASS_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .withKeyFilter(new MatchFilter(namePattern))
-                                .build();
-
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                result.addAll(response.getResultsFromAllPhases(DeviceClass.class));
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
         } else {
             try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(DEVICE_CLASS_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .build();
+                String sortFunction = sortMap.get(sortField);
+                if (sortFunction == null) {
+                    sortFunction = sortMap.get("name");
+                }
+                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                        .withNamespace(DEVICE_CLASS_NS)
+                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                        .withReducePhase(Function.newErlangFunction("Riak.reduceSlice",
+                                String.format(sortFunction, sortOrderAsc ? ">" : "<")), take == null);
+                if (namePattern != null) {
+                    builder.withKeyFilter(new MatchFilter(namePattern));
+                }
+                if (take != null) {
+                    int[] args = new int[2];
+                    args[0] = skip != null ? skip : 0;
+                    args[1] = args[0] + take;
+                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
+                }
+                BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
                 MapReduce.Response response = future.get();
@@ -134,6 +141,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                 throw new RuntimeException(e);
             }
         }
+
         return result;
     }
 
