@@ -54,6 +54,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         assertEquals("CHANGED_DC_NAME", existingDeviceClass.getId());
     }
 
+    /* now DeviceClassName = ID
     @Test
     public void should_add_and_update_device_class() {
         final DeviceClass deviceClass = DeviceFixture.createDC();
@@ -76,7 +77,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         assertNotNull(existingDeviceClass);
         assertEquals(100, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getId());
-    }
+    }*/
 
     @Test(expected = HiveException.class)
     public void should_fail_on_adding_duplicate_id_device_class() {
