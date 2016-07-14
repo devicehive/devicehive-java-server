@@ -18,6 +18,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -43,6 +44,19 @@ public class UserDaoImpl implements UserDao {
     @Autowired
     private NetworkDao networkDao;
 
+    private final Map<String, String> sortMap = new HashMap<>();
+
+    public UserDaoImpl() {
+        sortMap.put("login", "function(a,b){ return a.login %s b.login; }");
+        sortMap.put("role", "function(a,b){ return a.role %s b.role; }");
+        sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
+        sortMap.put("lastLogin", "function(a,b){ return a.lastLogin %s b.lastLogin; }");
+        sortMap.put("googleLogin", "function(a,b){ return a.googleLogin %s b.googleLogin; }");
+        sortMap.put("facebookLogin", "function(a,b){ return a.facebookLogin %s b.facebookLogin; }");
+        sortMap.put("githubLogin", "function(a,b){ return a.githubLogin %s b.githubLogin; }");
+        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
+    }
+
     @Override
     public Optional<User> findByName(String name) {
         User user = findBySomeIdentityName(name, "login");
@@ -65,6 +79,9 @@ public class UserDaoImpl implements UserDao {
     }
 
     private User findBySomeIdentityName(String name, String identityName) {
+        if (name == null) {
+            return null;
+        }
         BinIndexQuery biq = new BinIndexQuery.Builder(USER_NS, identityName, name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -145,6 +162,9 @@ public class UserDaoImpl implements UserDao {
         User user = find(id);
 
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(id);
+        if (networkIds == null) {
+            return user;
+        }
         Set<Network> networks = new HashSet<>();
         for (Long networkId : networkIds) {
             Network network = networkDao.find(networkId);
@@ -208,79 +228,78 @@ public class UserDaoImpl implements UserDao {
                               Integer role, Integer status,
                               String sortField, Boolean sortOrderAsc,
                               Integer take, Integer skip) {
+
+
         ArrayList<User> result = new ArrayList<>();
         if (login != null) {
             Optional<User> user = findByName(login);
             if (user.isPresent()) {
                 result.add(user.get());
             }
-        } else if (loginPattern != null) {
-            try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(USER_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .withKeyFilter(new MatchFilter(loginPattern))
-                                .build();
-
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                result.addAll(response.getResultsFromAllPhases(User.class));
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (role != null) {
-            try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(USER_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .build();
-
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                List<User> users = response.getResultsFromAllPhases(User.class)
-                        .stream()
-                        .filter(u -> u.getRole().equals(role))
-                        .collect(Collectors.toList());
-
-                result.addAll(users);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (status != null) {
-            try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(USER_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .build();
-
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                List<User> users = response.getResultsFromAllPhases(User.class)
-                        .stream()
-                        .filter(u -> u.getStatus().getValue() == status)
-                        .collect(Collectors.toList());
-
-                result.addAll(users);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
         } else {
             try {
-                BucketMapReduce bmr =
-                        new BucketMapReduce.Builder()
-                                .withNamespace(USER_NS)
-                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
-                                .build();
+                String sortFunction = sortMap.get(sortField);
+                if (sortFunction == null) {
+                    sortFunction = sortMap.get("login");
+                }
+                if (sortOrderAsc == null) {
+                    sortOrderAsc = true;
+                }
+                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                        .withNamespace(USER_NS)
+                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+
+                if (loginPattern != null) {
+                    loginPattern = loginPattern.replace("%", "");
+                    String functionString = String.format(
+                        "function(values, arg) {" +
+                            "return values.filter(function(v) {" +
+                                "var login = v.login;" +
+                                "var match = login.indexOf('%s');" +
+                                "return match > -1;" +
+                            "})" +
+                        "}", loginPattern);
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction);
+                }
+
+                if (role != null) {
+                    String roleString = UserRole.getValueForIndex(role).name();
+                    String functionString = String.format(
+                            "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                    "var role = v.role;" +
+                                    "return role == '%s';" +
+                                "})" +
+                            "}", roleString);
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction);
+                }
+
+                if (status != null) {
+                    String statusString = UserStatus.getValueForIndex(status).name();
+                    String functionString = String.format(
+                            "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                    "var status = v.status;" +
+                                    "return status == '%s';" +
+                                "})" +
+                            "}", statusString);
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction);
+                }
+
+                builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
+                        String.format(sortFunction, sortOrderAsc ? ">" : "<"),
+                        take == null);
+
+                if (take != null) {
+                    int[] args = new int[2];
+                    args[0] = skip != null ? skip : 0;
+                    args[1] = args[0] + take;
+                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
+                }
+                BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
                 MapReduce.Response response = future.get();
