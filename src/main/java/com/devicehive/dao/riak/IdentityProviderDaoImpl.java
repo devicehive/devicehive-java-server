@@ -1,44 +1,76 @@
 package com.devicehive.dao.riak;
 
-import com.devicehive.dao.CacheConfig;
+import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.commands.kv.DeleteValue;
+import com.basho.riak.client.api.commands.kv.FetchValue;
+import com.basho.riak.client.api.commands.kv.StoreValue;
+import com.basho.riak.client.core.query.Location;
+import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.model.IdentityProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class IdentityProviderDaoImpl extends GenericDaoImpl implements IdentityProviderDao {
+public class IdentityProviderDaoImpl implements IdentityProviderDao {
+
+    private static final Namespace CONFIG_NS = new Namespace("identity_provider");
+
+    @Autowired
+    private RiakClient client;
+
+
     @Override
     public IdentityProvider getByName(@NotNull String name) {
-        return createNamedQuery(IdentityProvider.class, "IdentityProvider.getByName", Optional.of(CacheConfig.refresh()))
-                .setParameter("name", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        //TODO configurable quorum?
+        try {
+            Location objectKey = new Location(CONFIG_NS, name);
+            FetchValue fetch = new FetchValue.Builder(objectKey).build();
+            FetchValue.Response response = client.execute(fetch);
+            if (response.isNotFound()) {
+                return null;
+            }
+            IdentityProvider identityProvider = response.getValue(IdentityProvider.class);
+            return identityProvider;
+        } catch (ExecutionException | InterruptedException e) {
+            //TODO throw exception here
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public boolean deleteById(@NotNull Long id) {
-        return createNamedQuery("IdentityProvider.deleteById", Optional.of(CacheConfig.bypass()))
-                .setParameter("id", id)
-                .executeUpdate() > 0;
-    }
-
-    @Override
-    public IdentityProvider find(@NotNull Long id) {
-        return find(IdentityProvider.class, id);
+    public boolean deleteById(@NotNull String name) {
+        try {
+            Location objectKey = new Location(CONFIG_NS, name);
+            DeleteValue delete = new DeleteValue.Builder(objectKey).build();
+            client.execute(delete);
+        } catch (ExecutionException | InterruptedException e) {
+            //TODO throw exception here
+            throw new RuntimeException("Not implemented", e);
+        }
+        return true;
     }
 
     @Override
     public IdentityProvider merge(IdentityProvider existing) {
-        return super.merge(existing);
+        try {
+            Location objectKey = new Location(CONFIG_NS, existing.getName());
+            StoreValue storeOp = new StoreValue.Builder(existing).withLocation(objectKey).build();
+            client.execute(storeOp);
+        } catch (ExecutionException | InterruptedException e) {
+            //TODO throw exception here
+            throw new RuntimeException(e);
+        }
+        return existing;
     }
 
     @Override
     public void persist(IdentityProvider identityProvider) {
-        super.persist(identityProvider);
+        merge(identityProvider);
     }
 }

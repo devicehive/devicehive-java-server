@@ -17,20 +17,15 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.IDENTITY_PROVI
 @Table(name = "identity_provider")
 @NamedQueries({
         @NamedQuery(name = "IdentityProvider.getByName", query = "select ip from IdentityProvider ip where ip.name = :name"),
-        @NamedQuery(name = "IdentityProvider.deleteById", query = "delete from IdentityProvider ip where ip.id = :id")
+        @NamedQuery(name = "IdentityProvider.deleteByName", query = "delete from IdentityProvider ip where ip.name = :name")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class IdentityProvider implements HiveEntity {
 
     private static final long serialVersionUID = 1959997436981843212L;
-    @Id
-    @SerializedName("id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
-    private Long id;
 
-    @Column
+    @Id
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 64, message = "Field cannot be empty. The length of login should not be more than 64 " +
             "symbols.")
@@ -55,18 +50,6 @@ public class IdentityProvider implements HiveEntity {
     @SerializedName("tokenEndpoint")
     @JsonPolicyDef({IDENTITY_PROVIDER_LISTED})
     private String tokenEndpoint;
-
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -100,14 +83,6 @@ public class IdentityProvider implements HiveEntity {
         this.tokenEndpoint = tokenEndpoint;
     }
 
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -120,12 +95,12 @@ public class IdentityProvider implements HiveEntity {
 
         IdentityProvider user = (IdentityProvider) o;
 
-        return id != null && id.equals(user.id);
+        return name != null && name.equals(user.name);
     }
 
     @Override
     public int hashCode() {
-        return id == null ? 0 : id.hashCode();
+        return name == null ? 0 : name.hashCode();
     }
 
 }

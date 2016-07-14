@@ -11,9 +11,11 @@ public interface IdentityProviderDao {
 
     IdentityProvider getByName(@NotNull String name);
 
-    boolean deleteById(@NotNull Long id);
-
-    IdentityProvider find(@NotNull Long id);
+    /**
+     * Delete identity provider by name.
+     * @param name identity provider name
+     */
+    boolean deleteById(@NotNull String name);
 
     IdentityProvider merge(IdentityProvider existing);
 

@@ -62,7 +62,7 @@ public class GithubAuthProvider extends AuthProvider {
 
     @PostConstruct
     private void initialize() {
-        identityProvider = identityProviderService.find(Long.parseLong(env.getProperty(Constants.GITHUB_IDENTITY_PROVIDER_ID)));
+        identityProvider = identityProviderService.find(Constants.GITHUB_IDENTITY_PROVIDER_ID);
     }
 
     @Override

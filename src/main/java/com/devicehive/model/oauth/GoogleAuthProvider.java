@@ -40,6 +40,7 @@ public class GoogleAuthProvider extends AuthProvider {
     private static final Logger logger = LoggerFactory.getLogger(GoogleAuthProvider.class);
 
     private static final String GOOGLE_PROVIDER_NAME = "Google";
+
     private IdentityProvider identityProvider;
 
     @Autowired
@@ -57,7 +58,7 @@ public class GoogleAuthProvider extends AuthProvider {
 
     @PostConstruct
     private void initialize() {
-        identityProvider = identityProviderService.find(Long.parseLong(env.getProperty(Constants.GOOGLE_IDENTITY_PROVIDER_ID)));
+        identityProvider = identityProviderService.find(Constants.GOOGLE_IDENTITY_PROVIDER_ID);
     }
 
     @Override

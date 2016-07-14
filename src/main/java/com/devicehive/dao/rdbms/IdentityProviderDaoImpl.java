@@ -21,15 +21,10 @@ public class IdentityProviderDaoImpl extends GenericDaoImpl implements IdentityP
     }
 
     @Override
-    public boolean deleteById(@NotNull Long id) {
-        return createNamedQuery("IdentityProvider.deleteById", Optional.of(CacheConfig.bypass()))
-                .setParameter("id", id)
+    public boolean deleteById(@NotNull String id) {
+        return createNamedQuery("IdentityProvider.deleteByName", Optional.of(CacheConfig.bypass()))
+                .setParameter("name", id)
                 .executeUpdate() > 0;
-    }
-
-    @Override
-    public IdentityProvider find(@NotNull Long id) {
-        return find(IdentityProvider.class, id);
     }
 
     @Override

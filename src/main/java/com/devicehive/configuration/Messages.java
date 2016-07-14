@@ -30,6 +30,7 @@ public class Messages {
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
+    public static final String IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED");
     public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
     public static final String GETTING_OAUTH_ACCESS_TOKEN_FAILED = BidBundle.get("GETTING_OAUTH_ACCESS_TOKEN_FAILED");

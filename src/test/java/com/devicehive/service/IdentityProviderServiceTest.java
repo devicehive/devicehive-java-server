@@ -27,6 +27,7 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
 
     @Autowired
     private IdentityProviderService identityProviderService;
+
     @Autowired
     private IdentityProviderDao providerDao;
 
@@ -38,7 +39,9 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, -1));
 
-        identityProviderService.update(-1L, new IdentityProvider());
+        IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setName("-1");
+        identityProviderService.update("-1", identityProvider);
     }
 
     private IdentityProvider createIdentityProvider() {
@@ -71,14 +74,12 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
     @Test
     public void should_update_identity_provider() throws Exception {
         IdentityProvider identityProvider = createIdentityProvider();
-        identityProvider.setName(RandomStringUtils.randomAlphabetic(10));
         identityProvider.setApiEndpoint(RandomStringUtils.randomAlphabetic(10));
         identityProvider.setTokenEndpoint(RandomStringUtils.randomAlphabetic(10));
         identityProvider.setVerificationEndpoint(RandomStringUtils.randomAlphabetic(10));
 
-        IdentityProvider updated = identityProviderService.update(identityProvider.getId(), identityProvider);
+        IdentityProvider updated = identityProviderService.update(identityProvider.getName(), identityProvider);
         assertThat(updated, notNullValue());
-        assertThat(updated.getId(), equalTo(identityProvider.getId()));
         assertThat(updated.getName(), equalTo(identityProvider.getName()));
         assertThat(updated.getApiEndpoint(), equalTo(identityProvider.getApiEndpoint()));
         assertThat(updated.getTokenEndpoint(), not(equalTo(identityProvider.getTokenEndpoint())));
@@ -86,20 +87,32 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_update_identity_provider_name_change_not_allowed() throws Exception {
+        IdentityProvider identityProvider = createIdentityProvider();
+        String oldName = identityProvider.getName();
+        identityProvider.setName(identityProvider.getName() + RandomStringUtils.randomAlphabetic(10));
+        identityProvider.setApiEndpoint(RandomStringUtils.randomAlphabetic(10));
+        identityProvider.setTokenEndpoint(RandomStringUtils.randomAlphabetic(10));
+        identityProvider.setVerificationEndpoint(RandomStringUtils.randomAlphabetic(10));
+
+        expectedException.expect(IllegalParametersException.class);
+        expectedException.expectMessage(String.format(Messages.IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED, oldName, identityProvider.getName()));
+
+        identityProviderService.update(oldName, identityProvider);
+    }
+
+    @Test
     public void should_delete_identity_provider() throws Exception {
         IdentityProvider identityProvider = createIdentityProvider();
-        assertNotNull(
-                identityProviderService.find(identityProvider.getId()));
-        identityProviderService.delete(identityProvider.getId());
-        assertNull(
-                identityProviderService.find(identityProvider.getId()));
+        assertNotNull(identityProviderService.find(identityProvider.getName()));
+        identityProviderService.delete(identityProvider.getName());
+        assertNull(identityProviderService.find(identityProvider.getName()));
     }
 
     @Test
     public void should_get_identity_provider_by_name() throws Exception {
         IdentityProvider identityProvider = createIdentityProvider();
         IdentityProvider returned = identityProviderService.find(identityProvider.getName());
-        assertThat(returned.getId(), equalTo(identityProvider.getId()));
         assertThat(returned.getName(), equalTo(identityProvider.getName()));
         assertThat(returned.getApiEndpoint(), equalTo(identityProvider.getApiEndpoint()));
         assertThat(returned.getTokenEndpoint(), equalTo(identityProvider.getTokenEndpoint()));
@@ -109,8 +122,7 @@ public class IdentityProviderServiceTest extends AbstractResourceTest {
     @Test
     public void should_get_identity_provider_by_id() throws Exception {
         IdentityProvider identityProvider = createIdentityProvider();
-        IdentityProvider returned = identityProviderService.find(identityProvider.getId());
-        assertThat(returned.getId(), equalTo(identityProvider.getId()));
+        IdentityProvider returned = identityProviderService.find(identityProvider.getName());
         assertThat(returned.getName(), equalTo(identityProvider.getName()));
         assertThat(returned.getApiEndpoint(), equalTo(identityProvider.getApiEndpoint()));
         assertThat(returned.getTokenEndpoint(), equalTo(identityProvider.getTokenEndpoint()));
