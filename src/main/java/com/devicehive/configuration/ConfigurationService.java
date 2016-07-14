@@ -1,8 +1,6 @@
 package com.devicehive.configuration;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.ConfigurationDao;
-import com.devicehive.dao.rdbms.ConfigurationDaoImpl;
 import com.devicehive.model.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +22,7 @@ public class ConfigurationService {
 
     @Transactional
     public <T> void save(@NotNull String name, T value) {
+        //TODO check keys are same
         String str = value != null ? value.toString() : null;
         Optional<Configuration> existingOpt = findByName(name);
         if (existingOpt.isPresent()) {

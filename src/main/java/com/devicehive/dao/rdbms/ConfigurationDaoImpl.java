@@ -28,11 +28,6 @@ public class ConfigurationDaoImpl extends GenericDaoImpl implements Configuratio
     }
 
     @Override
-    public Configuration find(Long id) {
-        return find(Configuration.class, id);
-    }
-
-    @Override
     public void persist(Configuration configuration) {
         super.persist(configuration);
     }

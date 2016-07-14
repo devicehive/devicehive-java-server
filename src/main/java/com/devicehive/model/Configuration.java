@@ -30,10 +30,8 @@ public class Configuration implements HiveEntity {
 
     private static final long serialVersionUID = 7957264089438389993L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
     @Column(unique = true)
     @NotNull(message = "name field cannot be null.")
     @SerializedName("name")
@@ -76,14 +74,6 @@ public class Configuration implements HiveEntity {
         }
         return result;
 
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public long getEntityVersion() {
