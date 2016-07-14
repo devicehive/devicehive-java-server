@@ -29,17 +29,18 @@ public class UserNetwork {
         this.userId = userId;
     }
 
-    @RiakIndex(name = "userId")
-    public Long getUserIdSi() {
-        return userId;
-    }
-
     public Long getNetworkId() {
         return networkId;
     }
 
     public void setNetworkId(Long networkId) {
         this.networkId = networkId;
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "userId")
+    public Long getUserIdSi() {
+        return userId;
     }
 
     @RiakIndex(name = "networkId")

@@ -1,6 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.dao.riak.UserNetworkDaoImpl;
 import com.devicehive.model.UserNetwork;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 public class UserNetworkDaoTest extends AbstractResourceTest {
 
     @Autowired
-    UserNetworkDao userNetworkDao;
+    UserNetworkDaoImpl userNetworkDao;
 
     @Test
     public void testRetrieval() throws Exception {

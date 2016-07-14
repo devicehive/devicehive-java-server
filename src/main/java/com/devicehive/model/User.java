@@ -1,9 +1,11 @@
 package com.devicehive.model;
 
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +34,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements HiveEntity {
     private static final long serialVersionUID = -8980491502416082011L;
 
@@ -40,6 +43,7 @@ public class User implements HiveEntity {
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Long id;
+
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
@@ -47,43 +51,55 @@ public class User implements HiveEntity {
             "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
+
     @Column(name = "password_hash")
     private String passwordHash;
+
     @Column(name = "password_salt")
     private String passwordSalt;
+
     @Column(name = "login_attempts")
     private Integer loginAttempts;
+
     @Column
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
+
     @Column
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
+
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
     private Set<Network> networks;
+
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin;
+
     @Column(name="google_login")
     @SerializedName("googleLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String googleLogin;
+
     @Column(name = "facebook_login")
     @SerializedName("facebookLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String facebookLogin;
+
     @Column(name = "github_login")
     @SerializedName("githubLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String githubLogin;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
+
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
@@ -209,6 +225,27 @@ public class User implements HiveEntity {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "login")
+    public String getLoginSi() {
+        return login;
+    }
+
+    @RiakIndex(name = "googleLogin")
+    public String getGoogleLoginSi() {
+        return googleLogin;
+    }
+
+    @RiakIndex(name = "facebookLogin")
+    public String getFacebookLoginSi() {
+        return facebookLogin;
+    }
+
+    @RiakIndex(name = "githubLogin")
+    public String getGithubLoginSi() {
+        return githubLogin;
     }
 
     @Override

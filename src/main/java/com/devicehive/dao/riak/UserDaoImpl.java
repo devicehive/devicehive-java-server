@@ -1,129 +1,206 @@
 package com.devicehive.dao.riak;
 
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
+import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
+import com.basho.riak.client.api.commands.kv.DeleteValue;
+import com.basho.riak.client.api.commands.kv.FetchValue;
+import com.basho.riak.client.api.commands.kv.StoreValue;
+import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
+import com.basho.riak.client.api.commands.mapreduce.MapReduce;
+import com.basho.riak.client.api.commands.mapreduce.filters.MatchFilter;
+import com.basho.riak.client.core.RiakFuture;
+import com.basho.riak.client.core.query.Location;
+import com.basho.riak.client.core.query.Namespace;
+import com.basho.riak.client.core.query.functions.Function;
+import com.basho.riak.client.core.util.BinaryValue;
+import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.UserStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
-public class UserDaoImpl extends GenericDaoImpl implements UserDao {
+public class UserDaoImpl implements UserDao {
+
+    private static final Namespace USER_NS = new Namespace("user");
+
+    @Autowired
+    private RiakClient client;
+
+    @Autowired
+    private UserNetworkDaoImpl userNetworkDao;
+
+    @Autowired
+    private NetworkDao networkDao;
 
     @Override
     public Optional<User> findByName(String name) {
-        return createNamedQuery(User.class, "User.findByName", of(CacheConfig.get()))
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst();
+        User user = findBySomeIdentityName(name, "login");
+        return Optional.ofNullable(user);
     }
 
     @Override
     public User findByGoogleName(String name) {
-        return createNamedQuery(User.class, "User.findByGoogleName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return findBySomeIdentityName(name, "googleLogin");
     }
 
     @Override
     public User findByFacebookName(String name) {
-        return createNamedQuery(User.class, "User.findByFacebookName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return findBySomeIdentityName(name, "facebookLogin");
     }
 
     @Override
     public User findByGithubName(String name) {
-        return createNamedQuery(User.class, "User.findByGithubName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        return findBySomeIdentityName(name, "githubLogin");
+    }
+
+    private User findBySomeIdentityName(String name, String identityName) {
+        BinIndexQuery biq = new BinIndexQuery.Builder(USER_NS, identityName, name).build();
+        try {
+            BinIndexQuery.Response response = client.execute(biq);
+            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
+            if (entries.isEmpty()) {
+                return null;
+            }
+            Location location = entries.get(0).getRiakObjectLocation();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .build();
+            return client.execute(fetchOp).getValue(User.class);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
     public Optional<User> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        return createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
-                .setParameter("login", login)
-                .setParameter("googleLogin", googleLogin)
-                .setParameter("facebookLogin", facebookLogin)
-                .setParameter("githubLogin", githubLogin)
-                .getResultList()
-                .stream().findFirst();
+        User userToCheck;
+        userToCheck = findByGoogleName(googleLogin);
+        if (userToCheck != null) {
+            if (doesUserAlreadyExist(userToCheck, login)) {
+                return Optional.of(userToCheck);
+            }
+        }
+
+        userToCheck = findByFacebookName(facebookLogin);
+        if (userToCheck != null) {
+            if (doesUserAlreadyExist(userToCheck, login)) {
+                return Optional.of(userToCheck);
+            }
+        }
+
+        userToCheck = findByGithubName(githubLogin);
+        if (userToCheck != null) {
+            if (doesUserAlreadyExist(userToCheck, login)) {
+                return Optional.of(userToCheck);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private boolean doesUserAlreadyExist(User user, String login) {
+        return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
     }
 
     @Override
     public long hasAccessToNetwork(User user, Network network) {
-        return createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())
-                .setParameter("user", user)
-                .setParameter("network", network)
-                .getSingleResult();
+        Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+        if (networks != null && networks.contains(network.getId())) {
+            return 1L;
+        } else {
+            return 0L;
+        }
     }
 
     @Override
     public long hasAccessToDevice(User user, String deviceGuid) {
-        return createNamedQuery(Long.class, "User.hasAccessToDevice", empty())
-                .setParameter("user", user)
-                .setParameter("guid", deviceGuid)
-                .getSingleResult();
+        Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
+        for (Long networkId : networkIds) {
+            Network network = networkDao.find(networkId);
+            long guidCount = network.getDevices()
+                    .stream()
+                    .map(Device::getGuid)
+                    .filter(g -> g.equals(deviceGuid))
+                    .count();
+            if (guidCount > 0) {
+                return guidCount;
+            }
+        }
+        return 0L;
     }
 
     @Override
     public User getWithNetworksById(long id) {
-        return createNamedQuery(User.class, "User.getWithNetworksById", of(CacheConfig.refresh()))
-                .setParameter("id", id)
-                .getResultList()
-                .stream().findFirst().orElse(null);
+        User user = find(id);
+
+        Set<Long> networkIds = userNetworkDao.findNetworksForUser(id);
+        Set<Network> networks = new HashSet<>();
+        for (Long networkId : networkIds) {
+            Network network = networkDao.find(networkId);
+            networks.add(network);
+        }
+        user.setNetworks(networks);
+        return user;
     }
 
     @Override
     public int deleteById(long id) {
-        return createNamedQuery("User.deleteById", of(CacheConfig.bypass()))
-                .setParameter("id", id)
-                .executeUpdate();
+        Location location = new Location(USER_NS, String.valueOf(id));
+        DeleteValue deleteOp = new DeleteValue.Builder(location).build();
+        try {
+            client.execute(deleteOp);
+            return 1;
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return 0;
+        }
     }
 
     @Override
     public User find(Long id) {
-        return find(User.class, id);
+        try {
+            Location location = new Location(USER_NS, String.valueOf(id));
+            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            return client.execute(fetchOp).getValue(User.class);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void persist(User user) {
-        super.persist(user);
+        merge(user);
     }
 
     @Override
-    public User merge(User existing) {
-        return super.merge(existing);
+    public User merge(User user) {
+        if (user.getId() == null) {
+            user.setId(System.currentTimeMillis());
+        }
+        try {
+            Location location = new Location(USER_NS, String.valueOf(user.getId()));
+            StoreValue storeOp = new StoreValue.Builder(user).withLocation(location).build();
+            client.execute(storeOp);
+            return user;
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void unassignNetwork(@NotNull User existingUser, @NotNull long networkId) {
-        createNamedQuery(Network.class, "Network.findWithUsers", of(CacheConfig.refresh()))
-                .setParameter("id", networkId)
-                .getResultList()
-                .stream().findFirst()
-                .ifPresent(existingNetwork -> {
-                    existingNetwork.getUsers().remove(existingUser);
-                    merge(existingNetwork);
-                });
+        userNetworkDao.delete(existingUser.getId(), networkId);
     }
 
     @Override
@@ -131,18 +208,87 @@ public class UserDaoImpl extends GenericDaoImpl implements UserDao {
                               Integer role, Integer status,
                               String sortField, Boolean sortOrderAsc,
                               Integer take, Integer skip) {
-        CriteriaBuilder cb = criteriaBuilder();
-        CriteriaQuery<User> cq = cb.createQuery(User.class);
-        Root<User> from = cq.from(User.class);
+        ArrayList<User> result = new ArrayList<>();
+        if (login != null) {
+            Optional<User> user = findByName(login);
+            if (user.isPresent()) {
+                result.add(user.get());
+            }
+        } else if (loginPattern != null) {
+            try {
+                BucketMapReduce bmr =
+                        new BucketMapReduce.Builder()
+                                .withNamespace(USER_NS)
+                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
+                                .withKeyFilter(new MatchFilter(loginPattern))
+                                .build();
 
-        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
-        cq.where(predicates);
-        CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
+                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+                future.await();
+                MapReduce.Response response = future.get();
+                result.addAll(response.getResultsFromAllPhases(User.class));
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        } else if (role != null) {
+            try {
+                BucketMapReduce bmr =
+                        new BucketMapReduce.Builder()
+                                .withNamespace(USER_NS)
+                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
+                                .build();
 
-        TypedQuery<User> query = createQuery(cq);
-        cacheQuery(query, of(CacheConfig.refresh()));
-        ofNullable(take).ifPresent(query::setMaxResults);
-        ofNullable(skip).ifPresent(query::setFirstResult);
-        return query.getResultList();
+                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+                future.await();
+                MapReduce.Response response = future.get();
+                List<User> users = response.getResultsFromAllPhases(User.class)
+                        .stream()
+                        .filter(u -> u.getRole().equals(role))
+                        .collect(Collectors.toList());
+
+                result.addAll(users);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        } else if (status != null) {
+            try {
+                BucketMapReduce bmr =
+                        new BucketMapReduce.Builder()
+                                .withNamespace(USER_NS)
+                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
+                                .build();
+
+                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+                future.await();
+                MapReduce.Response response = future.get();
+                List<User> users = response.getResultsFromAllPhases(User.class)
+                        .stream()
+                        .filter(u -> u.getStatus().getValue() == status)
+                        .collect(Collectors.toList());
+
+                result.addAll(users);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try {
+                BucketMapReduce bmr =
+                        new BucketMapReduce.Builder()
+                                .withNamespace(USER_NS)
+                                .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                                .withReducePhase(Function.newErlangFunction("riak_kv_mapreduce", "reduce_sort"), true)
+                                .build();
+                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+                future.await();
+                MapReduce.Response response = future.get();
+                result.addAll(response.getResultsFromAllPhases(User.class));
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return result;
     }
 }

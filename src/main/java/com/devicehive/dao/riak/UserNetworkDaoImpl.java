@@ -3,11 +3,11 @@ package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.IntIndexQuery;
+import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.devicehive.dao.UserNetworkDao;
 import com.devicehive.model.UserNetwork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -20,14 +20,13 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class UserNetworkDaoImpl implements UserNetworkDao {
+public class UserNetworkDaoImpl {
 
     private static final Namespace USER_NETWORK_NS = new Namespace("userNetwork");
 
     @Autowired
     private RiakClient client;
 
-    @Override
     public void persist(UserNetwork userNetwork) {
         try {
             String id = userNetwork.getUserId() + "n" + userNetwork.getNetworkId();
@@ -40,7 +39,6 @@ public class UserNetworkDaoImpl implements UserNetworkDao {
         }
     }
 
-    @Override
     public UserNetwork merge(UserNetwork existing) {
         try {
             Location location = new Location(USER_NETWORK_NS, existing.getId());
@@ -52,7 +50,17 @@ public class UserNetworkDaoImpl implements UserNetworkDao {
         }
     }
 
-    @Override
+    public void delete(long userId, long networkId) {
+        String id = userId + "n" + networkId;
+        Location location = new Location(USER_NETWORK_NS, id);
+        DeleteValue deleteOp = new DeleteValue.Builder(location).build();
+        try {
+            client.execute(deleteOp);
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Set<Long> findNetworksForUser(Long userId) {
         IntIndexQuery biq = new IntIndexQuery.Builder(USER_NETWORK_NS, "userId", userId).withKeyAndIndex(true).build();
         try {
@@ -76,7 +84,6 @@ public class UserNetworkDaoImpl implements UserNetworkDao {
         }
     }
 
-    @Override
     public Set<Long> findUsersInNetwork(Long networkId) {
         IntIndexQuery biq = new IntIndexQuery.Builder(USER_NETWORK_NS, "networkId", networkId).build();
         try {
