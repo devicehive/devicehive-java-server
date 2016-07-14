@@ -121,8 +121,8 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                         .withNamespace(DEVICE_CLASS_NS)
                         .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                        .withReducePhase(Function.newErlangFunction("Riak.reduceSlice",
-                                String.format(sortFunction, sortOrderAsc ? ">" : "<")), take == null);
+                        .withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"),
+                                String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null);
                 if (namePattern != null) {
                     builder.withKeyFilter(new MatchFilter(namePattern));
                 }
