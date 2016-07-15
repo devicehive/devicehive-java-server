@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessType;
@@ -45,41 +46,49 @@ public class OAuthGrant implements HiveEntity {
     @JsonPolicyDef(
             {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
     private Long id;
+
     @SerializedName("timestamp")
     @Column
     @JsonPolicyDef(
             {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})
     @Temporal(TemporalType.TIMESTAMP)
     private Date timestamp;
+
     @SerializedName("authCode")
     @Size(min = 35, max = 36, message = "Field cannot be empty. The length of authCode should be 36 symbols.")
     @Column(name = "auth_code")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_CODE})
     private String authCode;
+
     @SerializedName("client")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     @NotNull(message = "client field cannot be null")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private OAuthClient client;
+
     @SerializedName("accessKey")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "key_id")
     @NotNull(message = "access key field cannot be null")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN})
     private AccessKey accessKey;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", updatable = false)
     @NotNull(message = "user field cannot be null")
     private User user;
+
     @Column
     @SerializedName("type")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private Type type;
+
     @Column(name = "access_type")
     @SerializedName("accessType")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private AccessType accessType;
+
     @Column(name = "redirect_uri")
     @SerializedName("redirectUri")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of redirect uri should not be more that " +
@@ -87,6 +96,7 @@ public class OAuthGrant implements HiveEntity {
     @NotNull(message = "Redirect uri field cannot be null")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private String redirectUri;
+
     @Column
     @SerializedName("scope")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of redirect uri should not be more that " +
@@ -94,12 +104,14 @@ public class OAuthGrant implements HiveEntity {
     @NotNull(message = "Redirect uri field cannot be null")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private String scope;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "network_ids"))
     })
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_PUBLISHED})
     private JsonStringWrapper networkIds;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -218,6 +230,17 @@ public class OAuthGrant implements HiveEntity {
             return result;
         }
         throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "user")
+    public Long getUserSi() {
+        return user.getId();
+    }
+
+    @RiakIndex(name = "authCode")
+    public String getAuthCodeSi() {
+        return authCode;
     }
 
 }

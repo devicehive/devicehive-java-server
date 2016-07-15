@@ -31,4 +31,8 @@ public enum AccessType {
         throw new HiveException("Illegal argument: " + value, HttpServletResponse.SC_BAD_REQUEST);
 
     }
+
+    public static AccessType getValueForIndex(int index){
+        return values()[index];
+    }
 }

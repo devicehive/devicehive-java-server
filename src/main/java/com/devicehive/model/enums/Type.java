@@ -29,6 +29,10 @@ public enum Type {
         return value;
     }
 
+    public static Type getValueForIndex(int index){
+        return values()[index];
+    }
+
     @Override
     public String toString() {
         return this.value;
