@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -29,6 +30,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_CLIENT_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN,
             OAUTH_GRANT_LISTED})
     private Long id;
+
     @Column
     @SerializedName("name")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
@@ -37,6 +39,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED,
             OAUTH_GRANT_PUBLISHED})
     private String name;
+
     @Column
     @SerializedName("domain")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of domain should not be more than 128 " +
@@ -45,6 +48,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED,
             OAUTH_GRANT_PUBLISHED})
     private String domain;
+
     @Column
     @SerializedName("subnet")
     @Size(max = 128, message = "Field cannot be empty. The length of subnet should not be more than 128 " +
@@ -52,6 +56,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED,
             OAUTH_GRANT_PUBLISHED})
     private String subnet;
+
     @Column(name = "redirect_uri")
     @SerializedName("redirectUri")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of redirect URI should not be more than " +
@@ -60,6 +65,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED,
             OAUTH_GRANT_PUBLISHED})
     private String redirectUri;
+
     @Column(name = "oauth_id")
     @SerializedName("oauthId")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of oauth id should not be more " +
@@ -68,6 +74,7 @@ public class OAuthClient implements HiveEntity {
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_LISTED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED,
             OAUTH_GRANT_PUBLISHED})
     private String oauthId;
+
     @Column(name = "oauth_secret")
     @SerializedName("oauthSecret")
     @Size(min = 24, max = 32, message = "Field cannot be empty. The length of oauth secret should not be " +
@@ -75,6 +82,7 @@ public class OAuthClient implements HiveEntity {
     @NotNull
     @JsonPolicyDef({OAUTH_CLIENT_LISTED_ADMIN, OAUTH_CLIENT_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN})
     private String oauthSecret;
+
     @Version
     @Column(name = "entity_version")
     private long entityVersion;
@@ -133,6 +141,17 @@ public class OAuthClient implements HiveEntity {
 
     public void setOauthSecret(String oauthSecret) {
         this.oauthSecret = oauthSecret;
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "name")
+    public String getNameSi() {
+        return name;
+    }
+
+    @RiakIndex(name = "oauthId")
+    public String getOauthIdSi() {
+        return oauthId;
     }
 
 }
