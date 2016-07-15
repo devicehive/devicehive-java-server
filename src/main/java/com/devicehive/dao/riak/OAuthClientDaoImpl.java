@@ -202,7 +202,7 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +
                                     "var domain = v.domain;" +
-                                    "return role == '%s';" +
+                                    "return domain == '%s';" +
                                     "})" +
                                     "}", domain);
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
@@ -214,7 +214,7 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +
                                     "var oauthId = v.oauthId;" +
-                                    "return status == '%s';" +
+                                    "return oauthId == '%s';" +
                                     "})" +
                                     "}", oauthId);
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
