@@ -12,18 +12,13 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class AccesskeyPermissionDaoImpl extends GenericDaoImpl implements AccessKeyPermissionDao {
+public class AccessKeyPermissionDaoImpl extends GenericDaoImpl implements AccessKeyPermissionDao {
 
     @Override
     public int deleteByAccessKey(AccessKey key) {
         return createNamedQuery("AccessKeyPermission.deleteByAccessKey", Optional.<CacheConfig>empty())
                 .setParameter("accessKey", key)
                 .executeUpdate();
-    }
-
-    @Override
-    public AccessKeyPermission find(Long id) {
-        return find(AccessKeyPermission.class, id);
     }
 
     @Override
