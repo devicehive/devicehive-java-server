@@ -1,6 +1,9 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
+import com.basho.riak.client.api.commands.datatypes.FetchCounter;
+import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -33,6 +36,7 @@ import java.util.stream.Collectors;
 @Repository
 public class UserDaoImpl implements UserDao {
 
+    private static final Namespace COUNTER_NS = new Namespace("counters", "user_counters");
     private static final Namespace USER_NS = new Namespace("user");
 
     @Autowired
@@ -44,9 +48,13 @@ public class UserDaoImpl implements UserDao {
     @Autowired
     private NetworkDao networkDao;
 
+    private Location userCounters;
+
     private final Map<String, String> sortMap = new HashMap<>();
 
     public UserDaoImpl() {
+        userCounters = new Location(COUNTER_NS, "user_counter");
+
         sortMap.put("login", "function(a,b){ return a.login %s b.login; }");
         sortMap.put("role", "function(a,b){ return a.role %s b.role; }");
         sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
@@ -205,10 +213,15 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public User merge(User user) {
-        if (user.getId() == null) {
-            user.setId(System.currentTimeMillis());
-        }
         try {
+            if (user.getId() == null) {
+                CounterUpdate cu = new CounterUpdate(1);
+                UpdateCounter update = new UpdateCounter.Builder(userCounters, cu).build();
+                client.execute(update);
+                FetchCounter fetch = new FetchCounter.Builder(userCounters).build();
+                Long id = client.execute(fetch).getDatatype().view();
+                user.setId(id);
+            }
             Location location = new Location(USER_NS, String.valueOf(user.getId()));
             StoreValue storeOp = new StoreValue.Builder(user).withLocation(location).build();
             client.execute(storeOp);
