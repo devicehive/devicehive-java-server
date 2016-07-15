@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
@@ -106,6 +107,12 @@ public class DeviceEquipment implements HiveEntity {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "device")
+    public String getDeviceSi() {
+        return device.getGuid();
     }
 
     public static class Queries {

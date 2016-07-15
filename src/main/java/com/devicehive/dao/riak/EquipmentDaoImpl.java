@@ -9,9 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @Profile({"riak"})
 @Repository
@@ -33,10 +31,13 @@ public class EquipmentDaoImpl implements EquipmentDao {
 
     @Override
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
-        int result = deviceClass.getEquipment().size();
-        deviceClass.getEquipment().clear();
-        deviceClassDao.merge(deviceClass);
-        return result;
+        if (deviceClass.getEquipment() != null) {
+            int result = deviceClass.getEquipment().size();
+            deviceClass.getEquipment().clear();
+            deviceClassDao.merge(deviceClass);
+            return result;
+        }
+        return 0;
     }
 
     @Override
@@ -81,7 +82,13 @@ public class EquipmentDaoImpl implements EquipmentDao {
             // todo: remove id from equipment
             equipment.setId(System.currentTimeMillis());
         }
-        deviceClass.getEquipment().add(equipment);
+        if (deviceClass.getEquipment() != null) {
+            deviceClass.getEquipment().add(equipment);
+        } else {
+            Set<Equipment> equipmentSet = new HashSet<>();
+            equipmentSet.add(equipment);
+            deviceClass.setEquipment(equipmentSet);
+        }
         deviceClassDao.merge(deviceClass);
 
         return equipment;
