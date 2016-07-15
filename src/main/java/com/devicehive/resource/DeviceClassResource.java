@@ -29,7 +29,6 @@ public interface DeviceClassResource {
      *
      * @param name        Device class name.
      * @param namePattern Device class name pattern.
-     * @param version     Device class version.
      * @param sortField   Result list sort field. Available values are ID and Name.
      * @param sortOrderSt Result list sort order. Available values are ASC and DESC.
      * @param take        Number of records to take from the result list.
@@ -54,9 +53,6 @@ public interface DeviceClassResource {
             @ApiParam(name = "namePattern", value = "Filter by device class name pattern.")
             @QueryParam("namePattern")
             String namePattern,
-            @ApiParam(name = "version", value = "Filter by device class version.")
-            @QueryParam("version")
-            String version,
             @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Name")
             @QueryParam("sortField")
             String sortField,
@@ -94,7 +90,7 @@ public interface DeviceClassResource {
     Response getDeviceClass(
             @ApiParam(name = "id", value = "Device class identifier.", required = true)
             @PathParam("id")
-            String id);
+            long id);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/insert"> DeviceHive RESTful
@@ -128,7 +124,7 @@ public interface DeviceClassResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful
      * API: DeviceClass: update</a> Updates an existing device class.
      *
-     * @param name     Device class identifier.
+     * @param id     Device class identifier.
      * @param insert In the request body, supply a <a href="http://www.devicehive .com/restful#Reference/DeviceClass">DeviceClass</a>
      *               resource.
      * @return If successful, this method returns an empty response body.
@@ -148,7 +144,7 @@ public interface DeviceClassResource {
     Response updateDeviceClass(
             @ApiParam(name = "id", value = "Device class identifier.", required = true)
             @PathParam("id")
-            String id,
+            long id,
 
             @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
             @JsonPolicyApply(DEVICECLASS_PUBLISHED)
@@ -173,5 +169,5 @@ public interface DeviceClassResource {
     })
     Response deleteDeviceClass(
             @ApiParam(name = "id", value = "Device class identifier.", required = true)
-            @PathParam("id") String id);
+            @PathParam("id") long id);
 }

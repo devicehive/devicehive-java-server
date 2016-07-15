@@ -30,14 +30,14 @@ public class DeviceClassService {
     private DeviceClassDao deviceClassDao;
 
     @Transactional
-    public void delete(@NotNull String name) {
-        if (deviceClassDao.find(name) != null) {
-            deviceClassDao.remove(deviceClassDao.getReference(name));
+    public void delete(@NotNull long id) {
+        if (deviceClassDao.find(id) != null) {
+            deviceClassDao.remove(deviceClassDao.getReference(id));
         }
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public DeviceClass getWithEquipment(@NotNull String id) {
+    public DeviceClass getWithEquipment(@NotNull Long id) {
         return deviceClassDao.find(id);
     }
 
@@ -51,13 +51,19 @@ public class DeviceClassService {
         }
         //check is already done
         DeviceClass deviceClassFromMessage = deviceClass.orElse(null).convertTo();
-        stored = deviceClassDao.find(deviceClassFromMessage.getId());
+        if (deviceClassFromMessage.getId() != null) {
+            stored = deviceClassDao.find(deviceClassFromMessage.getId());
+        } else {
+            stored = deviceClassDao.findByName(deviceClassFromMessage.getName());
+        }
         if (stored != null) {
             //update
             if (Boolean.FALSE.equals(stored.getPermanent())) {
-                deviceClassDao.refresh(stored, LockModeType.PESSIMISTIC_WRITE);
                 if (deviceClass.orElse(null).getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());
+                }
+                if (deviceClass.orElse(null).getName() != null) {
+                    stored.setName(deviceClassFromMessage.getName());
                 }
                 if (deviceClass.orElse(null).getOfflineTimeout() != null) {
                     stored.setOfflineTimeout(deviceClassFromMessage.getOfflineTimeout());
@@ -70,6 +76,7 @@ public class DeviceClassService {
                 if (eq != null) {
                     replaceEquipment(eq, stored);
                 }
+                deviceClassDao.merge(stored);
             }
             return stored;
         } else {
@@ -89,7 +96,7 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClass addDeviceClass(DeviceClass deviceClass) {
-        if (deviceClassDao.find(deviceClass.getId()) != null) {
+        if (deviceClassDao.findByName(deviceClass.getName()) != null) {
             throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
         }
         if (deviceClass.getPermanent() == null) {
@@ -104,7 +111,7 @@ public class DeviceClassService {
     }
 
     @Transactional
-    public void update(@NotNull String id, DeviceClassUpdate update) {
+    public void update(@NotNull Long id, DeviceClassUpdate update) {
         DeviceClass stored = deviceClassDao.find(id);
         if (stored == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, id),
@@ -121,7 +128,10 @@ public class DeviceClassService {
             stored.setEquipment(update.getEquipment().orElse(null));
         }
         if (update.getId() != null) {
-            stored.setId(update.getId().orElse(null));
+            stored.setId(update.getId());
+        }
+        if (update.getName() != null) {
+            stored.setName(update.getName().orElse(null));
         }
         if (update.getPermanent() != null) {
             stored.setPermanent(update.getPermanent().orElse(null));
@@ -168,7 +178,7 @@ public class DeviceClassService {
     }
 
     @Transactional
-    public Equipment createEquipment(String classId, Equipment equipment) {
+    public Equipment createEquipment(Long classId, Equipment equipment) {
         DeviceClass deviceClass = deviceClassDao.find(classId);
 
         if (deviceClass == null) {
@@ -193,7 +203,7 @@ public class DeviceClassService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String version, String sortField,
+    public List<DeviceClass> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
         return deviceClassDao.getDeviceClassList(name, namePattern, sortField, sortOrderAsc, take, skip);
     }

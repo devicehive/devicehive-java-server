@@ -15,8 +15,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceClassUpdate implements HiveEntity {
 
     private static final long serialVersionUID = 967472386318199376L;
+    @JsonPolicyDef(DEVICE_PUBLISHED)
+    private Long id;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<String> id;
+    private Optional<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Optional<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
@@ -34,12 +36,12 @@ public class DeviceClassUpdate implements HiveEntity {
         this.equipment = equipment;
     }
 
-    public Optional<String> getId() {
-        return id;
+    public Optional<String> getName() {
+        return name;
     }
 
-    public void setId(Optional<String> id) {
-        this.id = id;
+    public void setName(Optional<String> name) {
+        this.name = name;
     }
 
     public Optional<Boolean> getPermanent() {
@@ -66,8 +68,17 @@ public class DeviceClassUpdate implements HiveEntity {
         this.data = data;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public DeviceClass convertTo() {
         DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setId(id);
         if (isPermanent != null) {
             deviceClass.setPermanent(isPermanent.orElse(null));
         }
@@ -77,8 +88,8 @@ public class DeviceClassUpdate implements HiveEntity {
         if (data != null) {
             deviceClass.setData(data.orElse(null));
         }
-        if (id != null) {
-            deviceClass.setId(id.orElse(null));
+        if (name != null) {
+            deviceClass.setName(name.orElse(null));
         }
         if (equipment != null) {
             deviceClass.setEquipment(equipment.orElse(null));

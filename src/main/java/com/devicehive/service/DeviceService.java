@@ -312,13 +312,14 @@ public class DeviceService {
                                 String status,
                                 Long networkId,
                                 String networkName,
+                                Long deviceClassId,
                                 String deviceClassName,
                                 String sortField,
                                 @NotNull Boolean sortOrderAsc,
                                 Integer take,
                                 Integer skip,
                                 HivePrincipal principal) {
-        return deviceDao.getList(name, namePattern, status, networkId, networkName, deviceClassName,
+        return deviceDao.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                 sortField, sortOrderAsc, take, skip, principal);
     }
 

@@ -29,7 +29,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -52,7 +52,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -79,7 +79,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 
@@ -102,7 +102,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
+        dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<Equipment>emptySet());
 

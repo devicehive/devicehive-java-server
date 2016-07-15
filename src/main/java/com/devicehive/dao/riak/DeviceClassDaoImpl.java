@@ -1,17 +1,15 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.RiakCommand;
+import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
+import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
+import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
-import com.basho.riak.client.api.commands.kv.ListKeys;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.api.commands.mapreduce.filters.MatchFilter;
-import com.basho.riak.client.core.RiakCluster;
 import com.basho.riak.client.core.RiakFuture;
-import com.basho.riak.client.core.operations.SearchOperation;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
@@ -40,14 +38,29 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     private RiakClient client;
 
     @Override
-    public DeviceClass getReference(String name) {
-        return find(name);
+    public DeviceClass getReference(Long id) {
+        return find(id);
+    }
+
+    private Long getId() {
+        Location counter = new Location(new Namespace("counters", "check_counters"), "accessKeyTestCounter");
+        CounterUpdate cu = new CounterUpdate(1);
+        UpdateCounter update = new UpdateCounter.Builder(counter, cu).withReturnDatatype(true)
+                .build();
+        UpdateCounter.Response response;
+        try {
+            response = client.execute(update);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        return response.getDatatype().view();
     }
 
     @Override
     public void remove(DeviceClass reference) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, reference.getId());
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(reference.getId()));
             DeleteValue delete = new DeleteValue.Builder(location).build();
             client.execute(delete);
         } catch (InterruptedException | ExecutionException e) {
@@ -56,9 +69,9 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     }
 
     @Override
-    public DeviceClass find(String id) {
+    public DeviceClass find(Long id) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, id);
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .build();
             return client.execute(fetchOp).getValue(DeviceClass.class);
@@ -80,6 +93,9 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     @Override
     public DeviceClass merge(DeviceClass deviceClass) {
         try {
+            if (deviceClass.getId() == null) {
+                deviceClass.setId(getId());
+            }
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             clearEquipmentRefs(deviceClass);
             StoreValue storeOp = new StoreValue.Builder(deviceClass)
@@ -95,7 +111,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     private final Map<String, String> sortMap = new HashMap<>();
 
     public DeviceClassDaoImpl() {
-        sortMap.put("name", "function(a,b){ return a.id %s b.id; }");
+        sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
         sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
@@ -108,10 +124,9 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
 
         ArrayList<DeviceClass> result = new ArrayList<>();
         if (name != null) {
-            DeviceClass deviceClass = find(name);
-            if (deviceClass != null) {
+            DeviceClass deviceClass = findByName(name);
+            if (deviceClass != null)
                 result.add(deviceClass);
-            }
         } else {
             try {
                 String sortFunction = sortMap.get(sortField);
@@ -121,16 +136,22 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                         .withNamespace(DEVICE_CLASS_NS)
                         .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
-                        .withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"),
-                                String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null);
+                        .withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
+                                String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null && namePattern == null);
                 if (namePattern != null) {
-                    builder.withKeyFilter(new MatchFilter(namePattern));
+                    String functionBody = String.format(
+                            "function(values, arg) {" +
+                                    "  return values.filter(function(v) {" +
+                                    "    return v.name.indexOf('%s') > -1;" +
+                                    "  })" +
+                                    "}", namePattern);
+                    builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null);
                 }
                 if (take != null) {
                     int[] args = new int[2];
                     args[0] = skip != null ? skip : 0;
                     args[1] = args[0] + take;
-                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
+                    builder = builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
                 }
                 BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
@@ -143,6 +164,24 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
         }
 
         return result;
+    }
+
+    public DeviceClass findByName(String name) {
+        BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_CLASS_NS, "name", name).build();
+        try {
+            BinIndexQuery.Response response = client.execute(biq);
+            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
+            if (entries.isEmpty()) {
+                return null;
+            } else {
+                Location location = entries.get(0).getRiakObjectLocation();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .build();
+                return client.execute(fetchOp).getValue(DeviceClass.class);
+            }
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void clearEquipmentRefs(DeviceClass deviceClass) {

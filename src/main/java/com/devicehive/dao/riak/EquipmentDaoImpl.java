@@ -25,8 +25,8 @@ public class EquipmentDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public Equipment getByDeviceClassAndId(@NotNull String deviceClassName, @NotNull long equipmentId) {
-        return find(equipmentId, deviceClassName);
+    public Equipment getByDeviceClassAndId(@NotNull Long deviceClassId, @NotNull long equipmentId) {
+        return find(equipmentId, deviceClassId);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class EquipmentDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull String deviceClassName) {
+    public boolean deleteByIdAndDeviceClass(@NotNull long equipmentId, @NotNull Long deviceClassName) {
         DeviceClass deviceClass = deviceClassDao.find(deviceClassName);
         Equipment stored = null;
         for (Equipment equipment : deviceClass.getEquipment()) {
@@ -63,11 +63,13 @@ public class EquipmentDaoImpl implements EquipmentDao {
     }
 
     @Override
-    public Equipment find(long equipmentId, String deviceClassName) {
-        DeviceClass deviceClass = deviceClassDao.find(deviceClassName);
-        for (Equipment equipment : deviceClass.getEquipment()) {
-            if (equipment.getId() == equipmentId) {
-                return equipment;
+    public Equipment find(long equipmentId, Long deviceClassId) {
+        DeviceClass deviceClass = deviceClassDao.find(deviceClassId);
+        if (deviceClass.getEquipment() != null) {
+            for (Equipment equipment : deviceClass.getEquipment()) {
+                if (equipment.getId() == equipmentId) {
+                    return equipment;
+                }
             }
         }
         return null;

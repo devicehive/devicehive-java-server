@@ -117,7 +117,7 @@ public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
 
     @Override
     public List<Device> getList(String name, String namePattern, String status, Long networkId, String networkName,
-                                String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
+                                Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
@@ -125,7 +125,7 @@ public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
 
         final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern),
                 ofNullable(status), ofNullable(networkId), ofNullable(networkName),
-                ofNullable(deviceClassName), ofNullable(principal));
+                ofNullable(deviceClassId), ofNullable(deviceClassName), ofNullable(principal));
 
         criteria.where(predicates);
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);

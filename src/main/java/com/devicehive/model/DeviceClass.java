@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -16,21 +17,31 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
  */
 @Entity
 @Table(name = "device_class")
+@NamedQueries({
+        @NamedQuery(name = "DeviceClass.findByName", query = "select d from DeviceClass d where d.name = :name")
+})
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class DeviceClass implements HiveEntity {
 
+    public static final String NAME_COLUMN = "name";
     private static final long serialVersionUID = 8091624406245592117L;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonPolicyDef(
+            {DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
+                    DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
+    private Long id;
+
     @Column
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
-                                        "symbols.")
+            "symbols.")
     @JsonPolicyDef(
-        {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
-         DEVICECLASS_PUBLISHED})
-    private String id;
+            {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
+                    DEVICECLASS_PUBLISHED})
+    private String name;
 
     @Column(name = "is_permanent")
     @JsonPolicyDef(
@@ -67,12 +78,30 @@ public class DeviceClass implements HiveEntity {
         this.entityVersion = entityVersion;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @RiakIndex(name = "name")
+    public void setNameRi(String nameRi) {
+        this.name = nameRi;
+    }
+
+    @RiakIndex(name = "name")
+    public String getNameRi() {
+        return name;
     }
 
     public Boolean getPermanent() {
@@ -125,32 +154,5 @@ public class DeviceClass implements HiveEntity {
     @Override
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
-    }
-
-    public static class Queries {
-
-        public interface Names {
-
-            String GET_WITH_EQUIPMENT = "DeviceClass.getWithEquipment";
-            String DELETE_BY_ID = "DeviceClass.deleteById";
-            String GET_ALL = "DeviceClass.getAll";
-        }
-
-        interface Values {
-
-            String GET_WITH_EQUIPMENT =
-                "select d from DeviceClass d " +
-                "left join fetch d.equipment " +
-                "where d.id = :id";
-            String DELETE_BY_ID = "delete from DeviceClass d where d.id = :id";
-            String GET_ALL = "select dc from DeviceClass dc";
-        }
-
-        public interface Parameters {
-
-            String NAME = "name";
-            String VERSION = "version";
-            String ID = "id";
-        }
     }
 }

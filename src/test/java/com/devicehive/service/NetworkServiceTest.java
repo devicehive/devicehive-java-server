@@ -408,7 +408,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -424,7 +424,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
             assertThat(device.getDeviceClass(), notNullValue());
-            assertThat(device.getDeviceClass().getId(), equalTo(dc.getId().orElse(null)));
+            assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().orElse(null)));
         });
     }
 
@@ -441,7 +441,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -470,7 +470,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -486,7 +486,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
             assertThat(device.getDeviceClass(), notNullValue());
-            assertThat(device.getDeviceClass().getId(), equalTo(dc.getId().orElse(null)));
+            assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().orElse(null)));
         });
     }
 
@@ -503,7 +503,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -525,7 +525,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
             assertThat(device.getDeviceClass(), notNullValue());
-            assertThat(device.getDeviceClass().getId(), equalTo(dc.getId().orElse(null)));
+            assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().orElse(null)));
         });
     }
 
@@ -543,7 +543,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -566,7 +566,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (Device device : returnedNetwork.getDevices()) {
             assertThat(device.getDeviceClass(), notNullValue());
             assertThat(device.getDeviceClass().getId(), notNullValue());
-            assertThat(device.getDeviceClass().getId(), equalTo(dc.getId().orElse(null)));
+            assertThat(device.getDeviceClass().getName(), notNullValue());
+            assertThat(device.getDeviceClass().getName(), equalTo(dc.getName().orElse(null)));
         }
     }
 
@@ -583,7 +584,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -618,7 +619,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -683,7 +684,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -736,7 +737,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(Optional.ofNullable(randomUUID().toString()));

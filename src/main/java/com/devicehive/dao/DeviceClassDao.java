@@ -10,11 +10,11 @@ import java.util.List;
  */
 public interface DeviceClassDao {
 
-    DeviceClass getReference(String name);
+    DeviceClass getReference(Long id);
 
     void remove(DeviceClass reference);
 
-    DeviceClass find(String id);
+    DeviceClass find(Long id);
 
     void refresh(DeviceClass stored, LockModeType lockModeType);
 
@@ -24,4 +24,5 @@ public interface DeviceClassDao {
 
     List<DeviceClass> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
+    DeviceClass findByName(String name);
 }

@@ -30,12 +30,12 @@ public class EquipmentService {
      * Delete Equipment (not DeviceEquipment, but whole equipment with appropriate device Equipments)
      *
      * @param equipmentId   equipment id to delete
-     * @param deviceClassName id of deviceClass which equipment belongs used to double check
+     * @param deviceClassId id of deviceClass which equipment belongs used to double check
      * @return true if deleted successfully
      */
     @Transactional
-    public boolean delete(@NotNull long equipmentId, @NotNull String deviceClassName) {
-        return equipmentDao.deleteByIdAndDeviceClass(equipmentId, deviceClassName);
+    public boolean delete(@NotNull long equipmentId, @NotNull long deviceClassId) {
+        return equipmentDao.deleteByIdAndDeviceClass(equipmentId, deviceClassId);
     }
 
     @Transactional
@@ -47,12 +47,12 @@ public class EquipmentService {
     /**
      * Retrieves Equipment from database
      *
-     * @param deviceClassName parent device class id for this equipment
+     * @param deviceClassId parent device class id for this equipment
      * @param equipmentId   id of equipment to get
      */
     @Transactional(readOnly = true)
-    public Equipment getByDeviceClass(@NotNull String deviceClassName, @NotNull long equipmentId) {
-        return equipmentDao.getByDeviceClassAndId(deviceClassName, equipmentId);
+    public Equipment getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
+        return equipmentDao.getByDeviceClassAndId(deviceClassId, equipmentId);
     }
 
     @Transactional(readOnly = true)
@@ -70,16 +70,16 @@ public class EquipmentService {
      *
      * @param equipmentUpdate Equipment instance, containing fields to update (Id field will be ignored)
      * @param equipmentId     id of equipment to update
-     * @param deviceClassName   class of equipment to update
+     * @param deviceClassId   class of equipment to update
      * @return true, if update successful, false otherwise
      */
     @Transactional
-    public boolean update(EquipmentUpdate equipmentUpdate, @NotNull long equipmentId, @NotNull String deviceClassName) {
+    public boolean update(EquipmentUpdate equipmentUpdate, @NotNull long equipmentId, @NotNull long deviceClassId) {
         if (equipmentUpdate == null) {
             return true;
         }
-        Equipment stored = equipmentDao.find(equipmentId, deviceClassName);
-        if (stored == null || stored.getDeviceClass().getId() != deviceClassName) {
+        Equipment stored = equipmentDao.find(equipmentId, deviceClassId);
+        if (stored == null || stored.getDeviceClass().getId() != deviceClassId) {
             return false; // equipment with id = equipmentId does not exists
         }
         if (equipmentUpdate.getCode() != null) {

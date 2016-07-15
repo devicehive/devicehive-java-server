@@ -34,7 +34,6 @@ public interface DeviceResource {
      * @param networkName        Associated network name
      * @param deviceClassId      Associated device class identifier
      * @param deviceClassName    Associated device class name
-     * @param deviceClassVersion Associated device class version
      * @param sortField          Result list sort field. Available values are Name, Status, Network and DeviceClass.
      * @param sortOrderSt        Result list sort order. Available values are ASC and DESC.
      * @param take               Number of records to take from the result list.
@@ -67,6 +66,9 @@ public interface DeviceResource {
             @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
+            @ApiParam(name = "deviceClassId", value = "Filter by associated device class identifier.")
+            @QueryParam("deviceClassId")
+            Long deviceClassId,
             @ApiParam(name = "deviceClassName", value = "Filter by associated device class name.")
             @QueryParam("deviceClassName")
             String deviceClassName,

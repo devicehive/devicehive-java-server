@@ -719,7 +719,7 @@ public class UserServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -744,7 +744,7 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));
@@ -769,7 +769,7 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setId(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(Optional.ofNullable(randomUUID().toString()));
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(Optional.ofNullable(randomUUID().toString()));

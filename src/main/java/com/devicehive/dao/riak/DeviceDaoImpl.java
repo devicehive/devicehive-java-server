@@ -5,6 +5,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.dao.rdbms.*;
 import com.devicehive.model.Device;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -29,11 +30,11 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"riak"})
 @Repository
-public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
+public class DeviceDaoImpl extends com.devicehive.dao.rdbms.GenericDaoImpl implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
-                                                                        "LEFT JOIN device_class dc " +
-                                                                        "ON dc.id = d.device_class_id " +
-                                                                        "WHERE d.guid IN (:guids)";
+            "LEFT JOIN device_class dc " +
+            "ON dc.id = d.device_class_id " +
+            "WHERE d.guid IN (:guids)";
     private static final String UPDATE_DEVICES_STATUSES = "UPDATE device SET status =:status WHERE guid IN (:guids)";
 
     private NamedParameterJdbcTemplate jdbcTemplate;
@@ -117,7 +118,7 @@ public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
 
     @Override
     public List<Device> getList(String name, String namePattern, String status, Long networkId, String networkName,
-                                String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
+                                Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
@@ -125,7 +126,7 @@ public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
 
         final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern),
                 ofNullable(status), ofNullable(networkId), ofNullable(networkName),
-                ofNullable(deviceClassName), ofNullable(principal));
+                ofNullable(deviceClassId), ofNullable(deviceClassName), ofNullable(principal));
 
         criteria.where(predicates);
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);

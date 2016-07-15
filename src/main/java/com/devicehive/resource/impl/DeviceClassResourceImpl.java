@@ -37,7 +37,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getDeviceClassList(String name, String namePattern, String version, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public Response getDeviceClassList(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip) {
         logger.debug("DeviceClass list requested");
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
@@ -48,7 +48,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
             sortField = sortField.toLowerCase();
         }
 
-        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, version, sortField,
+        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, sortField,
                 sortOrder, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
@@ -59,7 +59,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getDeviceClass(String id) {
+    public Response getDeviceClass(long id) {
         logger.debug("Get device class by id requested");
 
         DeviceClass result = deviceClassService.getWithEquipment(id);
@@ -92,7 +92,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response updateDeviceClass(String id, DeviceClassUpdate insert) {
+    public Response updateDeviceClass(long id, DeviceClassUpdate insert) {
         logger.debug("Device class update requested for id {}", id);
         deviceClassService.update(id, insert);
         logger.debug("Device class updated. Id {}", id);
@@ -103,7 +103,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response deleteDeviceClass(String id) {
+    public Response deleteDeviceClass(long id) {
         logger.debug("Device class delete requested");
         deviceClassService.delete(id);
         logger.debug("Device class deleted");

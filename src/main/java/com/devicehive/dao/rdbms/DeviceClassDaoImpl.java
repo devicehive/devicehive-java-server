@@ -24,7 +24,7 @@ import static java.util.Optional.ofNullable;
 public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao {
 
     @Override
-    public DeviceClass getReference(String name) {
+    public DeviceClass getReference(Long name) {
         return getReference(DeviceClass.class, name);
     }
 
@@ -34,7 +34,7 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
     }
 
     @Override
-    public DeviceClass find(String id) {
+    public DeviceClass find(Long id) {
         return find(DeviceClass.class, id);
     }
 
@@ -70,5 +70,13 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
 
         CacheHelper.cacheable(query);
         return query.getResultList();
+    }
+
+    @Override
+    public DeviceClass findByName(String name) {
+        return createNamedQuery(DeviceClass.class, "DeviceClass.findByName", Optional.of(CacheConfig.get()))
+                .setParameter("name", name)
+                .getResultList()
+                .stream().findFirst().orElse(null);
     }
 }
