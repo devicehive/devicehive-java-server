@@ -6,8 +6,11 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserNetwork;
 import com.devicehive.model.enums.UserStatus;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Optional;
 import java.util.Set;
@@ -22,13 +25,23 @@ public class UserDaoTest extends AbstractResourceTest {
     @Autowired
     private NetworkDao networkDao;
 
-    @Autowired
+    @Autowired(required = false)
     private UserNetworkDaoImpl userNetworkDao;
+
+    @Autowired
+    ApplicationContext ctx;
+
+    @Before
+    public void beforeMethod() {
+        org.junit.Assume.assumeTrue(ctx.getEnvironment().acceptsProfiles("riak"));
+    }
+
 
     @Test
     public void testCreate() throws Exception {
         User user = new User();
         user.setId(100L);
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
         userDao.persist(user);
 
         User newUser = userDao.find(100L);
@@ -58,7 +71,7 @@ public class UserDaoTest extends AbstractResourceTest {
         userDao.merge(user);
 
         User newUser = userDao.find(100L);
-        assertEquals("after merge",  newUser.getLogin());
+        assertEquals("after merge", newUser.getLogin());
     }
 
     public void testFindByName() throws Exception {

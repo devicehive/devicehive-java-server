@@ -6,7 +6,7 @@ import com.devicehive.model.AccessKeyPermission;
 public interface AccessKeyPermissionDao {
     int deleteByAccessKey(AccessKey key);
 
-    void persist(AccessKeyPermission accessKeyPermission);
+    void persist(AccessKey key, AccessKeyPermission accessKeyPermission);
 
     AccessKeyPermission merge(AccessKeyPermission existing);
 }

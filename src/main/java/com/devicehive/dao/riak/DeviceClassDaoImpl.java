@@ -1,8 +1,6 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
-import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -21,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +27,11 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class DeviceClassDaoImpl implements DeviceClassDao {
+public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao {
 
     private static final Namespace DEVICE_CLASS_NS = new Namespace("deviceClass");
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
+            "deviceClassCounter");
 
     @Autowired
     private RiakClient client;
@@ -43,18 +42,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
     }
 
     private Long getId() {
-        Location counter = new Location(new Namespace("counters", "check_counters"), "accessKeyTestCounter");
-        CounterUpdate cu = new CounterUpdate(1);
-        UpdateCounter update = new UpdateCounter.Builder(counter, cu).withReturnDatatype(true)
-                .build();
-        UpdateCounter.Response response;
-        try {
-            response = client.execute(update);
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        return response.getDatatype().view();
+        return getId(COUNTERS_LOCATION);
     }
 
     @Override
@@ -74,15 +62,10 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .build();
-            return client.execute(fetchOp).getValue(DeviceClass.class);
+            return restoreEquipmentRefs(client.execute(fetchOp).getValue(DeviceClass.class));
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public void refresh(DeviceClass stored, LockModeType lockModeType) {
-        //do nothing...
     }
 
     @Override
@@ -101,8 +84,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
             StoreValue storeOp = new StoreValue.Builder(deviceClass)
                     .withLocation(location).build();
             client.execute(storeOp);
-            restoreEquipmentRefs(deviceClass);
-            return deviceClass;
+            return restoreEquipmentRefs(deviceClass);
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -147,12 +129,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                                     "}", namePattern);
                     builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null);
                 }
-                if (take != null) {
-                    int[] args = new int[2];
-                    args[0] = skip != null ? skip : 0;
-                    args[1] = args[0] + take;
-                    builder = builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
-                }
+                builder = addPaging(builder, take, skip);
                 BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
@@ -162,7 +139,7 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                 throw new RuntimeException(e);
             }
         }
-
+        result.forEach(this::restoreEquipmentRefs);
         return result;
     }
 
@@ -177,7 +154,12 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
                 Location location = entries.get(0).getRiakObjectLocation();
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .build();
-                return client.execute(fetchOp).getValue(DeviceClass.class);
+
+                DeviceClass result = client.execute(fetchOp).getValue(DeviceClass.class);
+                if (result != null) {
+                    restoreEquipmentRefs(result);
+                }
+                return result;
             }
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -192,11 +174,12 @@ public class DeviceClassDaoImpl implements DeviceClassDao {
         }
     }
 
-    private void restoreEquipmentRefs(DeviceClass deviceClass) {
+    private DeviceClass restoreEquipmentRefs(DeviceClass deviceClass) {
         if (deviceClass.getEquipment() != null) {
             for (Equipment equipment : deviceClass.getEquipment()) {
                 equipment.setDeviceClass(deviceClass);
             }
         }
+        return deviceClass;
     }
 }

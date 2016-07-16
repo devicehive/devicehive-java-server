@@ -88,7 +88,7 @@ public class AccessKeyService {
         for (AccessKeyPermission current : accessKey.getPermissions()) {
             AccessKeyPermission permission = preparePermission(current);
             permission.setAccessKey(accessKey);
-            accessKeyPermissionDao.persist(permission);
+            accessKeyPermissionDao.persist(accessKey, permission);
         }
         return accessKeyDao.find(accessKey.getId());
     }
@@ -125,7 +125,7 @@ public class AccessKeyService {
             for (AccessKeyPermission current : permissionsToReplace) {
                 AccessKeyPermission permission = preparePermission(current);
                 permission.setAccessKey(existing);
-                accessKeyPermissionDao.persist(permission);
+                accessKeyPermissionDao.persist(existing, permission);
             }
         }
         return true;
@@ -177,7 +177,7 @@ public class AccessKeyService {
         accessKeyDao.persist(accessKey);
 
         permission.setAccessKey(accessKey);
-        accessKeyPermissionDao.persist(permission);
+        accessKeyPermissionDao.persist(accessKey, permission);
         return accessKey;
     }
 
@@ -302,7 +302,7 @@ public class AccessKeyService {
         existing.setKey(key);
         for (AccessKeyPermission current : permissions) {
             current.setAccessKey(existing);
-            accessKeyPermissionDao.persist(current);
+            accessKeyPermissionDao.persist(existing, current);
         }
         return existing;
     }

@@ -5,9 +5,6 @@ import com.devicehive.model.DeviceClass;
 import javax.persistence.LockModeType;
 import java.util.List;
 
-/**
- * Created by Gleb on 07.07.2016.
- */
 public interface DeviceClassDao {
 
     DeviceClass getReference(Long id);
@@ -15,8 +12,6 @@ public interface DeviceClassDao {
     void remove(DeviceClass reference);
 
     DeviceClass find(Long id);
-
-    void refresh(DeviceClass stored, LockModeType lockModeType);
 
     void persist(DeviceClass deviceClass);
 

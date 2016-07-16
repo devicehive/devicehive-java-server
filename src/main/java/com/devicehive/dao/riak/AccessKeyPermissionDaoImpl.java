@@ -45,7 +45,7 @@ public class AccessKeyPermissionDaoImpl implements AccessKeyPermissionDao {
     }
 
     @Override
-    public void persist(AccessKeyPermission accessKeyPermission) {
+    public void persist(AccessKey key, AccessKeyPermission accessKeyPermission) {
         merge(accessKeyPermission);
     }
 

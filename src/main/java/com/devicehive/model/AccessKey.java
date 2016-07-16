@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessKeyType;
 import com.google.gson.annotations.SerializedName;
@@ -81,6 +82,9 @@ public class AccessKey implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
+    @Transient
+    private long userId;
+
     public Set<AccessKeyPermission> getPermissions() {
         return permissions;
     }
@@ -127,6 +131,7 @@ public class AccessKey implements HiveEntity {
 
     public void setUser(User user) {
         this.user = user;
+        this.userId = user.getId();
     }
 
     public Date getExpirationDate() {
@@ -143,5 +148,33 @@ public class AccessKey implements HiveEntity {
 
     public void setType(AccessKeyType type) {
         this.type = type;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+    @RiakIndex(name = "key")
+    public String getKeySi() {
+        return key;
+    }
+
+    @RiakIndex(name = "key")
+    public void setKeySi(String key) {
+        this.key = key;
+    }
+
+    @RiakIndex(name = "expirationDate")
+    public Long getExpirationDateSi() {
+        return expirationDate.getTime();
+    }
+
+    @RiakIndex(name = "expirationDate")
+    public void setExpirationDateSi(Long expirationDate) {
+        this.expirationDate = new Date(expirationDate);
     }
 }

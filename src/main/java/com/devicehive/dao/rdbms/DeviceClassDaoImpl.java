@@ -39,11 +39,6 @@ public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao
     }
 
     @Override
-    public void refresh(DeviceClass stored, LockModeType lockModeType) {
-        super.refresh(stored, lockModeType);
-    }
-
-    @Override
     public void persist(DeviceClass deviceClass) {
         super.persist(deviceClass);
     }

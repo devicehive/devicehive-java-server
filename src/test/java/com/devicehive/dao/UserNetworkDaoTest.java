@@ -3,8 +3,10 @@ package com.devicehive.dao;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.dao.riak.UserNetworkDaoImpl;
 import com.devicehive.model.UserNetwork;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Set;
 
@@ -13,8 +15,16 @@ import static org.junit.Assert.assertTrue;
 
 public class UserNetworkDaoTest extends AbstractResourceTest {
 
-    @Autowired
+    @Autowired(required = false)
     UserNetworkDaoImpl userNetworkDao;
+
+    @Autowired
+    ApplicationContext ctx;
+
+    @Before
+    public void beforeMethod() {
+        org.junit.Assume.assumeTrue(ctx.getEnvironment().acceptsProfiles("riak"));
+    }
 
     @Test
     public void testRetrieval() throws Exception {

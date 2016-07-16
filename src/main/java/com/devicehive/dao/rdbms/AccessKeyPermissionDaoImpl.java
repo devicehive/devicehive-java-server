@@ -22,7 +22,7 @@ public class AccessKeyPermissionDaoImpl extends GenericDaoImpl implements Access
     }
 
     @Override
-    public void persist(AccessKeyPermission accessKeyPermission) {
+    public void persist(AccessKey key, AccessKeyPermission accessKeyPermission) {
         super.persist(accessKeyPermission);
     }
 
