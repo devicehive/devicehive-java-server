@@ -8,6 +8,7 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
+import com.basho.riak.client.api.commands.mapreduce.filters.SetMemberFilter;
 import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
@@ -214,7 +215,6 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
                                 Integer take, Integer skip) {
         List<AccessKey> result = new ArrayList<>();
 
-        // todo: userId search
         try {
             String sortFunction = sortMap.get(sortField);
             if (sortFunction == null) {
@@ -226,6 +226,22 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
                     .withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                             String.format(sortFunction, sortOrderAsc ? ">" : "<"),
                             take == null && labelPattern == null && label == null && type == null);
+            if (userId != null) {
+                IntIndexQuery iiq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", userId).build();
+
+                IntIndexQuery.Response response = client.execute(iiq);
+                List<IntIndexQuery.Response.Entry> entries = response.getEntries();
+                Set<String> keys = new HashSet<>();
+                if (entries.isEmpty()) {
+                    return Collections.emptyList();
+                } else {
+                    for (IntIndexQuery.Response.Entry entry : entries) {
+                        Location location = entry.getRiakObjectLocation();
+                        keys.add(location.getKeyAsString());
+                    }
+                }
+                builder = builder.withKeyFilter(new SetMemberFilter<>(keys));
+            }
             if (labelPattern != null) {
                 String functionBody = String.format(
                         "function(values, arg) {" +

@@ -158,6 +158,16 @@ public class AccessKey implements HiveEntity {
         this.userId = userId;
     }
 
+    @RiakIndex(name = "userId")
+    public long getUserIdSi() {
+        return userId;
+    }
+
+    @RiakIndex(name = "userId")
+    public void setUserIdSi(long userId) {
+        this.userId = userId;
+    }
+
     @RiakIndex(name = "key")
     public String getKeySi() {
         return key;
