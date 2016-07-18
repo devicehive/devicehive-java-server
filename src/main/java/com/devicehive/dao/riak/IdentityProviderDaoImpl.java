@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class IdentityProviderDaoImpl extends RiakGenericDao implements IdentityProviderDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdentityProviderDaoImpl.class);
 
     private static final Namespace CONFIG_NS = new Namespace("identity_provider");
 
