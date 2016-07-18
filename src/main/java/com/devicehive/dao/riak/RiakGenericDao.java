@@ -1,8 +1,10 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.cap.UnresolvedConflictException;
 import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
 import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
+import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.functions.Function;
@@ -18,10 +20,11 @@ public class RiakGenericDao {
     @Autowired
     RiakClient client;
 
+    //TODO increase counter by huger number
+    //TODO increment counter to be configurable and have default value
     protected Long getId(Location location) {
         CounterUpdate cu = new CounterUpdate(1);
-        UpdateCounter update = new UpdateCounter.Builder(location, cu).withReturnDatatype(true)
-                .build();
+        UpdateCounter update = new UpdateCounter.Builder(location, cu).withReturnDatatype(true).build();
         UpdateCounter.Response response;
         try {
             response = client.execute(update);
@@ -42,4 +45,10 @@ public class RiakGenericDao {
         }
     }
 
+    protected<T> T getOrNull(FetchValue.Response response, Class<T> clazz) throws UnresolvedConflictException {
+        if (response.hasValues()) {
+            return response.getValue(clazz);
+        }
+        return null;
+    }
 }
