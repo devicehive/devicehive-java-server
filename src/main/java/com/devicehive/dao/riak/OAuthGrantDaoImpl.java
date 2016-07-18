@@ -19,12 +19,15 @@ import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -35,9 +38,12 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class OAuthGrantDaoImpl implements OAuthGrantDao {
+public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoImpl.class);
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "oauth_grant_counters");
+
     private static final Namespace OAUTH_GRANT_NS = new Namespace("oauth_grant");
 
     @Autowired
@@ -89,6 +95,10 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
     }
 
     private OAuthGrant updateRefs(OAuthGrant grant) {
+        if (grant == null) {
+            return null;
+        }
+
         if (grant.getClient() != null) {
             OAuthClient client = oAuthClientDao.find(grant.getClient().getId());
             grant.setClient(client);
@@ -123,8 +133,8 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
             }
 
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return 0;
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot delete OAuthGrant by id and user.", e);
         }
     }
 
@@ -139,21 +149,20 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
             }
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location)
-                        .build();
-                OAuthGrant oAuthGrant = client.execute(fetchOp).getValue(OAuthGrant.class);
-                if (oAuthGrant.getClient() != null) {
+                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue.Response execute = client.execute(fetchOp);
+                OAuthGrant oAuthGrant = getOrNull(execute, OAuthGrant.class);
+                if (oAuthGrant != null && oAuthGrant.getClient() != null) {
                     OAuthClient client = oAuthClientDao.find(oAuthGrant.getClient().getId());
                     if (client.getOauthId().equals(clientOAuthID)) {
                         return oAuthGrant;
                     }
                 }
             }
-
             return null;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot fetch OAuthGrant by code and client.", e);
         }
     }
 
@@ -162,9 +171,11 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
         try {
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location).build();
-            return client.execute(fetchOp).getValue(OAuthGrant.class);
+            FetchValue.Response execute = client.execute(fetchOp);
+            return getOrNull(execute, OAuthGrant.class);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot find OAuthGrant by id.", e);
         }
     }
 
@@ -189,7 +200,8 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
             client.execute(storeOp);
             return oAuthGrant;
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot store OAuthGrant.", e);
         }
     }
 
@@ -335,7 +347,8 @@ public class OAuthGrantDaoImpl implements OAuthGrantDao {
             MapReduce.Response response = future.get();
             result.addAll(response.getResultsFromAllPhases(OAuthGrant.class));
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot fetch OAuthGrant by filter.", e);
         }
 
         return result;

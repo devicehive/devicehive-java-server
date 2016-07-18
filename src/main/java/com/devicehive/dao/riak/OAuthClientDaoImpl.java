@@ -16,8 +16,11 @@ import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.OAuthClientDao;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -27,9 +30,12 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class OAuthClientDaoImpl implements OAuthClientDao {
+public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoImpl.class);
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "oauth_client_counters");
+
     private static final Namespace OAUTH_CLIENT_NS = new Namespace("oauth_client");
 
     @Autowired
@@ -59,8 +65,8 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
             client.execute(deleteOp);
             return 1;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return 0;
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot delete OAuthClient by id.", e);
         }
     }
 
@@ -92,11 +98,10 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
                     return oAuthClient;
                 }
             }
-
             return null;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot fetch OAuthClient by id and secret.", e);
         }
     }
 
@@ -109,12 +114,12 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .build();
-            return client.execute(fetchOp).getValue(OAuthClient.class);
+            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue.Response execute = client.execute(fetchOp);
+            return getOrNull(execute, OAuthClient.class);
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot delete OAuthClient by index.", e);
         }
     }
 
@@ -122,9 +127,9 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
     public OAuthClient find(Long id) {
         try {
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .build();
-            return client.execute(fetchOp).getValue(OAuthClient.class);
+            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue.Response execute = client.execute(fetchOp);
+            return getOrNull(execute, OAuthClient.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -151,7 +156,8 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
             client.execute(storeOp);
             return oAuthClient;
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot store OAuthClient.", e);
         }
     }
 
@@ -237,7 +243,8 @@ public class OAuthClientDaoImpl implements OAuthClientDao {
                 MapReduce.Response response = future.get();
                 result.addAll(response.getResultsFromAllPhases(OAuthClient.class));
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                logger.error("Exception accessing Riak Storage.", e);
+                throw new HivePersistenceLayerException("Cannot fetch OAuthClient by filter.", e);
             }
         }
         return result;
