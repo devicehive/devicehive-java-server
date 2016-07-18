@@ -88,7 +88,8 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
                 AccessKey result = getOrNull(execute, AccessKey.class);
                 if (result != null) {
                     //todo: discuss - may be it's better to keep user inside
-                    restoreReferences(result, userDao.find(result.getUserId()));
+                    User user = userDao.find(result.getUserId());
+                    restoreReferences(result, user);
                 }
                 return Optional.ofNullable(result);
             }
@@ -182,26 +183,23 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
         try {
             long userId = key.getUserId();
             User user = key.getUser();
+            Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + key.getLabel());
             if (key.getId() == null) {
                 key.setId(getId());
-                Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + key.getLabel());
                 StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
                 client.execute(storeValue);
             } else {
                 AccessKey existing = find(key.getId());
                 if (existing.getLabel().equals(key.getLabel())) {
-                    Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + existing.getLabel());
                     DeleteValue delete = new DeleteValue.Builder(location).build();
                     client.execute(delete);
-                    location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + key.getLabel());
                     StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
                     client.execute(storeValue);
                 }
             }
-            Location location = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
+            Location accessKeyLocation = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
             removeReferences(key);
-            StoreValue storeOp = new StoreValue.Builder(key)
-                    .withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(key).withLocation(accessKeyLocation).build();
             client.execute(storeOp);
             return restoreReferences(key, user);
         } catch (ExecutionException | InterruptedException e) {
