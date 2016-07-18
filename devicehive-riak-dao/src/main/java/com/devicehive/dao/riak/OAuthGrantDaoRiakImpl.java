@@ -333,7 +333,8 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            result.addAll(response.getResultsFromAllPhases(OAuthGrant.class));
+            Collection<OAuthGrant> resultsFromAllPhases = response.getResultsFromAllPhases(OAuthGrant.class);
+            result.addAll(resultsFromAllPhases);
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch OAuthGrant by filter.", e);
