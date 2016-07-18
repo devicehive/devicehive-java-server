@@ -98,7 +98,6 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
                     return oAuthClient;
                 }
             }
-
             return null;
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
