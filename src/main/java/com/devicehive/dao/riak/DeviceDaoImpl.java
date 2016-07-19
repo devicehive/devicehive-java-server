@@ -24,22 +24,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.sql.DataSource;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-
-import static java.util.Optional.of;
-import static java.util.Optional.ofNullable;
 
 @Profile({"riak"})
 @Repository
@@ -62,10 +51,6 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
     @Autowired
     private UserNetworkDaoImpl userNetworkDao;
-
-    private Long getId() {
-        return getId(COUNTERS_LOCATION);
-    }
 
     private final Map<String, String> sortMap = new HashMap<>();
 
@@ -315,11 +300,11 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
                 String functionString =
                         "function(values, arg) {" +
-                            "return values.filter(function(v) {" +
+                                "return values.filter(function(v) {" +
                                 "var networkId = v.network.id;" +
                                 "return arg.indexOf(networkId) > -1;" +
-                            "})" +
-                        "}";
+                                "})" +
+                                "}";
                 Function reduceFunction = Function.newAnonymousJsFunction(functionString);
                 builder.withReducePhase(reduceFunction, networks);
             }
@@ -353,5 +338,9 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
             device.setDeviceClass(deviceClass);
         }
         return device;
+    }
+
+    private Long getId() {
+        return getId(COUNTERS_LOCATION);
     }
 }
