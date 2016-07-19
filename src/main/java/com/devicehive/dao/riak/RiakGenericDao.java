@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -74,7 +75,7 @@ public class RiakGenericDao {
             throws ExecutionException, InterruptedException {
         List<BigIntIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         } else {
             final List<Location> locations = entries.stream()
                     .map(BigIntIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
@@ -86,7 +87,7 @@ public class RiakGenericDao {
             throws ExecutionException, InterruptedException {
         List<BinIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         } else {
             final List<Location> locations = entries.stream()
                     .map(BinIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
@@ -98,7 +99,7 @@ public class RiakGenericDao {
             throws ExecutionException, InterruptedException {
         List<IntIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         } else {
             final List<Location> locations = entries.stream()
                     .map(IntIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
@@ -110,7 +111,7 @@ public class RiakGenericDao {
             throws ExecutionException, InterruptedException {
         List<RawIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         } else {
             final List<Location> locations = entries.stream()
                     .map(RawIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());

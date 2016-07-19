@@ -55,15 +55,10 @@ public class NetworkDeviceDaoImpl extends RiakGenericDao {
         IntIndexQuery biq = new IntIndexQuery.Builder(NETWORK_DEVICE_NS, "networkId", networkId).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
-            List<FetchValue> fetchRequests = response.getEntries().stream()
-                    .map(SecondaryIndexQuery.Response.Entry::getRiakObjectLocation)
-                    .map(loc -> new FetchValue.Builder(loc).build())
-                    .collect(Collectors.toList());
+
+            List<NetworkDevice> ndList = fetchMultiple(response, NetworkDevice.class);
             Set<String> devices = new HashSet<>();
-            for (FetchValue fetch : fetchRequests) {
-                NetworkDevice nd = client.execute(fetch).getValue(NetworkDevice.class);
-                devices.add(nd.getDeviceUuid());
-            }
+            ndList.forEach(networkDevice -> devices.add(networkDevice.getDeviceUuid()));
             return devices;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find device for network.", e);
@@ -74,15 +69,9 @@ public class NetworkDeviceDaoImpl extends RiakGenericDao {
         BinIndexQuery biq = new BinIndexQuery.Builder(NETWORK_DEVICE_NS, "deviceUuid", deviceUuid).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
-            List<FetchValue> fetchRequests = response.getEntries().stream()
-                    .map(SecondaryIndexQuery.Response.Entry::getRiakObjectLocation)
-                    .map(loc -> new FetchValue.Builder(loc).build())
-                    .collect(Collectors.toList());
+            List<NetworkDevice> nds = fetchMultiple(response, NetworkDevice.class);
             Set<Long> networks = new HashSet<>();
-            for (FetchValue fetch : fetchRequests) {
-                NetworkDevice nd = client.execute(fetch).getValue(NetworkDevice.class);
-                networks.add(nd.getNetworkId());
-            }
+            nds.forEach(networkDevice ->  networks.add(networkDevice.getNetworkId()));
             return networks;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find networks for device.", e);

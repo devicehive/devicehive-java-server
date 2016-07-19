@@ -40,20 +40,8 @@ public class DeviceEquipmentDaoImpl extends RiakGenericDao implements DeviceEqui
     public List<DeviceEquipment> getByDevice(Device device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
         try {
-            List<DeviceEquipment> deviceEquipmentList = new ArrayList<>();
             BinIndexQuery.Response response = client.execute(biq);
-            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
-            if (entries.isEmpty()) {
-                return null;
-            }
-            for (BinIndexQuery.Response.Entry e : entries) {
-                Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
-                DeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), DeviceEquipment.class);
-                deviceEquipmentList.add(deviceEquipment);
-            }
-
-            return deviceEquipmentList;
+            return fetchMultiple(response, DeviceEquipment.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot get device equipment by device.", e);
         }

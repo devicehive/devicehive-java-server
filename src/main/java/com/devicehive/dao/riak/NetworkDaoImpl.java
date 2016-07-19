@@ -77,15 +77,7 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
         BinIndexQuery biq = new BinIndexQuery.Builder(NETWORK_NS, "name", name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
-            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
-            return entries.stream().map(entry -> {
-                FetchValue fetchOp = new FetchValue.Builder(entry.getRiakObjectLocation()).build();
-                try {
-                    return getOrNull(client.execute(fetchOp), Network.class);
-                } catch (ExecutionException | InterruptedException e) {
-                    throw new HivePersistenceLayerException("Can't find networks by name", e);
-                }
-            }).collect(Collectors.toList());
+            return fetchMultiple(response, Network.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't find networks by name", e);
         }

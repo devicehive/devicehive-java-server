@@ -68,18 +68,9 @@ public class UserNetworkDaoImpl extends RiakGenericDao {
         IntIndexQuery biq = new IntIndexQuery.Builder(USER_NETWORK_NS, "userId", userId).withKeyAndIndex(true).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
-            List<IntIndexQuery.Response.Entry> entries = response.getEntries();
-            if (entries.isEmpty()) {
-                return Collections.emptySet();
-            }
-
+            List<UserNetwork> networkList = fetchMultiple(response, UserNetwork.class);
             Set<Long> networks = new HashSet<>();
-            for (IntIndexQuery.Response.Entry entry : entries) {
-                Location location = entry.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
-                UserNetwork un = client.execute(fetchOp).getValue(UserNetwork.class);
-                networks.add(un.getNetworkId());
-            }
+            networkList.forEach(userNetwork -> networks.add(userNetwork.getNetworkId()));
             return networks;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find networks for user.", e);
@@ -90,18 +81,9 @@ public class UserNetworkDaoImpl extends RiakGenericDao {
         IntIndexQuery biq = new IntIndexQuery.Builder(USER_NETWORK_NS, "networkId", networkId).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
-            List<IntIndexQuery.Response.Entry> entries = response.getEntries();
-            if (entries.isEmpty()) {
-                return Collections.emptySet();
-            }
-
+            List<UserNetwork> userNetworks = fetchMultiple(response, UserNetwork.class);
             Set<Long> users = new HashSet<>();
-            for (IntIndexQuery.Response.Entry entry : entries) {
-                Location location = entry.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
-                UserNetwork un = client.execute(fetchOp).getValue(UserNetwork.class);
-                users.add(un.getUserId());
-            }
+            userNetworks.forEach(userNetwork -> users.add(userNetwork.getUserId()));
             return users;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find users in network.", e);

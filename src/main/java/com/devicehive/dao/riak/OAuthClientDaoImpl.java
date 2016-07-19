@@ -91,8 +91,7 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
             }
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location)
-                        .build();
+                FetchValue fetchOp = new FetchValue.Builder(location).build();
                 OAuthClient oAuthClient = getOrNull(client.execute(fetchOp), OAuthClient.class);
                 if (oAuthClient.getOauthSecret().equals(secret)) {
                     return oAuthClient;
