@@ -21,6 +21,7 @@ import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Network;
+import com.devicehive.model.NetworkDevice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
     @Autowired
     private UserNetworkDaoImpl userNetworkDao;
+
+    @Autowired
+    private NetworkDeviceDaoImpl networkDeviceDao;
 
     private final Map<String, String> sortMap = new HashMap<>();
 
@@ -136,6 +140,12 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot persist device.", e);
+        }
+
+        Network network = device.getNetwork();
+        if (network != null && network.getId() != null) {
+            logger.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
+            networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
         }
     }
 

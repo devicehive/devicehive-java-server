@@ -1,5 +1,7 @@
 package com.devicehive.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -37,14 +39,17 @@ public class Configuration implements HiveEntity {
     @SerializedName("name")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
                                        "32 symbols.")
+    @JsonProperty
     private String name;
     @Column
     @NotNull(message = "value field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value should not be more than " +
                                         "128 symbols.")
+    @JsonProperty
     private String value;
     @Version
     @Column(name = "entity_version")
+    @JsonProperty
     private long entityVersion;
 
     public Configuration() {
@@ -88,10 +93,12 @@ public class Configuration implements HiveEntity {
         return value;
     }
 
+    @JsonIgnore
     public void setValue(long value) {
         this.value = Long.toString(value);
     }
 
+    @JsonIgnore
     public void setValue(boolean value) {
         this.value = Boolean.toString(value);
     }
@@ -108,22 +115,7 @@ public class Configuration implements HiveEntity {
         this.name = name;
     }
 
-    public int getValueAsInt() {
-        return Integer.parseInt(value);
-    }
-
-    public long getValueAsLong() {
-        return Long.parseLong(value);
-    }
-
-    public boolean getValueAsBoolean() {
-        return Boolean.parseBoolean(value);
-    }
-
-    public Date getValueAsDate() {
-        return Date.valueOf(value);
-    }
-
+    @JsonIgnore
     public void setValue(int value) {
         this.value = Integer.toString(value);
     }

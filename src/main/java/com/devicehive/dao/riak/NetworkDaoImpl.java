@@ -25,6 +25,7 @@ import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.model.UserNetwork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -147,6 +148,17 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
+    public void assignToNetwork(Network network, User user) {
+        assert network != null && network.getId() != null;
+        assert user != null && user.getId() != null;
+
+        Set<Long> networksForUser = userNetworkDao.findNetworksForUser(user.getId());
+        if (!networksForUser.contains(network.getId())) {
+            userNetworkDao.persist(new UserNetwork(user.getId(), network.getId()));
+        }
+    }
+
+    @Override
     public List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                               Integer skip, Optional<HivePrincipal> principal) {
         String sortFunc = sortMap.get(sortField);
@@ -174,6 +186,7 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
                     "function(values, arg) {" +
                             "return values.filter(function(v) {" +
                             "var name = v.name;" +
+                            "if (name === null) { return false; }" +
                             "return name.indexOf('%s') > -1;" +
                             "})" +
                             "}", namePattern);
@@ -190,8 +203,7 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
             Set<Long> networkIds = null;
             if (user != null && !user.isAdmin()) {
                 networkIds = userNetworkDao.findNetworksForUser(user.getId());
-            }
-            if (p.getKey() != null && p.getKey().getPermissions() != null && (user == null || !user.isAdmin())) {
+            } else if (p.getKey() != null && p.getKey().getPermissions() != null && (user == null || !user.isAdmin())) {
                 networkIds = AccessKeyBasedFilterForDevices.createExtraFilters(p.getKey().getPermissions()).stream()
                         .filter(f -> f.getNetworkIds() != null)
                         .flatMap(f -> f.getNetworkIds().stream())

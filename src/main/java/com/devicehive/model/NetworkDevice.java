@@ -8,6 +8,14 @@ public class NetworkDevice {
     private Long networkId;
     private String deviceUuid;
 
+    public NetworkDevice() {
+    }
+
+    public NetworkDevice(Long networkId, String deviceUuid) {
+        this.networkId = networkId;
+        this.deviceUuid = deviceUuid;
+    }
+
     @RiakIndex(name = "networkId")
     public Long getNetworkSi() {
         return networkId;

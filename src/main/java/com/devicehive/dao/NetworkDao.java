@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.Network;
+import com.devicehive.model.User;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -24,6 +25,8 @@ public interface NetworkDao {
     Network find(@NotNull Long networkId);
 
     Network merge(Network existing);
+
+    void assignToNetwork(Network network, User user);
 
     List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                        Integer skip, Optional<HivePrincipal> principal);

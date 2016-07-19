@@ -28,13 +28,16 @@ public class NetworkDeviceDaoImpl extends RiakGenericDao {
     @Autowired
     private RiakClient client;
 
-    public void persist(NetworkDevice networkDevice) {
+    public void saveOrUpdate(NetworkDevice networkDevice) {
         try {
-            String id = networkDevice.getNetworkId() + "n" + networkDevice.getDeviceUuid();
-            networkDevice.setId(id);
-            Location location = new Location(NETWORK_DEVICE_NS, id);
-            StoreValue store = new StoreValue.Builder(networkDevice).withLocation(location).build();
-            client.execute(store);
+            Set<Long> networks = findNetworksForDevice(networkDevice.getDeviceUuid());
+            if (!networks.contains(networkDevice.getNetworkId())) {
+                String id = networkDevice.getNetworkId() + "n" + networkDevice.getDeviceUuid();
+                networkDevice.setId(id);
+                Location location = new Location(NETWORK_DEVICE_NS, id);
+                StoreValue store = new StoreValue.Builder(networkDevice).withLocation(location).build();
+                client.execute(store);
+            }
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't store networkDevice relation", e);
         }

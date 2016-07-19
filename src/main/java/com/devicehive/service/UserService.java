@@ -220,10 +220,7 @@ public class UserService {
         }
         Network existingNetwork = networkDao.findWithUsers(networkId)
                 .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
-        Set<User> usersSet = existingNetwork.getUsers();
-        usersSet.add(existingUser);
-        existingNetwork.setUsers(usersSet);
-        networkDao.merge(existingNetwork);
+        networkDao.assignToNetwork(existingNetwork, existingUser);
     }
 
     /**

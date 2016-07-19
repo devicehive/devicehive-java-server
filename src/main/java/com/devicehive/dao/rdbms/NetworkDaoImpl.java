@@ -5,6 +5,7 @@ import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.model.Network;
+import com.devicehive.model.User;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -61,6 +62,14 @@ public class NetworkDaoImpl extends GenericDaoImpl implements NetworkDao {
     @Override
     public Network merge(Network existing) {
         return super.merge(existing);
+    }
+
+    @Override
+    public void assignToNetwork(Network network, User user) {
+        assert network != null && network.getId() != null;
+        assert user != null && user.getId() != null;
+        network.getUsers().add(user);
+        merge(network);
     }
 
     @Override

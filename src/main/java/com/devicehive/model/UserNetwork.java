@@ -13,6 +13,11 @@ public class UserNetwork {
     public UserNetwork() {
     }
 
+    public UserNetwork(Long userId, Long networkId) {
+        this.userId = userId;
+        this.networkId = networkId;
+    }
+
     public String getId() {
         return id;
     }

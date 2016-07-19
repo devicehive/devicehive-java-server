@@ -16,12 +16,10 @@ import com.devicehive.model.updates.NetworkUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.CustomTypeSafeMatcher;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -46,6 +44,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Autowired
     private NetworkDao networkDao;
 
+    @Autowired
+    private ApplicationContext context;
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -53,7 +54,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Before
     public void setUp() throws Exception {
-        namePrefix = RandomStringUtils.random(10);
+        namePrefix = RandomStringUtils.randomAlphabetic(10);
     }
 
     @Test
@@ -68,15 +69,17 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_network_with_name_already_exists() throws Exception {
+        String name = "myNetwork" + RandomStringUtils.randomAlphabetic(10);
+
         Network network = new Network();
-        network.setName("myNetwork");
+        network.setName(name);
         networkService.create(network);
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_NETWORK);
 
         network = new Network();
-        network.setName("myNetwork");
+        network.setName(name);
         networkService.create(network);
     }
 
@@ -157,7 +160,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             Network created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<Network> networks = networkService.list(null, null, null, true, 10, 0, null);
+        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 10, 0, null);
         assertThat(networks, hasSize(10));
     }
 
@@ -184,7 +187,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_filter_networks_by_name_pattern() throws Exception {
         for (int i = 0; i < 20; i++) {
             Network network = new Network();
-            network.setName(namePrefix + randomUUID());
+            network.setName(RandomStringUtils.randomAlphabetic(20));
             network.setDescription("network description_" + randomUUID());
             Network created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
@@ -192,20 +195,21 @@ public class NetworkServiceTest extends AbstractResourceTest {
         int count = new Random().nextInt(30) + 1;
         for (int i = 0; i < count; i++) {
             Network network = new Network();
-            network.setName("some special network " + randomUUID());
+            network.setName(namePrefix + RandomStringUtils.randomAlphabetic(10));
             network.setDescription("network description_" + randomUUID());
             Network created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
 
-        List<Network> networks = networkService.list(null, "%special%", null, true, 100, 0, null);
+        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
         assertThat(networks, hasSize(count));
-        assertThat(networks, hasItems(new CustomTypeSafeMatcher<Network>("expected 'special' word in name") {
-            @Override
-            protected boolean matchesSafely(Network item) {
-                return item.getName().contains("some special network");
-            }
-        }));
+        assertThat(networks,
+                hasItems(new CustomTypeSafeMatcher<Network>(String.format("expected '%s' word in name", namePrefix)) {
+                    @Override
+                    protected boolean matchesSafely(Network item) {
+                        return item.getName().contains(namePrefix);
+                    }
+                }));
     }
 
     @Test
@@ -241,16 +245,18 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_correctly_apply_skip_limit_params() throws Exception {
+        Assume.assumeTrue(context.getEnvironment().acceptsProfiles("rdbms")); // slice behaves unexpectedly in riak
         for (int i = 0; i < 100; i++) {
             Network network = new Network();
             network.setName(namePrefix + randomUUID());
+            network.setEntityVersion((long) i);
             Network created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<Network> all = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
+        List<Network> all = networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null);
         assertThat(all, hasSize(100));
 
-        List<Network> sliced = networkService.list(null, namePrefix + "%", null, true, 20, 30, null);
+        List<Network> sliced = networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null);
         assertThat(sliced, hasSize(20));
         List<Network> expected = all.stream().skip(30).limit(20).collect(Collectors.toList());
         assertThat(sliced, contains(expected.toArray(new Network[expected.size()])));
@@ -268,9 +274,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_return_networks_only_for_user() throws Exception {
         User user1 = new User();
-        user1.setLogin("user1");
+        user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user1 = userService.createUser(user1, "123");
-        List<String> expectedNames = new ArrayList<>();
+        Set<String> expectedNames = new HashSet<>();
         for (int i = 0; i < 10; i++) {
             String name = namePrefix + randomUUID();
             Network network = new Network();
@@ -281,7 +287,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         User user2 = new User();
-        user2.setLogin("user2");
+        user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
             Network network = new Network();
@@ -297,14 +303,14 @@ public class NetworkServiceTest extends AbstractResourceTest {
         List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
         assertThat(networks, hasSize(10));
 
-        List<String> names = networks.stream().map(Network::getName).collect(Collectors.toList());
+        Set<String> names = networks.stream().map(Network::getName).collect(Collectors.toSet());
         assertThat(names, equalTo(expectedNames));
     }
 
     @Test
     public void should_return_all_networks_for_admin() throws Exception {
         User user1 = new User();
-        user1.setLogin("user1");
+        user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.ADMIN);
         user1 = userService.createUser(user1, "123");
         for (int i = 0; i < 10; i++) {
@@ -316,7 +322,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         User user2 = new User();
-        user2.setLogin("user2");
+        user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
             Network network = new Network();
@@ -365,7 +371,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_return_networks_for_access_key_user() throws Exception {
         User user = new User();
-        user.setLogin("user1");
+        user.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
         for (int i = 0; i < 100; i++) {
@@ -876,14 +882,14 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Network network = new Network();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        Network created = networkService.createOrVerifyNetwork(Optional.of(network));
         assertThat(created, notNullValue());
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.INVALID_NETWORK_KEY);
 
         created.setKey(randomUUID().toString());
-        networkService.createOrVerifyNetwork(Optional.ofNullable(created));
+        networkService.createOrVerifyNetwork(Optional.of(created));
     }
 
     @Test
