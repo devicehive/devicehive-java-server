@@ -14,8 +14,9 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.dao.*;
-import com.devicehive.dao.rdbms.*;
+import com.devicehive.dao.DeviceClassDao;
+import com.devicehive.dao.DeviceDao;
+import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -61,6 +63,11 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
         sortMap.put("network", "function(a,b){ return a.network.name %s b.network.name; }");
         sortMap.put("deviceClass", "function(a,b){ return a.deviceClass.name %s b.deviceClass.name; }");
         sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
+    }
+
+    @PostConstruct
+    public void init() {
+        ((NetworkDaoImpl) networkDao).setDeviceDao(this);
     }
 
     /**

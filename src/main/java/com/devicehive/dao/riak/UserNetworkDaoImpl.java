@@ -8,11 +8,15 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
+import com.devicehive.exceptions.HivePersistenceLayerException;
+import com.devicehive.model.Network;
 import com.devicehive.model.UserNetwork;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +71,7 @@ public class UserNetworkDaoImpl {
             IntIndexQuery.Response response = client.execute(biq);
             List<IntIndexQuery.Response.Entry> entries = response.getEntries();
             if (entries.isEmpty()) {
-                return null;
+                return Collections.emptySet();
             }
 
             Set<Long> networks = new HashSet<>();
@@ -80,7 +84,7 @@ public class UserNetworkDaoImpl {
             return networks;
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
-            return null;
+            return Collections.emptySet();
         }
     }
 
@@ -90,7 +94,7 @@ public class UserNetworkDaoImpl {
             IntIndexQuery.Response response = client.execute(biq);
             List<IntIndexQuery.Response.Entry> entries = response.getEntries();
             if (entries.isEmpty()) {
-                return null;
+                return Collections.emptySet();
             }
 
             Set<Long> users = new HashSet<>();
@@ -103,7 +107,7 @@ public class UserNetworkDaoImpl {
             return users;
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
-            return null;
+            return Collections.emptySet();
         }
     }
 }
