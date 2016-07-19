@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
@@ -163,6 +164,12 @@ public class Device implements HiveEntity {
 
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
+    }
+
+    //Riak indexes
+    @RiakIndex(name = "guid")
+    public String getGuidSi() {
+        return guid;
     }
 
     public static class Queries {
