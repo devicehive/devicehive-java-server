@@ -24,9 +24,11 @@ import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -63,6 +65,11 @@ public class UserDaoImpl implements UserDao {
         sortMap.put("facebookLogin", "function(a,b){ return a.facebookLogin %s b.facebookLogin; }");
         sortMap.put("githubLogin", "function(a,b){ return a.githubLogin %s b.githubLogin; }");
         sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
+    }
+
+    @PostConstruct
+    public void init() {
+        ((NetworkDaoImpl) networkDao).setUserDao(this);
     }
 
     @Override

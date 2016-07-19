@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -63,6 +64,11 @@ public class Network implements HiveEntity {
     @Version
     @Column(name = "entity_version")
     private Long entityVersion;
+
+    @RiakIndex(name = "name")
+    public String getNameSi() {
+        return name;
+    }
 
     public Set<Device> getDevices() {
         return devices;
