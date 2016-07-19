@@ -4,14 +4,24 @@ import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.cap.UnresolvedConflictException;
 import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
 import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
+import com.basho.riak.client.api.commands.indexes.*;
+import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
+import com.basho.riak.client.api.commands.kv.MultiFetch;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
+import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
+import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
@@ -30,7 +40,7 @@ public class RiakGenericDao {
         try {
             response = client.execute(update);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException(String.format("Unable to generate id for %s", location), e);
         }
         return response.getDatatype().view();
     }
@@ -51,5 +61,71 @@ public class RiakGenericDao {
             return response.getValue(clazz);
         }
         return null;
+    }
+
+    protected int deleteById(Long id, Namespace ns) throws ExecutionException, InterruptedException{
+        Location location = new Location(ns, String.valueOf(id));
+        DeleteValue deleteOp = new DeleteValue.Builder(location).build();
+        client.execute(deleteOp);
+        return 1;
+    }
+
+    protected<T> List<T> fetchMultiple(BigIntIndexQuery.Response response, Class<T> clazz)
+            throws ExecutionException, InterruptedException {
+        List<BigIntIndexQuery.Response.Entry> entries = response.getEntries();
+        if (entries.isEmpty()) {
+            return null;
+        } else {
+            final List<Location> locations = entries.stream()
+                    .map(BigIntIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
+            return fetchMultipleByLocations(locations, clazz);
+        }
+    }
+
+    protected<T> List<T> fetchMultiple(BinIndexQuery.Response response, Class<T> clazz)
+            throws ExecutionException, InterruptedException {
+        List<BinIndexQuery.Response.Entry> entries = response.getEntries();
+        if (entries.isEmpty()) {
+            return null;
+        } else {
+            final List<Location> locations = entries.stream()
+                    .map(BinIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
+            return fetchMultipleByLocations(locations, clazz);
+        }
+    }
+
+    protected<T> List<T> fetchMultiple(IntIndexQuery.Response response, Class<T> clazz)
+            throws ExecutionException, InterruptedException {
+        List<IntIndexQuery.Response.Entry> entries = response.getEntries();
+        if (entries.isEmpty()) {
+            return null;
+        } else {
+            final List<Location> locations = entries.stream()
+                    .map(IntIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
+            return fetchMultipleByLocations(locations, clazz);
+        }
+    }
+
+    protected<T> List<T> fetchMultiple(RawIndexQuery.Response response, Class<T> clazz)
+            throws ExecutionException, InterruptedException {
+        List<RawIndexQuery.Response.Entry> entries = response.getEntries();
+        if (entries.isEmpty()) {
+            return null;
+        } else {
+            final List<Location> locations = entries.stream()
+                    .map(RawIndexQuery.Response.Entry::getRiakObjectLocation).collect(Collectors.toList());
+            return fetchMultipleByLocations(locations, clazz);
+        }
+    }
+
+    private <T> List<T> fetchMultipleByLocations(List<Location> locations, Class<T> clazz) throws ExecutionException, InterruptedException {
+        List<T> result = new ArrayList<>();
+        MultiFetch multiFetch = new MultiFetch.Builder().addLocations(locations).build();
+        MultiFetch.Response mfr = client.execute(multiFetch);
+        for (RiakFuture<FetchValue.Response, Location> f : mfr.getResponses()) {
+            FetchValue.Response resp = f.get();
+            result.add(resp.getValue(clazz));
+        }
+        return result;
     }
 }

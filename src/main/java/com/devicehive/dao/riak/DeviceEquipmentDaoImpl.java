@@ -12,6 +12,7 @@ import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.DeviceEquipmentDao;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import static java.util.Optional.of;
 
 @Profile({"riak"})
 @Repository
-public class DeviceEquipmentDaoImpl implements DeviceEquipmentDao {
+public class DeviceEquipmentDaoImpl extends RiakGenericDao implements DeviceEquipmentDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "device_equipment_counters");
     private static final Namespace DEVICE_EQUIPMENT_NS = new Namespace("device_equipment");
@@ -47,16 +48,14 @@ public class DeviceEquipmentDaoImpl implements DeviceEquipmentDao {
             }
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location)
-                        .build();
-                DeviceEquipment deviceEquipment = client.execute(fetchOp).getValue(DeviceEquipment.class);
+                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                DeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), DeviceEquipment.class);
                 deviceEquipmentList.add(deviceEquipment);
             }
 
             return deviceEquipmentList;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            throw new HivePersistenceLayerException("Cannot get device equipment by device.", e);
         }
     }
 
@@ -73,7 +72,7 @@ public class DeviceEquipmentDaoImpl implements DeviceEquipmentDao {
                 Location location = e.getRiakObjectLocation();
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .build();
-                DeviceEquipment deviceEquipment = client.execute(fetchOp).getValue(DeviceEquipment.class);
+                DeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), DeviceEquipment.class);
                 if (deviceEquipment.getCode().equals(code)) {
                     return deviceEquipment;
                 }
@@ -81,8 +80,7 @@ public class DeviceEquipmentDaoImpl implements DeviceEquipmentDao {
 
             return null;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            throw new HivePersistenceLayerException("Cannot cannot get device equipment by device and code.", e);
         }
     }
 
@@ -96,19 +94,14 @@ public class DeviceEquipmentDaoImpl implements DeviceEquipmentDao {
         Location deviceEquipmentCounters = new Location(COUNTER_NS, "device_equipment_counter");
         try {
             if (deviceEquipment.getId() == null) {
-                CounterUpdate cu = new CounterUpdate(1);
-                UpdateCounter update = new UpdateCounter.Builder(deviceEquipmentCounters, cu).build();
-                client.execute(update);
-                FetchCounter fetch = new FetchCounter.Builder(deviceEquipmentCounters).build();
-                Long id = client.execute(fetch).getDatatype().view();
-                deviceEquipment.setId(id);
+                deviceEquipment.setId(getId(deviceEquipmentCounters));
             }
             Location location = new Location(DEVICE_EQUIPMENT_NS, String.valueOf(deviceEquipment.getId()));
             StoreValue storeOp = new StoreValue.Builder(deviceEquipment).withLocation(location).build();
             client.execute(storeOp);
             return deviceEquipment;
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot merge device equipment.", e);
         }
     }
 }

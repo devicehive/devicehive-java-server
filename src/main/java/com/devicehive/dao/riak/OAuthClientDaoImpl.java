@@ -93,7 +93,7 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
                 Location location = e.getRiakObjectLocation();
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .build();
-                OAuthClient oAuthClient = client.execute(fetchOp).getValue(OAuthClient.class);
+                OAuthClient oAuthClient = getOrNull(client.execute(fetchOp), OAuthClient.class);
                 if (oAuthClient.getOauthSecret().equals(secret)) {
                     return oAuthClient;
                 }
@@ -131,7 +131,7 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
             FetchValue.Response execute = client.execute(fetchOp);
             return getOrNull(execute, OAuthClient.class);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot find auth client by id.", e);
         }
     }
 
@@ -144,12 +144,7 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
     public OAuthClient merge(OAuthClient oAuthClient) {
         try {
             if (oAuthClient.getId() == null) {
-                CounterUpdate cu = new CounterUpdate(1);
-                UpdateCounter update = new UpdateCounter.Builder(oauthClientCounters, cu).build();
-                client.execute(update);
-                FetchCounter fetch = new FetchCounter.Builder(oauthClientCounters).build();
-                Long id = client.execute(fetch).getDatatype().view();
-                oAuthClient.setId(id);
+                oAuthClient.setId(getId(oauthClientCounters));
             }
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(oAuthClient.getId()));
             StoreValue storeOp = new StoreValue.Builder(oAuthClient).withLocation(location).build();

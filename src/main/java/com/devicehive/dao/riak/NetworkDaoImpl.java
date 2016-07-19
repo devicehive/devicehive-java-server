@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
-public class NetworkDaoImpl implements NetworkDao {
+public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "network_counters");
     private static final Namespace NETWORK_NS = new Namespace("network");
@@ -81,7 +81,7 @@ public class NetworkDaoImpl implements NetworkDao {
             return entries.stream().map(entry -> {
                 FetchValue fetchOp = new FetchValue.Builder(entry.getRiakObjectLocation()).build();
                 try {
-                    return client.execute(fetchOp).getValue(Network.class);
+                    return getOrNull(client.execute(fetchOp), Network.class);
                 } catch (ExecutionException | InterruptedException e) {
                     throw new HivePersistenceLayerException("Can't find networks by name", e);
                 }
@@ -93,18 +93,8 @@ public class NetworkDaoImpl implements NetworkDao {
 
     @Override
     public void persist(@NotNull Network newNetwork) {
-        try {
-            if (newNetwork.getId() == null) {
-                CounterUpdate cu = new CounterUpdate(1);
-                UpdateCounter update = new UpdateCounter.Builder(networkCounter, cu).build();
-                client.execute(update);
-
-                FetchCounter fetchCounterOp = new FetchCounter.Builder(networkCounter).build();
-                Long id = client.execute(fetchCounterOp).getDatatype().view();
-                newNetwork.setId(id);
-            }
-        } catch (ExecutionException | InterruptedException e) {
-            throw new HivePersistenceLayerException("Can't update or fetch next network counter value", e);
+        if (newNetwork.getId() == null) {
+            newNetwork.setId(getId(networkCounter));
         }
         merge(newNetwork);
     }
@@ -144,7 +134,7 @@ public class NetworkDaoImpl implements NetworkDao {
         Location location = new Location(NETWORK_NS, String.valueOf(networkId));
         FetchValue fetchOp = new FetchValue.Builder(location).build();
         try {
-            return client.execute(fetchOp).getValue(Network.class);
+            return getOrNull(client.execute(fetchOp), Network.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't fetch network by id", e);
         }
@@ -239,7 +229,7 @@ public class NetworkDaoImpl implements NetworkDao {
             MapReduce.Response response = future.get();
             return response.getResultsFromAllPhases(Network.class).stream().collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot get list of networks.", e);
         }
     }
 

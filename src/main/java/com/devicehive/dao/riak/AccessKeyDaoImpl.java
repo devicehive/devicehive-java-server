@@ -52,10 +52,6 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
         sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
-    private Long getId() {
-        return getId(COUNTERS_LOCATION);
-    }
-
 
     @Override
     public AccessKey getById(Long keyId, Long userId) {
@@ -63,12 +59,13 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
             Location location = new Location(ACCESS_KEY_NS, String.valueOf(keyId));
             FetchValue fetchOp = new FetchValue.Builder(location).build();
             FetchValue.Response execute = client.execute(fetchOp);
-            if (execute.hasValues()) {
-                AccessKey result = execute.getValue(AccessKey.class);
+            AccessKey result = getOrNull(execute, AccessKey.class);
+            if (result != null) {
                 User user = userDao.find(result.getUserId());
                 return restoreReferences(result, user);
+            } else {
+                return null;
             }
-            return null;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot fetch access key by id and user id.", e);
         }
@@ -186,7 +183,7 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
             User user = key.getUser();
             Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + key.getLabel());
             if (key.getId() == null) {
-                key.setId(getId());
+                key.setId(getId(COUNTERS_LOCATION));
                 StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
                 client.execute(storeValue);
             } else {

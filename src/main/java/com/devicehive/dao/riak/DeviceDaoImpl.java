@@ -115,9 +115,8 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .build();
-            Device device = client.execute(fetchOp).getValue(Device.class);
+            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            Device device = getOrNull(client.execute(fetchOp), Device.class);
             return refreshRefs(device);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);

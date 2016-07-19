@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class UserNetworkDaoImpl {
+public class UserNetworkDaoImpl extends RiakGenericDao {
 
     private static final Namespace USER_NETWORK_NS = new Namespace("userNetwork");
 
@@ -39,7 +38,7 @@ public class UserNetworkDaoImpl {
             StoreValue storeOp = new StoreValue.Builder(userNetwork).withLocation(location).build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot persist user network.", e);
         }
     }
 
@@ -50,7 +49,7 @@ public class UserNetworkDaoImpl {
             client.execute(storeOp);
             return existing;
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot merge user network.", e);
         }
     }
 
@@ -61,7 +60,7 @@ public class UserNetworkDaoImpl {
         try {
             client.execute(deleteOp);
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+            throw new HivePersistenceLayerException("Cannot delete network.", e);
         }
     }
 
@@ -83,8 +82,7 @@ public class UserNetworkDaoImpl {
             }
             return networks;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return Collections.emptySet();
+            throw new HivePersistenceLayerException("Cannot find networks for user.", e);
         }
     }
 
@@ -106,8 +104,7 @@ public class UserNetworkDaoImpl {
             }
             return users;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return Collections.emptySet();
+            throw new HivePersistenceLayerException("Cannot find users in network.", e);
         }
     }
 }

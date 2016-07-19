@@ -122,9 +122,9 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(grantId));
 
             FetchValue fetchOp = new FetchValue.Builder(location).build();
-            OAuthGrant grant = client.execute(fetchOp).getValue(OAuthGrant.class);
+            OAuthGrant grant = getOrNull(client.execute(fetchOp), OAuthGrant.class);
 
-            if (grant.getUser().equals(user)) {
+            if (grant != null && grant.getUser().equals(user)) {
                 DeleteValue deleteOp = new DeleteValue.Builder(location).build();
                 client.execute(deleteOp);
                 return 1;
@@ -188,12 +188,7 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
     public OAuthGrant merge(OAuthGrant oAuthGrant) {
         try {
             if (oAuthGrant.getId() == null) {
-                CounterUpdate cu = new CounterUpdate(1);
-                UpdateCounter update = new UpdateCounter.Builder(oauthGrantCounters, cu).build();
-                client.execute(update);
-                FetchCounter fetch = new FetchCounter.Builder(oauthGrantCounters).build();
-                Long id = client.execute(fetch).getDatatype().view();
-                oAuthGrant.setId(id);
+                oAuthGrant.setId(getId(oauthGrantCounters));
             }
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));
             StoreValue storeOp = new StoreValue.Builder(oAuthGrant).withLocation(location).build();

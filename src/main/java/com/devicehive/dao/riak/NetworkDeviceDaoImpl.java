@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
-public class NetworkDeviceDaoImpl {
+public class NetworkDeviceDaoImpl extends RiakGenericDao {
 
     private static final Namespace NETWORK_DEVICE_NS = new Namespace("networkDevice");
 
@@ -66,8 +66,7 @@ public class NetworkDeviceDaoImpl {
             }
             return devices;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return Collections.emptySet();
+            throw new HivePersistenceLayerException("Cannot find device for network.", e);
         }
     }
 
@@ -86,8 +85,7 @@ public class NetworkDeviceDaoImpl {
             }
             return networks;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return Collections.emptySet();
+            throw new HivePersistenceLayerException("Cannot find networks for device.", e);
         }
     }
 }

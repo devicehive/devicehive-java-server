@@ -23,12 +23,9 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class AccessKeyPermissionDaoImpl implements AccessKeyPermissionDao {
+public class AccessKeyPermissionDaoImpl extends RiakGenericDao implements AccessKeyPermissionDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "access_key_permission_counters");
-
-    @Autowired
-    private RiakClient client;
 
     @Autowired
     private AccessKeyDao accessKeyDao;
@@ -56,16 +53,7 @@ public class AccessKeyPermissionDaoImpl implements AccessKeyPermissionDao {
 
         if (accessKeyPermission.getId() == null) {
             Location accessKeyPermissionCounters = new Location(COUNTER_NS, "access_key_permission_counter");
-            CounterUpdate cu = new CounterUpdate(1);
-            UpdateCounter update = new UpdateCounter.Builder(accessKeyPermissionCounters, cu).build();
-            try {
-                client.execute(update);
-                FetchCounter fetch = new FetchCounter.Builder(accessKeyPermissionCounters).build();
-                Long id = client.execute(fetch).getDatatype().view();
-                accessKeyPermission.setId(id);
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            accessKeyPermission.setId(getId(accessKeyPermissionCounters));
         }
 
         if (accessKey.getPermissions() != null) {

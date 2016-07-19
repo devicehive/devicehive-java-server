@@ -18,6 +18,7 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
-public class UserDaoImpl implements UserDao {
+public class UserDaoImpl extends RiakGenericDao implements UserDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "user_counters");
     private static final Namespace USER_NS = new Namespace("user");
@@ -105,12 +106,10 @@ public class UserDaoImpl implements UserDao {
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .build();
-            return client.execute(fetchOp).getValue(User.class);
+            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            return getOrNull(client.execute(fetchOp), User.class);
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return null;
+            throw new HivePersistenceLayerException("Cannot find by identity.", e);
         }
     }
 
@@ -197,8 +196,7 @@ public class UserDaoImpl implements UserDao {
             client.execute(deleteOp);
             return 1;
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
-            return 0;
+            throw new HivePersistenceLayerException("Cannot delete by id", e);
         }
     }
 
@@ -207,9 +205,9 @@ public class UserDaoImpl implements UserDao {
         try {
             Location location = new Location(USER_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location).build();
-            return client.execute(fetchOp).getValue(User.class);
+            return getOrNull(client.execute(fetchOp), User.class);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot find by id", e);
         }
     }
 
@@ -222,19 +220,14 @@ public class UserDaoImpl implements UserDao {
     public User merge(User user) {
         try {
             if (user.getId() == null) {
-                CounterUpdate cu = new CounterUpdate(1);
-                UpdateCounter update = new UpdateCounter.Builder(userCounters, cu).build();
-                client.execute(update);
-                FetchCounter fetch = new FetchCounter.Builder(userCounters).build();
-                Long id = client.execute(fetch).getDatatype().view();
-                user.setId(id);
+                user.setId(getId(userCounters));
             }
             Location location = new Location(USER_NS, String.valueOf(user.getId()));
             StoreValue storeOp = new StoreValue.Builder(user).withLocation(location).build();
             client.execute(storeOp);
             return user;
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot merge user.", e);
         }
     }
 
@@ -325,7 +318,7 @@ public class UserDaoImpl implements UserDao {
                 MapReduce.Response response = future.get();
                 result.addAll(response.getResultsFromAllPhases(User.class));
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new HivePersistenceLayerException("Cannot execute search user.", e);
             }
         }
         return result;

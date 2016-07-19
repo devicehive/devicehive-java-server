@@ -13,6 +13,7 @@ import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.DeviceClassDao;
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,6 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
         return find(id);
     }
 
-    private Long getId() {
-        return getId(COUNTERS_LOCATION);
-    }
-
     @Override
     public void remove(DeviceClass reference) {
         try {
@@ -52,7 +49,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
             DeleteValue delete = new DeleteValue.Builder(location).build();
             client.execute(delete);
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot remove device class.", e);
         }
     }
 
@@ -62,9 +59,9 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .build();
-            return restoreEquipmentRefs(client.execute(fetchOp).getValue(DeviceClass.class));
+            return restoreEquipmentRefs(getOrNull(client.execute(fetchOp), DeviceClass.class));
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot find device class by id.", e);
         }
     }
 
@@ -77,7 +74,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
     public DeviceClass merge(DeviceClass deviceClass) {
         try {
             if (deviceClass.getId() == null) {
-                deviceClass.setId(getId());
+                deviceClass.setId(getId(COUNTERS_LOCATION));
             }
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             clearEquipmentRefs(deviceClass);
@@ -86,7 +83,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
             client.execute(storeOp);
             return restoreEquipmentRefs(deviceClass);
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot merge device class.", e);
         }
     }
 
@@ -136,7 +133,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
                 MapReduce.Response response = future.get();
                 result.addAll(response.getResultsFromAllPhases(DeviceClass.class));
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+                throw new HivePersistenceLayerException("Cannot get device class list.", e);
             }
         }
         result.forEach(this::restoreEquipmentRefs);
@@ -152,17 +149,11 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
                 return null;
             } else {
                 Location location = entries.get(0).getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location)
-                        .build();
-
-                DeviceClass result = client.execute(fetchOp).getValue(DeviceClass.class);
-                if (result != null) {
-                    restoreEquipmentRefs(result);
-                }
-                return result;
+                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                return restoreEquipmentRefs(getOrNull(client.execute(fetchOp), DeviceClass.class));
             }
         } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
+            throw new HivePersistenceLayerException("Cannot find device class by name.", e);
         }
     }
 
@@ -175,9 +166,11 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
     }
 
     private DeviceClass restoreEquipmentRefs(DeviceClass deviceClass) {
-        if (deviceClass.getEquipment() != null) {
-            for (Equipment equipment : deviceClass.getEquipment()) {
-                equipment.setDeviceClass(deviceClass);
+        if (deviceClass != null) {
+            if (deviceClass.getEquipment() != null) {
+                for (Equipment equipment : deviceClass.getEquipment()) {
+                    equipment.setDeviceClass(deviceClass);
+                }
             }
         }
         return deviceClass;
