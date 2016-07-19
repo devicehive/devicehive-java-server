@@ -328,15 +328,18 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
     }
 
     private Device refreshRefs(Device device) {
-        if (device.getNetwork() != null) {
-            Network network = networkDao.find(device.getNetwork().getId());
-            device.setNetwork(network);
+        if (device != null) {
+            if (device.getNetwork() != null) {
+                Network network = networkDao.find(device.getNetwork().getId());
+                device.setNetwork(network);
+            }
+
+            if (device.getDeviceClass() != null) {
+                DeviceClass deviceClass = deviceClassDao.find(device.getDeviceClass().getId());
+                device.setDeviceClass(deviceClass);
+            }
         }
 
-        if (device.getDeviceClass() != null) {
-            DeviceClass deviceClass = deviceClassDao.find(device.getDeviceClass().getId());
-            device.setDeviceClass(deviceClass);
-        }
         return device;
     }
 
