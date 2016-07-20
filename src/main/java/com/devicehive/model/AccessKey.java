@@ -131,7 +131,7 @@ public class AccessKey implements HiveEntity {
 
     public void setUser(User user) {
         this.user = user;
-        this.userId = user.getId();
+        this.userId = user != null ? user.getId() : -1;
     }
 
     public Date getExpirationDate() {
@@ -180,7 +180,7 @@ public class AccessKey implements HiveEntity {
 
     @RiakIndex(name = "expirationDate")
     public Long getExpirationDateSi() {
-        return expirationDate.getTime();
+        return expirationDate != null ? expirationDate.getTime() : -1;
     }
 
     @RiakIndex(name = "expirationDate")

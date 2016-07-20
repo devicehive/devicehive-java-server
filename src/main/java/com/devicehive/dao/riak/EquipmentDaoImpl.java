@@ -21,7 +21,7 @@ public class EquipmentDaoImpl implements EquipmentDao {
     @Override
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
         DeviceClass dc = deviceClassDao.find(deviceClass.getId());
-        return dc != null ? new ArrayList<>(dc.getEquipment()) : Collections.emptyList();
+        return dc != null && dc.getEquipment() != null ? new ArrayList<>(dc.getEquipment()) : Collections.emptyList();
     }
 
     @Override

@@ -188,12 +188,13 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
                 client.execute(storeValue);
             } else {
                 AccessKey existing = find(key.getId());
-                if (existing.getLabel().equals(key.getLabel())) {
+                if (existing != null && existing.getLabel().equals(key.getLabel())) {
                     DeleteValue delete = new DeleteValue.Builder(location).build();
                     client.execute(delete);
-                    StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
-                    client.execute(storeValue);
                 }
+                StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
+                client.execute(storeValue);
+
             }
             Location accessKeyLocation = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
             removeReferences(key);

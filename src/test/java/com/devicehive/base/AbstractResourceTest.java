@@ -2,6 +2,7 @@ package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
+import com.devicehive.dao.riak.InitialDataLoader;
 import com.devicehive.dao.riak.RiakCleanupHelper;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
@@ -55,7 +56,7 @@ public abstract class AbstractResourceTest {
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
     @Autowired(required = false)
-    private RiakCleanupHelper cleanupHelper;
+    private InitialDataLoader initialDataLoader;
 
     @Value("${server.port}")
     protected Integer port;
@@ -74,22 +75,15 @@ public abstract class AbstractResourceTest {
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
         target = client.target(httpBaseUri).path("rest");
+        if (initialDataLoader != null) {
+            initialDataLoader.initialData();
+        }
     }
 
     @After
     public void clearHZ() {
         hzInstance.getMap(AbstractHazelcastEntityService.COMMANDS_MAP).clear();
         hzInstance.getMap(AbstractHazelcastEntityService.NOTIFICATIONS_MAP).clear();
-        if (cleanupHelper != null) {
-            try {
-                cleanupHelper.cleanupLocations();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
     }
 
     protected WebTarget target() {

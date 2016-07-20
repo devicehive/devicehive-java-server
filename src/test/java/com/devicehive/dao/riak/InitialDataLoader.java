@@ -1,34 +1,17 @@
 package com.devicehive.dao.riak;
 
 import com.devicehive.dao.*;
+import com.devicehive.model.*;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
-/**
- -- 1. Default users
- -- admin -> test_admin : admin_pass
- INSERT INTO "user" (login, password_hash, password_salt, role, status, login_attempts, entity_version) VALUES ('test_admin', '+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=', '9KynX3ShWnFym4y8Dla039py', 0, 0, 0, 0);
+import java.util.HashSet;
 
- INSERT INTO access_key (label, key, expiration_date, user_id, entity_version) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1, 1);
- INSERT INTO access_key_permission (access_key_id, entity_version) VALUES (1, 1);
-
- INSERT INTO configuration (name, value, entity_version) VALUES ('google.identity.allowed', 'true', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('google.identity.client.id', 'google_id', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('facebook.identity.allowed', 'true', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('facebook.identity.client.id', 'facebook_id', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('github.identity.allowed', 'true', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('github.identity.client.id', 'github_id', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('session.timeout', '1200000', 0);
- INSERT INTO configuration (name, value, entity_version) VALUES ('allowNetworkAutoCreate', 'true', 0);
-
- -- 2. Default device classes
- INSERT INTO device_class (name, is_permanent, offline_timeout) VALUES ('Sample VirtualLed Device', FALSE, 600);
-
- -- 3. Default networks
- INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
-
- -- 4. Default devices
- INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
- */
+@Profile("riak")
+@Component
 public class InitialDataLoader {
     @Autowired
     DeviceClassDao deviceClassDao;
@@ -40,9 +23,91 @@ public class InitialDataLoader {
     AccessKeyDao accessKeyDao;
 
     @Autowired
+    AccessKeyPermissionDao accessKeyPermissionDao;
+
+    @Autowired
     ConfigurationDao configurationDao;
 
     @Autowired
     NetworkDao networkDao;
+
+    @Autowired
+    DeviceDao deviceDao;
+
+    public void initialData () {
+
+        User user = new User();
+        user.setId(1L);
+        user.setLogin("test_admin");
+        user.setPasswordHash("+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=");
+        user.setPasswordSalt("9KynX3ShWnFym4y8Dla039py");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
+        user.setLoginAttempts(0);
+        user.setEntityVersion(0);
+        userDao.persist(user);
+
+        AccessKey key = new AccessKey();
+        key.setId(1L);
+        key.setLabel("Access Key for dhadmin");
+        key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
+        key.setExpirationDate(null);
+        key.setUser(user);
+        key.setEntityVersion(1);
+        if (key.getPermissions() == null) key.setPermissions(new HashSet<>());
+        AccessKeyPermission permission = new AccessKeyPermission();
+        permission.setAccessKey(key);
+        permission.setEntityVersion(1L);
+        key.getPermissions().add(permission);
+        accessKeyDao.persist(key);
+
+        Configuration cfg;
+        cfg = new Configuration("google.identity.allowed", "true");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("google.identity.client.id", "google_id");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("facebook.identity.allowed", "true");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("facebook.identity.client.id", "facebook_id");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("github.identity.allowed", "true");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("github.identity.client.id", "github_id");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("session.timeout", "1200000");
+        configurationDao.persist(cfg);
+        cfg = new Configuration("allowNetworkAutoCreate", "true");
+        configurationDao.persist(cfg);
+
+        // -- 2. Default device classes
+        //INSERT INTO device_class (name, is_permanent, offline_timeout) VALUES ('Sample VirtualLed Device', FALSE, 600);
+
+        DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setId(1L);
+        deviceClass.setName("Sample VirtualLed Device");
+        deviceClass.setPermanent(false);
+        deviceClass.setOfflineTimeout(600);
+        deviceClassDao.persist(deviceClass);
+        //INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
+
+        Network network = new Network();
+        network.setId(1L);
+        network.setName("VirtualLed Sample Network");
+        network.setDescription("A DeviceHive network for VirtualLed sample");
+        networkDao.persist(network);
+
+        //INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES
+        // ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
+        Device device = new Device();
+        device.setId(1L);
+        device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
+        device.setName("Sample VirtualLed Device");
+        device.setStatus("Offline");
+        device.setNetwork(network);
+        device.setDeviceClass(deviceClass);
+        device.setEntityVersion(1);
+        deviceDao.persist(device);
+    }
+
 
 }
