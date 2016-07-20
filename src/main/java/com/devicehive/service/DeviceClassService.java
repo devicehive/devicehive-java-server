@@ -57,7 +57,7 @@ public class DeviceClassService {
             stored = deviceClassDao.findByName(deviceClassFromMessage.getName());
         }
         if (stored != null) {
-            //update
+            //update //todo: check name
             if (Boolean.FALSE.equals(stored.getPermanent())) {
                 if (deviceClass.orElse(null).getData() != null) {
                     stored.setData(deviceClassFromMessage.getData());

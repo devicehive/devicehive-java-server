@@ -2,6 +2,7 @@ package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
+import com.devicehive.dao.riak.RiakCleanupHelper;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -52,6 +54,9 @@ public abstract class AbstractResourceTest {
     @ClassRule
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
 
+    @Autowired(required = false)
+    private RiakCleanupHelper cleanupHelper;
+
     @Value("${server.port}")
     protected Integer port;
 
@@ -75,6 +80,16 @@ public abstract class AbstractResourceTest {
     public void clearHZ() {
         hzInstance.getMap(AbstractHazelcastEntityService.COMMANDS_MAP).clear();
         hzInstance.getMap(AbstractHazelcastEntityService.NOTIFICATIONS_MAP).clear();
+        if (cleanupHelper != null) {
+            try {
+                cleanupHelper.cleanupLocations();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     protected WebTarget target() {

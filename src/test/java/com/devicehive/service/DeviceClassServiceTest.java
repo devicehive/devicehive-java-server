@@ -68,9 +68,9 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         assertEquals("INITIAL_DC_NAME", existingDeviceClass.getName());
 
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
-        dcUpdate.setOfflineTimeout(Optional.ofNullable(100));
-        dcUpdate.setName(Optional.ofNullable("CHANGED_DC_NAME"));
-        deviceClassService.createOrUpdateDeviceClass(Optional.ofNullable(dcUpdate),
+        dcUpdate.setOfflineTimeout(Optional.of(100));
+        dcUpdate.setName(Optional.of("CHANGED_DC_NAME"));
+        deviceClassService.createOrUpdateDeviceClass(Optional.of(dcUpdate),
                 Collections.singleton(DeviceFixture.createEquipment()));
         existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);

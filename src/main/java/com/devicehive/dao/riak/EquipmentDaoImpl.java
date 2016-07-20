@@ -33,7 +33,7 @@ public class EquipmentDaoImpl implements EquipmentDao {
     public int deleteByDeviceClass(@NotNull DeviceClass deviceClass) {
         if (deviceClass.getEquipment() != null) {
             int result = deviceClass.getEquipment().size();
-            deviceClass.getEquipment().clear();
+            deviceClass.setEquipment(null);
             deviceClassDao.merge(deviceClass);
             return result;
         }
@@ -80,13 +80,22 @@ public class EquipmentDaoImpl implements EquipmentDao {
         DeviceClass deviceClass = equipment.getDeviceClass();
         //getting it from storage
         deviceClass = deviceClassDao.find(deviceClass.getId());
-        if (equipment.getId() == null) {
-            // todo: remove id from equipment
-            equipment.setId(System.currentTimeMillis());
-        }
         if (deviceClass.getEquipment() != null) {
+            if (equipment.getId() == null) {
+                for (Equipment eq : deviceClass.getEquipment()) {
+                    if (eq.getCode().equals(equipment.getCode())) {
+                        return eq;
+                    }
+                }
+            }
+            if (equipment.getId() == null) {
+                equipment.setId(System.currentTimeMillis());
+            }
             deviceClass.getEquipment().add(equipment);
         } else {
+            if (equipment.getId() == null) {
+                equipment.setId(System.currentTimeMillis());
+            }
             Set<Equipment> equipmentSet = new HashSet<>();
             equipmentSet.add(equipment);
             deviceClass.setEquipment(equipmentSet);

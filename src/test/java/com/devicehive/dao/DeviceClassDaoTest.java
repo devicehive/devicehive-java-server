@@ -35,9 +35,10 @@ public class DeviceClassDaoTest extends AbstractResourceTest {
         deviceClass.setEquipment(new HashSet<>());
         deviceClass.getEquipment().add(equipment);
         equipment.setDeviceClass(deviceClass);
-//        deviceClassDao.persist(deviceClass);
-//        deviceClass = deviceClassDao.find("deviceClassName");
-//        assertThat(deviceClass, notNullValue());
+        deviceClassDao.persist(deviceClass);
+        Long id = deviceClass.getId();
+        deviceClass = deviceClassDao.find(id);
+        assertThat(deviceClass, notNullValue());
     }
 
 }

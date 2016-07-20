@@ -118,6 +118,12 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
                         .withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                                 String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null && namePattern == null);
                 if (namePattern != null) {
+                    if (namePattern.startsWith("%")) {
+                        namePattern = namePattern.substring(1);
+                    }
+                    if (namePattern.endsWith("%")) {
+                        namePattern = namePattern.substring(0, namePattern.length() - 1);
+                    }
                     String functionBody = String.format(
                             "function(values, arg) {" +
                                     "  return values.filter(function(v) {" +
