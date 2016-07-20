@@ -76,6 +76,9 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
             if (deviceClass.getId() == null) {
                 deviceClass.setId(getId(COUNTERS_LOCATION));
             }
+            if (deviceClass.getName() == null) {
+                throw new HivePersistenceLayerException("DeviceClass name can not be null");
+            }
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             clearEquipmentRefs(deviceClass);
             StoreValue storeOp = new StoreValue.Builder(deviceClass)
@@ -114,7 +117,15 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
                 }
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                         .withNamespace(DEVICE_CLASS_NS)
-                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
+                        .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
+                        "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
+                        "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
+                        .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "if (v === [] || v.name === null) { return false; }" +
+                                "return true;" +
+                                "})" +
+                                "}"))
                         .withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                                 String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null && namePattern == null);
                 if (namePattern != null) {
@@ -134,9 +145,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
                 }
                 builder = addPaging(builder, take, skip);
                 BucketMapReduce bmr = builder.build();
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
+                MapReduce.Response response = client.execute(bmr);
                 result.addAll(response.getResultsFromAllPhases(DeviceClass.class));
             } catch (InterruptedException | ExecutionException e) {
                 throw new HivePersistenceLayerException("Cannot get device class list.", e);

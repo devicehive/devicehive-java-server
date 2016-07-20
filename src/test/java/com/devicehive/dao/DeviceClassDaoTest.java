@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -29,7 +30,9 @@ public class DeviceClassDaoTest extends AbstractResourceTest {
 
     @Test
     public void testCreate() throws Exception {
+        UUID uuid = UUID.randomUUID();
         DeviceClass deviceClass = new DeviceClass();
+        deviceClass.setName("device-class-" + uuid);
         Equipment equipment = new Equipment();
         equipment.setName("deviceClassName");
         deviceClass.setEquipment(new HashSet<>());

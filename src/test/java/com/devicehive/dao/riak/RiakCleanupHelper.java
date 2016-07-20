@@ -45,8 +45,10 @@ public class RiakCleanupHelper {
             Field keyField = storeValue.getClass().getDeclaredField("key"); //NoSuchFieldException
             keyField.setAccessible(true);
             BinaryValue key = (BinaryValue) keyField.get(storeValue);
-            Location location = new Location(namespace, key);
-            storedObjectLocations.add(location);
+            if (!"1".equals(key.toString())) { // do not remove initial data
+                Location location = new Location(namespace, key);
+                storedObjectLocations.add(location);
+            }
         }
         // stop stopwatch
         return pjp.proceed();
