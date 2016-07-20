@@ -219,16 +219,12 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
 
         builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                 String.format(sortFunc, sortOrderAsc ? ">" : "<"),
-                take == null);
+                true);
 
         if (take == null)
             take = Constants.DEFAULT_TAKE;
         if (skip == null)
             skip = 0;
-        int[] args = new int[2];
-        args[0] = 0;
-        args[1] = skip + take;
-        builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
 
         BucketMapReduce bmr = builder.build();
         RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
