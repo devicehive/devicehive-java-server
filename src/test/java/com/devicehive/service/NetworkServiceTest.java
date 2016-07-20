@@ -44,9 +44,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Autowired
     private NetworkDao networkDao;
 
-    @Autowired
-    private ApplicationContext context;
-
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -245,7 +242,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_correctly_apply_skip_limit_params() throws Exception {
-        Assume.assumeTrue(context.getEnvironment().acceptsProfiles("rdbms")); // slice behaves unexpectedly in riak
         for (int i = 0; i < 100; i++) {
             Network network = new Network();
             network.setName(namePrefix + randomUUID());

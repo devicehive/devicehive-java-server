@@ -17,6 +17,7 @@ import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
@@ -220,18 +221,23 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
                 String.format(sortFunc, sortOrderAsc ? ">" : "<"),
                 take == null);
 
-        if (take != null) {
-            int[] args = new int[2];
-            args[0] = skip != null ? skip : 0;
-            args[1] = args[0] + take;
-            builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
-        }
+        if (take == null)
+            take = Constants.DEFAULT_TAKE;
+        if (skip == null)
+            skip = 0;
+        int[] args = new int[2];
+        args[0] = 0;
+        args[1] = skip + take;
+        builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
 
         BucketMapReduce bmr = builder.build();
         RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
         try {
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(Network.class).stream().collect(Collectors.toList());
+            return response.getResultsFromAllPhases(Network.class).stream()
+                    .skip(skip)
+                    .limit(take)
+                    .collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new HivePersistenceLayerException("Cannot get list of networks.", e);
         }
