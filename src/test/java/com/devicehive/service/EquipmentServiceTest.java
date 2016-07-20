@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -68,6 +69,7 @@ public class EquipmentServiceTest extends AbstractResourceTest {
         equipmentService.create(equipment2);
 
         final List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
+        Collections.sort(equipments, (Equipment a, Equipment b) -> a.getId().compareTo(b.getId()));
         assertNotNull(equipments);
         assertEquals(3, equipments.size());
         assertEquals(equipment0.getId(), equipments.get(0).getId());
@@ -93,12 +95,14 @@ public class EquipmentServiceTest extends AbstractResourceTest {
         equipmentService.create(equipment2);
 
         List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
+        Collections.sort(equipments, (Equipment a, Equipment b) -> a.getId().compareTo(b.getId()));
         assertNotNull(equipments);
         assertEquals(3, equipments.size());
         assertEquals(equipment0.getId(), equipments.get(0).getId());
         assertEquals(equipment1.getId(), equipments.get(1).getId());
         assertEquals(equipment2.getId(), equipments.get(2).getId());
 
+        deviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
         equipmentService.deleteByDeviceClass(deviceClass);
         equipments = equipmentService.getByDeviceClass(deviceClass);
         assertEquals(0, equipments.size());
