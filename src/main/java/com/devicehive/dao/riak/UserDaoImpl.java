@@ -16,6 +16,7 @@ import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
@@ -24,6 +25,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
@@ -34,6 +36,7 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
@@ -51,6 +54,12 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
     @Autowired
     private NetworkDao networkDao;
 
+    @Autowired
+    private NetworkDeviceDaoImpl networkDeviceDao;
+
+    @Autowired
+    private DeviceDao deviceDao;
+
     private Location userCounters;
 
     private final Map<String, String> sortMap = new HashMap<>();
@@ -58,6 +67,7 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
     public UserDaoImpl() {
         userCounters = new Location(COUNTER_NS, "user_counter");
 
+        sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("login", "function(a,b){ return a.login %s b.login; }");
         sortMap.put("role", "function(a,b){ return a.role %s b.role; }");
         sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
@@ -158,14 +168,18 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
     public long hasAccessToDevice(User user, String deviceGuid) {
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
         for (Long networkId : networkIds) {
-            Network network = networkDao.find(networkId);
-            long guidCount = network.getDevices()
-                    .stream()
-                    .map(Device::getGuid)
-                    .filter(g -> g.equals(deviceGuid))
-                    .count();
-            if (guidCount > 0) {
-                return guidCount;
+            Set<Device> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
+                    .map(deviceDao::findByUUID)
+                    .collect(Collectors.toSet());
+            if (devices != null) {
+                long guidCount = devices
+                        .stream()
+                        .map(Device::getGuid)
+                        .filter(g -> g.equals(deviceGuid))
+                        .count();
+                if (guidCount > 0) {
+                    return guidCount;
+                }
             }
         }
         return 0L;
@@ -243,7 +257,7 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
                               Integer take, Integer skip) {
 
 
-        ArrayList<User> result = new ArrayList<>();
+        List<User> result = new ArrayList<>();
         if (login != null) {
             Optional<User> user = findByName(login);
             if (user.isPresent()) {
@@ -252,9 +266,6 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
         } else {
             try {
                 String sortFunction = sortMap.get(sortField);
-                if (sortFunction == null) {
-                    sortFunction = sortMap.get("login");
-                }
                 if (sortOrderAsc == null) {
                     sortOrderAsc = true;
                 }
@@ -302,21 +313,31 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
                     builder.withReducePhase(reduceFunction);
                 }
 
-                builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                        String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                        take == null);
-
-                if (take != null) {
-                    int[] args = new int[2];
-                    args[0] = skip != null ? skip : 0;
-                    args[1] = args[0] + take;
-                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
+                if (sortFunction == null) {
+                    sortFunction = sortMap.get("id");
+                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
+                            String.format(sortFunction, sortOrderAsc ? "<" : ">"),
+                            true);
+                } else {
+                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
+                            String.format(sortFunction, sortOrderAsc ? ">" : "<"),
+                            true);
                 }
+
                 BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
                 MapReduce.Response response = future.get();
-                result.addAll(response.getResultsFromAllPhases(User.class));
+                Collection users = response.getResultsFromAllPhases(User.class);
+                result.addAll(users);
+
+                if (skip != null) {
+                    result = result.stream().skip(skip).collect(Collectors.toList());
+                }
+
+                if (take != null) {
+                    result = result.stream().limit(take).collect(Collectors.toList());
+                }
             } catch (InterruptedException | ExecutionException e) {
                 throw new HivePersistenceLayerException("Cannot execute search user.", e);
             }

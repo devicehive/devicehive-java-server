@@ -50,7 +50,8 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_NoSuchElementException_if_user_is_null_when_assign_network() throws Exception {
         Network network = new Network();
-        network.setName("network");
+        String networkName = RandomStringUtils.randomAlphabetic(10);
+        network.setName(networkName);
         Network created = networkService.create(network);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
@@ -574,9 +575,14 @@ public class UserServiceTest extends AbstractResourceTest {
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user.setGoogleLogin("google");
-        user.setFacebookLogin("facebook");
-        user.setGithubLogin("githib");
+
+        String googleLogin = RandomStringUtils.randomAlphabetic(10);
+        user.setGoogleLogin(googleLogin);
+        String facebookLogin = RandomStringUtils.randomAlphabetic(10);
+        user.setFacebookLogin(facebookLogin);
+        String githubLogin = RandomStringUtils.randomAlphabetic(10);
+        user.setGithubLogin(githubLogin);
+
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
@@ -584,9 +590,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordHash(), notNullValue());
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
-        assertThat(user.getGoogleLogin(), equalTo("google"));
-        assertThat(user.getFacebookLogin(), equalTo("facebook"));
-        assertThat(user.getGithubLogin(), equalTo("githib"));
+        assertThat(user.getGoogleLogin(), equalTo(googleLogin));
+        assertThat(user.getFacebookLogin(), equalTo(facebookLogin));
+        assertThat(user.getGithubLogin(), equalTo(githubLogin));
         assertThat(user.getLoginAttempts(), equalTo(0));
     }
 
@@ -1160,18 +1166,19 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
+        String prefix = RandomStringUtils.randomAlphabetic(10);
         for (int i = 0; i < 10; i++) {
             User user = new User();
-            user.setLogin("some_login" + RandomStringUtils.randomAlphabetic(10));
+            user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
 
-        List<User> users = userService.getList(null, "%some_login%", null, null, null, null, 100, 0);
+        List<User> users = userService.getList(null, "%" + prefix + "%", null, null, null, null, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(10));
         for (User user : users) {
-            assertThat(user.getLogin(), startsWith("some_login"));
+            assertThat(user.getLogin(), startsWith(prefix));
         }
     }
 
@@ -1275,6 +1282,6 @@ public class UserServiceTest extends AbstractResourceTest {
 
         List<Long> expectedIds = ids.stream().skip(10).limit(20).collect(Collectors.toList());
         List<Long> returnedIds = users.stream().map(User::getId).collect(Collectors.toList());
-        assertThat(expectedIds, equalTo(returnedIds));
+        assertThat(returnedIds, equalTo(expectedIds));
     }
 }
