@@ -1,5 +1,5 @@
 --- create separate table to keep all the
-insert into #identity_temp_migration (name, api_endpoint, verification_endpoint, token_endpoint)
+create temp table identity_temp_migration as
   select name, api_endpoint, verification_endpoint, token_endpoint
   from identity_provider;
 
@@ -17,6 +17,6 @@ alter table identity_provider add constraint identity_provider_pk primary key (n
 
 -- copy values back into the provider table
 insert into identity_provider (name, api_endpoint, verification_endpoint, token_endpoint)
-  select name, api_endpoint, verification_endpoint, token_endpoint from #identity_temp_migration;
+  select name, api_endpoint, verification_endpoint, token_endpoint from identity_temp_migration;
 
 -- done
