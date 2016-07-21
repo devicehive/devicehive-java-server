@@ -154,6 +154,9 @@ public class OAuthGrant implements HiveEntity {
 
     public void setAccessKey(AccessKey accessKey) {
         this.accessKey = accessKey;
+        if (accessKey != null) {
+            accessKeyId = accessKey.getId();
+        }
     }
 
     public User getUser() {
@@ -162,6 +165,9 @@ public class OAuthGrant implements HiveEntity {
 
     public void setUser(User user) {
         this.user = user;
+        if (user != null) {
+            userId = user.getId();
+        }
     }
 
     public Type getType() {
@@ -232,10 +238,32 @@ public class OAuthGrant implements HiveEntity {
         throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
+    @Transient
+    private long userId;
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
+    }
+
+    @Transient
+    private long accessKeyId;
+
+    public long getAccessKeyId() {
+        return accessKeyId;
+    }
+
+    public void setAccessKeyId(long accessKeyId) {
+        this.accessKeyId = accessKeyId;
+    }
+
     //Riak indexes
     @RiakIndex(name = "user")
     public Long getUserSi() {
-        return user.getId();
+        return userId;
     }
 
     @RiakIndex(name = "authCode")

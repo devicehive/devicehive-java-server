@@ -80,8 +80,8 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
     @Override
     public OAuthGrant getByIdAndUser(User user, Long grantId) {
         OAuthGrant grant = getById(grantId);
-        if (grant.getUser().equals(user)) {
-            return grant;
+        if (grant != null && user != null && grant.getUserId() == user.getId()) {
+            return restoreRefs(grant, user, null);
         } else {
             return null;
         }
@@ -90,31 +90,10 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
     @Override
     public OAuthGrant getById(Long grantId) {
         OAuthGrant grant = find(grantId);
-        grant = updateRefs(grant);
+        grant = restoreRefs(grant, null, null);
         return grant;
     }
 
-    private OAuthGrant updateRefs(OAuthGrant grant) {
-        if (grant == null) {
-            return null;
-        }
-
-        if (grant.getClient() != null) {
-            OAuthClient client = oAuthClientDao.find(grant.getClient().getId());
-            grant.setClient(client);
-        }
-
-        if (grant.getAccessKey() != null) {
-            AccessKey key = accessKeyDao.find(grant.getAccessKey().getId());
-            grant.setAccessKey(key);
-        }
-
-        if (grant.getUser() != null) {
-            User user = userDao.find(grant.getUser().getId());
-            grant.setUser(user);
-        }
-        return grant;
-    }
 
     @Override
     public int deleteByUserAndId(User user, Long grantId) {
@@ -190,10 +169,12 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
             if (oAuthGrant.getId() == null) {
                 oAuthGrant.setId(getId(oauthGrantCounters));
             }
+            User user = oAuthGrant.getUser();
+            AccessKey accessKey = oAuthGrant.getAccessKey();
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));
-            StoreValue storeOp = new StoreValue.Builder(oAuthGrant).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(removeRefs(oAuthGrant)).withLocation(location).build();
             client.execute(storeOp);
-            return oAuthGrant;
+            return restoreRefs(oAuthGrant, user, accessKey);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot store OAuthGrant.", e);
@@ -347,5 +328,25 @@ public class OAuthGrantDaoImpl extends RiakGenericDao implements OAuthGrantDao {
         }
 
         return result;
+    }
+
+    private OAuthGrant removeRefs(OAuthGrant grant) {
+        grant.setAccessKey(null);
+        grant.setUser(null);
+        return grant;
+    }
+
+    private OAuthGrant restoreRefs(OAuthGrant grant, User user, AccessKey accessKey) {
+        if (user != null) {
+            grant.setUser(user);
+        } else {
+            grant.setUser(userDao.find(grant.getUserId()));
+        }
+        if (accessKey != null) {
+            grant.setAccessKey(accessKey);
+        } else {
+            grant.setAccessKey(accessKeyDao.find(grant.getAccessKeyId()));
+        }
+        return grant;
     }
 }

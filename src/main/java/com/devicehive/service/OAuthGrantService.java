@@ -129,6 +129,7 @@ public class OAuthGrantService {
         if (existing.getAuthCode() != null) {
             existing.setAuthCode(UUID.randomUUID().toString());
         }
+        oAuthGrantDao.merge(existing);
         return existing;
     }
 
