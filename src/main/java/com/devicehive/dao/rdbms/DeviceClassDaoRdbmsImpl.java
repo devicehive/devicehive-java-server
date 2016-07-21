@@ -8,7 +8,6 @@ import com.devicehive.model.DeviceClass;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -21,7 +20,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class DeviceClassDaoImpl extends GenericDaoImpl implements DeviceClassDao {
+public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceClassDao {
 
     @Override
     public DeviceClass getReference(Long name) {

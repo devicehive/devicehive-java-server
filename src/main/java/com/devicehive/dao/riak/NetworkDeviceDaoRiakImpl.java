@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
-public class NetworkDeviceDaoImpl extends RiakGenericDao {
+public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
 
     private static final Namespace NETWORK_DEVICE_NS = new Namespace("networkDevice");
 

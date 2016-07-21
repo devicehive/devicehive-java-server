@@ -1,16 +1,12 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
-import com.basho.riak.client.api.commands.datatypes.FetchCounter;
-import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.api.commands.mapreduce.filters.MatchFilter;
 import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
@@ -25,9 +21,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -36,11 +30,10 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
-public class UserDaoImpl extends RiakGenericDao implements UserDao {
+public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "user_counters");
     private static final Namespace USER_NS = new Namespace("user");
@@ -49,13 +42,13 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
     private RiakClient client;
 
     @Autowired
-    private UserNetworkDaoImpl userNetworkDao;
+    private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
     private NetworkDao networkDao;
 
     @Autowired
-    private NetworkDeviceDaoImpl networkDeviceDao;
+    private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
     @Autowired
     private DeviceDao deviceDao;
@@ -64,7 +57,7 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
 
     private final Map<String, String> sortMap = new HashMap<>();
 
-    public UserDaoImpl() {
+    public UserDaoRiakImpl() {
         userCounters = new Location(COUNTER_NS, "user_counter");
 
         sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
@@ -80,7 +73,7 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
 
     @PostConstruct
     public void init() {
-        ((NetworkDaoImpl) networkDao).setUserDao(this);
+        ((NetworkDaoRiakImpl) networkDao).setUserDao(this);
     }
 
     @Override

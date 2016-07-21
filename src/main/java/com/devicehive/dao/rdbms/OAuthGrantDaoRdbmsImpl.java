@@ -20,7 +20,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class OAuthGrantDaoImpl extends GenericDaoImpl implements OAuthGrantDao {
+public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGrantDao {
 
     @Override
     public OAuthGrant getByIdAndUser(User user, Long grantId) {

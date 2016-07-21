@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.dao.riak.UserNetworkDaoImpl;
+import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserNetwork;
@@ -31,7 +31,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
     private UserDao userDao;
 
     @Autowired(required = false)
-    private UserNetworkDaoImpl userNetworkDao;
+    private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
     private ApplicationContext context;

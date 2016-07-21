@@ -1,9 +1,6 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
-import com.basho.riak.client.api.commands.datatypes.FetchCounter;
-import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -18,7 +15,6 @@ import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.OAuthClient;
-import com.devicehive.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +26,9 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao {
+public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClientDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoRiakImpl.class);
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "oauth_client_counters");
 
@@ -45,7 +41,7 @@ public class OAuthClientDaoImpl extends RiakGenericDao implements OAuthClientDao
 
     private final Map<String, String> sortMap = new HashMap<>();
 
-    public OAuthClientDaoImpl() {
+    public OAuthClientDaoRiakImpl() {
         oauthClientCounters = new Location(COUNTER_NS, "oauth_client_counter");
 
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");

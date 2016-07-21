@@ -19,7 +19,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class OAuthClientDaoImpl extends GenericDaoImpl implements OAuthClientDao {
+public class OAuthClientDaoRdbmsImpl extends RdbmsGenericDao implements OAuthClientDao {
 
     @Override
     public int deleteById(Long id) {

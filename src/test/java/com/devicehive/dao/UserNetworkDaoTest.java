@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.dao.riak.UserNetworkDaoImpl;
+import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
 import com.devicehive.model.UserNetwork;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class UserNetworkDaoTest extends AbstractResourceTest {
 
     @Autowired(required = false)
-    UserNetworkDaoImpl userNetworkDao;
+    UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
     ApplicationContext ctx;

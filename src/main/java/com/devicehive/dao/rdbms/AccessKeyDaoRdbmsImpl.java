@@ -22,7 +22,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class AccessKeyDaoImpl extends GenericDaoImpl implements AccessKeyDao {
+public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyDao {
 
     @Override
     public AccessKey getById(Long keyId, Long userId) {

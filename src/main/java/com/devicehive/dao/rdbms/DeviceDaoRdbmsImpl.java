@@ -29,7 +29,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class DeviceDaoImpl extends GenericDaoImpl implements DeviceDao {
+public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
                                                                         "LEFT JOIN device_class dc " +
                                                                         "ON dc.id = d.device_class_id " +

@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class EquipmentDaoImpl extends GenericDaoImpl implements EquipmentDao {
+public class EquipmentDaoRdbmsImpl extends RdbmsGenericDao implements EquipmentDao {
     @Override
     public List<Equipment> getByDeviceClass(@NotNull DeviceClass deviceClass) {
         return createNamedQuery(Equipment.class, "Equipment.getByDeviceClass", Optional.of(CacheConfig.get()))

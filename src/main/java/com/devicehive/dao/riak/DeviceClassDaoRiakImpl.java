@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao {
+public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClassDao {
 
     private static final Namespace DEVICE_CLASS_NS = new Namespace("deviceClass");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
@@ -92,7 +92,7 @@ public class DeviceClassDaoImpl extends RiakGenericDao implements DeviceClassDao
 
     private final Map<String, String> sortMap = new HashMap<>();
 
-    public DeviceClassDaoImpl() {
+    public DeviceClassDaoRiakImpl() {
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");

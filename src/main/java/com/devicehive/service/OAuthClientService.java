@@ -2,10 +2,7 @@ package com.devicehive.service;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.OAuthClientDao;
-import com.devicehive.dao.rdbms.OAuthClientDaoImpl;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.OAuthClient;
@@ -19,17 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
 
 @Component
 public class OAuthClientService {

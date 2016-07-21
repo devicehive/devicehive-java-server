@@ -24,7 +24,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class NetworkDaoImpl extends GenericDaoImpl implements NetworkDao {
+public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     @Override
     public List<Network> findByName(String name) {
         return createNamedQuery(Network.class, "Network.findByName", Optional.of(CacheConfig.get()))

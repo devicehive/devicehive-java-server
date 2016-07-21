@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class IdentityProviderDaoImpl extends GenericDaoImpl implements IdentityProviderDao {
+public class IdentityProviderDaoRdbmsImpl extends RdbmsGenericDao implements IdentityProviderDao {
     @Override
     public IdentityProvider getByName(@NotNull String name) {
         return createNamedQuery(IdentityProvider.class, "IdentityProvider.getByName", Optional.of(CacheConfig.refresh()))

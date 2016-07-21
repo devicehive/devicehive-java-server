@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class GenericDaoImpl {
+public class RdbmsGenericDao {
     public static final String CACHEABLE = "org.hibernate.cacheable";
     public static final String RETRIEVE_MODE = "javax.persistence.cache.retrieveMode";
     public static final String STORE_MODE = "javax.persistence.cache.storeMode";

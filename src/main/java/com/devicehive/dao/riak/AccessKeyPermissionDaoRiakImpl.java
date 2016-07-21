@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class AccessKeyPermissionDaoImpl extends RiakGenericDao implements AccessKeyPermissionDao {
+public class AccessKeyPermissionDaoRiakImpl extends RiakGenericDao implements AccessKeyPermissionDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "access_key_permission_counters");
 

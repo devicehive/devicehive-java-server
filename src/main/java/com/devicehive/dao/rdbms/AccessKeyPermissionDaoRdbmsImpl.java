@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class AccessKeyPermissionDaoImpl extends GenericDaoImpl implements AccessKeyPermissionDao {
+public class AccessKeyPermissionDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyPermissionDao {
 
     @Override
     public int deleteByAccessKey(AccessKey key) {

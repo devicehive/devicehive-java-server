@@ -17,7 +17,7 @@ import static java.util.Optional.of;
  */
 @Profile({"rdbms"})
 @Repository
-public class DeviceEquipmentDaoImpl extends GenericDaoImpl implements DeviceEquipmentDao {
+public class DeviceEquipmentDaoRdbmsImpl extends RdbmsGenericDao implements DeviceEquipmentDao {
     @Override
     public List<DeviceEquipment> getByDevice(Device device) {
         return createNamedQuery(DeviceEquipment.class, DeviceEquipment.Queries.Names.GET_BY_DEVICE,

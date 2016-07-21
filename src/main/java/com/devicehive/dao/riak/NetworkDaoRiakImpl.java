@@ -1,9 +1,6 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
-import com.basho.riak.client.api.commands.datatypes.FetchCounter;
-import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -39,7 +36,7 @@ import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
-public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
+public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "network_counters");
     private static final Namespace NETWORK_NS = new Namespace("network");
@@ -50,10 +47,10 @@ public class NetworkDaoImpl extends RiakGenericDao implements NetworkDao {
     private RiakClient client;
 
     @Autowired
-    private UserNetworkDaoImpl userNetworkDao;
+    private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
-    private NetworkDeviceDaoImpl networkDeviceDao;
+    private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
     private DeviceDao deviceDao;
     private UserDao userDao;

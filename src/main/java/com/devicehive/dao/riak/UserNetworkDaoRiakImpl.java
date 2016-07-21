@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class UserNetworkDaoImpl extends RiakGenericDao {
+public class UserNetworkDaoRiakImpl extends RiakGenericDao {
 
     private static final Namespace USER_NETWORK_NS = new Namespace("userNetwork");
 

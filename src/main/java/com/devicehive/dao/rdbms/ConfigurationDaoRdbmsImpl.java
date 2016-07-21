@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Profile({"rdbms"})
 @Repository
-public class ConfigurationDaoImpl extends GenericDaoImpl implements ConfigurationDao {
+public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements ConfigurationDao {
 
     @Override
     public Optional<Configuration> getByName(String name) {

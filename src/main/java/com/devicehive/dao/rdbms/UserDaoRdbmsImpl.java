@@ -1,6 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.configuration.Messages;
 import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.UserDao;
@@ -16,7 +15,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
@@ -25,7 +23,7 @@ import static java.util.Optional.ofNullable;
 
 @Profile({"rdbms"})
 @Repository
-public class UserDaoImpl extends GenericDaoImpl implements UserDao {
+public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
 
     @Override
     public Optional<User> findByName(String name) {

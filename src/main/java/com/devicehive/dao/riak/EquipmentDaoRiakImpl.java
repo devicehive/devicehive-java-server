@@ -13,7 +13,7 @@ import java.util.*;
 
 @Profile({"riak"})
 @Repository
-public class EquipmentDaoImpl implements EquipmentDao {
+public class EquipmentDaoRiakImpl implements EquipmentDao {
 
     @Autowired
     private DeviceClassDao deviceClassDao;

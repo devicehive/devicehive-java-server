@@ -20,9 +20,9 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class ConfigurationDaoImpl extends RiakGenericDao implements ConfigurationDao {
+public class ConfigurationDaoRiakImpl extends RiakGenericDao implements ConfigurationDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoRiakImpl.class);
 
     private static final Namespace CONFIG_NS = new Namespace("configuration");
 

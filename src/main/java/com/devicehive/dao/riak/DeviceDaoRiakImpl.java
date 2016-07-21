@@ -35,9 +35,9 @@ import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
-public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
+public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeviceDaoImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
 
     private static final Namespace DEVICE_NS = new Namespace("device");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "device_counters"),
@@ -53,14 +53,14 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
     private DeviceClassDao deviceClassDao;
 
     @Autowired
-    private UserNetworkDaoImpl userNetworkDao;
+    private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
-    private NetworkDeviceDaoImpl networkDeviceDao;
+    private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
     private final Map<String, String> sortMap = new HashMap<>();
 
-    public DeviceDaoImpl() {
+    public DeviceDaoRiakImpl() {
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("guid", "function(a,b){ return a.guid %s b.guid; }");
         sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
@@ -71,7 +71,7 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
     @PostConstruct
     public void init() {
-        ((NetworkDaoImpl) networkDao).setDeviceDao(this);
+        ((NetworkDaoRiakImpl) networkDao).setDeviceDao(this);
     }
 
     /**

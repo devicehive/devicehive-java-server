@@ -28,7 +28,7 @@ import static java.util.Optional.of;
 
 @Profile({"riak"})
 @Repository
-public class DeviceEquipmentDaoImpl extends RiakGenericDao implements DeviceEquipmentDao {
+public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements DeviceEquipmentDao {
 
     private static final Namespace COUNTER_NS = new Namespace("counters", "device_equipment_counters");
     private static final Namespace DEVICE_EQUIPMENT_NS = new Namespace("device_equipment");

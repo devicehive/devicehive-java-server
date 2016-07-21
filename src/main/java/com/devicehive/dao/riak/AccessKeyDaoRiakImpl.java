@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
 
 @Profile({"riak"})
 @Repository
-public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
+public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao {
 
     private static final Namespace ACCESS_KEY_NS = new Namespace("accessKey");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
@@ -44,7 +44,7 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
 
     private final Map<String, String> sortMap = new HashMap<>();
 
-    public AccessKeyDaoImpl() {
+    public AccessKeyDaoRiakImpl() {
         sortMap.put("label", "function(a,b){ return a.label %s b.label; }");
         sortMap.put("expirationDate", "function(a,b){ return a.expirationDate %s b.expirationDate; }");
         sortMap.put("type", "function(a,b){ return a.type %s b.type; }");
