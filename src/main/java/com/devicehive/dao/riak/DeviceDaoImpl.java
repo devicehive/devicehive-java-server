@@ -18,11 +18,9 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
+import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Network;
-import com.devicehive.model.NetworkDevice;
+import com.devicehive.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,32 +171,39 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
     @Override
     public List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
-        List<Device> deviceList = new ArrayList<>();
-        for (String guid : guids) {
-            Device device = findByUUID(guid);
-            if (device != null) {
-                deviceList.add(device);
+        List<Device> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
+
+        if (principal != null) {
+            User user = principal.getUser();
+            if (user == null && principal.getKey() != null) {
+                user = principal.getKey().getUser();
+            }
+
+            if (user != null && !user.isAdmin()) {
+                Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+                deviceList = deviceList
+                        .stream()
+                        .filter(d -> networks.contains(d.getNetwork().getId()))
+                        .collect(Collectors.toList());
+            }
+
+            if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
+                for (AccessKeyBasedFilterForDevices extraFilter :
+                        AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
+                    if (extraFilter.getDeviceGuids() != null) {
+                        deviceList = deviceList.stream()
+                                .filter(d -> extraFilter.getDeviceGuids().contains(d.getGuid()))
+                                .collect(Collectors.toList());
+                    }
+                    if (extraFilter.getNetworkIds() != null) {
+                        deviceList = deviceList.stream()
+                                .filter(d -> extraFilter.getNetworkIds().contains(d.getNetwork().getId()))
+                                .collect(Collectors.toList());
+                    }
+                }
             }
         }
-        if (principal != null && principal.getUser() != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
-            Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
-            deviceList = deviceList
-                    .stream()
-                    .filter(d -> networks.contains(d.getNetwork().getId()))
-                    .collect(Collectors.toList());
-        } else if (principal != null && principal.getKey() != null && principal.getKey().getUser() != null) {
-            Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getKey().getUser().getId());
-            deviceList = deviceList
-                    .stream()
-                    .filter(d -> networks.contains(d.getNetwork().getId()))
-                    .collect(Collectors.toList());
-        } else if (principal != null && principal.getDevice() != null) {
-            Long networkId = principal.getDevice().getNetwork().getId();
-            deviceList = deviceList
-                    .stream()
-                    .filter(d -> networkId.equals(d.getNetwork().getId()))
-                    .collect(Collectors.toList());
-        }
+
         return deviceList;
     }
 
