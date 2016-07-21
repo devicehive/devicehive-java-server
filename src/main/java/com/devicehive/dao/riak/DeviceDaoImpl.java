@@ -173,47 +173,24 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
     @Override
     public List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
         List<Device> deviceList = new ArrayList<>();
-
-        if (principal == null || principal.getRole().equals(HiveRoles.ADMIN)) {
-            for (String guid : guids) {
-                Device device = findByUUID(guid);
-                if (device != null) {
-                    deviceList.add(device);
-                }
+        for (String guid : guids) {
+            Device device = findByUUID(guid);
+            if (device != null) {
+                deviceList.add(device);
             }
-        } else {
-            try {
-                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                        .withNamespace(DEVICE_NS)
-                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
-
-                String functionString =
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var guid = v.guid;" +
-                                "return arg.indexOf(guid) > -1;" +
-                                "})" +
-                                "}";
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction, guids.toArray());
-
-                BucketMapReduce bmr = builder.build();
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                deviceList.addAll(response.getResultsFromAllPhases(Device.class));
-
-                if (principal.getUser() != null) {
-                    Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
-                    deviceList = deviceList
-                            .stream()
-                            .filter(d -> networks.contains(d.getNetwork().getId()))
-                            .collect(Collectors.toList());
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception accessing Riak Storage.", e);
-                throw new HivePersistenceLayerException("Cannot get list of devices for list of UUIDs and principal.", e);
-            }
+        }
+        if (principal != null && principal.getUser() != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+            Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
+            deviceList = deviceList
+                    .stream()
+                    .filter(d -> networks.contains(d.getNetwork().getId()))
+                    .collect(Collectors.toList());
+        } else if (principal != null && principal.getKey() != null && principal.getKey().getUser() != null) {
+            Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getKey().getUser().getId());
+            deviceList = deviceList
+                    .stream()
+                    .filter(d -> networks.contains(d.getNetwork().getId()))
+                    .collect(Collectors.toList());
         }
         return deviceList;
     }
