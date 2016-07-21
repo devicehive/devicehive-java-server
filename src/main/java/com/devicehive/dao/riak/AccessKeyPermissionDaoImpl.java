@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -43,6 +44,9 @@ public class AccessKeyPermissionDaoImpl extends RiakGenericDao implements Access
 
     @Override
     public void persist(AccessKey key, AccessKeyPermission accessKeyPermission) {
+        if (accessKeyPermission.getAccessKey() == null) {
+            accessKeyPermission.setAccessKey(key);
+        }
         merge(accessKeyPermission);
     }
 
@@ -56,8 +60,17 @@ public class AccessKeyPermissionDaoImpl extends RiakGenericDao implements Access
             accessKeyPermission.setId(getId(accessKeyPermissionCounters));
         }
 
-        if (accessKey.getPermissions() != null) {
-            accessKey.getPermissions().add(accessKeyPermission);
+        if (accessKey!= null && accessKey.getPermissions() != null) {
+            Set<AccessKeyPermission> permissions = accessKey.getPermissions();
+            permissions.add(accessKeyPermission);
+
+            Iterator<AccessKeyPermission> iterator = permissions.iterator();
+            while (iterator.hasNext()) {
+                AccessKeyPermission element = iterator.next();
+                if (element.getId() == null) {
+                    iterator.remove();
+                }
+            }
         } else {
             Set<AccessKeyPermission> accessKeyPermissions = new HashSet<>();
             accessKeyPermissions.add(accessKeyPermission);

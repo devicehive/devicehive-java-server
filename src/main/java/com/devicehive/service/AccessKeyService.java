@@ -142,7 +142,9 @@ public class AccessKeyService {
         if (accessKey.getExpirationDate() != null) {
             final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
             if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod / 2) {
-                em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
+                if (em.contains(accessKey)) {
+                    em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
+                }
                 accessKey.setExpirationDate(new Date(timestampService.getTimestamp().getTime() + expirationPeriod));
                 return accessKeyDao.merge(accessKey);
             }

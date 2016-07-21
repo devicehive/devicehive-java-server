@@ -13,6 +13,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -291,7 +292,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
         assertNotNull(devices);
-        assertEquals(devices.size(), 1);
+        assertEquals(1, devices.size());
         assertEquals(devices.get(0).getGuid(), device.getGuid());
     }
 
@@ -343,37 +344,41 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         final Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
 
-        final HivePrincipal principal = new HivePrincipal(existingDevice);
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setDevice(existingDevice);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
         assertNotNull(devices);
-        assertEquals(devices.size(), 1);
+        assertEquals(1, devices.size());
         assertEquals(devices.get(0).getGuid(), device.getGuid());
     }
 
     @Test
     public void should_save_and_find_by_device_name() {
         final Device device = DeviceFixture.createDevice();
-        device.setName("DEVICE_NAME");
+        String deviceName1 = RandomStringUtils.randomAlphabetic(10);
+        device.setName(deviceName1);
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
 
         final Device device1 = DeviceFixture.createDevice();
-        device1.setName("DEVICE_NAME1");
+        String deviceName2 = RandomStringUtils.randomAlphabetic(10);
+        device1.setName(deviceName2);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
 
         final Device device2 = DeviceFixture.createDevice();
-        device2.setName("DEVICE_NAME2");
+        String deviceName3 = RandomStringUtils.randomAlphabetic(10);
+        device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList("DEVICE_NAME", null, null, null, null, null, null, null, false, null, null, null);
+        final List<Device> devices = deviceService.getList(deviceName1, null, null, null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(devices.size(), 1);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -383,25 +388,28 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Test
     public void should_save_and_find_by_device_status() {
         final Device device = DeviceFixture.createDevice();
-        device.setStatus("Online");
+        String status = RandomStringUtils.randomAlphabetic(10);
+        device.setStatus(status);
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
 
+        String status1 = RandomStringUtils.randomAlphabetic(10);
         final Device device1 = DeviceFixture.createDevice();
-        device1.setStatus("TEST");
+        device1.setStatus(status1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
 
         final Device device2 = DeviceFixture.createDevice();
-        device2.setStatus("TEST");
+        device2.setStatus(status1);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
         deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
         deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
 
-        final List<Device> devices = deviceService.getList(null, null, "TEST", null, null, null, null, null, false, null, null, null);
+        final List<Device> devices = deviceService.getList(null, null, status1, null, null, null, null, null, false, null, null, null);
+        Collections.sort(devices, (Device a, Device b) -> a.getId().compareTo(b.getId()));
         assertNotNull(devices);
-        assertEquals(devices.size(), 2);
+        assertEquals(2, devices.size());
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
         assertEquals(device2.getGuid(), devices.get(1).getGuid());
     }

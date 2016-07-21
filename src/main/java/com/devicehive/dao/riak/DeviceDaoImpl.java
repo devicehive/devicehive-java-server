@@ -14,6 +14,7 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
@@ -32,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
@@ -172,15 +174,19 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
     public List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
         List<Device> deviceList = new ArrayList<>();
 
-        if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+        if (principal == null || principal.getRole().equals(HiveRoles.ADMIN)) {
             for (String guid : guids) {
-                deviceList.add(findByUUID(guid));
+                Device device = findByUUID(guid);
+                if (device != null) {
+                    deviceList.add(device);
+                }
             }
-        } else if (principal != null) {
+        } else {
             try {
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                         .withNamespace(DEVICE_NS)
                         .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+
                 String functionString =
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
@@ -189,24 +195,21 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                                 "})" +
                                 "}";
                 Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction, guids);
-
-                Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
-                functionString =
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var networkId = v.network.id;" +
-                                "return arg.indexOf(networkId) > -1;" +
-                                "})" +
-                                "}";
-                reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction, networks);
+                builder.withReducePhase(reduceFunction, guids.toArray());
 
                 BucketMapReduce bmr = builder.build();
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
                 MapReduce.Response response = future.get();
                 deviceList.addAll(response.getResultsFromAllPhases(Device.class));
+
+                if (principal.getUser() != null) {
+                    Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
+                    deviceList = deviceList
+                            .stream()
+                            .filter(d -> networks.contains(d.getNetwork().getId()))
+                            .collect(Collectors.toList());
+                }
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("Exception accessing Riak Storage.", e);
                 throw new HivePersistenceLayerException("Cannot get list of devices for list of UUIDs and principal.", e);
@@ -225,7 +228,7 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                                 Long deviceClassId, String deviceClassName, String sortField,
                                 @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
-        ArrayList<Device> result = new ArrayList<>();
+        List<Device> result = new ArrayList<>();
 
         try {
             String sortFunction = sortMap.get(sortField);
@@ -237,14 +240,22 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
             }
             BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                     .withNamespace(DEVICE_NS)
-                    .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+                    .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
+                            "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
+                            "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
+                    .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
+                            "return values.filter(function(v) {" +
+                            "if (v === [] || v.name === null) { return false; }" +
+                            "return true;" +
+                            "})" +
+                            "}"));
 
             if (name != null) {
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
                                 "var name = v.name;" +
-                                "return name == %s;" +
+                                "return name == '%s';" +
                                 "})" +
                                 "}", name);
                 Function reduceFunction = Function.newAnonymousJsFunction(functionString);
@@ -263,10 +274,23 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                 builder.withReducePhase(reduceFunction);
             }
 
+            if (status != null) {
+                String functionString = String.format(
+                        "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "var status = v.status;" +
+                                "return status == '%s';" +
+                                "})" +
+                                "}", status);
+                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                builder.withReducePhase(reduceFunction);
+            }
+
             if (networkId != null) {
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.network == null) return false;" +
                                 "var networkId = v.network.id;" +
                                 "return networkId == %s;" +
                                 "})" +
@@ -279,6 +303,7 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.network == null) return false;" +
                                 "var networkName = v.network.name;" +
                                 "return networkName == '%s';" +
                                 "})" +
@@ -317,6 +342,7 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                 String functionString =
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.network == null) return false;" +
                                 "var networkId = v.network.id;" +
                                 "return arg.indexOf(networkId) > -1;" +
                                 "})" +
@@ -327,15 +353,25 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
 
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                     String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                    take == null);
+                    true);
 
-            addPaging(builder, take, skip);
+            if (take == null)
+                take = Constants.DEFAULT_TAKE;
+            if (skip == null)
+                skip = 0;
 
             BucketMapReduce bmr = builder.build();
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            result.addAll(response.getResultsFromAllPhases(Device.class));
+
+            Collection devices = response.getResultsFromAllPhases(Device.class);
+            result.addAll(devices);
+
+            result = result.stream()
+                    .skip(skip)
+                    .limit(take)
+                    .collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot get list of devices.", e);
