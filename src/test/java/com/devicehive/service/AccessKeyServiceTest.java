@@ -5,6 +5,8 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.AccessKeyDao;
+import com.devicehive.dao.AccessKeyPermissionDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
@@ -101,6 +103,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setType(AccessKeyType.SESSION);
+
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
@@ -108,6 +111,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         permission.setNetworkIdsCollection(Arrays.asList(1L, 2L));
         permission.setSubnetsArray("localhost");
         accessKey.setPermissions(singleton(permission));
+
         AccessKey created = accessKeyService.create(user, accessKey);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
@@ -115,6 +119,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(created.getLabel(), equalTo(accessKey.getLabel()));
         assertThat(created.getType(), equalTo(accessKey.getType()));
         assertThat(created.getPermissions(), hasSize(1));
+
         AccessKeyPermission createdPermission = created.getPermissions().stream().findFirst().get();
         assertThat(createdPermission.getActionsAsSet(), hasSize(2));
         assertThat(createdPermission.getActionsAsSet(), hasItems(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue()));

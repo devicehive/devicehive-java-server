@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutionException;
 public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
 
     private static final Namespace ACCESS_KEY_NS = new Namespace("accessKey");
-    private static final Namespace USER_AND_LABEL_ACCESS_KEY_NS = new Namespace("userAndLabelAccessKey");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
             "accessKeyCounter");
 
@@ -60,11 +59,11 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
             FetchValue fetchOp = new FetchValue.Builder(location).build();
             FetchValue.Response execute = client.execute(fetchOp);
             AccessKey result = getOrNull(execute, AccessKey.class);
-            if (result != null) {
+            if (result != null && userId != null) {
                 User user = userDao.find(result.getUserId());
                 return restoreReferences(result, user);
             } else {
-                return null;
+                return result;
             }
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot fetch access key by id and user id.", e);
@@ -78,7 +77,7 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
             BinIndexQuery.Response response = client.execute(biq);
             List<BinIndexQuery.Response.Entry> entries = response.getEntries();
             if (entries.isEmpty()) {
-                return null;
+                return Optional.empty();
             } else {
                 Location location = entries.get(0).getRiakObjectLocation();
                 FetchValue fetchOp = new FetchValue.Builder(location).build();
@@ -98,14 +97,21 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
 
     @Override
     public Optional<AccessKey> getByUserAndLabel(User user, String label) {
-        Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(user.getId()) + "n" + label);
-        FetchValue fetchOp = new FetchValue.Builder(location).build();
+        IntIndexQuery biq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", user.getId()).build();
         try {
-            FetchValue.Response execute = client.execute(fetchOp);
-            Long accessKeyId = getOrNull(execute, Long.class);
-            if (accessKeyId != null) {
-                AccessKey value = find(accessKeyId);
-                return Optional.ofNullable(value);
+            IntIndexQuery.Response response = client.execute(biq);
+            List<IntIndexQuery.Response.Entry> entries = response.getEntries();
+            if (entries.isEmpty()) {
+                return Optional.empty();
+            }
+            for (IntIndexQuery.Response.Entry e : entries) {
+                Location location = e.getRiakObjectLocation();
+                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue.Response execute = client.execute(fetchOp);
+                AccessKey accessKey = getOrNull(execute, AccessKey.class);
+                if (accessKey != null && accessKey.getLabel() != null && accessKey.getLabel().equals(label)) {
+                    return Optional.of(accessKey);
+                }
             }
             return Optional.empty();
         } catch (ExecutionException | InterruptedException e) {
@@ -116,20 +122,13 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
     @Override
     public int deleteByIdAndUser(Long keyId, Long userId) {
         AccessKey key = find(keyId);
-        if (userId == null) {
-            userId = key.getUserId();
-        } else if (key != null && userId != key.getUserId()) {
+        if (key != null && userId != key.getUserId()) {
             return 0;
         }
         if (key != null) {
-            String label = key.getLabel();
             try {
-                Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + label);
+                Location location = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
                 DeleteValue delete = new DeleteValue.Builder(location).build();
-                client.execute(delete);
-
-                location = new Location(ACCESS_KEY_NS, String.valueOf(key));
-                delete = new DeleteValue.Builder(location).build();
                 client.execute(delete);
                 return 1;
             } catch (InterruptedException | ExecutionException e) {
@@ -179,23 +178,14 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
     @Override
     public AccessKey merge(AccessKey key) {
         try {
-            long userId = key.getUserId();
             User user = key.getUser();
-            Location location = new Location(USER_AND_LABEL_ACCESS_KEY_NS, String.valueOf(userId) + "n" + key.getLabel());
             if (key.getId() == null) {
                 key.setId(getId(COUNTERS_LOCATION));
+                Location location = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
                 StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
                 client.execute(storeValue);
-            } else {
-                AccessKey existing = find(key.getId());
-                if (existing != null && existing.getLabel().equals(key.getLabel())) {
-                    DeleteValue delete = new DeleteValue.Builder(location).build();
-                    client.execute(delete);
-                }
-                StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
-                client.execute(storeValue);
-
             }
+
             Location accessKeyLocation = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
             removeReferences(key);
             StoreValue storeOp = new StoreValue.Builder(key).withLocation(accessKeyLocation).build();
@@ -283,7 +273,7 @@ public class AccessKeyDaoImpl extends RiakGenericDao implements AccessKeyDao {
     }
 
     private void removeReferences(AccessKey key) {
-        key.setUser(null);
+
         if (key.getPermissions() != null) {
             for (AccessKeyPermission permission : key.getPermissions()) {
                 permission.setAccessKey(null);

@@ -158,14 +158,14 @@ public class AccessKey implements HiveEntity {
         this.userId = userId;
     }
 
-    @RiakIndex(name = "userId")
-    public long getUserIdSi() {
-        return userId;
+    @RiakIndex(name = "label")
+    public String getLabelSi() {
+        return label;
     }
 
     @RiakIndex(name = "userId")
-    public void setUserIdSi(long userId) {
-        this.userId = userId;
+    public long getUserIdSi() {
+        return userId;
     }
 
     @RiakIndex(name = "key")
@@ -173,18 +173,8 @@ public class AccessKey implements HiveEntity {
         return key;
     }
 
-    @RiakIndex(name = "key")
-    public void setKeySi(String key) {
-        this.key = key;
-    }
-
     @RiakIndex(name = "expirationDate")
     public Long getExpirationDateSi() {
         return expirationDate != null ? expirationDate.getTime() : -1;
-    }
-
-    @RiakIndex(name = "expirationDate")
-    public void setExpirationDateSi(Long expirationDate) {
-        this.expirationDate = new Date(expirationDate);
     }
 }
