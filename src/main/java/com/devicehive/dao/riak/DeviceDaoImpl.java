@@ -148,6 +148,7 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
         if (network != null && network.getId() != null) {
             logger.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
             networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
+            logger.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
         }
     }
 
