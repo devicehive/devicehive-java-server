@@ -271,7 +271,15 @@ public class UserDaoImpl extends RiakGenericDao implements UserDao {
                 }
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                         .withNamespace(USER_NS)
-                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+                        .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
+                                "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
+                                "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
+                        .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "if (v === [] || v.id === null) { return false; }" +
+                                "return true;" +
+                                "})" +
+                                "}"));
 
                 if (loginPattern != null) {
                     loginPattern = loginPattern.replace("%", "");
