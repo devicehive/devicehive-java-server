@@ -344,8 +344,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         final Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
 
-        HivePrincipal principal = new HivePrincipal(user);
-        principal.setDevice(existingDevice);
+        HivePrincipal principal = new HivePrincipal(existingDevice);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 

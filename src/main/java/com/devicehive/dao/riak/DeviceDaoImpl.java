@@ -192,6 +192,12 @@ public class DeviceDaoImpl extends RiakGenericDao implements DeviceDao {
                     .stream()
                     .filter(d -> networks.contains(d.getNetwork().getId()))
                     .collect(Collectors.toList());
+        } else if (principal != null && principal.getDevice() != null) {
+            Long networkId = principal.getDevice().getNetwork().getId();
+            deviceList = deviceList
+                    .stream()
+                    .filter(d -> networkId.equals(d.getNetwork().getId()))
+                    .collect(Collectors.toList());
         }
         return deviceList;
     }
