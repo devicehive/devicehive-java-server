@@ -29,12 +29,17 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     @Override
     public Optional<Configuration> getByName(String id) {
         //TODO configurable quorum?
         try {
             Location objectKey = new Location(CONFIG_NS, id);
-            FetchValue fetch = new FetchValue.Builder(objectKey).build();
+            FetchValue fetch = new FetchValue.Builder(objectKey)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response response = client.execute(fetch);
             Configuration configuration = getOrNull(response, Configuration.class);
             return Optional.ofNullable(configuration);
@@ -61,7 +66,10 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
     public void persist(Configuration configuration) {
         try {
             Location objectKey = new Location(CONFIG_NS, configuration.getName());
-            StoreValue storeOp = new StoreValue.Builder(configuration).withLocation(objectKey).build();
+            StoreValue storeOp = new StoreValue.Builder(configuration)
+                    .withLocation(objectKey)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);

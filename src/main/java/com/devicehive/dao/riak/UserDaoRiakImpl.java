@@ -53,6 +53,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Autowired
     private DeviceDao deviceDao;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     private Location userCounters;
 
     private final Map<String, String> sortMap = new HashMap<>();
@@ -109,7 +112,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             return getOrNull(client.execute(fetchOp), User.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find by identity.", e);
@@ -211,7 +216,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     public User find(Long id) {
         try {
             Location location = new Location(USER_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             return getOrNull(client.execute(fetchOp), User.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find by id", e);
@@ -230,7 +237,10 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
                 user.setId(getId(userCounters));
             }
             Location location = new Location(USER_NS, String.valueOf(user.getId()));
-            StoreValue storeOp = new StoreValue.Builder(user).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(user)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return user;
         } catch (ExecutionException | InterruptedException e) {

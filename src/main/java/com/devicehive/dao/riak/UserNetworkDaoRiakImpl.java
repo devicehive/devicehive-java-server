@@ -30,12 +30,18 @@ public class UserNetworkDaoRiakImpl extends RiakGenericDao {
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     public void persist(UserNetwork userNetwork) {
         try {
             String id = userNetwork.getUserId() + "n" + userNetwork.getNetworkId();
             userNetwork.setId(id);
             Location location = new Location(USER_NETWORK_NS, id);
-            StoreValue storeOp = new StoreValue.Builder(userNetwork).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(userNetwork)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot persist user network.", e);
@@ -45,7 +51,10 @@ public class UserNetworkDaoRiakImpl extends RiakGenericDao {
     public UserNetwork merge(UserNetwork existing) {
         try {
             Location location = new Location(USER_NETWORK_NS, existing.getId());
-            StoreValue storeOp = new StoreValue.Builder(existing).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(existing)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return existing;
         } catch (ExecutionException | InterruptedException e) {

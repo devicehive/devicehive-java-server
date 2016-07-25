@@ -55,6 +55,9 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     private Location oauthGrantCounters;
 
     private final Map<String, String> sortMap = new HashMap<>();
@@ -97,7 +100,9 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
         try {
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(grantId));
 
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             OAuthGrant grant = getOrNull(client.execute(fetchOp), OAuthGrant.class);
 
             if (grant != null && grant.getUser().equals(user)) {
@@ -125,7 +130,9 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             }
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                        .build();
                 FetchValue.Response execute = client.execute(fetchOp);
                 OAuthGrant oAuthGrant = getOrNull(execute, OAuthGrant.class);
                 if (oAuthGrant != null && oAuthGrant.getClient() != null) {
@@ -146,7 +153,9 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     public OAuthGrant find(Long id) {
         try {
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response execute = client.execute(fetchOp);
             return getOrNull(execute, OAuthGrant.class);
         } catch (ExecutionException | InterruptedException e) {
@@ -169,7 +178,10 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             User user = oAuthGrant.getUser();
             AccessKey accessKey = oAuthGrant.getAccessKey();
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));
-            StoreValue storeOp = new StoreValue.Builder(removeRefs(oAuthGrant)).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(removeRefs(oAuthGrant))
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return restoreRefs(oAuthGrant, user, accessKey);
         } catch (ExecutionException | InterruptedException e) {

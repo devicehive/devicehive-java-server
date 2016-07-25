@@ -29,12 +29,17 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     @Override
     public IdentityProvider getByName(@NotNull String name) {
         //TODO configurable quorum?
         try {
             Location objectKey = new Location(CONFIG_NS, name);
-            FetchValue fetch = new FetchValue.Builder(objectKey).build();
+            FetchValue fetch = new FetchValue.Builder(objectKey)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response response = client.execute(fetch);
             return getOrNull(response, IdentityProvider.class);
         } catch (ExecutionException | InterruptedException e) {
@@ -60,7 +65,10 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
     public IdentityProvider merge(IdentityProvider existing) {
         try {
             Location objectKey = new Location(CONFIG_NS, existing.getName());
-            StoreValue storeOp = new StoreValue.Builder(existing).withLocation(objectKey).build();
+            StoreValue storeOp = new StoreValue.Builder(existing)
+                    .withLocation(objectKey)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);

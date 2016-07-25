@@ -36,6 +36,9 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     @Override
     public List<DeviceEquipment> getByDevice(Device device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
@@ -59,6 +62,7 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
                 FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
                 DeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), DeviceEquipment.class);
                 if (deviceEquipment.getCode().equals(code)) {
@@ -85,7 +89,10 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
                 deviceEquipment.setId(getId(deviceEquipmentCounters));
             }
             Location location = new Location(DEVICE_EQUIPMENT_NS, String.valueOf(deviceEquipment.getId()));
-            StoreValue storeOp = new StoreValue.Builder(deviceEquipment).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(deviceEquipment)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return deviceEquipment;
         } catch (ExecutionException | InterruptedException e) {

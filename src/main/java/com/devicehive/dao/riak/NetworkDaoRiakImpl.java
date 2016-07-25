@@ -52,6 +52,9 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     @Autowired
     private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     private DeviceDao deviceDao;
     private UserDao userDao;
 
@@ -123,7 +126,9 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     @Override
     public Network find(@NotNull Long networkId) {
         Location location = new Location(NETWORK_NS, String.valueOf(networkId));
-        FetchValue fetchOp = new FetchValue.Builder(location).build();
+        FetchValue fetchOp = new FetchValue.Builder(location)
+                .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                .build();
         try {
             return getOrNull(client.execute(fetchOp), Network.class);
         } catch (ExecutionException | InterruptedException e) {
@@ -136,7 +141,10 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         assert network.getId() != null;
 
         Location location = new Location(NETWORK_NS, String.valueOf(network.getId()));
-        StoreValue storeOp = new StoreValue.Builder(network).withLocation(location).build();
+        StoreValue storeOp = new StoreValue.Builder(network)
+                .withLocation(location)
+                .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                .build();
         try {
             client.execute(storeOp);
             return network;

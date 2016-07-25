@@ -58,6 +58,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     @Autowired
     private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     private final Map<String, String> sortMap = new HashMap<>();
 
     public DeviceDaoRiakImpl() {
@@ -119,7 +122,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             Device device = getOrNull(client.execute(fetchOp), Device.class);
             return refreshRefs(device);
         } catch (ExecutionException | InterruptedException e) {
@@ -135,7 +140,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 device.setId(getId());
             }
             Location location = new Location(DEVICE_NS, String.valueOf(device.getId()));
-            StoreValue storeOp = new StoreValue.Builder(device).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(device)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);

@@ -1,9 +1,11 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
+import com.basho.riak.client.api.cap.Quorum;
 import com.basho.riak.client.api.cap.UnresolvedConflictException;
 import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
 import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
+import com.basho.riak.client.api.commands.datatypes.UpdateDatatype;
 import com.basho.riak.client.api.commands.indexes.*;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -31,12 +33,17 @@ public class RiakGenericDao {
     @Autowired
     RiakClient client;
 
+    @Autowired
+    RiakQuorum quorum;
+
     //TODO increase counter by huger number
     //TODO increment counter to be configurable and have default value
     //TODO here we should use QUORUM or ALL when incrementing the value, that will prevent from problems.
     protected Long getId(Location location) {
         CounterUpdate cu = new CounterUpdate(1);
-        UpdateCounter update = new UpdateCounter.Builder(location, cu).withReturnDatatype(true).build();
+        UpdateCounter update = new UpdateCounter.Builder(location, cu)
+                .withOption(UpdateDatatype.Option.PW, Quorum.allQuorum())
+                .withReturnDatatype(true).build();
         UpdateCounter.Response response;
         try {
             response = client.execute(update);
@@ -121,7 +128,10 @@ public class RiakGenericDao {
 
     private <T> List<T> fetchMultipleByLocations(List<Location> locations, Class<T> clazz) throws ExecutionException, InterruptedException {
         List<T> result = new ArrayList<>();
-        MultiFetch multiFetch = new MultiFetch.Builder().addLocations(locations).build();
+        MultiFetch multiFetch = new MultiFetch.Builder()
+                .addLocations(locations)
+                .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                .build();
         MultiFetch.Response mfr = client.execute(multiFetch);
         for (RiakFuture<FetchValue.Response, Location> f : mfr.getResponses()) {
             FetchValue.Response resp = f.get();

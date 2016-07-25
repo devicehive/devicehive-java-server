@@ -37,6 +37,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     private Location oauthClientCounters;
 
     private final Map<String, String> sortMap = new HashMap<>();
@@ -87,7 +90,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
             }
             for (BinIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                        .build();
                 OAuthClient oAuthClient = getOrNull(client.execute(fetchOp), OAuthClient.class);
                 if (oAuthClient.getOauthSecret().equals(secret)) {
                     return oAuthClient;
@@ -109,7 +114,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                 return null;
             }
             Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response execute = client.execute(fetchOp);
             return getOrNull(execute, OAuthClient.class);
         } catch (ExecutionException | InterruptedException e) {
@@ -122,7 +129,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     public OAuthClient find(Long id) {
         try {
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response execute = client.execute(fetchOp);
             return getOrNull(execute, OAuthClient.class);
         } catch (ExecutionException | InterruptedException e) {
@@ -142,7 +151,10 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                 oAuthClient.setId(getId(oauthClientCounters));
             }
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(oAuthClient.getId()));
-            StoreValue storeOp = new StoreValue.Builder(oAuthClient).withLocation(location).build();
+            StoreValue storeOp = new StoreValue.Builder(oAuthClient)
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return oAuthClient;
         } catch (ExecutionException | InterruptedException e) {

@@ -28,6 +28,9 @@ public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     public void saveOrUpdate(NetworkDevice networkDevice) {
         try {
             Set<Long> networks = findNetworksForDevice(networkDevice.getDeviceUuid());
@@ -35,7 +38,10 @@ public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
                 String id = networkDevice.getNetworkId() + "n" + networkDevice.getDeviceUuid();
                 networkDevice.setId(id);
                 Location location = new Location(NETWORK_DEVICE_NS, id);
-                StoreValue store = new StoreValue.Builder(networkDevice).withLocation(location).build();
+                StoreValue store = new StoreValue.Builder(networkDevice)
+                        .withLocation(location)
+                        .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                        .build();
                 client.execute(store);
             }
         } catch (ExecutionException | InterruptedException e) {

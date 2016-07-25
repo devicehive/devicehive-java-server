@@ -37,6 +37,9 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     @Autowired
     private RiakClient client;
 
+    @Autowired
+    private RiakQuorum quorum;
+
     @Override
     public DeviceClass getReference(Long id) {
         return find(id);
@@ -58,6 +61,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
         try {
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             return restoreEquipmentRefs(getOrNull(client.execute(fetchOp), DeviceClass.class));
         } catch (ExecutionException | InterruptedException e) {
@@ -82,7 +86,9 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             clearEquipmentRefs(deviceClass);
             StoreValue storeOp = new StoreValue.Builder(deviceClass)
-                    .withLocation(location).build();
+                    .withLocation(location)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return restoreEquipmentRefs(deviceClass);
         } catch (ExecutionException | InterruptedException e) {
@@ -164,7 +170,9 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                 return null;
             } else {
                 Location location = entries.get(0).getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                        .build();
                 return restoreEquipmentRefs(getOrNull(client.execute(fetchOp), DeviceClass.class));
             }
         } catch (ExecutionException | InterruptedException e) {

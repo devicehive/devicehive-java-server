@@ -42,6 +42,9 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     @Autowired
     UserDao userDao;
 
+    @Autowired
+    RiakQuorum quorum;
+
     private final Map<String, String> sortMap = new HashMap<>();
 
     public AccessKeyDaoRiakImpl() {
@@ -56,7 +59,9 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     public AccessKey getById(Long keyId, Long userId) {
         try {
             Location location = new Location(ACCESS_KEY_NS, String.valueOf(keyId));
-            FetchValue fetchOp = new FetchValue.Builder(location).build();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
             FetchValue.Response execute = client.execute(fetchOp);
             AccessKey result = getOrNull(execute, AccessKey.class);
             if (result != null && userId != null) {
@@ -80,7 +85,9 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
                 return Optional.empty();
             } else {
                 Location location = entries.get(0).getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                        .build();
                 FetchValue.Response execute = client.execute(fetchOp);
                 AccessKey result = getOrNull(execute, AccessKey.class);
                 if (result != null) {
@@ -106,7 +113,9 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             }
             for (IntIndexQuery.Response.Entry e : entries) {
                 Location location = e.getRiakObjectLocation();
-                FetchValue fetchOp = new FetchValue.Builder(location).build();
+                FetchValue fetchOp = new FetchValue.Builder(location)
+                        .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                        .build();
                 FetchValue.Response execute = client.execute(fetchOp);
                 AccessKey accessKey = getOrNull(execute, AccessKey.class);
                 if (accessKey != null && accessKey.getLabel() != null && accessKey.getLabel().equals(label)) {
@@ -182,13 +191,19 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             if (key.getId() == null) {
                 key.setId(getId(COUNTERS_LOCATION));
                 Location location = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
-                StoreValue storeValue = new StoreValue.Builder(key.getId()).withLocation(location).build();
+                StoreValue storeValue = new StoreValue.Builder(key.getId())
+                        .withLocation(location)
+                        .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                        .build();
                 client.execute(storeValue);
             }
 
             Location accessKeyLocation = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
             removeReferences(key);
-            StoreValue storeOp = new StoreValue.Builder(key).withLocation(accessKeyLocation).build();
+            StoreValue storeOp = new StoreValue.Builder(key)
+                    .withLocation(accessKeyLocation)
+                    .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                    .build();
             client.execute(storeOp);
             return restoreReferences(key, user);
         } catch (ExecutionException | InterruptedException e) {
