@@ -12,7 +12,9 @@
     <artifactId>devicehive-riak-dao</artifactId>
     <packaging>jar</packaging>
     <name>DeviceHive Dao Riak Implementation</name>
-
+    <properties>
+        <skipTests>true</skipTests>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>

@@ -21,47 +21,20 @@
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-riak-dao</artifactId>
+            <artifactId>devicehive-rdbms-dao</artifactId>
             <version>2.1.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${springboot.version}</version>
-                    <configuration>
-                        <classifier>boot</classifier>
-                        <layout>ZIP</layout>
-                        <addResources>false</addResources>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>repackage</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework</groupId>
-                            <artifactId>springloaded</artifactId>
-                            <version>${springloaded.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
-    <!--profiles>
+    <profiles>
         <profile>
-            <id>rdbms-build</id>
+            <id>booted-rdbms</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+            <properties>
+                <finalName>devicehive-rdbms-${project.version}-boot</finalName>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>com.devicehive</groupId>
@@ -69,6 +42,75 @@
                     <version>2.1.0-SNAPSHOT</version>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${springboot.version}</version>
+                        <configuration>
+                            <classifier>boot</classifier>
+                            <layout>ZIP</layout>
+                            <addResources>false</addResources>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework</groupId>
+                                <artifactId>springloaded</artifactId>
+                                <version>${springloaded.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
-    </profiles-->
+        <profile>
+            <id>booted-riak</id>
+            <properties>
+                <finalName>devicehive-riak-${project.version}-boot</finalName>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-rdbms-dao</artifactId>
+                    <version>2.1.0-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${springboot.version}</version>
+                        <configuration>
+                            <classifier>boot</classifier>
+                            <layout>ZIP</layout>
+                            <addResources>false</addResources>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.springframework</groupId>
+                                <artifactId>springloaded</artifactId>
+                                <version>${springloaded.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

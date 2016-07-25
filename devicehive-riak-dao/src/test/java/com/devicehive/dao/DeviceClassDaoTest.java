@@ -1,6 +1,5 @@
 package com.devicehive.dao;
 
-import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import org.junit.Before;

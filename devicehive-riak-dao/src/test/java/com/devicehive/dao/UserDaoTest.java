@@ -1,6 +1,5 @@
 package com.devicehive.dao;
 
-import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;

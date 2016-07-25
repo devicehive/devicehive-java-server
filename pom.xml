@@ -62,7 +62,7 @@
 
         <tomcat.version>8.0.21</tomcat.version>
 
-        <skipTests>true</skipTests>
+        <skipTests>false</skipTests>
         <packaging.type>jar</packaging.type>
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
@@ -476,7 +476,7 @@
         </dependencies>
     </dependencyManagement>
     <build>
-        <finalName>devicehive-${project.version}</finalName>
+        <!--<finalName>devicehive-${project.version}</finalName>-->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
