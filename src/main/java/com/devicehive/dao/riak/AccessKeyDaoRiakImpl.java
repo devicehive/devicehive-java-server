@@ -223,6 +223,9 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             if (sortFunction == null) {
                 sortFunction = sortMap.get("label");
             }
+            if (sortOrderAsc == null) {
+                sortOrderAsc = true;
+            }
             BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                     .withNamespace(ACCESS_KEY_NS)
                     .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"))
