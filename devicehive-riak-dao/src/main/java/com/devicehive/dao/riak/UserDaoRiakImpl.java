@@ -186,6 +186,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Override
     public User getWithNetworksById(long id) {
         User user = find(id);
+        if (user == null) {
+            return user;
+        }
 
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(id);
         if (networkIds == null) {

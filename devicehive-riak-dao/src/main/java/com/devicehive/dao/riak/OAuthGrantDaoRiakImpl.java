@@ -107,7 +107,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                     .build();
             OAuthGrant grant = getOrNull(client.execute(fetchOp), OAuthGrant.class);
 
-            if (grant != null && grant.getUser().equals(user)) {
+            if (grant != null && grant.getUser() != null && grant.getUser().equals(user)) {
                 DeleteValue deleteOp = new DeleteValue.Builder(location).build();
                 client.execute(deleteOp);
                 return 1;

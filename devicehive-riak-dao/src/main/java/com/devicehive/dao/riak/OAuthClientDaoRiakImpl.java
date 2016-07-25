@@ -106,6 +106,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     }
 
     private OAuthClient findBySomeIndex(String name, String indexName) {
+        if (name == null || indexName == null) {
+            return null;
+        }
         BinIndexQuery biq = new BinIndexQuery.Builder(OAUTH_CLIENT_NS, indexName, name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);

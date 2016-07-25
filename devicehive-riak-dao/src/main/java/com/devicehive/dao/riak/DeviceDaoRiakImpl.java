@@ -103,7 +103,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         final Map<String, Integer> deviceInfo = new HashMap<>();
         for (String guid : guids) {
             Device device = findByUUID(guid);
-            if (device != null) {
+            if (device != null && device.getDeviceClass() != null) {
                 refreshRefs(device);
                 deviceInfo.put(guid, device.getDeviceClass().getOfflineTimeout());
             }
@@ -138,6 +138,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         try {
             if (device.getId() == null) {
                 device.setId(getId());
+            }
+            if (device.getDeviceClass() != null && device.getDeviceClass().getEquipment() != null) {
+                device.getDeviceClass().getEquipment().clear();
             }
             Location location = new Location(DEVICE_NS, String.valueOf(device.getId()));
             StoreValue storeOp = new StoreValue.Builder(device)
@@ -339,18 +342,27 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
-                Set<Long> networks = userNetworkDao.findNetworksForUser(principal.getUser().getId());
+                long userId = -1L;
+                if (principal.getUser() != null) {
+                    userId = principal.getUser().getId();
+                } else if (principal.getKey() != null && principal.getKey().getUser() != null) {
+                    userId = principal.getKey().getUser().getId();
+                }
 
-                String functionString =
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "if (v.network == null) return false;" +
-                                "var networkId = v.network.id;" +
-                                "return arg.indexOf(networkId) > -1;" +
-                                "})" +
-                                "}";
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction, networks);
+                if (userId != -1) {
+                    Set<Long> networks = userNetworkDao.findNetworksForUser(userId);
+
+                    String functionString =
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "if (v.network == null) return false;" +
+                                    "var networkId = v.network.id;" +
+                                    "return arg.indexOf(networkId) > -1;" +
+                                    "})" +
+                                    "}";
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction, networks);
+                }
             }
 
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),

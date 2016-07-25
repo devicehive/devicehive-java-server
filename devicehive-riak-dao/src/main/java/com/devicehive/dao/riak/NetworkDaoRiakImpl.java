@@ -74,7 +74,9 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
     @Override
     public List<Network> findByName(String name) {
-        assert name != null;
+        if (name == null) {
+            return Collections.emptyList();
+        }
 
         BinIndexQuery biq = new BinIndexQuery.Builder(NETWORK_NS, "name", name).build();
         try {
