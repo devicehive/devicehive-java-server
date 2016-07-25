@@ -2,6 +2,7 @@ package com.devicehive.dao.riak;
 
 import com.devicehive.dao.*;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,17 +48,6 @@ public class InitialDataLoader {
         user.setEntityVersion(0);
         userDao.persist(user);
 
-        User user2 = new User();
-        user2.setId(1L);
-        user2.setLogin("dhadmin");
-        user2.setPasswordHash("DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=");
-        user2.setPasswordSalt("sjQbZgcCmFxqTV4CCmGwpIHO");
-        user2.setRole(UserRole.ADMIN);
-        user2.setStatus(UserStatus.ACTIVE);
-        user2.setLoginAttempts(0);
-        user2.setEntityVersion(0);
-        userDao.persist(user2);
-
         AccessKey key = new AccessKey();
         key.setId(1L);
         key.setLabel("Access Key for dhadmin");
@@ -70,20 +60,6 @@ public class InitialDataLoader {
         permission.setAccessKey(key);
         permission.setEntityVersion(1L);
         key.getPermissions().add(permission);
-        accessKeyDao.persist(key);
-
-        key = new AccessKey();
-        key.setId(2L);
-        key.setLabel("Access Key for dhadmin");
-        key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
-        key.setExpirationDate(null);
-        key.setUser(user2);
-        key.setEntityVersion(1);
-        if (key.getPermissions() == null) key.setPermissions(new HashSet<>());
-        AccessKeyPermission permission2 = new AccessKeyPermission();
-        permission.setAccessKey(key);
-        permission.setEntityVersion(1L);
-        key.getPermissions().add(permission2);
         accessKeyDao.persist(key);
 
         Configuration cfg;
@@ -132,6 +108,42 @@ public class InitialDataLoader {
         device.setDeviceClass(deviceClass);
         device.setEntityVersion(1);
         deviceDao.persist(device);
+
+        //live data
+        User user2 = new User();
+        user2.setId(1L);
+        user2.setLogin("dhadmin");
+        user2.setPasswordHash("DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=");
+        user2.setPasswordSalt("sjQbZgcCmFxqTV4CCmGwpIHO");
+        user2.setRole(UserRole.ADMIN);
+        user2.setStatus(UserStatus.ACTIVE);
+        user2.setLoginAttempts(0);
+        user2.setEntityVersion(0);
+        userDao.persist(user2);
+
+        key = new AccessKey();
+        key.setId(2L);
+        key.setLabel("Access Key for dhadmin");
+        key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
+        key.setExpirationDate(null);
+        key.setUser(user2);
+        key.setType(AccessKeyType.DEFAULT);
+        key.setEntityVersion(1);
+        if (key.getPermissions() == null) key.setPermissions(new HashSet<>());
+        AccessKeyPermission permission2 = new AccessKeyPermission();
+        permission.setAccessKey(key);
+        permission.setEntityVersion(1L);
+        key.getPermissions().add(permission2);
+        accessKeyDao.persist(key);
+
+        cfg = new Configuration("websocket.ping.timeout", "120000");
+        configurationDao.persist(cfg);
+
+        cfg = new Configuration("cassandra.rest.endpoint", "http://127.0.0.1:8080/cassandra");
+        configurationDao.persist(cfg);
+
+        cfg = new Configuration("user.login.lastTimeout", "1000");
+        configurationDao.persist(cfg);
     }
 
 

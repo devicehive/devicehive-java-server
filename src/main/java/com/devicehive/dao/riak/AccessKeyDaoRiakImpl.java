@@ -20,6 +20,7 @@ import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.User;
+import com.devicehive.model.enums.AccessKeyType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -262,18 +263,19 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
                 String functionBody = String.format(
                         "function(values, arg) {" +
                                 "  return values.filter(function(v) {" +
-                                "    return v.label == %s;" +
+                                "    return v.label == '%s';" +
                                 "  })" +
                                 "}", label);
                 builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null && type == null);
             }
             if (type != null) {
+                String typeString = AccessKeyType.getValueForIndex(type).toString();
                 String functionBody = String.format(
                         "function(values, arg) {" +
                                 "  return values.filter(function(v) {" +
-                                "    return v.type == %s;" +
+                                "    return v.type == '%s';" +
                                 "  })" +
-                                "}", type);
+                                "}", typeString);
                 builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null);
             }
 

@@ -90,7 +90,9 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     @Override
     public OAuthGrant getById(Long grantId) {
         OAuthGrant grant = find(grantId);
-        grant = restoreRefs(grant, null, null);
+        if( grant != null) {
+            grant = restoreRefs(grant, null, null);
+        }
         return grant;
     }
 
@@ -222,6 +224,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.user == null) return false;" +
                                 "var id = v.user.id;" +
                                 "return id == %s;" +
                                 "})" +
@@ -349,7 +352,10 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
         if (user != null) {
             grant.setUser(user);
         } else {
-            grant.setUser(userDao.find(grant.getUserId()));
+            User oldUser = userDao.find(grant.getUserId());
+            if (oldUser != null) {
+                grant.setUser(oldUser);
+            }
         }
         if (accessKey != null) {
             grant.setAccessKey(accessKey);

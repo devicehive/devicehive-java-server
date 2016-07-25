@@ -162,6 +162,9 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     public DeviceClass findByName(String name) {
+        if (name == null) {
+            return null;
+        }
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_CLASS_NS, "name", name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
