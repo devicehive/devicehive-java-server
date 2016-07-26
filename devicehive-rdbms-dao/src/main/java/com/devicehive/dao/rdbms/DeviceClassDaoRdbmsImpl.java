@@ -5,6 +5,7 @@ import com.devicehive.dao.CacheHelper;
 import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.vo.DeviceClassReferenceVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +14,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,13 +25,17 @@ import static java.util.Optional.ofNullable;
 public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceClassDao {
 
     @Override
-    public DeviceClass getReference(Long name) {
-        return getReference(DeviceClass.class, name);
+    public DeviceClassReferenceVO getReference(Long name) {
+        DeviceClass reference = getReference(DeviceClass.class, name);
+
+        DeviceClassReferenceVO vo = new DeviceClassReferenceVO();
+        vo.setEntity(reference);
+        return vo;
     }
 
     @Override
-    public void remove(DeviceClass reference) {
-        super.remove(reference);
+    public void remove(DeviceClassReferenceVO reference) {
+        super.remove((DeviceClass) reference.getEntity());
     }
 
     @Override

@@ -16,6 +16,7 @@ import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
+import com.devicehive.vo.DeviceClassReferenceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -40,15 +41,27 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     @Autowired
     private RiakQuorum quorum;
 
-    @Override
-    public DeviceClass getReference(Long id) {
-        return find(id);
+    private final Map<String, String> sortMap = new HashMap<>();
+
+    public DeviceClassDaoRiakImpl() {
+        sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
+        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
+        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
+        sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
+        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
     @Override
-    public void remove(DeviceClass reference) {
+    public DeviceClassReferenceVO getReference(Long id) {
+        DeviceClassReferenceVO vo = new DeviceClassReferenceVO();
+        vo.setEntity(id);
+        return vo;
+    }
+
+    @Override
+    public void remove(DeviceClassReferenceVO reference) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(reference.getId()));
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(reference.getEntity()));
             DeleteValue delete = new DeleteValue.Builder(location).build();
             client.execute(delete);
         } catch (InterruptedException | ExecutionException e) {
@@ -76,17 +89,17 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
 
     @Override
     public DeviceClass merge(DeviceClass deviceClass) {
+        if (deviceClass.getName() == null) {
+            throw new HivePersistenceLayerException("DeviceClass name can not be null");
+        }
         try {
             if (deviceClass.getId() == null) {
-                deviceClass.setId(getId(COUNTERS_LOCATION));
-            }
-            if (deviceClass.getName() == null) {
-                throw new HivePersistenceLayerException("DeviceClass name can not be null");
+                Long deviceClassEntityId = getId(COUNTERS_LOCATION);
+                deviceClass.setId(deviceClassEntityId);
             }
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             clearEquipmentRefs(deviceClass);
-            StoreValue storeOp = new StoreValue.Builder(deviceClass)
-                    .withLocation(location)
+            StoreValue storeOp = new StoreValue.Builder(deviceClass).withLocation(location)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
@@ -94,16 +107,6 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge device class.", e);
         }
-    }
-
-    private final Map<String, String> sortMap = new HashMap<>();
-
-    public DeviceClassDaoRiakImpl() {
-        sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
-        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
-        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
-        sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
-        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
     @Override

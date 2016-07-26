@@ -1,15 +1,15 @@
 package com.devicehive.dao;
 
 import com.devicehive.model.DeviceClass;
+import com.devicehive.vo.DeviceClassReferenceVO;
 
-import javax.persistence.LockModeType;
 import java.util.List;
 
 public interface DeviceClassDao {
 
-    DeviceClass getReference(Long id);
+    DeviceClassReferenceVO getReference(Long id);
 
-    void remove(DeviceClass reference);
+    void remove(DeviceClassReferenceVO reference);
 
     DeviceClass find(Long id);
 
