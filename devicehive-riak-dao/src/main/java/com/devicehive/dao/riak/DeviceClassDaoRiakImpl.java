@@ -7,16 +7,13 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
-import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
-import com.devicehive.vo.DeviceClassReferenceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -52,16 +49,9 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public DeviceClassReferenceVO getReference(Long id) {
-        DeviceClassReferenceVO vo = new DeviceClassReferenceVO();
-        vo.setEntity(id);
-        return vo;
-    }
-
-    @Override
-    public void remove(DeviceClassReferenceVO reference) {
+    public void remove(long id) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(reference.getEntity()));
+            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             DeleteValue delete = new DeleteValue.Builder(location).build();
             client.execute(delete);
         } catch (InterruptedException | ExecutionException e) {
@@ -70,7 +60,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public DeviceClass find(Long id) {
+    public DeviceClass find(long id) {
         try {
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)

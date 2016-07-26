@@ -1,17 +1,14 @@
 package com.devicehive.dao;
 
 import com.devicehive.model.DeviceClass;
-import com.devicehive.vo.DeviceClassReferenceVO;
 
 import java.util.List;
 
 public interface DeviceClassDao {
 
-    DeviceClassReferenceVO getReference(Long id);
+    void remove(long id);
 
-    void remove(DeviceClassReferenceVO reference);
-
-    DeviceClass find(Long id);
+    DeviceClass find(long id);
 
     void persist(DeviceClass deviceClass);
 

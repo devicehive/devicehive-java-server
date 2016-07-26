@@ -7,7 +7,6 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.DeviceClassReferenceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -31,10 +30,7 @@ public class DeviceClassService {
 
     @Transactional
     public void delete(@NotNull long id) {
-        if (deviceClassDao.find(id) != null) {
-            DeviceClassReferenceVO objectReference = deviceClassDao.getReference(id);
-            deviceClassDao.remove(objectReference);
-        }
+        deviceClassDao.remove(id);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
