@@ -176,81 +176,86 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                                  Integer take,
                                  Integer skip) {
         ArrayList<OAuthClient> result = new ArrayList<>();
-        if (name != null) {
-            OAuthClient client = getByName(name);
-            if (client != null) {
-                result.add(client);
+        try {
+            String sortFunction = sortMap.get(sortField);
+            if (sortFunction == null) {
+                sortFunction = sortMap.get("name");
             }
-        } else {
-            try {
-                String sortFunction = sortMap.get(sortField);
-                if (sortFunction == null) {
-                    sortFunction = sortMap.get("name");
-                }
-                if (sortOrderAsc == null) {
-                    sortOrderAsc = true;
-                }
-                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                        .withNamespace(OAUTH_CLIENT_NS)
-                        .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
-
-                if (namePattern != null) {
-                    namePattern = namePattern.replace("%", "");
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var name = v.name;" +
-                                    "var match = name.indexOf('%s');" +
-                                    "return match > -1;" +
-                                    "})" +
-                                    "}", namePattern);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
-                }
-
-                if (domain != null) {
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var domain = v.domain;" +
-                                    "return domain == '%s';" +
-                                    "})" +
-                                    "}", domain);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
-                }
-
-                if (oauthId != null) {
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var oauthId = v.oauthId;" +
-                                    "return oauthId == '%s';" +
-                                    "})" +
-                                    "}", oauthId);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
-                }
-
-                builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                        String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                        take == null);
-
-                if (take != null) {
-                    int[] args = new int[2];
-                    args[0] = skip != null ? skip : 0;
-                    args[1] = args[0] + take;
-                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
-                }
-                BucketMapReduce bmr = builder.build();
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
-                result.addAll(response.getResultsFromAllPhases(OAuthClient.class));
-            } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception accessing Riak Storage.", e);
-                throw new HivePersistenceLayerException("Cannot fetch OAuthClient by filter.", e);
+            if (sortOrderAsc == null) {
+                sortOrderAsc = true;
             }
+            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                    .withNamespace(OAUTH_CLIENT_NS)
+                    .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+
+            if (name != null) {
+                String functionString = String.format(
+                        "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "var name = v.name;" +
+                                "return name == '%s';" +
+                                "})" +
+                                "}", name);
+                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                builder.withReducePhase(reduceFunction);
+            }
+
+            if (namePattern != null) {
+                namePattern = namePattern.replace("%", "");
+                String functionString = String.format(
+                        "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "var name = v.name;" +
+                                "var match = name.indexOf('%s');" +
+                                "return match > -1;" +
+                                "})" +
+                                "}", namePattern);
+                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                builder.withReducePhase(reduceFunction);
+            }
+
+            if (domain != null) {
+                String functionString = String.format(
+                        "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "var domain = v.domain;" +
+                                "return domain == '%s';" +
+                                "})" +
+                                "}", domain);
+                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                builder.withReducePhase(reduceFunction);
+            }
+
+            if (oauthId != null) {
+                String functionString = String.format(
+                        "function(values, arg) {" +
+                                "return values.filter(function(v) {" +
+                                "var oauthId = v.oauthId;" +
+                                "return oauthId == '%s';" +
+                                "})" +
+                                "}", oauthId);
+                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                builder.withReducePhase(reduceFunction);
+            }
+
+            builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
+                    String.format(sortFunction, sortOrderAsc ? ">" : "<"),
+                    take == null);
+
+            if (take != null) {
+                int[] args = new int[2];
+                args[0] = skip != null ? skip : 0;
+                args[1] = args[0] + take;
+                builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
+            }
+            BucketMapReduce bmr = builder.build();
+            RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+            future.await();
+            MapReduce.Response response = future.get();
+            result.addAll(response.getResultsFromAllPhases(OAuthClient.class));
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot fetch OAuthClient by filter.", e);
         }
         return result;
     }
