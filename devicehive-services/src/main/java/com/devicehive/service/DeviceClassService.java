@@ -8,7 +8,6 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.EquipmentUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -273,7 +272,7 @@ public class DeviceClassService {
      */
     @Transactional(readOnly = true)
     public DeviceClassEquipmentVO getByDeviceClass(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        return deviceClassDao.getByDeviceClassAndId(deviceClassId, equipmentId);
+        return deviceClassDao.findDeviceClassEquipment(deviceClassId, equipmentId);
     }
 
     /**

@@ -52,17 +52,6 @@ public class DeviceFixture {
         return deviceClass;
     }
 
-    public static DeviceClass createDC() {
-        UUID uuid = UUID.randomUUID();
-        DeviceClass deviceClass = new DeviceClass();
-        deviceClass.setName("device_class-" + uuid);
-        deviceClass.setPermanent(false);
-        deviceClass.setOfflineTimeout(120);
-        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
-
-        return deviceClass;
-    }
-
     public static DeviceClassWithEquipmentVO createDCVO() {
         UUID uuid = UUID.randomUUID();
         DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();

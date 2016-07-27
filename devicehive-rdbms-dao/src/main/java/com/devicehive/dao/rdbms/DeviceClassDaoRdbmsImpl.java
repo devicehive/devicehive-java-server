@@ -98,7 +98,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     }
 
     @Override
-    public DeviceClassWithEquipmentVO findByName(String name) {
+    public DeviceClassWithEquipmentVO findByName(@NotNull String name) {
         DeviceClass deviceClass = createNamedQuery(DeviceClass.class, "DeviceClass.findByName", Optional.of(CacheConfig.get()))
                 .setParameter("name", name)
                 .getResultList()
@@ -107,7 +107,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     }
 
     @Override
-    public DeviceClassEquipmentVO getByDeviceClassAndId(@NotNull Long deviceClassId, @NotNull long equipmentId) {
+    public DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId) {
         Equipment equipment = createNamedQuery(Equipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
                 .setParameter("id", equipmentId)
                 .setParameter("deviceClassId", deviceClassId)

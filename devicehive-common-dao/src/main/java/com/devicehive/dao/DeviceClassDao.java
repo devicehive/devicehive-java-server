@@ -19,7 +19,7 @@ public interface DeviceClassDao {
     List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
 
-    DeviceClassWithEquipmentVO findByName(String name);
+    DeviceClassWithEquipmentVO findByName(@NotNull String name);
 
-    DeviceClassEquipmentVO getByDeviceClassAndId(@NotNull Long deviceClassId, @NotNull long equipmentId);
+    DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId);
 }

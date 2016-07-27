@@ -40,7 +40,11 @@ public class RiakGenericDao {
     //TODO increment counter to be configurable and have default value
     //TODO here we should use QUORUM or ALL when incrementing the value, that will prevent from problems.
     protected Long getId(Location location) {
-        CounterUpdate cu = new CounterUpdate(1);
+        return getId(location, 1);
+    }
+
+    protected Long getId(Location location, int count) {
+        CounterUpdate cu = new CounterUpdate(count);
         UpdateCounter update = new UpdateCounter.Builder(location, cu)
                 .withOption(UpdateDatatype.Option.PW, Quorum.allQuorum())
                 .withReturnDatatype(true).build();

@@ -11,9 +11,9 @@ import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.devicehive.dao.DeviceClassDao;
+import com.devicehive.dao.riak.model.RiakDeviceClass;
+import com.devicehive.dao.riak.model.RiakDeviceClassEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +31,7 @@ import java.util.stream.Stream;
 public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClassDao {
 
     private static final Namespace DEVICE_CLASS_NS = new Namespace("deviceClass");
+
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
             "deviceClassCounter");
 
@@ -64,12 +65,8 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     @Override
     public DeviceClassWithEquipmentVO find(long id) {
         try {
-            Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
-                    .build();
-            DeviceClass deviceClass = getOrNull(client.execute(fetchOp), DeviceClass.class);
-            return DeviceClass.convertDeviceClassWithEquipment(deviceClass);
+            RiakDeviceClass deviceClass = findEntityInStore(id);
+            return RiakDeviceClass.convertDeviceClassWithEquipment(deviceClass);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find device class by id.", e);
         }
@@ -90,11 +87,20 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                 Long deviceClassEntityId = getId(COUNTERS_LOCATION);
                 deviceClass.setId(deviceClassEntityId);
             }
+            RiakDeviceClass riakDeviceClass = RiakDeviceClass.convertWithEquipmentToEntity(deviceClass);
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
-            StoreValue storeOp = new StoreValue.Builder(deviceClass).withLocation(location)
+            StoreValue storeOp = new StoreValue.Builder(riakDeviceClass).withLocation(location)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
+
+            if (deviceClass.getEquipment() != null) {
+                Long id = getId(COUNTERS_LOCATION, deviceClass.getEquipment().size());
+                for (DeviceClassEquipmentVO deviceClassEquipmentVO : deviceClass.getEquipment()) {
+                    deviceClassEquipmentVO.setId(id--);
+                }
+            }
+
             return deviceClass;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge device class.", e);
@@ -147,8 +153,8 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                 builder = addPaging(builder, take, skip);
                 BucketMapReduce bmr = builder.build();
                 MapReduce.Response response = client.execute(bmr);
-                Collection<DeviceClass> resultsFromAllPhases = response.getResultsFromAllPhases(DeviceClass.class);
-                Stream<DeviceClassWithEquipmentVO> objectStream = resultsFromAllPhases.stream().map(DeviceClass::convertDeviceClassWithEquipment);
+                Collection<RiakDeviceClass> resultsFromAllPhases = response.getResultsFromAllPhases(RiakDeviceClass.class);
+                Stream<DeviceClassWithEquipmentVO> objectStream = resultsFromAllPhases.stream().map(RiakDeviceClass::convertDeviceClassWithEquipment);
                 List<DeviceClassWithEquipmentVO> voList = objectStream.collect(Collectors.toList());
                 result.addAll(voList);
             } catch (InterruptedException | ExecutionException e) {
@@ -159,7 +165,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public DeviceClassWithEquipmentVO findByName(String name) {
+    public DeviceClassWithEquipmentVO findByName(@NotNull String name) {
         if (name == null) {
             return null;
         }
@@ -174,8 +180,8 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
-                DeviceClass deviceClass = getOrNull(client.execute(fetchOp), DeviceClass.class);
-                return DeviceClass.convertDeviceClassWithEquipment(deviceClass);
+                RiakDeviceClass deviceClass = getOrNull(client.execute(fetchOp), RiakDeviceClass.class);
+                return RiakDeviceClass.convertDeviceClassWithEquipment(deviceClass);
             }
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find device class by name.", e);
@@ -183,16 +189,27 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public DeviceClassEquipmentVO getByDeviceClassAndId(@NotNull Long deviceClassId, @NotNull long equipmentId) {
-        //TODO [rafa] refactor, and instead perform search and convert of a signle entity.
-        DeviceClassWithEquipmentVO deviceClass = find(deviceClassId);
-        if (deviceClass.getEquipment() != null) {
-            for (DeviceClassEquipmentVO equipment : deviceClass.getEquipment()) {
-                if (equipment.getId() == equipmentId) {
-                    return equipment;
+    public DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId) {
+        try {
+            RiakDeviceClass deviceClass = findEntityInStore(deviceClassId);
+            if (deviceClass.getEquipment() != null) {
+                for (RiakDeviceClassEquipment equipment : deviceClass.getEquipment()) {
+                    if (equipment.getId() == equipmentId) {
+                        return RiakDeviceClassEquipment.convertDeviceClassEquipment(equipment);
+                    }
                 }
             }
+        } catch (ExecutionException | InterruptedException e) {
+            throw new HivePersistenceLayerException("Cannot find device class equipment by id.", e);
         }
         return null;
+    }
+
+    private RiakDeviceClass findEntityInStore(long id) throws ExecutionException, InterruptedException {
+        Location location = new Location(DEVICE_CLASS_NS, String.valueOf(id));
+        FetchValue fetchOp = new FetchValue.Builder(location)
+                .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                .build();
+        return getOrNull(client.execute(fetchOp), RiakDeviceClass.class);
     }
 }
