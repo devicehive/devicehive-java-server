@@ -7,6 +7,7 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_empty_response_with_status_204_when_command_not_processed() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -52,7 +53,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -84,7 +85,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0_and_polling_for_device() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();

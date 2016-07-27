@@ -9,6 +9,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_device_with_key() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -65,7 +66,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_device_as_admin() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -100,7 +101,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -120,7 +121,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -153,7 +154,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_for_key_authorized_user_that_has_no_access_to_device() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -205,7 +206,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
     @Test
     public void should_return_403_for_key_authorized_user_that_has_no_access_to_network() throws Exception {
 
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();

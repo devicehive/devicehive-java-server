@@ -3,12 +3,19 @@ package com.devicehive.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -62,21 +69,9 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
-    @Version
-    @Column(name = "entity_version")
-    private Long entityVersion;
-
-    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
     private Set<Equipment> equipment;
-
-    public Long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(Long entityVersion) {
-        this.entityVersion = entityVersion;
-    }
 
     public Long getId() {
         return id;
@@ -155,4 +150,52 @@ public class DeviceClass implements HiveEntity {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+    public static DeviceClassWithEquipmentVO convertDeviceClassWithEquipment(DeviceClass deviceClass) {
+        DeviceClassWithEquipmentVO vo = null;
+        if (deviceClass != null) {
+            vo = new DeviceClassWithEquipmentVO();
+            vo.setName(deviceClass.getName());
+            vo.setData(deviceClass.getData());
+            vo.setId(deviceClass.getId());
+            vo.setIsPermanent(deviceClass.getPermanent());
+            vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
+
+            if (deviceClass.getEquipment() != null) {
+                Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(Equipment::convertDeviceClassEquipment);
+                vo.setEquipment(eqVos.collect(Collectors.toSet()));
+            }
+        }
+        return vo;
+    }
+
+    public static DeviceClass convertDeviceClassVOToEntity(DeviceClassVO vo) {
+        DeviceClass en = null;
+        if (vo != null) {
+            en = new DeviceClass();
+            en.setId(vo.getId());
+            en.setData(vo.getData());
+            en.setName(vo.getName());
+            en.setOfflineTimeout(vo.getOfflineTimeout());
+            en.setPermanent(vo.getIsPermanent());
+        }
+        return en;
+    }
+
+    public static DeviceClass convertWithEquipmentToEntity(DeviceClassWithEquipmentVO vo) {
+        DeviceClass en = convertDeviceClassVOToEntity(vo);
+        if (en != null) {
+            if (vo.getEquipment() != null) {
+                Set<Equipment> equipmentSet = vo.getEquipment().stream().map(Equipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());
+                for (Equipment equipment : equipmentSet) {
+                    equipment.setDeviceClass(en);
+                }
+                en.setEquipment(equipmentSet);
+            } else {
+                en.setEquipment(Collections.emptySet());
+            }
+        }
+        return en;
+    }
+
 }

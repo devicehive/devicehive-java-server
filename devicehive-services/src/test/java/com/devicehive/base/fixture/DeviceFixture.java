@@ -3,6 +3,9 @@ package com.devicehive.base.fixture;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +22,16 @@ public class DeviceFixture {
         return equipment;
     }
 
+    public static DeviceClassEquipmentVO createEquipmentVO() {
+        UUID uuid = UUID.randomUUID();
+        DeviceClassEquipmentVO equipment = new DeviceClassEquipmentVO();
+        equipment.setName("equipment-" + uuid);
+        equipment.setCode("equipment_code-" + uuid);
+        equipment.setType("equipment_type-" + uuid);
+        equipment.setData(new JsonStringWrapper(String.format("{\"data\": \"equipment_data-%s\"}", uuid)));
+        return equipment;
+    }
+
     public static DeviceClassUpdate createDeviceClass() {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
@@ -28,7 +41,7 @@ public class DeviceFixture {
         deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
         return deviceClass;
     }
-    public static DeviceClassUpdate createDeviceClassUpdate(DeviceClass dc) {
+    public static DeviceClassUpdate createDeviceClassUpdate(DeviceClassWithEquipmentVO dc) {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
         deviceClass.setId(dc.getId());
@@ -44,6 +57,17 @@ public class DeviceFixture {
         DeviceClass deviceClass = new DeviceClass();
         deviceClass.setName("device_class-" + uuid);
         deviceClass.setPermanent(false);
+        deviceClass.setOfflineTimeout(120);
+        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
+
+        return deviceClass;
+    }
+
+    public static DeviceClassWithEquipmentVO createDCVO() {
+        UUID uuid = UUID.randomUUID();
+        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
+        deviceClass.setName("device_class-" + uuid);
+        deviceClass.setIsPermanent(false);
         deviceClass.setOfflineTimeout(120);
         deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
 

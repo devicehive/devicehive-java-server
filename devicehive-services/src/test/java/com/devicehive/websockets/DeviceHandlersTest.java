@@ -7,6 +7,7 @@ import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.google.gson.JsonObject;
 import org.junit.Test;
 
@@ -24,7 +25,7 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
 
     @Test
     public void should_save_device_with_key() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -75,7 +76,7 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
 
     @Test
     public void should_save_device_as_admin() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();
@@ -125,7 +126,7 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
 
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();

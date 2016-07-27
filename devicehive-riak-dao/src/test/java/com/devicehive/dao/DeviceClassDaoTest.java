@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +30,17 @@ public class DeviceClassDaoTest extends AbstractResourceTest {
     @Test
     public void testCreate() throws Exception {
         UUID uuid = UUID.randomUUID();
-        DeviceClass deviceClass = new DeviceClass();
-        deviceClass.setName("device-class-" + uuid);
-        Equipment equipment = new Equipment();
+
+        DeviceClassEquipmentVO equipment = new DeviceClassEquipmentVO();
         equipment.setName("deviceClassName");
+
+        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
+        deviceClass.setName("device-class-" + uuid);
         deviceClass.setEquipment(new HashSet<>());
         deviceClass.getEquipment().add(equipment);
-        equipment.setDeviceClass(deviceClass);
+
         deviceClassDao.persist(deviceClass);
+
         Long id = deviceClass.getId();
         deviceClass = deviceClassDao.find(id);
         assertThat(deviceClass, notNullValue());

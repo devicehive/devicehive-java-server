@@ -3,6 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -118,7 +119,7 @@ public interface DeviceClassResource {
     })
     Response insertDeviceClass(
             @ApiParam(value = "Device class body", required = true, defaultValue = "{}")
-            DeviceClass insert);
+            DeviceClassWithEquipmentVO insert);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/update"> DeviceHive RESTful

@@ -12,6 +12,7 @@ import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -464,13 +465,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Test
     public void should_save_and_find_by_device_class_id() {
         final Device device = DeviceFixture.createDevice();
-        DeviceClass dc = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
         final Device device1 = DeviceFixture.createDevice();
-        DeviceClass dc1 = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
@@ -486,13 +487,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Test
     public void should_save_and_find_by_device_class_name() {
         final Device device = DeviceFixture.createDevice();
-        DeviceClass dc = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
         final Device device1 = DeviceFixture.createDevice();
-        DeviceClass dc1 = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);

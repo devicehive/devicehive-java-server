@@ -5,6 +5,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -83,10 +84,10 @@ public class InitialDataLoader {
         // -- 2. Default device classes
         //INSERT INTO device_class (name, is_permanent, offline_timeout) VALUES ('Sample VirtualLed Device', FALSE, 600);
 
-        DeviceClass deviceClass = new DeviceClass();
+        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
         deviceClass.setId(1L);
         deviceClass.setName("Sample VirtualLed Device");
-        deviceClass.setPermanent(false);
+        deviceClass.setIsPermanent(false);
         deviceClass.setOfflineTimeout(600);
         deviceClassDao.persist(deviceClass);
         //INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
@@ -97,6 +98,9 @@ public class InitialDataLoader {
         network.setDescription("A DeviceHive network for VirtualLed sample");
         networkDao.persist(network);
 
+        DeviceClass dc = new DeviceClass();
+        dc.setId(deviceClass.getId());
+
         //INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES
         // ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
         Device device = new Device();
@@ -105,7 +109,7 @@ public class InitialDataLoader {
         device.setName("Sample VirtualLed Device");
         device.setStatus("Offline");
         device.setNetwork(network);
-        device.setDeviceClass(deviceClass);
+        device.setDeviceClass(dc);
         device.setEntityVersion(1);
         deviceDao.persist(device);
 

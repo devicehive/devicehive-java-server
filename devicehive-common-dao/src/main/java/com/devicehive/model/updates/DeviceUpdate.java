@@ -3,6 +3,7 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -105,7 +106,9 @@ public class DeviceUpdate implements HiveEntity {
             device.setData(data.orElse(null));
         }
         if (deviceClass != null) {
-            DeviceClass convertedDeviceClass = deviceClass.orElse(null).convertTo();
+            DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClass.orElse(null).convertTo();
+            DeviceClass convertedDeviceClass = new DeviceClass();
+            convertedDeviceClass.setId(deviceClassWithEquipmentVO.getId());
             device.setDeviceClass(convertedDeviceClass);
         }
         if (name != null) {

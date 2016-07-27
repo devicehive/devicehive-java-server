@@ -2,12 +2,12 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
-import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -16,16 +16,17 @@ import static org.junit.Assert.*;
 public class EquipmentServiceTest extends AbstractResourceTest {
 
     @Autowired
-    private EquipmentService equipmentService;
-
-    @Autowired
     private DeviceClassService deviceClassService;
 
     @Test
     public void should_create_equipment() {
-        final Equipment equipment = prepareEquipment();
+        DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        deviceClass = deviceClassService.addDeviceClass(deviceClass);
 
-        final Equipment existingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        final DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment);
+
+        final DeviceClassEquipmentVO existingEquipment = deviceClassService.getByDeviceClass(deviceClass.getId(), equipment.getId());
         assertNotNull(existingEquipment);
         assertEquals(equipment.getId(), existingEquipment.getId());
         assertEquals(equipment.getName(), existingEquipment.getName());
@@ -33,43 +34,50 @@ public class EquipmentServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_by_equipment_and_device_class_id() {
-        final Equipment equipment = prepareEquipment();
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        deviceClass = deviceClassService.addDeviceClass(deviceClass);
 
-        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
+        equipment = deviceClassService.createEquipment(deviceClass.getId(), equipment);
+
+        deviceClassService.delete(equipment.getId(), deviceClass.getId());
+
+        final DeviceClassEquipmentVO notExistingEquipment = deviceClassService.getByDeviceClass(deviceClass.getId(), equipment.getId());
         assertNull(notExistingEquipment);
     }
 
     @Test
     public void should_not_fail_deleting_not_existing_equipment() {
-        final Equipment equipment = prepareEquipment();
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        deviceClass = deviceClassService.addDeviceClass(deviceClass);
 
-        final Equipment notExistingEquipment = equipmentService.getByDeviceClass(equipment.getDeviceClass().getId(), equipment.getId());
+        final DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment);
+
+        deviceClassService.delete(equipment.getId(), deviceClass.getId());
+
+        final DeviceClassEquipmentVO notExistingEquipment = deviceClassService.getByDeviceClass(deviceClass.getId(), equipment.getId());
         assertNull(notExistingEquipment);
 
-        equipmentService.delete(equipment.getId(), equipment.getDeviceClass().getId());
+        deviceClassService.delete(equipment.getId(), deviceClass.getId());
     }
 
     @Test
     public void should_return_equipments_by_device_class() {
-        DeviceClass deviceClass = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
         deviceClass = deviceClassService.addDeviceClass(deviceClass);
 
-        final Equipment equipment0 = DeviceFixture.createEquipment();
-        equipment0.setDeviceClass(deviceClass);
-        equipmentService.create(equipment0);
+        final DeviceClassEquipmentVO equipment0 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment0);
 
-        final Equipment equipment1 = DeviceFixture.createEquipment();
-        equipment1.setDeviceClass(deviceClass);
-        equipmentService.create(equipment1);
+        final DeviceClassEquipmentVO equipment1 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment1);
 
-        final Equipment equipment2 = DeviceFixture.createEquipment();
-        equipment2.setDeviceClass(deviceClass);
-        equipmentService.create(equipment2);
+        final DeviceClassEquipmentVO equipment2 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment2);
 
-        final List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
-        Collections.sort(equipments, (Equipment a, Equipment b) -> a.getId().compareTo(b.getId()));
+        final List<DeviceClassEquipmentVO> equipments = new ArrayList<>(deviceClassService.getByDeviceClass(deviceClass.getId()));
+        Collections.sort(equipments, (DeviceClassEquipmentVO a, DeviceClassEquipmentVO b) -> a.getId().compareTo(b.getId()));
         assertNotNull(equipments);
         assertEquals(3, equipments.size());
         assertEquals(equipment0.getId(), equipments.get(0).getId());
@@ -79,41 +87,36 @@ public class EquipmentServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_by_device_class() {
-        DeviceClass deviceClass = DeviceFixture.createDC();
+        DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
         deviceClass = deviceClassService.addDeviceClass(deviceClass);
 
-        final Equipment equipment0 = DeviceFixture.createEquipment();
-        equipment0.setDeviceClass(deviceClass);
-        equipmentService.create(equipment0);
+        final DeviceClassEquipmentVO equipment0 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment0);
 
-        final Equipment equipment1 = DeviceFixture.createEquipment();
-        equipment1.setDeviceClass(deviceClass);
-        equipmentService.create(equipment1);
+        final DeviceClassEquipmentVO equipment1 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment1);
 
-        final Equipment equipment2 = DeviceFixture.createEquipment();
-        equipment2.setDeviceClass(deviceClass);
-        equipmentService.create(equipment2);
+        final DeviceClassEquipmentVO equipment2 = DeviceFixture.createEquipmentVO();
+        deviceClassService.createEquipment(deviceClass.getId(), equipment2);
 
-        List<Equipment> equipments = equipmentService.getByDeviceClass(deviceClass);
-        Collections.sort(equipments, (Equipment a, Equipment b) -> a.getId().compareTo(b.getId()));
+        List<DeviceClassEquipmentVO> equipments = new ArrayList<>(deviceClassService.getByDeviceClass(deviceClass.getId()));
+        Collections.sort(equipments, (DeviceClassEquipmentVO a, DeviceClassEquipmentVO b) -> a.getId().compareTo(b.getId()));
         assertNotNull(equipments);
         assertEquals(3, equipments.size());
         assertEquals(equipment0.getId(), equipments.get(0).getId());
         assertEquals(equipment1.getId(), equipments.get(1).getId());
         assertEquals(equipment2.getId(), equipments.get(2).getId());
 
-        deviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
-        equipmentService.deleteByDeviceClass(deviceClass);
-        equipments = equipmentService.getByDeviceClass(deviceClass);
+        deviceClassService.delete(equipment0.getId(), deviceClass.getId());
+        equipments = new ArrayList<>(deviceClassService.getByDeviceClass(deviceClass.getId()));
+        assertEquals(2, equipments.size());
+
+        deviceClassService.delete(equipment1.getId(), deviceClass.getId());
+        equipments = new ArrayList<>(deviceClassService.getByDeviceClass(deviceClass.getId()));
+        assertEquals(1, equipments.size());
+
+        deviceClassService.delete(equipment2.getId(), deviceClass.getId());
+        equipments = new ArrayList<>(deviceClassService.getByDeviceClass(deviceClass.getId()));
         assertEquals(0, equipments.size());
-    }
-
-    private Equipment prepareEquipment() {
-        DeviceClass deviceClass = DeviceFixture.createDC();
-        deviceClass = deviceClassService.addDeviceClass(deviceClass);
-
-        final Equipment equipment = DeviceFixture.createEquipment();
-        equipment.setDeviceClass(deviceClass);
-        return equipmentService.create(equipment);
     }
 }

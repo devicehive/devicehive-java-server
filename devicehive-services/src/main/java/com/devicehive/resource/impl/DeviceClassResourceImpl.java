@@ -1,14 +1,13 @@
 package com.devicehive.resource.impl;
 
-
 import com.devicehive.configuration.Messages;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.resource.DeviceClassResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceClassService;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +26,11 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 public class DeviceClassResourceImpl implements DeviceClassResource {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceClassResourceImpl.class);
 
     @Autowired
     private DeviceClassService deviceClassService;
-
 
     /**
      * {@inheritDoc}
@@ -42,14 +41,12 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    Messages.INVALID_REQUEST_PARAMETERS));
+            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
 
-        List<DeviceClass> result = deviceClassService.getDeviceClassList(name, namePattern, sortField,
-                sortOrder, take, skip);
+        List<DeviceClassWithEquipmentVO> result = deviceClassService.getDeviceClassList(name, namePattern, sortField, sortOrder, take, skip);
         logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
 
         return ResponseFactory.response(OK, result, DEVICECLASS_LISTED);
@@ -61,18 +58,12 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
     @Override
     public Response getDeviceClass(long id) {
         logger.debug("Get device class by id requested");
-
-        DeviceClass result = deviceClassService.getWithEquipment(id);
-
+        DeviceClassWithEquipmentVO result = deviceClassService.getWithEquipment(id);
         if (result == null) {
             logger.info("No device class with id = {} found", id);
-            return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.DEVICE_CLASS_NOT_FOUND, id)));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_CLASS_NOT_FOUND, id)));
         }
-
         logger.debug("Requested device class found");
-
         return ResponseFactory.response(OK, result, DEVICECLASS_PUBLISHED);
     }
 
@@ -80,9 +71,9 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insertDeviceClass(DeviceClass insert) {
+    public Response insertDeviceClass(DeviceClassWithEquipmentVO insert) {
         logger.debug("Insert device class requested");
-        DeviceClass result = deviceClassService.addDeviceClass(insert);
+        DeviceClassWithEquipmentVO result = deviceClassService.addDeviceClass(insert);
 
         logger.debug("Device class inserted");
         return ResponseFactory.response(CREATED, result, DEVICECLASS_SUBMITTED);

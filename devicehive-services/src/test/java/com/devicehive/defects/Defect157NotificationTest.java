@@ -5,6 +5,7 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +27,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
 
     @Before
     public void prepareNotifications() {
-        Equipment equipment = DeviceFixture.createEquipment();
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         Network network = DeviceFixture.createNetwork();

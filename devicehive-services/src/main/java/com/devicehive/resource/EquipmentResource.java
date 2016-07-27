@@ -4,6 +4,7 @@ import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.EquipmentUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -60,7 +61,7 @@ public interface EquipmentResource {
             @PathParam("deviceClassId")
             long classId,
             @ApiParam(value = "Equipment body", required = true, defaultValue = "{}")
-            Equipment equipment);
+            DeviceClassEquipmentVO equipment);
 
     /**
      * Updates device class' equipment. None of following parameters are mandatory. Parameters, if left unspecified,

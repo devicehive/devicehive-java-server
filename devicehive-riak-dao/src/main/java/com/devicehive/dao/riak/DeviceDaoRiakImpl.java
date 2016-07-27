@@ -21,6 +21,7 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -401,7 +402,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (device.getDeviceClass() != null) {
-                DeviceClass deviceClass = deviceClassDao.find(device.getDeviceClass().getId());
+                DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
+                DeviceClass deviceClass = DeviceClass.convertWithEquipmentToEntity(deviceClassWithEquipmentVO);
                 device.setDeviceClass(deviceClass);
             }
         }

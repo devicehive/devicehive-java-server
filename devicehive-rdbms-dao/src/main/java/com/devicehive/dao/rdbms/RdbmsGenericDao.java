@@ -30,21 +30,6 @@ public class RdbmsGenericDao {
         return em.find(entityClass, primaryKey);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-    public <T extends Serializable> List<T> findAll(Class<T> entityClass, Optional<CacheConfig> cacheConfig) {
-        final CriteriaQuery<T>  cq = em.getCriteriaBuilder().createQuery( entityClass );
-        cq.select(cq.from(entityClass));
-        final TypedQuery<T> tq = em.createQuery(cq);
-        cacheQuery(tq, cacheConfig);
-        return tq.getResultList();
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-    public <T extends Serializable> boolean isExist(Class<T> entityClass, Object primaryKey) {
-        final T entity = find(entityClass, primaryKey);
-        return entity != null;
-    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     public <T extends Serializable> void persist( T entity ){
         em.persist(entity);
@@ -56,17 +41,12 @@ public class RdbmsGenericDao {
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public <T extends Serializable> void refresh(T entity, LockModeType lockModeType) {
-        em.refresh(entity, lockModeType);
-    }
-
-    @Transactional(propagation = Propagation.MANDATORY)
     public <T extends Serializable> void remove(T entity) {
         em.remove(entity);
     }
 
-    public <E, K extends Serializable> E getReference(Class<E> entityClass, K pk){
-        return em.getReference(entityClass,pk);
+    public <T extends Serializable> T reference(Class<T> entityClass, Object primaryKey) {
+        return em.getReference(entityClass, primaryKey);
     }
 
     public <T extends Serializable> TypedQuery<T> createNamedQuery(Class<T> entityClass, String queryName, Optional<CacheConfig> cacheConfig) {
@@ -87,10 +67,6 @@ public class RdbmsGenericDao {
             query.setHint(RETRIEVE_MODE, cacheConfig.get().getRetrieveMode());
             query.setHint(STORE_MODE, cacheConfig.get().getStoreMode());
         }
-    }
-
-    public <T extends Serializable> TypedQuery<T> createQuery(String query, Class<T> entityClass) {
-        return em.createQuery(query, entityClass);
     }
 
     public CriteriaBuilder criteriaBuilder() {

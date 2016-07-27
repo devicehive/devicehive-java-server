@@ -2,10 +2,11 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
 
 import java.util.Optional;
 import java.util.Set;
@@ -26,13 +27,13 @@ public class DeviceClassUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Optional<JsonStringWrapper> data;
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
-    private Optional<Set<Equipment>> equipment;
+    private Optional<Set<DeviceClassEquipmentVO>> equipment;
 
-    public Optional<Set<Equipment>> getEquipment() {
+    public Optional<Set<DeviceClassEquipmentVO>> getEquipment() {
         return equipment;
     }
 
-    public void setEquipment(Optional<Set<Equipment>> equipment) {
+    public void setEquipment(Optional<Set<DeviceClassEquipmentVO>> equipment) {
         this.equipment = equipment;
     }
 
@@ -76,11 +77,11 @@ public class DeviceClassUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public DeviceClass convertTo() {
-        DeviceClass deviceClass = new DeviceClass();
+    public DeviceClassWithEquipmentVO convertTo() {
+        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
         deviceClass.setId(id);
         if (isPermanent != null) {
-            deviceClass.setPermanent(isPermanent.orElse(null));
+            deviceClass.setIsPermanent(isPermanent.orElse(null));
         }
         if (offlineTimeout != null) {
             deviceClass.setOfflineTimeout(offlineTimeout.orElse(null));

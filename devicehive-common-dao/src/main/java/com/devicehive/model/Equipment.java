@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -152,4 +153,33 @@ public class Equipment implements HiveEntity {
         result = 31 * result + (code != null ? code.hashCode() : 0);
         return result;
     }
+
+    public static DeviceClassEquipmentVO convertDeviceClassEquipment(Equipment equipment) {
+        DeviceClassEquipmentVO vo = null;
+        if (equipment != null) {
+            vo = new DeviceClassEquipmentVO();
+            vo.setCode(equipment.getCode());
+            vo.setData(equipment.getData());
+            vo.setId(equipment.getId());
+            vo.setName(equipment.getName());
+            vo.setType(equipment.getType());
+        }
+        return vo;
+    }
+
+    public static Equipment convertDeviceClassEquipmentVOToEntity(DeviceClassEquipmentVO vo) {
+        Equipment en = null;
+        if (vo != null) {
+            en = new Equipment();
+            en.setId(vo.getId());
+            en.setData(vo.getData());
+            en.setName(vo.getName());
+            en.setCode(vo.getCode());
+            en.setType(vo.getType());
+        }
+        return en;
+    }
+
+
+
 }
