@@ -1,4 +1,4 @@
-package com.devicehive.dao;
+package com.devicehive.dao.rdbms;
 
 import javax.persistence.CacheRetrieveMode;
 import javax.persistence.CacheStoreMode;

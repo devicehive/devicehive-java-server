@@ -1,6 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.model.IdentityProvider;
 import org.springframework.context.annotation.Profile;

@@ -1,8 +1,6 @@
 package com.devicehive.dao.rdbms;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;

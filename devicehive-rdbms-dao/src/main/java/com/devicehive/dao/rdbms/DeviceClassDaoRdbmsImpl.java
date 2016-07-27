@@ -1,8 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CacheHelper;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Equipment;
@@ -11,7 +8,6 @@ import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;

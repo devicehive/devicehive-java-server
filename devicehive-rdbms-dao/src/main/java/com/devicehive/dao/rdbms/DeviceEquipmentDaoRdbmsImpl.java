@@ -1,6 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;

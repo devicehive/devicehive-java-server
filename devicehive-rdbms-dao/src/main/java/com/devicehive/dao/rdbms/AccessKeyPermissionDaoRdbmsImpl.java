@@ -2,7 +2,6 @@ package com.devicehive.dao.rdbms;
 
 
 import com.devicehive.dao.AccessKeyPermissionDao;
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import org.springframework.context.annotation.Profile;

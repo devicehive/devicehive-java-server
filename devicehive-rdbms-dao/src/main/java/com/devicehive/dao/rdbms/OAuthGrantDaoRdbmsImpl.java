@@ -1,6 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.dao.CacheConfig;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
@@ -13,8 +12,8 @@ import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
-import static com.devicehive.dao.CriteriaHelper.oAuthGrantsListPredicates;
-import static com.devicehive.dao.CriteriaHelper.order;
+import static com.devicehive.dao.rdbms.CriteriaHelper.oAuthGrantsListPredicates;
+import static com.devicehive.dao.rdbms.CriteriaHelper.order;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 

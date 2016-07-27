@@ -1,8 +1,6 @@
 package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.AccessKeyDao;
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 import org.springframework.context.annotation.Profile;

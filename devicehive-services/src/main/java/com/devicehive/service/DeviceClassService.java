@@ -2,7 +2,6 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceClassDao;
-import com.devicehive.dao.EquipmentDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.EquipmentUpdate;
@@ -27,13 +26,9 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class DeviceClassService {
 
     @Autowired
-    private EquipmentService equipmentService;
-    @Autowired
     private HiveValidator hiveValidator;
     @Autowired
     private DeviceClassDao deviceClassDao;
-    @Autowired
-    private EquipmentDao equipmentDao;
 
     @Transactional
     public void delete(@NotNull long id) {

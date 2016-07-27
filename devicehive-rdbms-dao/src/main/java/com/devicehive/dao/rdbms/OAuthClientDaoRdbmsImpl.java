@@ -1,7 +1,5 @@
 package com.devicehive.dao.rdbms;
 
-import com.devicehive.dao.CacheConfig;
-import com.devicehive.dao.CriteriaHelper;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.model.OAuthClient;
 import org.springframework.context.annotation.Profile;

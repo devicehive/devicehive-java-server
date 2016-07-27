@@ -1,4 +1,4 @@
-package com.devicehive.dao;
+package com.devicehive.dao.rdbms;
 
 import javax.persistence.CacheRetrieveMode;
 import javax.persistence.CacheStoreMode;
@@ -14,10 +14,5 @@ public class CacheHelper {
         query.setHint(CACHEBLE, true);
         query.setHint(RETRIEVE_MODE, CacheRetrieveMode.USE);
         query.setHint(STORE_MODE, CacheStoreMode.USE);
-    }
-
-    public static void notCacheable(Query query) {
-        query.setHint(RETRIEVE_MODE, CacheRetrieveMode.BYPASS);
-        query.setHint(STORE_MODE, CacheStoreMode.BYPASS);
     }
 }
