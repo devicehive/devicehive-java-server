@@ -12,6 +12,7 @@ import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
@@ -46,6 +47,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Autowired
     private AccessKeyService accessKeyService;
 
+    private final Set<DeviceClassEquipmentVO> emptyEquipmentSet = Collections.<DeviceClassEquipmentVO>emptySet();
+
     /**
      * Test to check that device was successfully saved, notification send and retrieved back
      * using Client role.
@@ -65,7 +68,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
     }
 
     /**
@@ -90,7 +93,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
         final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
 
@@ -123,7 +126,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
     }
 
     /**
@@ -160,7 +163,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
     }
 
     /**
@@ -193,8 +196,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
         final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
     }
@@ -230,9 +233,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate1.setNetwork(Optional.ofNullable(network));
         deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
-        deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()), null);
@@ -286,8 +289,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
@@ -339,8 +342,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
         final Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
 
@@ -373,9 +376,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.getList(deviceName1, null, null, null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
@@ -401,9 +404,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         device2.setStatus(status1);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.getList(null, null, status1, null, null, null, null, null, false, null, null, null);
         Collections.sort(devices, (Device a, Device b) -> a.getId().compareTo(b.getId()));
@@ -452,8 +455,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null, null, null, null, false, null, null, null);
         assertNotNull(devices);
@@ -476,8 +479,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, false, null, null, null);
         assertNotNull(devices);
@@ -498,8 +501,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
         final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(), null, false, null, null, null);
         assertNotNull(devices);
@@ -512,7 +515,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dcUpdate);
 
-        deviceService.deviceSave(deviceUpdate, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
 
@@ -548,9 +551,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate1.setNetwork(Optional.ofNullable(network));
         deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
-        deviceService.deviceSave(deviceUpdate0, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate1, Collections.<Equipment>emptySet());
-        deviceService.deviceSave(deviceUpdate2, Collections.<Equipment>emptySet());
+        deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
         long count = deviceService.getAllowedDevicesCount(null, Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()));
         assertEquals(3, count);
@@ -568,13 +571,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final Device device = DeviceFixture.createDevice();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
-             deviceService.deviceSave(deviceUpdate,Collections.<Equipment>emptySet());
+             deviceService.deviceSave(deviceUpdate,emptyEquipmentSet);
 
         final HivePrincipal principal = new HivePrincipal();
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, Collections.<Equipment>emptySet(), principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
     }
 
 }

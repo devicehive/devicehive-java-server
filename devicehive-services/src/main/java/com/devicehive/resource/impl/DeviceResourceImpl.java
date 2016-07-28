@@ -10,6 +10,7 @@ import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -80,7 +82,7 @@ public class DeviceResourceImpl implements DeviceResource {
         deviceUpdate.setGuid(Optional.ofNullable(deviceGuid));
 
         // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
-        Set<Equipment> equipmentSet = null;
+        Set<DeviceClassEquipmentVO> equipmentSet = new HashSet<>();
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         deviceService.deviceSaveAndNotify(deviceUpdate, equipmentSet, principal);

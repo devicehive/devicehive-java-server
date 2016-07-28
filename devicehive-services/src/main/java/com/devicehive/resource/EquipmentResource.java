@@ -30,7 +30,7 @@ public interface EquipmentResource {
     @ApiOperation(value = "Get equipment", notes = "Returns equipment by device class id and equipment id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Equipment was found",
-                    response = Equipment.class),
+                    response = DeviceClassEquipmentVO.class),
             @ApiResponse(code = 404, message = "If equipment not found")
     })
     Response getEquipment(
@@ -51,7 +51,7 @@ public interface EquipmentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Create equipment", notes = "Creates equipment")
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Equipment successfully created", response = Equipment.class),
+            @ApiResponse(code = 201, message = "Equipment successfully created", response = DeviceClassEquipmentVO.class),
             @ApiResponse(code = 400, message = "Invalid request parameters"),
             @ApiResponse(code = 403, message = "Duplicate equipment entry with code = {code} for device class with id :{id}"),
             @ApiResponse(code = 404, message = "Device Class with current id Not Found")

@@ -71,22 +71,4 @@ public class EquipmentUpdate implements HiveEntity {
     public void setData(Optional<JsonStringWrapper> data) {
         this.data = data;
     }
-
-    public Equipment convertTo() {
-        Equipment equipment = new Equipment();
-        equipment.setId(id);
-        if (data != null) {
-            equipment.setData(data.orElse(null));
-        }
-        if (code != null) {
-            equipment.setCode(code.orElse(null));
-        }
-        if (type != null) {
-            equipment.setType(type.orElse(null));
-        }
-        if (name != null) {
-            equipment.setName(name.orElse(null));
-        }
-        return equipment;
-    }
 }

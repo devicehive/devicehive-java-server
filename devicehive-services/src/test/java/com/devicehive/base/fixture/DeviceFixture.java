@@ -1,26 +1,18 @@
 package com.devicehive.base.fixture;
 
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class DeviceFixture {
-
-    public static Equipment createEquipment() {
-        UUID uuid = UUID.randomUUID();
-        Equipment equipment = new Equipment();
-        equipment.setName("equipment-" + uuid);
-        equipment.setCode("equipment_code-" + uuid);
-        equipment.setType("equipment_type-" + uuid);
-        equipment.setData(new JsonStringWrapper(String.format("{\"data\": \"equipment_data-%s\"}", uuid)));
-        return equipment;
-    }
 
     public static DeviceClassEquipmentVO createEquipmentVO() {
         UUID uuid = UUID.randomUUID();

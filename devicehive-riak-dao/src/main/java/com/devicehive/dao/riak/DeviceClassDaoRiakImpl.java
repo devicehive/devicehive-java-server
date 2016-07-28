@@ -87,6 +87,16 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                 Long deviceClassEntityId = getId(COUNTERS_LOCATION);
                 deviceClass.setId(deviceClassEntityId);
             }
+
+            if (deviceClass.getEquipment() != null) {
+                Long id = getId(COUNTERS_LOCATION, deviceClass.getEquipment().size());
+                for (DeviceClassEquipmentVO deviceClassEquipmentVO : deviceClass.getEquipment()) {
+                    if (deviceClassEquipmentVO.getId() == null) {
+                        deviceClassEquipmentVO.setId(id--);
+                    }
+                }
+            }
+
             RiakDeviceClass riakDeviceClass = RiakDeviceClass.convertWithEquipmentToEntity(deviceClass);
             Location location = new Location(DEVICE_CLASS_NS, String.valueOf(deviceClass.getId()));
             StoreValue storeOp = new StoreValue.Builder(riakDeviceClass).withLocation(location)
@@ -94,12 +104,6 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                     .build();
             client.execute(storeOp);
 
-            if (deviceClass.getEquipment() != null) {
-                Long id = getId(COUNTERS_LOCATION, deviceClass.getEquipment().size());
-                for (DeviceClassEquipmentVO deviceClassEquipmentVO : deviceClass.getEquipment()) {
-                    deviceClassEquipmentVO.setId(id--);
-                }
-            }
 
             return deviceClass;
         } catch (ExecutionException | InterruptedException e) {

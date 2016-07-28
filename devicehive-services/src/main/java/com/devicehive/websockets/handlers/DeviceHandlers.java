@@ -10,6 +10,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.Equipment;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
+import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
@@ -162,9 +163,9 @@ public class DeviceHandlers extends WebsocketHandlers {
         }
         device.setGuid(Optional.ofNullable(deviceId));
         Gson gsonForEquipment = GsonFactory.createGson();
-        Set<Equipment> equipmentSet = gsonForEquipment.fromJson(
+        Set<DeviceClassEquipmentVO> equipmentSet = gsonForEquipment.fromJson(
             message.get(Constants.EQUIPMENT),
-            new TypeToken<HashSet<Equipment>>() {
+            new TypeToken<HashSet<DeviceClassEquipmentVO>>() {
             }.getType());
 
         if (equipmentSet != null) {

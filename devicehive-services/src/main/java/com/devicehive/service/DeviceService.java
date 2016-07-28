@@ -48,7 +48,7 @@ public class DeviceService {
     private DeviceDao deviceDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deviceSaveAndNotify(DeviceUpdate device, Set<Equipment> equipmentSet, HivePrincipal principal) {
+    public void deviceSaveAndNotify(DeviceUpdate device, Set<DeviceClassEquipmentVO> equipmentSet, HivePrincipal principal) {
         logger.debug("Device: {}. Current role: {}.", device.getGuid(), principal == null ? null : principal.getRole());
         validateDevice(device);
         DeviceNotification dn;
@@ -73,7 +73,7 @@ public class DeviceService {
 
     //TODO [rafa] equipmentSet parameter looks strange
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
-                                               Set<Equipment> equipmentSet,
+                                               Set<DeviceClassEquipmentVO> equipmentSet,
                                                User user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
@@ -86,6 +86,7 @@ public class DeviceService {
                 //TODO [rafa] changed
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
+                dc.setName(deviceClass.getName());
                 device.setDeviceClass(dc);
             }
             if (network != null) {
@@ -104,6 +105,7 @@ public class DeviceService {
             if (deviceUpdate.getDeviceClass() != null) {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
+                dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getStatus() != null) {
@@ -139,7 +141,7 @@ public class DeviceService {
     }
 
     private DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
-                                              Set<Equipment> equipmentSet,
+                                              Set<DeviceClassEquipmentVO> equipmentSet,
                                               AccessKey key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
         Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
@@ -153,6 +155,7 @@ public class DeviceService {
         if (existingDevice == null) {
             DeviceClass dc = new DeviceClass();
             dc.setId(deviceClass.getId());
+            dc.setName(deviceClass.getName());
 
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(dc);
@@ -167,6 +170,7 @@ public class DeviceService {
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
+                dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getStatus() != null) {
@@ -190,7 +194,7 @@ public class DeviceService {
 
     @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
-                                         Set<Equipment> equipmentSet) {
+                                         Set<DeviceClassEquipmentVO> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
@@ -201,6 +205,7 @@ public class DeviceService {
             if (deviceClass != null) {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
+                dc.setName(deviceClass.getName());
                 device.setDeviceClass(dc);
             }
             if (network != null) {
@@ -212,6 +217,7 @@ public class DeviceService {
             if (deviceUpdate.getDeviceClass() != null) {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
+                dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getStatus() != null) {

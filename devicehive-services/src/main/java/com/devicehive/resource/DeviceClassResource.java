@@ -42,7 +42,7 @@ public interface DeviceClassResource {
     @ApiOperation(value = "List device classes", notes = "Gets list of device classes.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.",
-                    response = DeviceClass.class, responseContainer = "List"),
+                    response = DeviceClassWithEquipmentVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
@@ -82,7 +82,7 @@ public interface DeviceClassResource {
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.",
-                    response = DeviceClass.class),
+                    response = DeviceClassWithEquipmentVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -112,7 +112,7 @@ public interface DeviceClassResource {
     @ApiOperation(value = "Create device class", notes = "Creates new device class.")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.",
-                    response = DeviceClass.class),
+                    response = DeviceClassWithEquipmentVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions or device class with same name exists.")
