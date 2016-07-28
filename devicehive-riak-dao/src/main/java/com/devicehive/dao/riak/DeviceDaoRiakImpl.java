@@ -65,6 +65,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     private final Map<String, String> sortMap = new HashMap<>();
 
     public DeviceDaoRiakImpl() {
+        sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("guid", "function(a,b){ return a.guid %s b.guid; }");
         sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
@@ -234,12 +235,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                 Long deviceClassId, String deviceClassName, String sortField,
                                 @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
-        List<Device> result = new ArrayList<>();
-
         try {
             String sortFunction = sortMap.get(sortField);
             if (sortFunction == null) {
-                sortFunction = sortMap.get("name");
+                sortFunction = sortMap.get("id");
             }
             if (sortOrderAsc == null) {
                 sortOrderAsc = true;
@@ -365,7 +364,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
             }
-
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                     String.format(sortFunction, sortOrderAsc ? ">" : "<"),
                     true);
@@ -379,11 +377,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-
-            Collection devices = response.getResultsFromAllPhases(Device.class);
-            result.addAll(devices);
-
-            result = result.stream()
+            return response.getResultsFromAllPhases(Device.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
@@ -391,7 +385,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot get list of devices.", e);
         }
-        return result;
     }
 
     private Device refreshRefs(Device device) {

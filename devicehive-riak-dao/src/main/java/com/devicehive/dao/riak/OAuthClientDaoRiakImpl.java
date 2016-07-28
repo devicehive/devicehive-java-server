@@ -12,6 +12,7 @@ import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
+import com.devicehive.configuration.Constants;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.OAuthClient;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @Profile({"riak"})
 @Repository
@@ -47,6 +49,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     public OAuthClientDaoRiakImpl() {
         oauthClientCounters = new Location(COUNTER_NS, "oauth_client_counter");
 
+        sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("domain", "function(a,b){ return a.domain %s b.domain; }");
         sortMap.put("subnet", "function(a,b){ return a.subnet %s b.subnet; }");
@@ -175,11 +178,10 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                                  Boolean sortOrderAsc,
                                  Integer take,
                                  Integer skip) {
-        ArrayList<OAuthClient> result = new ArrayList<>();
         try {
             String sortFunction = sortMap.get(sortField);
             if (sortFunction == null) {
-                sortFunction = sortMap.get("name");
+                sortFunction = sortMap.get("id");
             }
             if (sortOrderAsc == null) {
                 sortOrderAsc = true;
@@ -240,23 +242,24 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
 
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                     String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                    take == null);
+                    true);
 
-            if (take != null) {
-                int[] args = new int[2];
-                args[0] = skip != null ? skip : 0;
-                args[1] = args[0] + take;
-                builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSlice"), args, true);
-            }
+            if (take == null)
+                take = Constants.DEFAULT_TAKE;
+            if (skip == null)
+                skip = 0;
+
             BucketMapReduce bmr = builder.build();
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            result.addAll(response.getResultsFromAllPhases(OAuthClient.class));
+            return response.getResultsFromAllPhases(OAuthClient.class).stream()
+                    .skip(skip)
+                    .limit(take)
+                    .collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch OAuthClient by filter.", e);
         }
-        return result;
     }
 }

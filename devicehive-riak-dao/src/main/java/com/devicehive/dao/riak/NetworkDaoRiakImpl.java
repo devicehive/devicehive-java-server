@@ -59,6 +59,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     private UserDao userDao;
 
     private final Map<String, String> sortMap = new HashMap<String, String>() {{
+        put("id", "function(a,b){ return a.id %s b.id; }");
         put("name", "function(a,b){ return a.name %s b.name; }");
         put("description", "function(a,b){ return a.description %s b.description; }");
         put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
@@ -171,7 +172,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                               Integer skip, Optional<HivePrincipal> principal) {
         String sortFunc = sortMap.get(sortField);
         if (sortFunc == null) {
-            sortFunc = sortMap.get("name");
+            sortFunc = sortMap.get("id");
         }
 
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
