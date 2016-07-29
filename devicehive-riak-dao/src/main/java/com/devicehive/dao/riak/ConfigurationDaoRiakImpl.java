@@ -7,8 +7,9 @@ import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.ConfigurationDao;
+import com.devicehive.dao.riak.model.RiakConfiguration;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Configuration;
+import com.devicehive.vo.ConfigurationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
     private RiakQuorum quorum;
 
     @Override
-    public Optional<Configuration> getByName(String id) {
+    public Optional<ConfigurationVO> getByName(String id) {
         //TODO configurable quorum?
         try {
             Location objectKey = new Location(CONFIG_NS, id);
@@ -41,8 +42,8 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             FetchValue.Response response = client.execute(fetch);
-            Configuration configuration = getOrNull(response, Configuration.class);
-            return Optional.ofNullable(configuration);
+            RiakConfiguration configuration = getOrNull(response, RiakConfiguration.class);
+            return Optional.ofNullable(RiakConfiguration.convert(configuration));
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch configuration by name.", e);
@@ -63,10 +64,10 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
     }
 
     @Override
-    public void persist(Configuration configuration) {
+    public void persist(ConfigurationVO configuration) {
         try {
             Location objectKey = new Location(CONFIG_NS, configuration.getName());
-            StoreValue storeOp = new StoreValue.Builder(configuration)
+            StoreValue storeOp = new StoreValue.Builder(RiakConfiguration.convert(configuration))
                     .withLocation(objectKey)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
@@ -78,7 +79,7 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
     }
 
     @Override
-    public Configuration merge(Configuration existing) {
+    public ConfigurationVO merge(ConfigurationVO existing) {
         persist(existing);
         return existing;
     }

@@ -1,16 +1,16 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.Configuration;
+import com.devicehive.vo.ConfigurationVO;
 
 import java.util.Optional;
 
 public interface ConfigurationDao {
 
-    Optional<Configuration> getByName(String name);
+    Optional<ConfigurationVO> getByName(String name);
 
     int delete(String name);
 
-    void persist(Configuration configuration);
+    void persist(ConfigurationVO configuration);
 
-    Configuration merge(Configuration existing);
+    ConfigurationVO merge(ConfigurationVO existing);
 }

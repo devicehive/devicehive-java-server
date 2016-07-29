@@ -5,6 +5,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.ConfigurationVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,22 +65,22 @@ public class InitialDataLoader {
         key.getPermissions().add(permission);
         accessKeyDao.persist(key);
 
-        Configuration cfg;
-        cfg = new Configuration("google.identity.allowed", "true");
+        ConfigurationVO cfg;
+        cfg = new ConfigurationVO("google.identity.allowed", "true");
         configurationDao.persist(cfg);
-        cfg = new Configuration("google.identity.client.id", "google_id");
+        cfg = new ConfigurationVO("google.identity.client.id", "google_id");
         configurationDao.persist(cfg);
-        cfg = new Configuration("facebook.identity.allowed", "true");
+        cfg = new ConfigurationVO("facebook.identity.allowed", "true");
         configurationDao.persist(cfg);
-        cfg = new Configuration("facebook.identity.client.id", "facebook_id");
+        cfg = new ConfigurationVO("facebook.identity.client.id", "facebook_id");
         configurationDao.persist(cfg);
-        cfg = new Configuration("github.identity.allowed", "true");
+        cfg = new ConfigurationVO("github.identity.allowed", "true");
         configurationDao.persist(cfg);
-        cfg = new Configuration("github.identity.client.id", "github_id");
+        cfg = new ConfigurationVO("github.identity.client.id", "github_id");
         configurationDao.persist(cfg);
-        cfg = new Configuration("session.timeout", "1200000");
+        cfg = new ConfigurationVO("session.timeout", "1200000");
         configurationDao.persist(cfg);
-        cfg = new Configuration("allowNetworkAutoCreate", "true");
+        cfg = new ConfigurationVO("allowNetworkAutoCreate", "true");
         configurationDao.persist(cfg);
 
         // -- 2. Default device classes
@@ -141,13 +142,13 @@ public class InitialDataLoader {
         key.getPermissions().add(permission2);
         accessKeyDao.persist(key);
 
-        cfg = new Configuration("websocket.ping.timeout", "120000");
+        cfg = new ConfigurationVO("websocket.ping.timeout", "120000");
         configurationDao.persist(cfg);
 
-        cfg = new Configuration("cassandra.rest.endpoint", "http://127.0.0.1:8080/cassandra");
+        cfg = new ConfigurationVO("cassandra.rest.endpoint", "http://127.0.0.1:8080/cassandra");
         configurationDao.persist(cfg);
 
-        cfg = new Configuration("user.login.lastTimeout", "1000");
+        cfg = new ConfigurationVO("user.login.lastTimeout", "1000");
         configurationDao.persist(cfg);
     }
 

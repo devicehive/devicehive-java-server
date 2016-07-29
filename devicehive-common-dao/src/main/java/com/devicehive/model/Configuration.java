@@ -1,5 +1,6 @@
 package com.devicehive.model;
 
+import com.devicehive.vo.ConfigurationVO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
@@ -11,6 +12,7 @@ import javax.validation.Validator;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.model.Configuration.Queries.Names;
@@ -138,6 +140,42 @@ public class Configuration implements HiveEntity {
         public static interface Parameters {
 
             static final String NAME = "name";
+        }
+    }
+
+    public static Configuration convert(ConfigurationVO vo) {
+        if (vo != null) {
+            Configuration result = new Configuration();
+            result.setName(vo.getName());
+            result.setValue(vo.getValue());
+            result.setEntityVersion(vo.getEntityVersion());
+            return result;
+        } else {
+            return null;
+        }
+    }
+
+    public static ConfigurationVO convert(Configuration configuration) {
+        if (configuration != null) {
+            ConfigurationVO vo = new ConfigurationVO();
+            vo.setName(configuration.getName());
+            vo.setValue(configuration.getValue());
+            vo.setEntityVersion(configuration.getEntityVersion());
+            return vo;
+        } else {
+            return null;
+        }
+    }
+
+    public static Optional<ConfigurationVO> convert(Optional<Configuration> configuration) {
+        if (configuration != null) {
+            if (configuration.isPresent()) {
+                return Optional.ofNullable(convert(configuration.get()));
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            return null;
         }
     }
 }

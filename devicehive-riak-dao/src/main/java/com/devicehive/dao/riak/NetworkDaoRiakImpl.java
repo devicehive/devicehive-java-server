@@ -7,7 +7,6 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.api.commands.mapreduce.filters.SetMemberFilter;
 import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
@@ -19,8 +18,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
-import com.devicehive.dao.riak.vo.NetworkVoRiak;
+import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
@@ -96,7 +94,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         if (newNetwork.getId() == null) {
             newNetwork.setId(getId(networkCounter));
         }
-        NetworkVoRiak network = new NetworkVoRiak(newNetwork);
+        RiakNetwork network = new RiakNetwork(newNetwork);
 
         Location location = new Location(NETWORK_NS, String.valueOf(network.getId()));
         StoreValue storeOp = new StoreValue.Builder(network)
@@ -142,17 +140,17 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
     @Override
     public NetworkVO find(@NotNull Long networkId) {
-        NetworkVoRiak vo = get(networkId);
+        RiakNetwork vo = get(networkId);
         return vo != null ? vo.convert() : null;
     }
 
-    private NetworkVoRiak get(@NotNull  Long networkId) {
+    private RiakNetwork get(@NotNull  Long networkId) {
         Location location = new Location(NETWORK_NS, String.valueOf(networkId));
         FetchValue fetchOp = new FetchValue.Builder(location)
                 .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                 .build();
         try {
-            return getOrNull(client.execute(fetchOp), NetworkVoRiak.class);
+            return getOrNull(client.execute(fetchOp), RiakNetwork.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't fetch network by id", e);
         }
@@ -162,7 +160,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     public NetworkVO merge(@NotNull NetworkVO network) {
         assert network.getId() != null;
 
-        NetworkVoRiak existing = get(network.getId());
+        RiakNetwork existing = get(network.getId());
         existing.setKey(network.getKey());
         existing.setName(network.getName());
         existing.setDescription(network.getDescription());

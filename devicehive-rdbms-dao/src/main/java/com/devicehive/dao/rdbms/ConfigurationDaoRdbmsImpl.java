@@ -2,6 +2,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.model.Configuration;
+import com.devicehive.vo.ConfigurationVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -12,11 +13,11 @@ import java.util.Optional;
 public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements ConfigurationDao {
 
     @Override
-    public Optional<Configuration> getByName(String name) {
-        return createNamedQuery(Configuration.class, "Configuration.getByName", Optional.<CacheConfig>empty())
+    public Optional<ConfigurationVO> getByName(String name) {
+        return Configuration.convert(createNamedQuery(Configuration.class, "Configuration.getByName", Optional.<CacheConfig>empty())
                 .setParameter("name", name)
                 .getResultList()
-                .stream().findFirst();
+                .stream().findFirst());
     }
 
     @Override
@@ -27,12 +28,12 @@ public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements Config
     }
 
     @Override
-    public void persist(Configuration configuration) {
-        super.persist(configuration);
+    public void persist(ConfigurationVO configuration) {
+        super.persist(Configuration.convert(configuration));
     }
 
     @Override
-    public Configuration merge(Configuration existing) {
-        return super.merge(existing);
+    public ConfigurationVO merge(ConfigurationVO existing) {
+        return Configuration.convert(super.merge(Configuration.convert(existing)));
     }
 }

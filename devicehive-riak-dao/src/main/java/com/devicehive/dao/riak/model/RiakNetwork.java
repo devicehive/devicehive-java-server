@@ -1,10 +1,10 @@
-package com.devicehive.dao.riak.vo;
+package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 
-public class NetworkVoRiak {
+public class RiakNetwork {
 
     private Long id;
     private String key;
@@ -12,9 +12,9 @@ public class NetworkVoRiak {
     private String description;
     private Long entityVersion;
 
-    public NetworkVoRiak() {}
+    public RiakNetwork() {}
 
-    public NetworkVoRiak(NetworkVO vo) {
+    public RiakNetwork(NetworkVO vo) {
         id = vo.getId();
         key = vo.getKey();
         name = vo.getName();

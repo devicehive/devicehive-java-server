@@ -1,7 +1,7 @@
 package com.devicehive.configuration;
 
 import com.devicehive.dao.ConfigurationDao;
-import com.devicehive.model.Configuration;
+import com.devicehive.vo.ConfigurationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,26 +24,26 @@ public class ConfigurationService {
     public <T> void save(@NotNull String name, T value) {
         //TODO check keys are same
         String str = value != null ? value.toString() : null;
-        Optional<Configuration> existingOpt = findByName(name);
+        Optional<ConfigurationVO> existingOpt = findByName(name);
         if (existingOpt.isPresent()) {
-            Configuration existing = existingOpt.get();
+            ConfigurationVO existing = existingOpt.get();
             existing.setValue(str);
             configurationDao.merge(existing);
         } else {
-            Configuration configuration = new Configuration();
+            ConfigurationVO configuration = new ConfigurationVO();
             configuration.setName(name);
             configuration.setValue(str);
             configurationDao.persist(configuration);
         }
     }
 
-    private Optional<Configuration> findByName(String name) {
+    private Optional<ConfigurationVO> findByName(String name) {
         return configurationDao.getByName(name);
     }
 
     public String get(@NotNull String name) {
         return findByName(name)
-                .map(Configuration::getValue)
+                .map(ConfigurationVO::getValue)
                 .orElseGet(() -> {
                     logger.warn(String.format(Messages.CONFIG_NOT_FOUND, name));
                     return null;
