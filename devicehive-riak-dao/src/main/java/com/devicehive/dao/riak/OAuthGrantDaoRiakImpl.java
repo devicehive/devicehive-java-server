@@ -217,7 +217,15 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             }
             BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                     .withNamespace(OAUTH_GRANT_NS)
-                    .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+                    .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
+                            "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
+                            "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
+                    .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
+                            "return values.filter(function(v) {" +
+                            "if (v === []) { return false; }" +
+                            "return true;" +
+                            "})" +
+                            "}"));
 
             if (user != null) {
                 long userId = user.getId();
@@ -237,6 +245,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 String functionString =
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.timestamp === null) { return false; }" +
                                 "var timestamp = v.timestamp;" +
                                 "return timestamp.getTime() > arg.getTime();" +
                                 "})" +
@@ -249,6 +258,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 String functionString =
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.timestamp === null) { return false; }" +
                                 "var timestamp = v.timestamp;" +
                                 "return timestamp.getTime() < arg.getTime();" +
                                 "})" +
@@ -261,6 +271,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
+                                "if (v.client === null) { return false; }" +
                                 "var oauthId = v.client.oauthId;" +
                                 "return oauthId == '%s';" +
                                 "})" +

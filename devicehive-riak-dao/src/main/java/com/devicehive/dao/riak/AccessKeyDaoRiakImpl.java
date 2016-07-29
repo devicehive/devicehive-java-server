@@ -229,7 +229,15 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             }
             BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                     .withNamespace(ACCESS_KEY_NS)
-                    .withMapPhase(Function.newNamedJsFunction("Riak.mapValuesJson"));
+                    .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
+                            "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
+                            "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
+                    .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
+                            "return values.filter(function(v) {" +
+                            "if (v === []) { return false; }" +
+                            "return true;" +
+                            "})" +
+                            "}"));
 
             if (userId != null) {
                 IntIndexQuery iiq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", userId).build();
@@ -251,6 +259,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
                 String functionBody = String.format(
                         "function(values, arg) {" +
                                 "  return values.filter(function(v) {" +
+                                "    if (v.label === null) { return false; }" +
                                 "    return v.label.indexOf('%s') > -1;" +
                                 "  })" +
                                 "}", labelPattern);
