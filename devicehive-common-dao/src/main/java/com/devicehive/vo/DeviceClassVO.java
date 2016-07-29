@@ -1,6 +1,7 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 
 import javax.validation.constraints.NotNull;
@@ -11,7 +12,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 /**
  * Device Class Value Object.
  */
-public class DeviceClassVO {
+public class DeviceClassVO implements HiveEntity {
 
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED, DEVICECLASS_SUBMITTED})
     private Long id;

@@ -342,16 +342,13 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
-                long userId = -1L;
-                if (principal.getUser() != null) {
-                    userId = principal.getUser().getId();
-                } else if (principal.getKey() != null && principal.getKey().getUser() != null) {
-                    userId = principal.getKey().getUser().getId();
+                User user = principal.getUser();
+                if (user == null && principal.getKey() != null) {
+                    user = principal.getKey().getUser();
                 }
 
-                if (userId != -1) {
-                    Set<Long> networks = userNetworkDao.findNetworksForUser(userId);
-
+                if (user != null && !user.isAdmin()) {
+                    Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                     String functionString =
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +
@@ -362,6 +359,37 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                     "}";
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
                     builder.withReducePhase(reduceFunction, networks);
+                }
+
+                if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
+                    Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+                    Set<String> deviceGuids = new HashSet<>();
+                    for (AccessKeyPermission permission : permissions) {
+                        Set<String> guid = permission.getDeviceGuidsAsSet();
+                        if (guid != null) {
+                            deviceGuids.addAll(guid);
+                        }
+                    }
+                    String functionString =
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "if (v.guid == null) return false;" +
+                                    "var guid = v.guid;" +
+                                    "return arg.indexOf(guid) > -1;" +
+                                    "})" +
+                                    "}";
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction, deviceGuids);
+                } else if (principal.getDevice() != null) {
+                    String functionString = String.format(
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "var id = v.id;" +
+                                    "return id == %s;" +
+                                    "})" +
+                                    "}", principal.getDevice().getId());
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction);
                 }
             }
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),

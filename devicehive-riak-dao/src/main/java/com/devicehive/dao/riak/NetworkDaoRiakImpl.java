@@ -14,16 +14,14 @@ import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Device;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
-import com.devicehive.model.UserNetwork;
+import com.devicehive.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -169,7 +167,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
     @Override
     public List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
-                              Integer skip, Optional<HivePrincipal> principal) {
+                              Integer skip, Optional<HivePrincipal> principalOptional) {
         String sortFunc = sortMap.get(sortField);
         if (sortFunc == null) {
             sortFunc = sortMap.get("id");
@@ -211,27 +209,59 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             builder.withReducePhase(function);
         }
 
-        principal.flatMap(p -> {
-            User user = p.getUser();
-            if (user == null && p.getKey().getUser() != null) {
-                user = p.getKey().getUser();
-            }
+        if (principalOptional.isPresent()) {
+            HivePrincipal principal = principalOptional.get();
+            if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+                User user = principal.getUser();
+                if (user == null && principal.getKey() != null) {
+                    user = principal.getKey().getUser();
+                }
 
-            Set<Long> networkIds = null;
-            if (user != null && !user.isAdmin()) {
-                networkIds = userNetworkDao.findNetworksForUser(user.getId());
-            } else if (p.getKey() != null && p.getKey().getPermissions() != null && (user == null || !user.isAdmin())) {
-                networkIds = AccessKeyBasedFilterForDevices.createExtraFilters(p.getKey().getPermissions()).stream()
-                        .filter(f -> f.getNetworkIds() != null)
-                        .flatMap(f -> f.getNetworkIds().stream())
-                        .collect(Collectors.toSet());
-            }
-            return Optional.ofNullable(networkIds);
-        }).ifPresent(networkIds -> {
-            List<String> ids = networkIds.stream().map(Object::toString).collect(Collectors.toList());
+                if (user != null && !user.isAdmin()) {
+                    Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+                    String functionString =
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "var networkId = v.id;" +
+                                    "return arg.indexOf(networkId) > -1;" +
+                                    "})" +
+                                    "}";
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction, networks);
+                }
 
-            builder.withKeyFilter(new SetMemberFilter<>(ids.toArray(new String[ids.size()])));
-        });
+                if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
+                    Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+                    Set<Long> ids = new HashSet<>();
+                    for (AccessKeyPermission permission : permissions) {
+                        Set<Long> id = permission.getNetworkIdsAsSet();
+                        if (id != null) {
+                            ids.addAll(id);
+                        }
+                    }
+
+                    String functionString =
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "return arg.indexOf(v.id) > -1;" +
+                                    "})" +
+                                    "}";
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    if (!ids.isEmpty()) builder.withReducePhase(reduceFunction, ids);
+                } else if (principal.getDevice() != null) {
+                    String functionString =
+                            "function(values, arg) {" +
+                                    "return values.filter(function(v) {" +
+                                    "var devices = v.devices;" +
+                                    "if (devices == null) return false;" +
+                                    "return devices.indexOf(arg) > -1;" +
+                                    "})" +
+                                    "}";
+                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
+                    builder.withReducePhase(reduceFunction, principal.getDevice());
+                }
+            }
+        }
 
         builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
                 String.format(sortFunc, sortOrderAsc ? ">" : "<"),
