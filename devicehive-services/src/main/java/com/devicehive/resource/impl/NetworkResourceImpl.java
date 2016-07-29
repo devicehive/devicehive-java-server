@@ -5,12 +5,12 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.Network;
-import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.resource.NetworkResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.NetworkService;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ public class NetworkResourceImpl implements NetworkResource {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Network> result = networkService
+        List<NetworkVO> result = networkService
             .list(name, namePattern, sortField, sortOrder, take, skip, principal);
 
         logger.debug("Network list request proceed successfully.");
@@ -62,7 +62,7 @@ public class NetworkResourceImpl implements NetworkResource {
     @Override
     public Response get(long id) {
         logger.debug("Network get requested.");
-        Network existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
         if (existing == null) {
             logger.error("Network with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -75,9 +75,9 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insert(Network network) {
+    public Response insert(NetworkVO network) {
         logger.debug("Network insert requested");
-        Network result = networkService.create(network);
+        NetworkVO result = networkService.create(network);
         logger.debug("New network has been created");
         return ResponseFactory.response(CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }
@@ -86,7 +86,7 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response update(NetworkUpdate networkToUpdate, long id) {
+    public Response update(NetworkVO networkToUpdate, long id) {
         logger.debug("Network update requested. Id : {}", id);
         networkService.update(id, networkToUpdate);
         logger.debug("Network has been updated successfully. Id : {}", id);

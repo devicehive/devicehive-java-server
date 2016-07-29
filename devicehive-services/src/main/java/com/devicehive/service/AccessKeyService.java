@@ -14,6 +14,7 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,7 +190,7 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToNetwork(AccessKey accessKey, Network targetNetwork) {
+    public boolean hasAccessToNetwork(AccessKey accessKey, NetworkVO targetNetwork) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         User user = accessKey.getUser();
         boolean hasNullPermission = permissions.stream().anyMatch(perm -> perm.getNetworkIdsAsSet() == null);
@@ -200,8 +201,9 @@ public class AccessKeyService {
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
             user = userService.findUserWithNetworks(user.getId());
+            Network nw = Network.convert(targetNetwork);
             return allowedNetworks.contains(targetNetwork.getId()) &&
-                    (user.isAdmin() || user.getNetworks().contains(targetNetwork));
+                    (user.isAdmin() || user.getNetworks().contains(nw));
         }
     }
 

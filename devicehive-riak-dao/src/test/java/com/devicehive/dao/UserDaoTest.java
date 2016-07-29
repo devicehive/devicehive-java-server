@@ -5,6 +5,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserNetwork;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -153,7 +154,7 @@ public class UserDaoTest extends AbstractResourceTest {
         user.setId(id);
         userDao.persist(user);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setId(64L);
 
         long hasAccess = userDao.hasAccessToNetwork(user, network);

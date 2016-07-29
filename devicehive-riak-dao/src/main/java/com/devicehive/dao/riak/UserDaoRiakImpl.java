@@ -21,6 +21,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -153,7 +154,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToNetwork(User user, Network network) {
+    public long hasAccessToNetwork(User user, NetworkVO network) {
         Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
         if (networks != null && networks.contains(network.getId())) {
             return 1L;
@@ -194,12 +195,15 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         if (networkIds == null) {
             return user;
         }
-        Set<Network> networks = new HashSet<>();
+        Set<NetworkVO> networks = new HashSet<>();
+        //todo: rewrite when migrate User->UserVO
+        Set<Network> oldNetworks = new HashSet<>();
         for (Long networkId : networkIds) {
-            Network network = networkDao.find(networkId);
+            NetworkVO network = networkDao.find(networkId);
             networks.add(network);
+            oldNetworks.add(Network.convert(network));
         }
-        user.setNetworks(networks);
+        user.setNetworks(oldNetworks);
         return user;
     }
 

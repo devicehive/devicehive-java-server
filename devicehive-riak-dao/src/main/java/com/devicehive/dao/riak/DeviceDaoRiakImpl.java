@@ -22,6 +22,7 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,6 +162,12 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
             logger.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
         }
+    }
+
+    @Override
+    public Device merge(Device device) {
+        persist(device);
+        return device;
     }
 
     @Override
@@ -418,7 +425,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     private Device refreshRefs(Device device) {
         if (device != null) {
             if (device.getNetwork() != null) {
-                Network network = networkDao.find(device.getNetwork().getId());
+                // todo: remove when migrate Device->DeviceVO
+                NetworkVO networkVO = networkDao.find(device.getNetwork().getId());
+                Network network = Network.convert(networkVO);
                 device.setNetwork(network);
             }
 

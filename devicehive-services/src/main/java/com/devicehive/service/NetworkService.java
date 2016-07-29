@@ -12,8 +12,9 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
-import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +46,14 @@ public class NetworkService {
     private NetworkDao networkDao;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public Network getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
+    public NetworkWithUsersAndDevicesVO getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
         Set<Long> permittedNetworks = permittedNetworksIds(principal.getKey());
         Set<String> permittedDevices = permittedDeviceGuids(principal.getKey());
 
-        Optional<Network> result = of(principal)
+        Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
                     if (pr.getUser() != null)
                         return of(pr.getUser());
@@ -62,7 +63,7 @@ public class NetworkService {
                         return empty();
                 }).flatMap(user -> {
                     Long idForFiltering = user.isAdmin() ? null : user.getId();
-                    List<Network> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
+                    List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
                 }).map(network -> {
@@ -120,13 +121,13 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network create(Network newNetwork) {
+    public NetworkVO create(NetworkVO newNetwork) {
         logger.debug("Creating network {}", newNetwork);
         if (newNetwork.getId() != null) {
             logger.error("Can't create network entity with id={} specified", newNetwork.getId());
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
-        List<Network> existing = networkDao.findByName(newNetwork.getName());
+        List<NetworkVO> existing = networkDao.findByName(newNetwork.getName());
         if (!existing.isEmpty()) {
             logger.error("Network with name {} already exists", newNetwork.getName());
             throw new ActionNotAllowedException(Messages.DUPLICATE_NETWORK);
@@ -137,26 +138,27 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
-        Network existing = networkDao.find(networkId);
+    public NetworkVO update(@NotNull Long networkId, NetworkVO NetworkVO) {
+        NetworkVO existing = networkDao.find(networkId);
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
-        if (networkUpdate.getKey() != null) {
-            existing.setKey(networkUpdate.getKey().orElse(null));
+        if (NetworkVO.getKey() != null) {
+            existing.setKey(NetworkVO.getKey());
         }
-        if (networkUpdate.getName() != null) {
-            existing.setName(networkUpdate.getName().orElse(null));
+        if (NetworkVO.getName() != null) {
+            existing.setName(NetworkVO.getName());
         }
-        if (networkUpdate.getDescription() != null) {
-            existing.setDescription(networkUpdate.getDescription().orElse(null));
+        if (NetworkVO.getDescription() != null) {
+            existing.setDescription(NetworkVO.getDescription());
         }
         hiveValidator.validate(existing);
+
         return networkDao.merge(existing);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<Network> list(String name,
+    public List<NetworkVO> list(String name,
                               String namePattern,
                               String sortField,
                               boolean sortOrderAsc,
@@ -171,14 +173,14 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network createOrVerifyNetwork(Optional<Network> networkNullable) {
+    public NetworkVO createOrVerifyNetwork(Optional<NetworkVO> networkNullable) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
-        Network network = networkNullable.get();
+        NetworkVO network = networkNullable.get();
 
-        Optional<Network> storedOpt = findNetworkByIdOrName(network);
+        Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
             return validateNetworkKey(storedOpt.get(), network);
         } else {
@@ -187,24 +189,26 @@ public class NetworkService {
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
             if (allowed) {
-                networkDao.persist(network);
+                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
+                networkDao.persist(newNetwork);
+                network.setId(newNetwork.getId());
             }
             return network;
         }
     }
 
     @Transactional
-    public Network createOrUpdateNetworkByUser(Optional<Network> networkNullable, User user) {
+    public NetworkVO createOrUpdateNetworkByUser(Optional<NetworkVO> networkNullable, User user) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
 
-        Network network = networkNullable.orElse(null);
+        NetworkVO network = networkNullable.orElse(null);
 
-        Optional<Network> storedOpt = findNetworkByIdOrName(network);
+        Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            Network stored = validateNetworkKey(storedOpt.get(), network);
+            NetworkVO stored = validateNetworkKey(storedOpt.get(), network);
             if (!userService.hasAccessToNetwork(user, stored)) {
                 throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
             }
@@ -215,7 +219,9 @@ public class NetworkService {
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
             if (user.isAdmin() || allowed) {
-                networkDao.persist(network);
+                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
+                networkDao.persist(newNetwork);
+                network.setId(newNetwork.getId());
             } else {
                 throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
             }
@@ -224,17 +230,17 @@ public class NetworkService {
     }
 
     @Transactional
-    public Network createOrVerifyNetworkByKey(Optional<Network> networkNullable, AccessKey key) {
+    public NetworkVO createOrVerifyNetworkByKey(Optional<NetworkVO> networkNullable, AccessKey key) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
         }
 
-        Network network = networkNullable.orElse(null);
+        NetworkVO network = networkNullable.orElse(null);
 
-        Optional<Network> storedOpt = findNetworkByIdOrName(network);
+        Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            Network stored = validateNetworkKey(storedOpt.get(), network);
+            NetworkVO stored = validateNetworkKey(storedOpt.get(), network);
             if (stored.getKey() != null && !accessKeyService.hasAccessToNetwork(key, stored)) {
                 throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
             }
@@ -245,7 +251,9 @@ public class NetworkService {
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
             if (allowed) {
-                networkDao.persist(network);
+                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
+                networkDao.persist(newNetwork);
+                network.setId(newNetwork.getId());
             } else {
                 throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
             }
@@ -253,13 +261,13 @@ public class NetworkService {
         }
     }
 
-    private Optional<Network> findNetworkByIdOrName(Network network) {
+    private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(networkDao.find(id)))
                 .orElseGet(() -> networkDao.findFirstByName(network.getName()));
     }
 
-    private Network validateNetworkKey(Network stored, Network received) {
+    private NetworkVO validateNetworkKey(NetworkVO stored, NetworkVO received) {
         if (stored.getKey() != null && !stored.getKey().equals(received.getKey())) {
             throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
         }

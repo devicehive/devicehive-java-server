@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.vo.NetworkVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -18,7 +18,7 @@ public interface UserDao {
 
     Optional<User> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin);
 
-    long hasAccessToNetwork(User user, Network network);
+    long hasAccessToNetwork(User user, NetworkVO network);
 
     long hasAccessToDevice(User user, String deviceGuid);
 

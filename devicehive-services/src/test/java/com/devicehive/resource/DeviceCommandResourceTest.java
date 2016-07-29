@@ -8,6 +8,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.junit.Test;
@@ -28,11 +29,11 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -56,11 +57,11 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -88,11 +89,11 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device

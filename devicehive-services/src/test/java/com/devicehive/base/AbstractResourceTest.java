@@ -139,7 +139,8 @@ public abstract class AbstractResourceTest {
                 response = builder.get();
                 break;
             case "POST":
-                response = builder.post(createJsonEntity(body));
+                Entity<String> entity = createJsonEntity(body);
+                response = builder.post(entity);
                 break;
             case "PUT":
                 response = builder.put(createJsonEntity(body));

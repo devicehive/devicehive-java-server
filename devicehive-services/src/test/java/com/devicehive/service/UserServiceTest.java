@@ -14,6 +14,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Rule;
@@ -49,10 +50,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_NoSuchElementException_if_user_is_null_when_assign_network() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         String networkName = RandomStringUtils.randomAlphabetic(10);
         network.setName(networkName);
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
 
@@ -84,9 +85,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
-        Network first = networkService.create(network);
+        NetworkVO first = networkService.create(network);
         assertThat(first, notNullValue());
         assertThat(first.getId(), notNullValue());
 
@@ -102,9 +103,9 @@ public class UserServiceTest extends AbstractResourceTest {
             }
         }));
 
-        network = new Network();
+        network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
-        Network second = networkService.create(network);
+        NetworkVO second = networkService.create(network);
         assertThat(second, notNullValue());
         assertThat(second.getId(), notNullValue());
 
@@ -138,9 +139,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
-        Network first = networkService.create(network);
+        NetworkVO first = networkService.create(network);
         assertThat(first, notNullValue());
         assertThat(first.getId(), notNullValue());
         userService.assignNetwork(user.getId(), first.getId());
@@ -148,9 +149,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getNetworks(), notNullValue());
         assertThat(user.getNetworks(), hasSize(1));
 
-        network = new Network();
+        network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
-        Network second = networkService.create(network);
+        NetworkVO second = networkService.create(network);
         assertThat(second, notNullValue());
         assertThat(second.getId(), notNullValue());
         userService.assignNetwork(user.getId(), second.getId());
@@ -177,9 +178,9 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_NoSuchElementException_if_user_is_null_when_unassign_network() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
 
@@ -544,7 +545,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getId(), notNullValue());
 
         for (int i = 0; i < 10; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(RandomStringUtils.randomAlphabetic(10));
             network = networkService.create(network);
             userService.assignNetwork(user.getId(), network.getId());
@@ -718,7 +719,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
@@ -731,7 +732,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -745,7 +746,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
@@ -756,7 +757,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -770,7 +771,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
@@ -781,7 +782,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -795,7 +796,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
@@ -810,7 +811,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
@@ -827,7 +828,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 

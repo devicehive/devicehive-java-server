@@ -10,6 +10,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -34,11 +35,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -69,11 +70,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -104,11 +105,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -124,19 +125,19 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);
 
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setLogin(Optional.of(login));
         testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
-        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setPassword(Optional.of(password));
         testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
         // register device
@@ -157,11 +158,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);
@@ -177,8 +178,9 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(user.getId(), Matchers.notNullValue());
 
         //create network
-        network.setUsers(singleton(user));
-        performRequest("/network", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), network, CREATED, Network.class);
+        //todo: check if it is necessary to set up user
+        //network.setUsers(singleton(user));
+        performRequest("/network", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), network, CREATED, NetworkVO.class);
         assertThat(user.getId(), Matchers.notNullValue());
 
         //register device
@@ -209,19 +211,19 @@ public class DeviceResourceTest extends AbstractResourceTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);
 
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(Optional.ofNullable(login));
+        testUser.setLogin(Optional.of(login));
         testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
-        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setPassword(Optional.of(password));
         testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
         //create user
@@ -229,7 +231,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(user.getId(), Matchers.notNullValue());
 
         //create network
-        network = performRequest("/network", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), network, CREATED, Network.class);
+        network = performRequest("/network", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), network, CREATED, NetworkVO.class);
         assertThat(network.getId(), Matchers.notNullValue());
 
         //register device

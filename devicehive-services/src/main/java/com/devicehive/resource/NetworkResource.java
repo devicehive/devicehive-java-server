@@ -1,7 +1,6 @@
 package com.devicehive.resource;
 
-import com.devicehive.model.Network;
-import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.vo.NetworkVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -44,7 +43,7 @@ public interface NetworkResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "List networks", notes = "Gets list of device networks the client has access to.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns array of Network resources in the response body.", response = Network.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "If successful, this method returns array of Network resources in the response body.", response = NetworkVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
@@ -89,7 +88,7 @@ public interface NetworkResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get network", notes = "Gets information about device network and its devices.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -126,14 +125,14 @@ public interface NetworkResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Create network", notes = "Creates new device network.")
     @ApiResponses({
-            @ApiResponse(code = 201, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
+            @ApiResponse(code = 201, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response insert(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
-            Network network);
+            NetworkVO network);
 
     /**
      * This method updates network with given Id. Consumes following input:
@@ -167,7 +166,7 @@ public interface NetworkResource {
     })
     Response update(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
-            NetworkUpdate networkToUpdate,
+            NetworkVO networkToUpdate,
             @ApiParam(name = "id", value = "Network identifier.", required = true)
             @PathParam("id")
             long id);

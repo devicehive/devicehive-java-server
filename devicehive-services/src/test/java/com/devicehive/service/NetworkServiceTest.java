@@ -12,7 +12,8 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.CustomTypeSafeMatcher;
@@ -58,7 +59,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.ID_NOT_ALLOWED);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setId(1L);
         networkService.create(network);
     }
@@ -67,25 +68,25 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_throw_ActionNotAllowedException_if_network_with_name_already_exists() throws Exception {
         String name = "myNetwork" + RandomStringUtils.randomAlphabetic(10);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(name);
         networkService.create(network);
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_NETWORK);
 
-        network = new Network();
+        network = new NetworkVO();
         network.setName(name);
         networkService.create(network);
     }
 
     @Test
     public void should_create_network() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setDescription("network description_" + randomUUID());
 
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), is(network.getName()));
         assertThat(created.getDescription(), is(network.getDescription()));
@@ -97,11 +98,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_network() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setDescription("network description_" + randomUUID());
 
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         boolean deleted = networkService.delete(created.getId());
@@ -116,47 +117,47 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(NoSuchElementException.class);
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
-        NetworkUpdate network = new NetworkUpdate();
-        network.setName(Optional.of("network"));
+        NetworkVO network = new NetworkVO();
+        network.setName("network");
 
         networkService.update(-1L, network);
     }
 
     @Test
     public void should_update_network() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setDescription("network description_" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
-        NetworkUpdate update = new NetworkUpdate();
-        update.setKey(Optional.of("key"));
-        update.setName(Optional.of("name"));
-        update.setDescription(Optional.of("description"));
+        NetworkVO update = new NetworkVO();
+        update.setKey("key");
+        update.setName("name");
+        update.setDescription("description");
 
-        Network updated = networkService.update(created.getId(), update);
+        NetworkVO updated = networkService.update(created.getId(), update);
         assertThat(created.getId(), is(updated.getId()));
-        assertThat(update.getName().get(), is(updated.getName()));
-        assertThat(update.getDescription().get(), is(updated.getDescription()));
-        assertThat(update.getKey().get(), is(updated.getKey()));
+        assertThat(update.getName(), is(updated.getName()));
+        assertThat(update.getDescription(), is(updated.getDescription()));
+        assertThat(update.getKey(), is(updated.getKey()));
 
         network = networkDao.find(updated.getId());
-        assertThat(update.getName().get(), is(network.getName()));
-        assertThat(update.getDescription().get(), is(network.getDescription()));
-        assertThat(update.getKey().get(), is(network.getKey()));
+        assertThat(update.getName(), is(network.getName()));
+        assertThat(update.getDescription(), is(network.getDescription()));
+        assertThat(update.getKey(), is(network.getKey()));
     }
 
     @Test
     public void should_return_list_of_networks() throws Exception {
         for (int i = 0; i < 10; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
             network.setDescription("network description_" + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 10, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 10, 0, null);
         assertThat(networks, hasSize(10));
     }
 
@@ -164,16 +165,16 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_filter_networks_by_name() throws Exception {
         List<Pair<Long, String>> names = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
             network.setDescription("network description_" + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
             names.add(Pair.of(created.getId(), created.getName()));
         }
         int index = new Random().nextInt(10);
         Pair<Long, String> randomNetwork = names.get(index);
-        List<Network> networks = networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null);
+        List<NetworkVO> networks = networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null);
         assertThat(networks, hasSize(1));
         assertThat(networks.get(0).getId(), equalTo(randomNetwork.getKey()));
         assertThat(networks.get(0).getName(), equalTo(randomNetwork.getRight()));
@@ -182,27 +183,27 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_filter_networks_by_name_pattern() throws Exception {
         for (int i = 0; i < 20; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(RandomStringUtils.randomAlphabetic(20));
             network.setDescription("network description_" + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
         int count = new Random().nextInt(30) + 1;
         for (int i = 0; i < count; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + RandomStringUtils.randomAlphabetic(10));
             network.setDescription("network description_" + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
 
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
         assertThat(networks, hasSize(count));
         assertThat(networks,
-                hasItems(new CustomTypeSafeMatcher<Network>(String.format("expected '%s' word in name", namePrefix)) {
+                hasItems(new CustomTypeSafeMatcher<NetworkVO>(String.format("expected '%s' word in name", namePrefix)) {
                     @Override
-                    protected boolean matchesSafely(Network item) {
+                    protected boolean matchesSafely(NetworkVO item) {
                         return item.getName().contains(namePrefix);
                     }
                 }));
@@ -213,13 +214,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         List<String> descriptions = asList("a", "b", "c", "d", "e");
         Collections.shuffle(descriptions);
         descriptions.forEach(descr -> {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
             network.setDescription(descr);
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         });
-        List<Network> networks = networkService.list(null, namePrefix + "%", "description", true, 100, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", "description", true, 100, 0, null);
         assertThat(networks, hasSize(descriptions.size()));
 
         assertThat(networks.get(0).getDescription(), equalTo("a"));
@@ -242,19 +243,19 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_correctly_apply_skip_limit_params() throws Exception {
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
             network.setEntityVersion((long) i);
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<Network> all = networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null);
+        List<NetworkVO> all = networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null);
         assertThat(all, hasSize(100));
 
-        List<Network> sliced = networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null);
+        List<NetworkVO> sliced = networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null);
         assertThat(sliced, hasSize(20));
-        List<Network> expected = all.stream().skip(30).limit(20).collect(Collectors.toList());
-        assertThat(sliced, contains(expected.toArray(new Network[expected.size()])));
+        List<NetworkVO> expected = all.stream().skip(30).limit(20).collect(Collectors.toList());
+        assertThat(sliced, contains(expected.toArray(new NetworkVO[expected.size()])));
     }
 
     @Test
@@ -274,10 +275,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Set<String> expectedNames = new HashSet<>();
         for (int i = 0; i < 10; i++) {
             String name = namePrefix + randomUUID();
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(name);
             expectedNames.add(name);
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             userService.assignNetwork(user1.getId(), created.getId());
         }
 
@@ -285,20 +286,20 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             userService.assignNetwork(user2.getId(), created.getId());
         }
 
-        List<Network> all = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
+        List<NetworkVO> all = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
         assertThat(all, hasSize(20));
 
         HivePrincipal principal = new HivePrincipal(user1);
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
         assertThat(networks, hasSize(10));
 
-        Set<String> names = networks.stream().map(Network::getName).collect(Collectors.toSet());
+        Set<String> names = networks.stream().map(NetworkVO::getName).collect(Collectors.toSet());
         assertThat(names, equalTo(expectedNames));
     }
 
@@ -310,9 +311,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user1 = userService.createUser(user1, "123");
         for (int i = 0; i < 10; i++) {
             String name = namePrefix + randomUUID();
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(name);
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             userService.assignNetwork(user1.getId(), created.getId());
         }
 
@@ -320,14 +321,14 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             userService.assignNetwork(user2.getId(), created.getId());
         }
 
         HivePrincipal principal = new HivePrincipal(user1);
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
         assertThat(networks, hasSize(20));
     }
 
@@ -335,14 +336,14 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_only_allowed_networks_for_access_key() throws Exception {
         Set<Long> allowedIds = new HashSet<>();
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         allowedIds.add(created.getId());
 
         for (int i = 0; i < 100; i++) {
-            network = new Network();
+            network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
             created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
@@ -357,9 +358,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(Collections.singleton(permission));
 
         HivePrincipal principal = new HivePrincipal(accessKey);
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
         assertThat(networks, hasSize(allowedIds.size()));
-        Set<Long> ids = networks.stream().map(Network::getId).collect(Collectors.toSet());
+        Set<Long> ids = networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
         assertThat(allowedIds, equalTo(ids));
     }
 
@@ -370,17 +371,17 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
 
         int assignedToUserCount = 20;
         for (int i = 0; i < assignedToUserCount; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
-            Network created = networkService.create(network);
+            NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
             userService.assignNetwork(user.getId(), created.getId());
         }
@@ -392,7 +393,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         HivePrincipal principal = new HivePrincipal(accessKey);
 
-        List<Network> networks = networkService.list(null, namePrefix + "%", null, true, 200, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 200, 0, principal);
         assertThat(networks, hasSize(assignedToUserCount));
     }
 
@@ -403,9 +404,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -415,12 +416,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
@@ -436,9 +437,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -448,12 +449,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, nullValue());
     }
 
@@ -464,9 +465,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), created.getId());
 
@@ -477,12 +478,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
@@ -498,9 +499,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -510,7 +511,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -521,7 +522,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         returnedNetwork.getDevices().forEach(device -> {
@@ -537,9 +538,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
 
@@ -550,7 +551,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -561,7 +562,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
         for (Device device : returnedNetwork.getDevices()) {
@@ -579,9 +580,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
@@ -591,7 +592,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -602,7 +603,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, nullValue());
     }
 
@@ -613,9 +614,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
 
@@ -626,7 +627,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setNetwork(Optional.ofNullable(Network.convert(network)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -638,7 +639,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), is(empty()));
     }
@@ -650,9 +651,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         userService.assignNetwork(user.getId(), created.getId());
@@ -666,7 +667,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, nullValue());
     }
 
@@ -677,9 +678,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         userService.assignNetwork(user.getId(), created.getId());
@@ -691,7 +692,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setNetwork(Optional.ofNullable(Network.convert(created)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -699,7 +700,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable("allowed_device"));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(created));
+        device.setNetwork(Optional.ofNullable(Network.convert(created)));
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
         AccessKey accessKey = new AccessKey();
@@ -712,7 +713,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(1));
         assertThat(returnedNetwork.getDevices(), hasItem(new CustomTypeSafeMatcher<Device>("expect device") {
@@ -730,9 +731,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         userService.assignNetwork(user.getId(), created.getId());
@@ -744,7 +745,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(Optional.ofNullable(randomUUID().toString()));
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setNetwork(Optional.ofNullable(Network.convert(created)));
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -757,7 +758,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), is(empty()));
     }
@@ -769,15 +770,15 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network first = networkService.create(network);
+        NetworkVO first = networkService.create(network);
         assertThat(first.getId(), notNullValue());
         userService.assignNetwork(user.getId(), first.getId());
 
-        network = new Network();
+        network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network second = networkService.create(network);
+        NetworkVO second = networkService.create(network);
         assertThat(second.getId(), notNullValue());
         userService.assignNetwork(user.getId(), second.getId());
 
@@ -790,7 +791,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        Network returnedNetwork = networkService.getWithDevicesAndDeviceClasses(first.getId(), authentication);
+        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(first.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getId(), equalTo(first.getId()));
 
@@ -808,7 +809,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.INVALID_REQUEST_PARAMETERS);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setId(-1L);
         networkService.createOrVerifyNetwork(Optional.ofNullable(network));
     }
@@ -821,7 +822,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         networkService.createOrVerifyNetwork(Optional.ofNullable(network));
     }
@@ -830,9 +831,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_create_new_network_when_creates_or_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -841,13 +842,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_verify_network_key_by_id_when_creates_or_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
 
-        Network verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
+        NetworkVO verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
         assertThat(verified, notNullValue());
         assertThat(verified.getId(), equalTo(created.getId()));
         assertThat(verified.getName(), equalTo(created.getName()));
@@ -856,16 +857,16 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_verify_network_key_by_name_when_creates_or_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
 
         Long networkId = created.getId();
         created.setId(null);
 
-        Network verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
+        NetworkVO verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
         assertThat(verified, notNullValue());
         assertThat(verified.getId(), equalTo(networkId));
         assertThat(verified.getName(), equalTo(created.getName()));
@@ -874,10 +875,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.createOrVerifyNetwork(Optional.of(network));
+        NetworkVO created = networkService.createOrVerifyNetwork(Optional.of(network));
         assertThat(created, notNullValue());
 
         expectedException.expect(ActionNotAllowedException.class);
@@ -896,11 +897,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
 
-        Network created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
+        NetworkVO created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -915,7 +916,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
 
@@ -934,15 +935,15 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        Network stored = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
+        NetworkVO stored = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
@@ -955,10 +956,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         expectedException.expect(ActionNotAllowedException.class);
@@ -976,10 +977,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         userService.assignNetwork(user.getId(), created.getId());
@@ -988,7 +989,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         accessKey.setUser(user);
         accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
 
-        Network stored = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
+        NetworkVO stored = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
@@ -1001,10 +1002,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
         AccessKey accessKey = new AccessKey();

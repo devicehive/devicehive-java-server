@@ -16,6 +16,8 @@ public interface DeviceDao {
 
     void persist(Device device);
 
+    Device merge(Device device);
+
     int deleteByUUID(String guid);
 
     List<Device> getDeviceList(List<String> guids, HivePrincipal principal);

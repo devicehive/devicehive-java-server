@@ -2,6 +2,8 @@ package com.devicehive.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -156,4 +158,39 @@ public class Network implements HiveEntity {
                 '}';
     }
 
+    public static NetworkVO convertNetwork(Network network) {
+        if (network != null) {
+            NetworkVO vo = new NetworkVO();
+            vo.setId(network.getId());
+            vo.setKey(network.getKey());
+            vo.setName(network.getName());
+            vo.setDescription(network.getDescription());
+            vo.setEntityVersion(network.getEntityVersion());
+            return vo;
+        }
+        return null;
+    }
+
+    public static NetworkWithUsersAndDevicesVO convertWithDevicesAndUsers(Network network) {
+        if (network != null) {
+            NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(convertNetwork(network));
+            vo.setUsers(network.getUsers());
+            vo.setDevices(network.getDevices());
+            return vo;
+        }
+        return null;
+    }
+
+    public static Network convert(NetworkVO vo) {
+        if (vo != null) {
+            Network network = new Network();
+            network.setId(vo.getId());
+            network.setKey(vo.getKey());
+            network.setName(vo.getName());
+            network.setDescription(vo.getDescription());
+            network.setEntityVersion(vo.getEntityVersion());
+            return network;
+        }
+        return null;
+    }
 }

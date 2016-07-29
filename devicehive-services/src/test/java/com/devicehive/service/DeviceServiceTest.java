@@ -14,6 +14,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,7 +82,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         network = networkService.create(network);
 
         User user = new User();
@@ -181,12 +182,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(Network.convert(network)));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -224,14 +225,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(Optional.ofNullable(network));
-        deviceUpdate1.setNetwork(Optional.ofNullable(network));
-        deviceUpdate2.setNetwork(Optional.ofNullable(network));
+        deviceUpdate0.setNetwork(Optional.ofNullable(Network.convert(network)));
+        deviceUpdate1.setNetwork(Optional.ofNullable(Network.convert(network)));
+        deviceUpdate2.setNetwork(Optional.ofNullable(Network.convert(network)));
 
         deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
@@ -267,19 +268,19 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(Network.convert(network)));
 
-        final Network network1 = new Network();
+        final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
-        Network created1 = networkService.create(network1);
+        NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(Network.convert(network1)));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -323,19 +324,19 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(Network.convert(network)));
 
-        final Network network1 = new Network();
+        final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
-        Network created1 = networkService.create(network1);
+        NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(Network.convert(network1)));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -436,19 +437,19 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(Optional.ofNullable(Network.convert(network)));
 
-        final Network network1 = new Network();
+        final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
-        Network created1 = networkService.create(network1);
+        NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(Optional.ofNullable(Network.convert(network1)));
 
         final AccessKey accessKey = new AccessKey();
         final AccessKeyPermission permission = new AccessKeyPermission();
@@ -542,14 +543,15 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        final Network network = new Network();
+        final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
-        Network created = networkService.create(network);
+        NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(Optional.ofNullable(network));
-        deviceUpdate1.setNetwork(Optional.ofNullable(network));
-        deviceUpdate2.setNetwork(Optional.ofNullable(network));
+        Network nw = Network.convert(network);
+        deviceUpdate0.setNetwork(Optional.ofNullable(nw));
+        deviceUpdate1.setNetwork(Optional.ofNullable(nw));
+        deviceUpdate2.setNetwork(Optional.ofNullable(nw));
 
         deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);

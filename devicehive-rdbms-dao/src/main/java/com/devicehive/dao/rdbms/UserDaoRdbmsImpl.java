@@ -3,6 +3,7 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.UserDao;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
+import com.devicehive.vo.NetworkVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -67,10 +68,11 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToNetwork(User user, Network network) {
+    public long hasAccessToNetwork(User user, NetworkVO network) {
+        Network nw = reference(Network.class, network.getId());
         return createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())
                 .setParameter("user", user)
-                .setParameter("network", network)
+                .setParameter("network", nw)
                 .getSingleResult();
     }
 

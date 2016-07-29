@@ -16,6 +16,8 @@ import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -209,7 +211,7 @@ public class UserService {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
-        Network existingNetwork = networkDao.findWithUsers(networkId)
+        NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId)
                 .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
         networkDao.assignToNetwork(existingNetwork, existingUser);
     }
@@ -321,7 +323,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToNetwork(User user, Network network) {
+    public boolean hasAccessToNetwork(User user, NetworkVO network) {
         if (!user.isAdmin()) {
             long count = userDao.hasAccessToNetwork(user, network);
             return count > 0;

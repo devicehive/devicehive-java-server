@@ -6,6 +6,7 @@ import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -92,7 +93,7 @@ public class InitialDataLoader {
         deviceClassDao.persist(deviceClass);
         //INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setId(1L);
         network.setName("VirtualLed Sample Network");
         network.setDescription("A DeviceHive network for VirtualLed sample");
@@ -108,7 +109,7 @@ public class InitialDataLoader {
         device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
         device.setStatus("Offline");
-        device.setNetwork(network);
+        device.setNetwork(Network.convert(network));
         device.setDeviceClass(dc);
         device.setEntityVersion(1);
         deviceDao.persist(device);

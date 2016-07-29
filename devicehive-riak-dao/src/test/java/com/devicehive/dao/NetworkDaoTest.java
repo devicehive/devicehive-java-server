@@ -4,6 +4,8 @@ import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.UserNetwork;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -42,13 +44,13 @@ public class NetworkDaoTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateNetwork() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setKey(RandomStringUtils.randomAlphabetic(10));
         network.setName(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
 
-        Network created = networkDao.find(network.getId());
+        NetworkVO created = networkDao.find(network.getId());
         assertThat(created, notNullValue());
         assertThat(created.getKey(), equalTo(network.getKey()));
         assertThat(created.getName(), equalTo(network.getName()));
@@ -56,19 +58,19 @@ public class NetworkDaoTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateNetwork() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setKey(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
 
-        Network created = networkDao.find(network.getId());
+        NetworkVO created = networkDao.find(network.getId());
         assertThat(created, notNullValue());
         assertThat(created.getKey(), equalTo(network.getKey()));
 
         created.setKey(RandomStringUtils.randomAlphabetic(20));
         networkDao.merge(created);
 
-        Network updated = networkDao.find(created.getId());
+        NetworkVO updated = networkDao.find(created.getId());
         assertThat(updated, notNullValue());
         assertThat(updated.getId(), equalTo(created.getId()));
         assertThat(updated.getKey(), equalTo(created.getKey()));
@@ -77,7 +79,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteNetwork() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setKey(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
@@ -94,7 +96,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
         String name = RandomStringUtils.randomAlphabetic(10);
         int count = 0;
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setKey(RandomStringUtils.randomAlphabetic(20));
             network.setDescription(RandomStringUtils.randomAlphabetic(20));
             if (i % 2 == 0) {
@@ -105,21 +107,21 @@ public class NetworkDaoTest extends AbstractResourceTest {
             }
             networkDao.persist(network);
         }
-        List<Network> networks = networkDao.findByName(name);
+        List<NetworkVO> networks = networkDao.findByName(name);
         assertThat(networks, hasSize(count));
-        Set<String> names = networks.stream().map(Network::getName).collect(Collectors.toSet());
+        Set<String> names = networks.stream().map(NetworkVO::getName).collect(Collectors.toSet());
         assertThat(names, hasSize(1));
         assertThat(names, hasItem(name));
     }
 
     @Test
     public void shouldFindById() throws Exception {
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setKey(RandomStringUtils.randomAlphabetic(10));
         networkDao.persist(network);
         assertThat(network.getId(), notNullValue());
 
-        Network found = networkDao.find(network.getId());
+        NetworkVO found = networkDao.find(network.getId());
         assertThat(found, notNullValue());
         assertThat(network.getId(), equalTo(found.getId()));
         assertThat(network.getKey(), equalTo(found.getKey()));
@@ -129,7 +131,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
     public void shouldGetNetworksByIdsSet() throws Exception {
         Set<Long> networkIds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
@@ -137,10 +139,10 @@ public class NetworkDaoTest extends AbstractResourceTest {
             }
         }
 
-        List<Network> networks = networkDao.getNetworksByIdsAndUsers(null, networkIds, null);
+        List<NetworkWithUsersAndDevicesVO> networks = networkDao.getNetworksByIdsAndUsers(null, networkIds, null);
         assertNotNull(networks);
         assertThat(networks, hasSize(networkIds.size()));
-        Set<Long> returnedIds = networks.stream().map(Network::getId).collect(Collectors.toSet());
+        Set<Long> returnedIds = networks.stream().map(NetworkWithUsersAndDevicesVO::getId).collect(Collectors.toSet());
         assertThat(networkIds, equalTo(returnedIds));
     }
 
@@ -153,7 +155,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
 
         Set<Long> networkIds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
@@ -165,7 +167,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
             networkIds.add(network.getId());
         }
 
-        List<Network> networks = networkDao.getNetworksByIdsAndUsers(user.getId(), networkIds, null);
+        List<NetworkWithUsersAndDevicesVO> networks = networkDao.getNetworksByIdsAndUsers(user.getId(), networkIds, null);
         assertNotNull(networks);
         assertThat(networks, hasSize(50));
         networks.forEach(n -> {
@@ -180,7 +182,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
         Set<Long> networkIds = new HashSet<>();
         Set<Long> permitted = new HashSet<>();
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
@@ -189,10 +191,10 @@ public class NetworkDaoTest extends AbstractResourceTest {
             networkIds.add(network.getId());
         }
 
-        List<Network> networks = networkDao.getNetworksByIdsAndUsers(null, networkIds, permitted);
+        List<NetworkWithUsersAndDevicesVO> networks = networkDao.getNetworksByIdsAndUsers(null, networkIds, permitted);
         assertNotNull(networks);
         assertThat(networks, hasSize(permitted.size()));
-        Set<Long> returned = networks.stream().map(Network::getId).collect(Collectors.toSet());
+        Set<Long> returned = networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
         assertThat(permitted, equalTo(returned));
     }
 
@@ -200,7 +202,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
     public void shouldListByNameWithSortingAndLimit() throws Exception {
         String name = RandomStringUtils.randomAlphabetic(10);
         for (int i = 0; i < 100; i++) {
-            Network network = new Network();
+            NetworkVO network = new NetworkVO();
             network.setKey(RandomStringUtils.randomAlphabetic(10));
             if (i % 2 == 0) {
                 network.setName(name);
@@ -211,7 +213,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
             networkDao.persist(network);
         }
 
-        List<Network> networks = networkDao.list(name, null, "entityVersion", true, 10, 0, Optional.empty());
+        List<NetworkVO> networks = networkDao.list(name, null, "entityVersion", true, 10, 0, Optional.empty());
         assertThat(networks, hasSize(10));
         networks.forEach(n -> assertEquals(name, n.getName()));
         networks.stream().reduce((last, current) -> {

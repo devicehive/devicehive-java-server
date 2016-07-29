@@ -8,6 +8,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -55,9 +56,9 @@ public class DeviceFixture {
         return deviceClass;
     }
 
-    public static Network createNetwork() {
+    public static NetworkVO createNetwork() {
         UUID uuid = UUID.randomUUID();
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName("network-" + uuid);
         network.setDescription("network_description-" + uuid);
         return network;

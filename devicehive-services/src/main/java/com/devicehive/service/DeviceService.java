@@ -12,6 +12,7 @@ import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,10 @@ public class DeviceService {
                                                Set<DeviceClassEquipmentVO> equipmentSet,
                                                User user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
-        Network network = networkService.createOrUpdateNetworkByUser(deviceUpdate.getNetwork(), user);
+        //todo: rework when migration to VO will be done
+        NetworkVO vo = deviceUpdate.getNetwork() != null ? Network.convertNetwork(deviceUpdate.getNetwork().get()) : null;
+        NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
+        Network network = nwVo != null ? findNetworkForAuth(Network.convert(nwVo)) : null;
         network = findNetworkForAuth(network);
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
@@ -145,12 +149,14 @@ public class DeviceService {
                                               AccessKey key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
         Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
-        if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
+        if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, Network.convertNetwork(existingDevice.getNetwork()))) {
             logger.error("Access key {} has no access to device network {}", key, existingDevice.getNetwork().getId());
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
-        Network network = networkService.createOrVerifyNetworkByKey(deviceUpdate.getNetwork(), key);
-        network = findNetworkForAuth(network);
+        Network nw = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
+        NetworkVO network = networkService.createOrVerifyNetworkByKey(
+                Optional.ofNullable(Network.convertNetwork(nw)), key);
+        network = Network.convertNetwork(findNetworkForAuth(Network.convert(network)));
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
             DeviceClass dc = new DeviceClass();
@@ -159,7 +165,7 @@ public class DeviceService {
 
             Device device = deviceUpdate.convertTo();
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetwork(Network.convert(network));
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
@@ -180,7 +186,7 @@ public class DeviceService {
                 existingDevice.setData(deviceUpdate.getData().orElse(null));
             }
             if (deviceUpdate.getNetwork() != null) {
-                existingDevice.setNetwork(network);
+                existingDevice.setNetwork(Network.convert(network));
             }
             if (deviceUpdate.getName() != null) {
                 existingDevice.setName(deviceUpdate.getName().orElse(null));
@@ -188,6 +194,7 @@ public class DeviceService {
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
             }
+            deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
@@ -196,7 +203,10 @@ public class DeviceService {
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<DeviceClassEquipmentVO> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
-        Network network = networkService.createOrVerifyNetwork(deviceUpdate.getNetwork());
+        Network network = (deviceUpdate.getNetwork() != null)? deviceUpdate.getNetwork().get() : null;
+        if (network != null) {
+            network = Network.convert(networkService.createOrVerifyNetwork(Optional.ofNullable(Network.convertNetwork(network))));
+        }
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 

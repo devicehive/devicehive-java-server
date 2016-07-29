@@ -8,6 +8,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.NetworkVO;
 import com.google.gson.JsonObject;
 import org.junit.Test;
 
@@ -28,12 +29,12 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
         String deviceKey = UUID.randomUUID().toString();
         DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
         device.setDeviceClass(Optional.of(deviceClass));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
 
         //device/save
         JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
@@ -79,11 +80,11 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
         DeviceUpdate device = DeviceFixture.createDevice(deviceId);
         device.setDeviceClass(Optional.of(deviceClass));
-        device.setNetwork(Optional.of(network));
+        device.setNetwork(Optional.of(Network.convert(network)));
 
         //device/save
         JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));
@@ -129,12 +130,12 @@ public class DeviceHandlersTest extends AbstractWebSocketMethodTest {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-        Network network = DeviceFixture.createNetwork();
+        NetworkVO network = DeviceFixture.createNetwork();
         String deviceId = UUID.randomUUID().toString();
         String deviceKey = UUID.randomUUID().toString();
         DeviceUpdate device = DeviceFixture.createDevice(deviceKey);
         device.setDeviceClass(Optional.of(deviceClass));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
 
         //device/save
         JsonObject deviceSave = JsonFixture.createWsCommand("device/save", "1", deviceId, singletonMap("device", gson.toJsonTree(device)));

@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
+import com.devicehive.model.Network;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -81,7 +82,20 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     @Override
     public void persist(Device device) {
         device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
+        if (device.getNetwork() != null) {
+            device.setNetwork(reference(Network.class, device.getNetwork().getId()));
+        }
         super.persist(device);
+    }
+
+
+    @Override
+    public Device merge(Device device) {
+        device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
+        if (device.getNetwork() != null) {
+            device.setNetwork(reference(Network.class, device.getNetwork().getId()));
+        }
+        return super.merge(device);
     }
 
     @Override

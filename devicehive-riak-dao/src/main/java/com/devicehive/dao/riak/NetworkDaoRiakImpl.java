@@ -20,8 +20,14 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.dao.riak.vo.NetworkVoRiak;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.Device;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.model.User;
+import com.devicehive.model.UserNetwork;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -57,7 +63,6 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     private UserDao userDao;
 
     private final Map<String, String> sortMap = new HashMap<String, String>() {{
-        put("id", "function(a,b){ return a.id %s b.id; }");
         put("name", "function(a,b){ return a.name %s b.name; }");
         put("description", "function(a,b){ return a.description %s b.description; }");
         put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
@@ -72,7 +77,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public List<Network> findByName(String name) {
+    public List<NetworkVO> findByName(String name) {
         if (name == null) {
             return Collections.emptyList();
         }
@@ -80,29 +85,40 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         BinIndexQuery biq = new BinIndexQuery.Builder(NETWORK_NS, "name", name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
-            return fetchMultiple(response, Network.class);
+            return fetchMultiple(response, NetworkVO.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't find networks by name", e);
         }
     }
 
     @Override
-    public void persist(@NotNull Network newNetwork) {
+    public void persist(@NotNull NetworkVO newNetwork) {
         if (newNetwork.getId() == null) {
             newNetwork.setId(getId(networkCounter));
         }
-        merge(newNetwork);
+        NetworkVoRiak network = new NetworkVoRiak(newNetwork);
+
+        Location location = new Location(NETWORK_NS, String.valueOf(network.getId()));
+        StoreValue storeOp = new StoreValue.Builder(network)
+                .withLocation(location)
+                .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
+                .build();
+        try {
+            client.execute(storeOp);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new HivePersistenceLayerException("Can't execute store operation on network network", e);
+        }
     }
 
     @Override
-    public List<Network> getNetworksByIdsAndUsers(Long idForFiltering, Set<Long> networkdIds, Set<Long> permittedNetworks) {
+    public List<NetworkWithUsersAndDevicesVO> getNetworksByIdsAndUsers(Long idForFiltering, Set<Long> networkdIds, Set<Long> permittedNetworks) {
         Set<Long> intersection = networkdIds;
         if (permittedNetworks != null) {
             intersection = networkdIds.stream()
                     .filter(permittedNetworks::contains)
                     .collect(Collectors.toSet());
         }
-        Stream<Network> networkStream = intersection.stream()
+        Stream<NetworkWithUsersAndDevicesVO> networkStream = intersection.stream()
                 .map(this::findWithUsersAndDevices)
                 .filter(Optional::isPresent)
                 .map(Optional::get);
@@ -125,37 +141,47 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public Network find(@NotNull Long networkId) {
+    public NetworkVO find(@NotNull Long networkId) {
+        NetworkVoRiak vo = get(networkId);
+        return vo != null ? vo.convert() : null;
+    }
+
+    private NetworkVoRiak get(@NotNull  Long networkId) {
         Location location = new Location(NETWORK_NS, String.valueOf(networkId));
         FetchValue fetchOp = new FetchValue.Builder(location)
                 .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                 .build();
         try {
-            return getOrNull(client.execute(fetchOp), Network.class);
+            return getOrNull(client.execute(fetchOp), NetworkVoRiak.class);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't fetch network by id", e);
         }
     }
 
     @Override
-    public Network merge(@NotNull Network network) {
+    public NetworkVO merge(@NotNull NetworkVO network) {
         assert network.getId() != null;
 
+        NetworkVoRiak existing = get(network.getId());
+        existing.setKey(network.getKey());
+        existing.setName(network.getName());
+        existing.setDescription(network.getDescription());
+
         Location location = new Location(NETWORK_NS, String.valueOf(network.getId()));
-        StoreValue storeOp = new StoreValue.Builder(network)
+        StoreValue storeOp = new StoreValue.Builder(existing)
                 .withLocation(location)
                 .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                 .build();
         try {
             client.execute(storeOp);
-            return network;
+            return existing.convert();
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't execute store operation on network network", e);
         }
     }
 
     @Override
-    public void assignToNetwork(Network network, User user) {
+    public void assignToNetwork(NetworkVO network, User user) {
         assert network != null && network.getId() != null;
         assert user != null && user.getId() != null;
 
@@ -166,11 +192,11 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public List<Network> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
+    public List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                               Integer skip, Optional<HivePrincipal> principalOptional) {
         String sortFunc = sortMap.get(sortField);
         if (sortFunc == null) {
-            sortFunc = sortMap.get("id");
+            sortFunc = sortMap.get("name");
         }
 
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
@@ -276,7 +302,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
         try {
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(Network.class).stream()
+            return response.getResultsFromAllPhases(NetworkVO.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
@@ -286,34 +312,36 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public Optional<Network> findFirstByName(String name) {
+    public Optional<NetworkVO> findFirstByName(String name) {
         return findByName(name).stream().findFirst();
     }
 
-    private Optional<Network> findWithUsersAndDevices(long networkId) {
-        return Optional.ofNullable(find(networkId))
-                .map(network -> {
-                    Set<User> users = userNetworkDao.findUsersInNetwork(networkId).stream()
-                            .map(userDao::find)
-                            .collect(Collectors.toSet());
-                    network.setUsers(users);
-                    Set<Device> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
-                            .map(deviceDao::findByUUID)
-                            .collect(Collectors.toSet());
-                    network.setDevices(devices);
-                    return network;
-                });
+    private Optional<NetworkWithUsersAndDevicesVO> findWithUsersAndDevices(long networkId) {
+        Optional<NetworkWithUsersAndDevicesVO> result = findWithUsers(networkId);
+
+        if (result.isPresent()) {
+            Set<Device> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
+                    .map(deviceDao::findByUUID)
+                    .collect(Collectors.toSet());
+            result.get().setDevices(devices);
+            return result;
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Network> findWithUsers(long networkId) {
-        return Optional.ofNullable(find(networkId))
-                .map(network -> {
-                    Set<User> users = userNetworkDao.findUsersInNetwork(networkId).stream()
-                            .map(userDao::find)
-                            .collect(Collectors.toSet());
-                    network.setUsers(users);
-                    return network;
-                });
+    public Optional<NetworkWithUsersAndDevicesVO> findWithUsers(long networkId) {
+        NetworkVO networkVO = find(networkId);
+        if (networkVO != null) {
+            NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(networkVO);
+            Set<User> users = userNetworkDao.findUsersInNetwork(networkId).stream()
+                    .map(userDao::find)
+                    .collect(Collectors.toSet());
+            vo.setUsers(users);
+            return Optional.of(vo);
+        } else {
+            return Optional.empty();
+        }
     }
 }

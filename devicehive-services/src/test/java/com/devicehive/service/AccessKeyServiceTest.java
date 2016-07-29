@@ -16,6 +16,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -347,7 +348,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
         assertFalse(
@@ -367,7 +368,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
         assertTrue(
@@ -380,7 +381,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
         AccessKey accessKey = new AccessKey();
@@ -486,14 +487,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, RandomStringUtils.random(10));
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setDeviceClass(Optional.ofNullable(dc));
@@ -516,14 +517,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, RandomStringUtils.random(10));
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setDeviceClass(Optional.ofNullable(dc));
@@ -548,14 +549,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, RandomStringUtils.random(10));
 
-        Network network = new Network();
+        NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
         DeviceUpdate device = new DeviceUpdate();
         device.setGuid(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setNetwork(Optional.ofNullable(Network.convert(network)));
         DeviceClassUpdate dc = new DeviceClassUpdate();
         dc.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
         device.setDeviceClass(Optional.ofNullable(dc));
