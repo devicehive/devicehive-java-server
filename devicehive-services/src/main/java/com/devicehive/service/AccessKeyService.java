@@ -308,6 +308,7 @@ public class AccessKeyService {
             current.setAccessKey(existing);
             accessKeyPermissionDao.persist(existing, current);
         }
+        accessKeyDao.merge(existing);
         return existing;
     }
 
