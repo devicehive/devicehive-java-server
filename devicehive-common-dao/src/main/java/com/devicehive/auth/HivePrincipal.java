@@ -2,8 +2,8 @@ package com.devicehive.auth;
 
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.Device;
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.User;
+import com.devicehive.vo.OAuthClientVO;
 
 import java.security.Principal;
 
@@ -12,7 +12,7 @@ public class HivePrincipal implements Principal {
     private User user;
     private Device device;
     private AccessKey key;
-    private OAuthClient oAuthClient;
+    private OAuthClientVO oAuthClient;
 
     @Deprecated
     public HivePrincipal(User user, Device device, AccessKey key) {
@@ -33,7 +33,7 @@ public class HivePrincipal implements Principal {
         this.device = device;
     }
 
-    public HivePrincipal(OAuthClient oAuthClient) {
+    public HivePrincipal(OAuthClientVO oAuthClient) {
         this.oAuthClient = oAuthClient;
     }
 
@@ -53,7 +53,7 @@ public class HivePrincipal implements Principal {
         return key;
     }
 
-    public OAuthClient getoAuthClient() {
+    public OAuthClientVO getoAuthClient() {
         return oAuthClient;
     }
 

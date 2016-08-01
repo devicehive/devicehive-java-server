@@ -15,6 +15,7 @@ import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -255,7 +256,7 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Date now) {
+    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
         AccessKey newKey = new AccessKey();
         newKey.setType(AccessKeyType.OAUTH);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
@@ -283,7 +284,7 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrant grant, User user, Date now) {
+    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
         AccessKey existing = find(grant.getAccessKey().getId(), user.getId());
         deleteAccessKeyPermissions(existing);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {

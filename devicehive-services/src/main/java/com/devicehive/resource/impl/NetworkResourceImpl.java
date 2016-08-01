@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.resource.NetworkResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
@@ -86,9 +87,9 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response update(NetworkVO networkToUpdate, long id) {
+    public Response update(NetworkUpdate networkToUpdate, long id) {
         logger.debug("Network update requested. Id : {}", id);
-        networkService.update(id, networkToUpdate);
+        networkService.update(id, NetworkUpdate.convert(networkToUpdate));
         logger.debug("Network has been updated successfully. Id : {}", id);
         return ResponseFactory.response(NO_CONTENT);
     }

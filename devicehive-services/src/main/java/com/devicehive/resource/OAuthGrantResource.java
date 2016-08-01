@@ -1,8 +1,8 @@
 package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.updates.OAuthGrantUpdate;
+import com.devicehive.vo.OAuthGrantVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -81,7 +81,7 @@ public interface OAuthGrantResource {
             String userId,
             @JsonPolicyApply(OAUTH_GRANT_PUBLISHED)
             @ApiParam(value = "Grant body", defaultValue = "{}", required = true)
-            OAuthGrant grant
+            OAuthGrantVO grant
     );
 
     @PUT

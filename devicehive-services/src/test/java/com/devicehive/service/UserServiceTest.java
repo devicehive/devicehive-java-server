@@ -384,7 +384,12 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_throw_AccessDeniedException_if_user_does_not_exists_when_findUser_called() throws Exception {
         expectedException.expect(AccessDeniedException.class);
         expectedException.expectMessage(Messages.USER_NOT_FOUND);
-        userService.findUser(RandomStringUtils.random(10), RandomStringUtils.random(10));
+        try {
+            userService.findUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Test

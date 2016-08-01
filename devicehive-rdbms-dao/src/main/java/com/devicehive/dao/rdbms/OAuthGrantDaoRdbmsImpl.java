@@ -3,6 +3,7 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
+import com.devicehive.vo.OAuthGrantVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,7 @@ import javax.persistence.criteria.*;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.devicehive.dao.rdbms.CriteriaHelper.oAuthGrantsListPredicates;
 import static com.devicehive.dao.rdbms.CriteriaHelper.order;
@@ -22,22 +24,22 @@ import static java.util.Optional.ofNullable;
 public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGrantDao {
 
     @Override
-    public OAuthGrant getByIdAndUser(User user, Long grantId) {
-        return createNamedQuery(OAuthGrant.class, "OAuthGrant.getByIdAndUser",
+    public OAuthGrantVO getByIdAndUser(User user, Long grantId) {
+        return OAuthGrant.convert(createNamedQuery(OAuthGrant.class, "OAuthGrant.getByIdAndUser",
                 of(CacheConfig.refresh()))
                 .setParameter("grantId", grantId)
                 .setParameter("user", user)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
-    public OAuthGrant getById(Long grantId) {
-        return createNamedQuery(OAuthGrant.class, "OAuthGrant.getById",
+    public OAuthGrantVO getById(Long grantId) {
+        return OAuthGrant.convert(createNamedQuery(OAuthGrant.class, "OAuthGrant.getById",
                 of(CacheConfig.refresh()))
                 .setParameter("grantId", grantId)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
@@ -49,31 +51,33 @@ public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGran
     }
 
     @Override
-    public OAuthGrant getByCodeAndOAuthID(String authCode, String clientOAuthID) {
-        return createNamedQuery(OAuthGrant.class, "OAuthGrant.getByCodeAndOAuthID", of(CacheConfig.refresh()))
+    public OAuthGrantVO getByCodeAndOAuthID(String authCode, String clientOAuthID) {
+        return OAuthGrant.convert(createNamedQuery(OAuthGrant.class, "OAuthGrant.getByCodeAndOAuthID", of(CacheConfig.refresh()))
                 .setParameter("authCode", authCode)
                 .setParameter("oauthId", clientOAuthID)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
-    public OAuthGrant find(Long id) {
-        return find(OAuthGrant.class, id);
+    public OAuthGrantVO find(Long id) {
+        return OAuthGrant.convert(find(OAuthGrant.class, id));
     }
 
     @Override
-    public void persist(OAuthGrant oAuthGrant) {
-        super.persist(oAuthGrant);
+    public void persist(OAuthGrantVO oAuthGrant) {
+        OAuthGrant grant = OAuthGrant.convert(oAuthGrant);
+        super.persist(grant);
+        oAuthGrant.setId(grant.getId());
     }
 
     @Override
-    public OAuthGrant merge(OAuthGrant existing) {
-        return super.merge(existing);
+    public OAuthGrantVO merge(OAuthGrantVO existing) {
+        return OAuthGrant.convert(super.merge(OAuthGrant.convert(existing)));
     }
 
     @Override
-    public List<OAuthGrant> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull User user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,
@@ -100,6 +104,6 @@ public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGran
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
 
-        return query.getResultList();
+        return query.getResultList().stream().map(OAuthGrant::convert).collect(Collectors.toList());
     }
 }

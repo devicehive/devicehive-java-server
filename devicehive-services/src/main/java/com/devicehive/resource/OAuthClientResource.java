@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
+import com.devicehive.vo.OAuthClientVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -60,7 +60,7 @@ public interface OAuthClientResource {
     })
     Response insert(
             @ApiParam(value = "oAuth client body")
-            OAuthClient clientToInsert);
+            OAuthClientVO clientToInsert);
 
     @PUT
     @Path("/{id}")

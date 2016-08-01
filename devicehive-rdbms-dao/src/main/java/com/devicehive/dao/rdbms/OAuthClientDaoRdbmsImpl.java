@@ -2,6 +2,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.model.OAuthClient;
+import com.devicehive.vo.OAuthClientVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
@@ -27,47 +30,49 @@ public class OAuthClientDaoRdbmsImpl extends RdbmsGenericDao implements OAuthCli
     }
 
     @Override
-    public OAuthClient getByOAuthId(String oauthId) {
-        return createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthId", Optional.of(CacheConfig.refresh()))
+    public OAuthClientVO getByOAuthId(String oauthId) {
+        return OAuthClient.convert(createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthId", Optional.of(CacheConfig.refresh()))
                 .setParameter("oauthId", oauthId)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
-    public OAuthClient getByName(String name) {
-        return createNamedQuery(OAuthClient.class, "OAuthClient.getByName", Optional.of(CacheConfig.refresh()))
+    public OAuthClientVO getByName(String name) {
+        return OAuthClient.convert(createNamedQuery(OAuthClient.class, "OAuthClient.getByName", Optional.of(CacheConfig.refresh()))
                 .setParameter("name", name)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
-    public OAuthClient getByOAuthIdAndSecret(String id, String secret) {
-        return createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthIdAndSecret", Optional.of(CacheConfig.get()))
+    public OAuthClientVO getByOAuthIdAndSecret(String id, String secret) {
+        return OAuthClient.convert(createNamedQuery(OAuthClient.class, "OAuthClient.getByOAuthIdAndSecret", Optional.of(CacheConfig.get()))
                 .setParameter("oauthId", id)
                 .setParameter("secret", secret)
                 .getResultList()
-                .stream().findFirst().orElse(null);
+                .stream().findFirst().orElse(null));
     }
 
     @Override
-    public OAuthClient find(Long id) {
-        return find(OAuthClient.class, id);
+    public OAuthClientVO find(Long id) {
+        return OAuthClient.convert(find(OAuthClient.class, id));
     }
 
     @Override
-    public void persist(OAuthClient oAuthClient) {
-        super.persist(oAuthClient);
+    public void persist(OAuthClientVO oAuthClient) {
+        OAuthClient client = OAuthClient.convert(oAuthClient);
+        super.persist(client);
+        oAuthClient.setId(client.getId());
     }
 
     @Override
-    public OAuthClient merge(OAuthClient existing) {
-        return super.merge(existing);
+    public OAuthClientVO merge(OAuthClientVO existing) {
+        return OAuthClient.convert(super.merge(OAuthClient.convert(existing)));
     }
 
     @Override
-    public List<OAuthClient> get(String name,
+    public List<OAuthClientVO> get(String name,
                                  String namePattern,
                                  String domain,
                                  String oauthId,
@@ -86,7 +91,7 @@ public class OAuthClientDaoRdbmsImpl extends RdbmsGenericDao implements OAuthCli
         TypedQuery<OAuthClient> query = createQuery(cq);
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
-
-        return query.getResultList();
+        Stream<OAuthClientVO> objectStream = query.getResultList().stream().map(OAuthClient::convert);
+        return objectStream.collect(Collectors.toList());
     }
 }

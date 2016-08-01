@@ -14,8 +14,9 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.OAuthClientDao;
+import com.devicehive.dao.riak.model.RiakOAuthClient;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.OAuthClient;
+import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
@@ -73,17 +75,17 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     }
 
     @Override
-    public OAuthClient getByOAuthId(String oauthId) {
+    public OAuthClientVO getByOAuthId(String oauthId) {
         return findBySomeIndex(oauthId, "oauthId");
     }
 
     @Override
-    public OAuthClient getByName(String name) {
+    public OAuthClientVO getByName(String name) {
         return findBySomeIndex(name, "name");
     }
 
     @Override
-    public OAuthClient getByOAuthIdAndSecret(String id, String secret) {
+    public OAuthClientVO getByOAuthIdAndSecret(String id, String secret) {
         BinIndexQuery biq = new BinIndexQuery.Builder(OAUTH_CLIENT_NS, "oauthId", id).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -96,9 +98,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
-                OAuthClient oAuthClient = getOrNull(client.execute(fetchOp), OAuthClient.class);
+                RiakOAuthClient oAuthClient = getOrNull(client.execute(fetchOp), RiakOAuthClient.class);
                 if (oAuthClient.getOauthSecret().equals(secret)) {
-                    return oAuthClient;
+                    return RiakOAuthClient.convert(oAuthClient);
                 }
             }
             return null;
@@ -108,7 +110,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
         }
     }
 
-    private OAuthClient findBySomeIndex(String name, String indexName) {
+    private OAuthClientVO findBySomeIndex(String name, String indexName) {
         if (name == null || indexName == null) {
             return null;
         }
@@ -124,7 +126,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             FetchValue.Response execute = client.execute(fetchOp);
-            return getOrNull(execute, OAuthClient.class);
+            return RiakOAuthClient.convert(getOrNull(execute, RiakOAuthClient.class));
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot delete OAuthClient by index.", e);
@@ -132,32 +134,33 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     }
 
     @Override
-    public OAuthClient find(Long id) {
+    public OAuthClientVO find(Long id) {
         try {
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             FetchValue.Response execute = client.execute(fetchOp);
-            return getOrNull(execute, OAuthClient.class);
+            return RiakOAuthClient.convert(getOrNull(execute, RiakOAuthClient.class));
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find auth client by id.", e);
         }
     }
 
     @Override
-    public void persist(OAuthClient oAuthClient) {
-        merge(oAuthClient);
+    public void persist(OAuthClientVO oAuthClient) {
+        OAuthClientVO createdVO = merge(oAuthClient);
+        oAuthClient.setId(createdVO.getId());
     }
 
     @Override
-    public OAuthClient merge(OAuthClient oAuthClient) {
+    public OAuthClientVO merge(OAuthClientVO oAuthClient) {
         try {
             if (oAuthClient.getId() == null) {
                 oAuthClient.setId(getId(oauthClientCounters));
             }
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(oAuthClient.getId()));
-            StoreValue storeOp = new StoreValue.Builder(oAuthClient)
+            StoreValue storeOp = new StoreValue.Builder(RiakOAuthClient.convert(oAuthClient))
                     .withLocation(location)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
@@ -170,7 +173,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     }
 
     @Override
-    public List<OAuthClient> get(String name,
+    public List<OAuthClientVO> get(String name,
                                  String namePattern,
                                  String domain,
                                  String oauthId,
@@ -262,10 +265,13 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(OAuthClient.class).stream()
+            List<RiakOAuthClient> result = response.getResultsFromAllPhases(RiakOAuthClient.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
+
+            Stream<OAuthClientVO> objectStream = result.stream().map(RiakOAuthClient::convert);
+            return objectStream.collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch OAuthClient by filter.", e);

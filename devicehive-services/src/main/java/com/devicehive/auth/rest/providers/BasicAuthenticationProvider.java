@@ -9,6 +9,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
                     AuthorityUtils.createAuthorityList(role));
 
         } else {
-            OAuthClient client = clientService.authenticate(key, pass);
+            OAuthClientVO client = clientService.authenticate(key, pass);
             logger.info("oAuth client {} authenticated", key);
             if (client != null) {
                 return new HiveAuthentication(

@@ -5,10 +5,10 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.service.helpers.DefaultPasswordProcessor;
 import com.devicehive.service.helpers.PasswordProcessor;
+import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +30,12 @@ public class OAuthClientService {
     private PasswordProcessor secretGenerator = new DefaultPasswordProcessor();
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public OAuthClient get(@NotNull Long id) {
+    public OAuthClientVO get(@NotNull Long id) {
         return oAuthClientDao.find(id);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<OAuthClient> get(String name,
+    public List<OAuthClientVO> get(String name,
                                  String namePattern,
                                  String domain,
                                  String oauthId,
@@ -54,12 +54,12 @@ public class OAuthClientService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public OAuthClient insert(OAuthClient client) {
+    public OAuthClientVO insert(OAuthClientVO client) {
         if (client.getId() != null) {
             logger.error("OAuth client id shouldn't be empty");
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
-        OAuthClient clientWithExistingID = getByOAuthID(client.getOauthId());
+        OAuthClientVO clientWithExistingID = getByOAuthID(client.getOauthId());
         if (clientWithExistingID != null) {
             logger.error("OAuth client with id {} not found", client.getOauthId());
             throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
@@ -71,7 +71,7 @@ public class OAuthClientService {
 
     @Transactional
     public boolean update(OAuthClientUpdate client, Long clientId) {
-        OAuthClient existing = oAuthClientDao.find(clientId);
+        OAuthClientVO existing = oAuthClientDao.find(clientId);
         if (existing == null) {
             logger.error("OAuth client with id {} not found", clientId);
             throw new NoSuchElementException(String.format(Messages.OAUTH_CLIENT_NOT_FOUND, clientId));
@@ -80,7 +80,7 @@ public class OAuthClientService {
             return true;
         }
         if (client.getOauthId() != null && !client.getOauthId().orElse(null).equals(existing.getOauthId())) {
-            OAuthClient existingWithOAuthID = getByOAuthID(client.getOauthId().orElse(null));
+            OAuthClientVO existingWithOAuthID = getByOAuthID(client.getOauthId().orElse(null));
             if (existingWithOAuthID != null) {
                 logger.error("OAuth client with id {} already exists in the system", client.getOauthId().orElse(null));
                 throw new ActionNotAllowedException(Messages.DUPLICATE_OAUTH_ID);
@@ -112,17 +112,17 @@ public class OAuthClientService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public OAuthClient getByOAuthID(String oauthID) {
+    public OAuthClientVO getByOAuthID(String oauthID) {
         return oAuthClientDao.getByOAuthId(oauthID);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public OAuthClient authenticate(@NotNull String id, @NotNull String secret) {
+    public OAuthClientVO authenticate(@NotNull String id, @NotNull String secret) {
         return oAuthClientDao.getByOAuthIdAndSecret(id, secret);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public OAuthClient getByName(String name) {
+    public OAuthClientVO getByName(String name) {
         return oAuthClientDao.getByName(name);
     }
 }

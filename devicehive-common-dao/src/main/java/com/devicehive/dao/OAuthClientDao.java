@@ -1,25 +1,25 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.OAuthClient;
+import com.devicehive.vo.OAuthClientVO;
 
 import java.util.List;
 
 public interface OAuthClientDao {
     int deleteById(Long id);
 
-    OAuthClient getByOAuthId(String oauthId);
+    OAuthClientVO getByOAuthId(String oauthId);
 
-    OAuthClient getByName(String name);
+    OAuthClientVO getByName(String name);
 
-    OAuthClient getByOAuthIdAndSecret(String id, String secret);
+    OAuthClientVO getByOAuthIdAndSecret(String id, String secret);
 
-    OAuthClient find(Long id);
+    OAuthClientVO find(Long id);
 
-    void persist(OAuthClient oAuthClient);
+    void persist(OAuthClientVO oAuthClient);
 
-    OAuthClient merge(OAuthClient existing);
+    OAuthClientVO merge(OAuthClientVO existing);
 
-    List<OAuthClient> get(String name,
+    List<OAuthClientVO> get(String name,
                           String namePattern,
                           String domain,
                           String oauthId,

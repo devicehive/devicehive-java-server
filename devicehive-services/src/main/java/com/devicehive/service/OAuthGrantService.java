@@ -4,14 +4,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.OAuthClient;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.OAuthClientVO;
+import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,7 +39,7 @@ public class OAuthGrantService {
     private TimestampService timestampService;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public OAuthGrant get(@NotNull User user, @NotNull Long grantId) {
+    public OAuthGrantVO get(@NotNull User user, @NotNull Long grantId) {
         if (user.isAdmin()) {
             return oAuthGrantDao.getById(grantId);
         } else {
@@ -48,9 +48,9 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public OAuthGrant save(@NotNull OAuthGrant grant, @NotNull User user) {
+    public OAuthGrantVO save(@NotNull OAuthGrantVO grant, @NotNull User user) {
         validate(grant);
-        OAuthClient client = clientService.getByOAuthID(grant.getClient().getOauthId());
+        OAuthClientVO client = clientService.getByOAuthID(grant.getClient().getOauthId());
         grant.setClient(client);
         if (grant.getAccessType() == null) {
             grant.setAccessType(AccessType.ONLINE);
@@ -70,7 +70,7 @@ public class OAuthGrantService {
 
     @Transactional
     public boolean delete(@NotNull User user, @NotNull Long grantId) {
-        OAuthGrant existing;
+        OAuthGrantVO existing;
         if (user.isAdmin()) {
             existing = oAuthGrantDao.getById(grantId);
         } else {
@@ -88,14 +88,14 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public OAuthGrant update(@NotNull User user, @NotNull Long grantId, OAuthGrantUpdate grantToUpdate) {
-        OAuthGrant existing = get(user, grantId);
+    public OAuthGrantVO update(@NotNull User user, @NotNull Long grantId, OAuthGrantUpdate grantToUpdate) {
+        OAuthGrantVO existing = get(user, grantId);
         if (existing == null) {
             return null;
         }
-        OAuthClient client = existing.getClient();
+        OAuthClientVO client = existing.getClient();
         if (grantToUpdate.getClient() != null) {
-            OAuthClient clientFromGrant = grantToUpdate.getClient().orElse(null);
+            OAuthClientVO clientFromGrant = grantToUpdate.getClient().orElse(null);
             if (clientFromGrant == null) {
                 throw new HiveException(Messages.CLIENT_IS_NULL);
             }
@@ -129,12 +129,15 @@ public class OAuthGrantService {
         if (existing.getAuthCode() != null) {
             existing.setAuthCode(UUID.randomUUID().toString());
         }
+        if (existing.getUser() == null) {
+            existing.setUser(user);
+        }
         oAuthGrantDao.merge(existing);
         return existing;
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<OAuthGrant> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull User user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,
@@ -162,7 +165,7 @@ public class OAuthGrantService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public OAuthGrant get(@NotNull String authCode, @NotNull String clientOAuthID) {
+    public OAuthGrantVO get(@NotNull String authCode, @NotNull String clientOAuthID) {
         return oAuthGrantDao.getByCodeAndOAuthID(authCode, clientOAuthID);
     }
 
@@ -170,7 +173,7 @@ public class OAuthGrantService {
     public AccessKey accessTokenRequestForCodeType(@NotNull String code,
                                                    String redirectUri,
                                                    @NotNull String clientId) {
-        OAuthGrant grant = get(code, clientId);
+        OAuthGrantVO grant = get(code, clientId);
         if (grant == null || !grant.getType().equals(Type.CODE)) {
             throw new HiveException(Messages.INVALID_AUTH_CODE, SC_UNAUTHORIZED);
         }
@@ -188,18 +191,18 @@ public class OAuthGrantService {
     public AccessKey accessTokenRequestForPasswordType(@NotNull String scope,
                                                        @NotNull String login,
                                                        @NotNull String password,
-                                                       OAuthClient client) {
+                                                       OAuthClientVO client) {
         User user = userService.authenticate(login, password);
         if (user == null || !user.getStatus().equals(UserStatus.ACTIVE)) {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, SC_UNAUTHORIZED);
         }
         user.setLastLogin(timestampService.getTimestamp());
-        List<OAuthGrant> found = list(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
+        List<OAuthGrantVO> found = list(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
                 null, null, null, null, null, null);
-        OAuthGrant grant = found.isEmpty() ? null : found.get(0);
+        OAuthGrantVO grant = found.isEmpty() ? null : found.get(0);
         Date now = timestampService.getTimestamp();
         if (grant == null) {
-            grant = new OAuthGrant();
+            grant = new OAuthGrantVO();
             grant.setClient(client);
             grant.setUser(user);
             grant.setRedirectUri(client.getRedirectUri());
@@ -217,7 +220,7 @@ public class OAuthGrantService {
         return grant.getAccessKey();
     }
 
-    private void validate(OAuthGrant grant) {
+    private void validate(OAuthGrantVO grant) {
         List<String> violations = new ArrayList<>();
         if (grant.getClient() == null) {
             violations.add(Messages.CLIENT_REQUIRED);

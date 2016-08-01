@@ -5,6 +5,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
+import com.devicehive.vo.OAuthGrantVO;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -154,9 +155,6 @@ public class OAuthGrant implements HiveEntity {
 
     public void setAccessKey(AccessKey accessKey) {
         this.accessKey = accessKey;
-        if (accessKey != null) {
-            accessKeyId = accessKey.getId();
-        }
     }
 
     public User getUser() {
@@ -165,9 +163,6 @@ public class OAuthGrant implements HiveEntity {
 
     public void setUser(User user) {
         this.user = user;
-        if (user != null) {
-            userId = user.getId();
-        }
     }
 
     public Type getType() {
@@ -238,37 +233,46 @@ public class OAuthGrant implements HiveEntity {
         throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
-    @Transient
-    private long userId;
-
-    public long getUserId() {
-        return userId;
+    public static OAuthGrant convert(OAuthGrantVO grant) {
+        if (grant != null) {
+            OAuthGrant result = new OAuthGrant();
+            result.setId(grant.getId());
+            result.setTimestamp(grant.getTimestamp());
+            result.setAuthCode(grant.getAuthCode());
+            result.setClient(OAuthClient.convert(grant.getClient()));
+            result.setType(grant.getType());
+            result.setAccessType(grant.getAccessType());
+            result.setRedirectUri(grant.getRedirectUri());
+            result.setScope(grant.getScope());
+            result.setNetworkIds(grant.getNetworkIds());
+            result.setEntityVersion(grant.getEntityVersion());
+            result.setUser(grant.getUser());
+            result.setAccessKey(grant.getAccessKey());
+            return result;
+        } else {
+            return null;
+        }
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
-
-    @Transient
-    private long accessKeyId;
-
-    public long getAccessKeyId() {
-        return accessKeyId;
-    }
-
-    public void setAccessKeyId(long accessKeyId) {
-        this.accessKeyId = accessKeyId;
-    }
-
-    //Riak indexes
-    @RiakIndex(name = "user")
-    public Long getUserSi() {
-        return userId;
-    }
-
-    @RiakIndex(name = "authCode")
-    public String getAuthCodeSi() {
-        return authCode;
+    public static OAuthGrantVO convert(OAuthGrant grant) {
+        if (grant != null) {
+            OAuthGrantVO result = new OAuthGrantVO();
+            result.setId(grant.getId());
+            result.setTimestamp(grant.getTimestamp());
+            result.setAuthCode(grant.getAuthCode());
+            result.setClient(OAuthClient.convert(grant.getClient()));
+            result.setType(grant.getType());
+            result.setAccessType(grant.getAccessType());
+            result.setRedirectUri(grant.getRedirectUri());
+            result.setScope(grant.getScope());
+            result.setNetworkIds(grant.getNetworkIds());
+            result.setEntityVersion(grant.getEntityVersion());
+            //todo: vertify usage
+            result.setAccessKey(grant.getAccessKey());
+            return result;
+        } else {
+            return null;
+        }
     }
 
 }

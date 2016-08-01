@@ -4,12 +4,12 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
 import com.devicehive.resource.OAuthClientResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.OAuthClientService;
+import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +43,7 @@ public class OAuthClientResourceImpl implements OAuthClientResource {
             sortField = sortField.toLowerCase();
         }
 
-        List<OAuthClient> result =
+        List<OAuthClientVO> result =
                 clientService.get(name, namePattern, domain, oauthId, sortField, sortOrder, take, skip);
         logger.debug("OAuthClient list procced. Params: name {}, namePattern {}, domain {}, oauthId {}, " +
                         "sortField {}, sortOrder {}, take {}, skip {}. Result list contains {} elems", name, namePattern,
@@ -59,7 +59,7 @@ public class OAuthClientResourceImpl implements OAuthClientResource {
     @Override
     public Response get(long clientId) {
         logger.debug("OAuthClient get requested. Client id: {}", clientId);
-        OAuthClient existing = clientService.get(clientId);
+        OAuthClientVO existing = clientService.get(clientId);
         if (existing == null) {
             return ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -74,14 +74,14 @@ public class OAuthClientResourceImpl implements OAuthClientResource {
     }
 
     @Override
-    public Response insert(OAuthClient clientToInsert) {
+    public Response insert(OAuthClientVO clientToInsert) {
         logger.debug("OAuthClient insert requested. Client to insert: {}", clientToInsert);
         if (clientToInsert == null) {
             return ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
         }
-        OAuthClient created = clientService.insert(clientToInsert);
+        OAuthClientVO created = clientService.insert(clientToInsert);
         logger.debug("OAuthClient insert procceed successfully. Client to insert: {}. New id: {}", clientToInsert,
                 clientToInsert.getId());
         return ResponseFactory.response(CREATED, created, OAUTH_CLIENT_PUBLISHED);

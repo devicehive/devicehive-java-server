@@ -17,6 +17,8 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.OAuthClientVO;
+import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -419,11 +421,11 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, RandomStringUtils.random(10));
 
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
 
-        OAuthGrant grant = new OAuthGrant();
+        OAuthGrantVO grant = new OAuthGrantVO();
         grant.setClient(client);
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
@@ -448,19 +450,19 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, RandomStringUtils.random(10));
 
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
-        OAuthGrant grant = new OAuthGrant();
+        OAuthGrantVO grant = new OAuthGrantVO();
         grant.setClient(client);
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
         AccessKey created = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
 
-        OAuthClient newClient = new OAuthClient();
+        OAuthClientVO newClient = new OAuthClientVO();
         newClient.setName(RandomStringUtils.randomAlphabetic(10));
         newClient.setDomain(RandomStringUtils.randomAlphabetic(10));
-        OAuthGrant newGrant = new OAuthGrant();
+        OAuthGrantVO newGrant = new OAuthGrantVO();
         newGrant.setAccessKey(created);
         newGrant.setClient(newClient);
         newGrant.setScope(AccessKeyAction.MANAGE_ACCESS_KEY.getValue());

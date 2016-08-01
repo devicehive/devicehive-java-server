@@ -17,6 +17,7 @@ import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.riak.model.RiakOAuthGrant;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.OAuthClient;
@@ -24,6 +25,8 @@ import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
+import com.devicehive.vo.OAuthClientVO;
+import com.devicehive.vo.OAuthGrantVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,8 +84,8 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public OAuthGrant getByIdAndUser(User user, Long grantId) {
-        OAuthGrant grant = getById(grantId);
+    public OAuthGrantVO getByIdAndUser(User user, Long grantId) {
+        RiakOAuthGrant grant = get(grantId);
         if (grant != null && user != null && grant.getUserId() == user.getId()) {
             return restoreRefs(grant, null);
         } else {
@@ -91,12 +94,23 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public OAuthGrant getById(Long grantId) {
-        OAuthGrant grant = find(grantId);
-        if( grant != null) {
-            grant = restoreRefs(grant, null);
+    public OAuthGrantVO getById(Long grantId) {
+        RiakOAuthGrant grant = get(grantId);
+        return restoreRefs(grant, null);
+    }
+
+    private RiakOAuthGrant get(Long grantId) {
+        try {
+            Location location = new Location(OAUTH_GRANT_NS, String.valueOf(grantId));
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
+            FetchValue.Response execute = client.execute(fetchOp);
+            return getOrNull(execute, RiakOAuthGrant.class);
+        } catch (ExecutionException | InterruptedException e) {
+            logger.error("Exception accessing Riak Storage.", e);
+            throw new HivePersistenceLayerException("Cannot find OAuthGrant by id.", e);
         }
-        return grant;
     }
 
 
@@ -125,7 +139,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public OAuthGrant getByCodeAndOAuthID(String authCode, String clientOAuthID) {
+    public OAuthGrantVO getByCodeAndOAuthID(String authCode, String clientOAuthID) {
         BinIndexQuery biq = new BinIndexQuery.Builder(OAUTH_GRANT_NS, "authCode", authCode).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -139,11 +153,11 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
                 FetchValue.Response execute = client.execute(fetchOp);
-                OAuthGrant oAuthGrant = getOrNull(execute, OAuthGrant.class);
+                RiakOAuthGrant oAuthGrant = getOrNull(execute, RiakOAuthGrant.class);
                 if (oAuthGrant != null && oAuthGrant.getClient() != null) {
-                    OAuthClient client = oAuthClientDao.find(oAuthGrant.getClient().getId());
+                    OAuthClientVO client = oAuthClientDao.find(oAuthGrant.getClient().getId());
                     if (client.getOauthId().equals(clientOAuthID)) {
-                        return oAuthGrant;
+                        return restoreRefs(oAuthGrant, null);
                     }
                 }
             }
@@ -155,39 +169,31 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public OAuthGrant find(Long id) {
-        try {
-            Location location = new Location(OAUTH_GRANT_NS, String.valueOf(id));
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
-                    .build();
-            FetchValue.Response execute = client.execute(fetchOp);
-            return getOrNull(execute, OAuthGrant.class);
-        } catch (ExecutionException | InterruptedException e) {
-            logger.error("Exception accessing Riak Storage.", e);
-            throw new HivePersistenceLayerException("Cannot find OAuthGrant by id.", e);
-        }
+    public OAuthGrantVO find(Long id) {
+        return restoreRefs(get(id), null);
     }
 
     @Override
-    public void persist(OAuthGrant oAuthGrant) {
-        merge(oAuthGrant);
+    public void persist(OAuthGrantVO oAuthGrant) {
+        OAuthGrantVO persisted = merge(oAuthGrant);
+        oAuthGrant.setId(persisted.getId());
     }
 
     @Override
-    public OAuthGrant merge(OAuthGrant oAuthGrant) {
+    public OAuthGrantVO merge(OAuthGrantVO oAuthGrant) {
         try {
             if (oAuthGrant.getId() == null) {
                 oAuthGrant.setId(getId(oauthGrantCounters));
             }
             AccessKey accessKey = oAuthGrant.getAccessKey();
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));
-            StoreValue storeOp = new StoreValue.Builder(removeRefs(oAuthGrant))
+            RiakOAuthGrant riakOAuthGrant = removeRefs(oAuthGrant);
+            StoreValue storeOp = new StoreValue.Builder(riakOAuthGrant)
                     .withLocation(location)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
-            return restoreRefs(oAuthGrant, accessKey);
+            return restoreRefs(riakOAuthGrant, accessKey);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot store OAuthGrant.", e);
@@ -195,7 +201,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public List<OAuthGrant> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull User user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,
@@ -343,32 +349,31 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(OAuthGrant.class).stream()
+            List<RiakOAuthGrant> grants = response.getResultsFromAllPhases(RiakOAuthGrant.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
+            return grants.stream().map(RiakOAuthGrant::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch OAuthGrant by filter.", e);
         }
     }
 
-    private OAuthGrant removeRefs(OAuthGrant grant) {
-        if (grant.getAccessKey() != null) {
-            long id = grant.getAccessKey().getId();
-            AccessKey tempAccessKey = new AccessKey();
-            tempAccessKey.setId(id);
-            grant.setAccessKey(tempAccessKey);
-        }
-        return grant;
+    private RiakOAuthGrant removeRefs(OAuthGrantVO grant) {
+        return RiakOAuthGrant.convert(grant);
     }
 
-    private OAuthGrant restoreRefs(OAuthGrant grant, AccessKey accessKey) {
-        if (accessKey != null) {
-            grant.setAccessKey(accessKey);
-        } else {
-            grant.setAccessKey(accessKeyDao.find(grant.getAccessKeyId()));
+    private OAuthGrantVO restoreRefs(RiakOAuthGrant grant, AccessKey accessKey) {
+        OAuthGrantVO vo = RiakOAuthGrant.convert(grant);
+        if (vo != null) {
+            if (accessKey != null) {
+                vo.setAccessKey(accessKey);
+            } else {
+                vo.setAccessKey(accessKeyDao.find(grant.getAccessKeyId()));
+            }
+
         }
-        return grant;
+        return vo;
     }
 }

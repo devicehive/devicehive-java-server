@@ -1,7 +1,7 @@
 package com.devicehive.model;
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.OAuthClientVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -143,15 +143,35 @@ public class OAuthClient implements HiveEntity {
         this.oauthSecret = oauthSecret;
     }
 
-    //Riak indexes
-    @RiakIndex(name = "name")
-    public String getNameSi() {
-        return name;
+    public static OAuthClientVO convert(OAuthClient client) {
+        if (client != null) {
+            OAuthClientVO vo = new OAuthClientVO();
+            vo.setId(client.getId());
+            vo.setName(client.getName());
+            vo.setDomain(client.getDomain());
+            vo.setSubnet(client.getSubnet());
+            vo.setRedirectUri(client.getRedirectUri());
+            vo.setOauthId(client.getOauthId());
+            vo.setOauthSecret(client.getOauthSecret());
+            return vo;
+        } else {
+            return null;
+        }
     }
-
-    @RiakIndex(name = "oauthId")
-    public String getOauthIdSi() {
-        return oauthId;
+    public static OAuthClient convert(OAuthClientVO client) {
+        if (client != null) {
+            OAuthClient vo = new OAuthClient();
+            vo.setId(client.getId());
+            vo.setName(client.getName());
+            vo.setDomain(client.getDomain());
+            vo.setSubnet(client.getSubnet());
+            vo.setRedirectUri(client.getRedirectUri());
+            vo.setOauthId(client.getOauthId());
+            vo.setOauthSecret(client.getOauthSecret());
+            return vo;
+        } else {
+            return null;
+        }
     }
 
 }

@@ -17,6 +17,7 @@ import com.devicehive.resource.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
             sortField = sortField.toLowerCase();
         }
         User user = getUser(userId);
-        List<OAuthGrant> result = grantService.list(user, start, end, clientOAuthId,
+        List<OAuthGrantVO> result = grantService.list(user, start, end, clientOAuthId,
                                                     type == null ? null : Type.forName(type).ordinal(), scope,
                                                     redirectUri, accessType == null ? null
                                                                                     : AccessType.forName(accessType)
@@ -81,7 +82,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     public Response get(String userId, long grantId) {
         logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
-        OAuthGrant grant = grantService.get(user, grantId);
+        OAuthGrantVO grant = grantService.get(user, grantId);
         if (grant == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }
@@ -93,7 +94,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     }
 
     @Override
-    public Response insert(String userId, OAuthGrant grant) {
+    public Response insert(String userId, OAuthGrantVO grant) {
         logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
         User user = getUser(userId);
         grantService.save(grant, user);
@@ -109,7 +110,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     public Response update(String userId, Long grantId, OAuthGrantUpdate grant) {
         logger.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
         User user = getUser(userId);
-        OAuthGrant updated = grantService.update(user, grantId, grant);
+        OAuthGrantVO updated = grantService.update(user, grantId, grant);
         if (updated == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
         }

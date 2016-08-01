@@ -3,8 +3,8 @@ package com.devicehive.service;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.updates.OAuthClientUpdate;
+import com.devicehive.vo.OAuthClientVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,13 +28,13 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_oauth_client() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
 
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(client.getName()));
@@ -46,14 +46,14 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_client_exists_on_create() throws Exception {
-        OAuthClient existed = new OAuthClient();
+        OAuthClientVO existed = new OAuthClientVO();
         existed.setName(RandomStringUtils.randomAlphabetic(10));
         existed.setOauthId(RandomStringUtils.randomAlphabetic(10));
         existed.setDomain(RandomStringUtils.randomAlphabetic(10));
         existed.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
         clientService.insert(existed);
 
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(existed.getOauthId());
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
@@ -67,12 +67,12 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_oauth_client() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
 
         OAuthClientUpdate update = new OAuthClientUpdate();
         update.setName(Optional.ofNullable(RandomStringUtils.randomAlphabetic(10)));
@@ -83,7 +83,7 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
         boolean updated = clientService.update(update, created.getId());
         assertTrue(updated);
-        OAuthClient updatedClient = clientService.get(created.getId());
+        OAuthClientVO updatedClient = clientService.get(created.getId());
         assertThat(updatedClient, notNullValue());
         assertThat(updatedClient.getId(), equalTo(created.getId()));
         assertThat(updatedClient.getName(), equalTo(update.getName().get()));
@@ -95,14 +95,14 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNowAllowedException_if_oauth_id_exists_on_update() throws Exception {
-        OAuthClient client1 = new OAuthClient();
+        OAuthClientVO client1 = new OAuthClientVO();
         client1.setName(RandomStringUtils.randomAlphabetic(10));
         client1.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client1.setDomain(RandomStringUtils.randomAlphabetic(10));
         client1.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
         clientService.insert(client1);
 
-        OAuthClient client2 = new OAuthClient();
+        OAuthClientVO client2 = new OAuthClientVO();
         client2.setName(RandomStringUtils.randomAlphabetic(10));
         client2.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client2.setDomain(RandomStringUtils.randomAlphabetic(10));
@@ -139,30 +139,30 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_oauth_client() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
         assertThat(created, notNullValue());
 
         clientService.delete(created.getId());
-        OAuthClient deleted = clientService.get(created.getId());
+        OAuthClientVO deleted = clientService.get(created.getId());
         assertThat(deleted, nullValue());
     }
 
     @Test
     public void should_return_client_by_oauth_id() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
         assertThat(created, notNullValue());
 
-        OAuthClient returned = clientService.getByOAuthID(client.getOauthId());
+        OAuthClientVO returned = clientService.getByOAuthID(client.getOauthId());
         assertThat(returned, notNullValue());
         assertThat(returned.getId(), equalTo(created.getId()));
         assertThat(returned.getName(), equalTo(created.getName()));
@@ -170,15 +170,15 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_client_by_oauth_id_and_secret() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
         assertThat(created, notNullValue());
 
-        OAuthClient returned = clientService.authenticate(client.getOauthId(), client.getOauthSecret());
+        OAuthClientVO returned = clientService.authenticate(client.getOauthId(), client.getOauthSecret());
         assertThat(returned, notNullValue());
         assertThat(returned.getId(), equalTo(created.getId()));
         assertThat(returned.getName(), equalTo(created.getName()));
@@ -186,15 +186,15 @@ public class OAuthClientServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_client_by_name() throws Exception {
-        OAuthClient client = new OAuthClient();
+        OAuthClientVO client = new OAuthClientVO();
         client.setName(RandomStringUtils.randomAlphabetic(10));
         client.setOauthId(RandomStringUtils.randomAlphabetic(10));
         client.setDomain(RandomStringUtils.randomAlphabetic(10));
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
-        OAuthClient created = clientService.insert(client);
+        OAuthClientVO created = clientService.insert(client);
         assertThat(created, notNullValue());
 
-        OAuthClient returned = clientService.getByName(client.getName());
+        OAuthClientVO returned = clientService.getByName(client.getName());
         assertThat(returned, notNullValue());
         assertThat(returned.getId(), equalTo(created.getId()));
         assertThat(returned.getName(), equalTo(created.getName()));

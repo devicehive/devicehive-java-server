@@ -3,10 +3,10 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.OAuthClient;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
+import com.devicehive.vo.OAuthClientVO;
+import com.devicehive.vo.OAuthGrantVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -21,7 +21,7 @@ public class OAuthGrantUpdate implements HiveEntity {
 
     @SerializedName("client")
     @JsonPolicyDef({OAUTH_GRANT_PUBLISHED})
-    private Optional<OAuthClient> client;
+    private Optional<OAuthClientVO> client;
 
     @SerializedName("type")
     @JsonPolicyDef({OAUTH_GRANT_PUBLISHED})
@@ -51,11 +51,11 @@ public class OAuthGrantUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public Optional<OAuthClient> getClient() {
+    public Optional<OAuthClientVO> getClient() {
         return client;
     }
 
-    public void setClient(Optional<OAuthClient> client) {
+    public void setClient(Optional<OAuthClientVO> client) {
         this.client = client;
     }
 
@@ -99,8 +99,8 @@ public class OAuthGrantUpdate implements HiveEntity {
         this.networkIds = networkIds;
     }
 
-    public OAuthGrant convertTo() {
-        OAuthGrant grant = new OAuthGrant();
+    public OAuthGrantVO convertTo() {
+        OAuthGrantVO grant = new OAuthGrantVO();
         grant.setId(id);
         if (client != null) {
             grant.setClient(client.orElse(null));

@@ -1,6 +1,8 @@
 package com.devicehive.resource;
 
+import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -166,7 +168,7 @@ public interface NetworkResource {
     })
     Response update(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
-            NetworkVO networkToUpdate,
+            NetworkUpdate networkToUpdate,
             @ApiParam(name = "id", value = "Network identifier.", required = true)
             @PathParam("id")
             long id);
