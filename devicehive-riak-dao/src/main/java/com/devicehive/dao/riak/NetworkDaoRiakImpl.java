@@ -83,7 +83,8 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         BinIndexQuery biq = new BinIndexQuery.Builder(NETWORK_NS, "name", name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
-            return fetchMultiple(response, NetworkVO.class);
+            List<RiakNetwork> result = fetchMultiple(response, RiakNetwork.class);
+            return result.stream().map(RiakNetwork::convert).collect(Collectors.toList());
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't find networks by name", e);
         }
@@ -300,10 +301,12 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
         try {
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(NetworkVO.class).stream()
+
+            List<RiakNetwork> result = response.getResultsFromAllPhases(RiakNetwork.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
+            return result.stream().map(RiakNetwork::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new HivePersistenceLayerException("Cannot get list of networks.", e);
         }
