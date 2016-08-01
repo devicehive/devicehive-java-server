@@ -91,6 +91,7 @@ public class DeviceService {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
+                dc.setPermanent(deviceClass.getIsPermanent());
                 device.setDeviceClass(dc);
             }
             if (network != null) {
@@ -110,6 +111,7 @@ public class DeviceService {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
+                dc.setPermanent(deviceClass.getIsPermanent());
                 existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getStatus() != null) {
@@ -127,6 +129,7 @@ public class DeviceService {
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(deviceUpdate.getBlocked().orElse(null));
             }
+            deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }
@@ -242,6 +245,7 @@ public class DeviceService {
             if (deviceUpdate.getBlocked() != null) {
                 existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
             }
+            deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
         }
     }

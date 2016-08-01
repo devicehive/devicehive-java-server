@@ -56,8 +56,10 @@ public class DeviceClassService {
             stored = deviceClassDao.findByName(deviceClassFromMessage.getName());
         }
         if (stored != null) {
-            deviceClassUpdate.setEquipment(Optional.ofNullable(customEquipmentSet));
-            update(stored.getId(), deviceClassUpdate);
+            if (!stored.getIsPermanent()) {
+                deviceClassUpdate.setEquipment(Optional.ofNullable(customEquipmentSet));
+                update(stored.getId(), deviceClassUpdate);
+            }
             return stored;
         } else {
             return addDeviceClass(deviceClassFromMessage);
@@ -106,8 +108,8 @@ public class DeviceClassService {
                         deviceClassEquipmentVO.setId(existingEquipmentId);
                     }
                 }
+                stored.setEquipment(update.getEquipment().orElse(null));
             }
-            stored.setEquipment(update.getEquipment().orElse(null));
         }
         if (update.getId() != null) {
             stored.setId(update.getId());
