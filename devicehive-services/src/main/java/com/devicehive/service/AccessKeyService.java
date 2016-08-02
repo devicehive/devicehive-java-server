@@ -14,6 +14,7 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
@@ -154,7 +155,7 @@ public class AccessKeyService {
         return accessKey;
     }
 
-    public AccessKey createAccessKey(@NotNull AccessKeyRequest request, IdentityProviderEnum identityProviderEnum) {
+    public AccessKey createAccessKey(@NotNull AccessKeyRequestVO request, IdentityProviderEnum identityProviderEnum) {
         switch (identityProviderEnum) {
             case GOOGLE:
                 return googleAuthProvider.createAccessKey(request);

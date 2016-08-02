@@ -3,7 +3,7 @@ package com.devicehive.model.oauth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyRequest;
+import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
@@ -36,7 +36,7 @@ public class PasswordIdentityProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKey createAccessKey(@NotNull final AccessKeyRequest request) {
+    public AccessKey createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());

@@ -1,7 +1,7 @@
 package com.devicehive.model.oauth;
 
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyRequest;
+import com.devicehive.vo.AccessKeyRequestVO;
 
 import javax.validation.constraints.NotNull;
 
@@ -12,5 +12,5 @@ public abstract class AuthProvider {
 
     public abstract boolean isIdentityProviderAllowed();
 
-    public abstract AccessKey createAccessKey(@NotNull final AccessKeyRequest accessKeyRequest);
+    public abstract AccessKey createAccessKey(@NotNull final AccessKeyRequestVO accessKeyRequest);
 }

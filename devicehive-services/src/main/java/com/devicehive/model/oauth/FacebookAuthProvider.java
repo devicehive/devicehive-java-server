@@ -5,7 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyRequest;
+import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
@@ -66,7 +66,7 @@ public class FacebookAuthProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKey createAccessKey(@NotNull final AccessKeyRequest request) {
+    public AccessKey createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (isIdentityProviderAllowed()) {
             String accessToken;
             if (request.getCode() != null) {

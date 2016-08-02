@@ -5,7 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyRequest;
+import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import static com.devicehive.configuration.Constants.UTF8;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
@@ -71,7 +70,7 @@ public class GithubAuthProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKey createAccessKey(@NotNull final AccessKeyRequest request) {
+    public AccessKey createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (isIdentityProviderAllowed()) {
             if (request.getCode() != null) {
                 final String accessToken = getAccessToken(request.getCode());

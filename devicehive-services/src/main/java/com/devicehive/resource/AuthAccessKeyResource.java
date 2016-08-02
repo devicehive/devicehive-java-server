@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyRequest;
+import com.devicehive.vo.AccessKeyRequestVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -27,7 +27,7 @@ public interface AuthAccessKeyResource {
     })
     Response login(
             @ApiParam(value = "Access key request", required = true)
-            AccessKeyRequest request);
+            AccessKeyRequestVO request);
 
     @DELETE
     @PreAuthorize("hasRole('KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
