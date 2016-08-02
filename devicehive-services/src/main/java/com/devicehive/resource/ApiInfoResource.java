@@ -2,7 +2,7 @@ package com.devicehive.resource;
 
 import com.devicehive.model.ApiConfig;
 import com.devicehive.model.ApiInfo;
-import com.devicehive.model.ClusterConfig;
+import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -48,11 +48,11 @@ public interface ApiInfoResource {
     @Path("/config/cluster")
     @PreAuthorize("permitAll")
     @ApiOperation(value = "Get cluster configuration", notes = "Returns information about cluster (Kafka, Zookeeper etc.)",
-            response = ClusterConfig.class)
+            response = ClusterConfigVO.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "Returns information about cluster (Kafka, Zookeeper etc.)",
-                    response = ClusterConfig.class)
+                    response = ClusterConfigVO.class)
     })
     Response getClusterConfig();
 }

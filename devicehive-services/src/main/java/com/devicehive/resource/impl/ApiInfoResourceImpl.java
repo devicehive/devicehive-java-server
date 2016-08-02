@@ -6,7 +6,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
 import com.devicehive.model.ApiInfo;
-import com.devicehive.model.ClusterConfig;
+import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -108,8 +108,8 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     @Override
     public Response getClusterConfig() {
-        logger.debug("ClusterConfig requested");
-        ClusterConfig clusterConfig = new ClusterConfig();
+        logger.debug("ClusterConfigVO requested");
+        ClusterConfigVO clusterConfig = new ClusterConfigVO();
         clusterConfig.setMetadataBrokerList(env.getProperty(Constants.METADATA_BROKER_LIST));
         clusterConfig.setZookeeperConnect(env.getProperty(Constants.ZOOKEEPER_CONNECT));
 
