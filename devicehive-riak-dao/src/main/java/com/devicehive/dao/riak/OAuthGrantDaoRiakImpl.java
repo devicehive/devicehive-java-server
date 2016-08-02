@@ -122,7 +122,8 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
-            OAuthGrant grant = getOrNull(client.execute(fetchOp), OAuthGrant.class);
+            RiakOAuthGrant riakOAuthGrantgrant = getOrNull(client.execute(fetchOp), RiakOAuthGrant.class);
+            OAuthGrantVO grant = restoreRefs(riakOAuthGrantgrant, null);
 
             if (grant != null && grant.getUser() != null && grant.getUser().equals(user)) {
                 DeleteValue deleteOp = new DeleteValue.Builder(location).build();
@@ -238,8 +239,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 String functionString = String.format(
                         "function(values, arg) {" +
                                 "return values.filter(function(v) {" +
-                                "if (v.user == null) return false;" +
-                                "var id = v.user.id;" +
+                                "var id = v.userId;" +
                                 "return id == %s;" +
                                 "})" +
                                 "}", userId);
@@ -373,6 +373,10 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 vo.setAccessKey(accessKeyDao.find(grant.getAccessKeyId()));
             }
 
+            User user = userDao.find(grant.getUserId());
+            if (user != null) {
+                vo.setUser(user);
+            }
         }
         return vo;
     }
