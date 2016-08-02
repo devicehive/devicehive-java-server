@@ -24,7 +24,7 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.model.User;
-import com.devicehive.model.UserNetwork;
+import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;

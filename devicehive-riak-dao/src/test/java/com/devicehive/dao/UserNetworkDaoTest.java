@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
 import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
-import com.devicehive.model.UserNetwork;
+import com.devicehive.dao.riak.model.UserNetwork;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -19,6 +19,7 @@ import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
+import com.devicehive.dao.riak.model.NetworkDevice;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
@@ -242,6 +243,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                 Long deviceClassId, String deviceClassName, String sortField,
                                 @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
+        //TODO [rafa] when filtering by device class name we have to instead query DeviceClass bucket for ids, and then use ids.
+        // here is what happens, since device class is not embeddable in case of Riak we need to either keep id only and perform the logic above.
+        // or we need to update device class embedded data in every device corresponding to the class, which is nighmare.
+
         try {
             String sortFunction = sortMap.get(sortField);
             if (sortFunction == null) {

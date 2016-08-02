@@ -1,4 +1,4 @@
-package com.devicehive.model;
+package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 

@@ -48,7 +48,6 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
         sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
         sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
-        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
     @Override
