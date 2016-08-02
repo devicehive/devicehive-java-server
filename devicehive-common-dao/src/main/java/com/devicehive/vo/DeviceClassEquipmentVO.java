@@ -1,6 +1,7 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
@@ -12,7 +13,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 /**
  * Equipment value object.
  */
-public class DeviceClassEquipmentVO {
+public class DeviceClassEquipmentVO implements HiveEntity {
 
     @SerializedName("id")
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, EQUIPMENT_PUBLISHED, EQUIPMENTCLASS_SUBMITTED, DEVICE_PUBLISHED})

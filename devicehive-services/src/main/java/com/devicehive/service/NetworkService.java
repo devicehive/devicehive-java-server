@@ -12,6 +12,7 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
+import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -138,19 +139,19 @@ public class NetworkService {
     }
 
     @Transactional
-    public NetworkVO update(@NotNull Long networkId, NetworkVO NetworkVO) {
+    public NetworkVO update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
         NetworkVO existing = networkDao.find(networkId);
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
-        if (NetworkVO.getKey() != null) {
-            existing.setKey(NetworkVO.getKey());
+        if (networkUpdate.getKey() != null) {
+            existing.setKey(networkUpdate.getKey().orElse(null));
         }
-        if (NetworkVO.getName() != null) {
-            existing.setName(NetworkVO.getName());
+        if (networkUpdate.getName() != null) {
+            existing.setName(networkUpdate.getName().orElse(null));
         }
-        if (NetworkVO.getDescription() != null) {
-            existing.setDescription(NetworkVO.getDescription());
+        if (networkUpdate.getDescription() != null) {
+            existing.setDescription(networkUpdate.getDescription().orElse(null));
         }
         hiveValidator.validate(existing);
 

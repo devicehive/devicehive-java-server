@@ -56,17 +56,4 @@ public class NetworkUpdate implements HiveEntity {
     public void setDescription(Optional<String> description) {
         this.description = description;
     }
-
-    public static NetworkWithUsersAndDevicesVO convert(NetworkUpdate network) {
-        if (network != null) {
-            NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO();
-            vo.setId(network.getId());
-            vo.setKey(network.getKey().orElse(null));
-            vo.setName(network.getName().orElse(null));
-            vo.setDescription(network.getDescription().orElse(null));
-            vo.setDevices(vo.getDevices());
-            return vo;
-        }
-        return null;
-    }
 }

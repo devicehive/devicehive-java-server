@@ -1,5 +1,6 @@
 package com.devicehive.vo;
 
+import com.devicehive.model.HiveEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -8,7 +9,7 @@ import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-public class ConfigurationVO {
+public class ConfigurationVO implements HiveEntity {
 
     @JsonProperty
     private String name;

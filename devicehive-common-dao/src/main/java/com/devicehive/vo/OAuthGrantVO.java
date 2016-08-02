@@ -3,6 +3,7 @@ package com.devicehive.vo;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.AccessKey;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.*;
@@ -23,7 +24,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
 
-public class OAuthGrantVO {
+public class OAuthGrantVO implements HiveEntity {
     @SerializedName("id")
     @JsonPolicyDef(
             {OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN, OAUTH_GRANT_SUBMITTED_CODE})

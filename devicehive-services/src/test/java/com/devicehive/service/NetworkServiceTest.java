@@ -12,6 +12,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -117,8 +118,8 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(NoSuchElementException.class);
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
-        NetworkVO network = new NetworkVO();
-        network.setName("network");
+        NetworkUpdate network = new NetworkUpdate();
+        network.setName(Optional.of("network"));
 
         networkService.update(-1L, network);
     }
@@ -131,21 +132,21 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
-        NetworkVO update = new NetworkVO();
-        update.setKey("key");
-        update.setName("name");
-        update.setDescription("description");
+        NetworkUpdate update = new NetworkUpdate();
+        update.setKey(Optional.of("key"));
+        update.setName(Optional.of("name"));
+        update.setDescription(Optional.of("description"));
 
         NetworkVO updated = networkService.update(created.getId(), update);
         assertThat(created.getId(), is(updated.getId()));
-        assertThat(update.getName(), is(updated.getName()));
-        assertThat(update.getDescription(), is(updated.getDescription()));
-        assertThat(update.getKey(), is(updated.getKey()));
+        assertThat(update.getName().get(), is(updated.getName()));
+        assertThat(update.getDescription().get(), is(updated.getDescription()));
+        assertThat(update.getKey().get(), is(updated.getKey()));
 
         network = networkDao.find(updated.getId());
-        assertThat(update.getName(), is(network.getName()));
-        assertThat(update.getDescription(), is(network.getDescription()));
-        assertThat(update.getKey(), is(network.getKey()));
+        assertThat(update.getName().get(), is(network.getName()));
+        assertThat(update.getDescription().get(), is(network.getDescription()));
+        assertThat(update.getKey().get(), is(network.getKey()));
     }
 
     @Test

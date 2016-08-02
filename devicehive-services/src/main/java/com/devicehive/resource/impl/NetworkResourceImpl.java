@@ -89,7 +89,7 @@ public class NetworkResourceImpl implements NetworkResource {
     @Override
     public Response update(NetworkUpdate networkToUpdate, long id) {
         logger.debug("Network update requested. Id : {}", id);
-        networkService.update(id, NetworkUpdate.convert(networkToUpdate));
+        networkService.update(id, networkToUpdate);
         logger.debug("Network has been updated successfully. Id : {}", id);
         return ResponseFactory.response(NO_CONTENT);
     }
