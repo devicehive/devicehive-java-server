@@ -1,6 +1,6 @@
 package com.devicehive.resource;
 
-import com.devicehive.model.ApiConfig;
+import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
@@ -36,11 +36,11 @@ public interface ApiInfoResource {
     @Path("/config/auth")
     @PreAuthorize("permitAll")
     @ApiOperation(value = "Get oAuth configuration", notes = "Gets information about supported authentication providers.",
-            response = ApiConfig.class)
+            response = ApiConfigVO.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "Returns configured identity providers",
-                    response = ApiConfig.class)
+                    response = ApiConfigVO.class)
     })
     Response getOauth2Config();
 

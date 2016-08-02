@@ -1,6 +1,8 @@
-package com.devicehive.model;
+package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.IdentityProviderConfig;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Set;
@@ -10,7 +12,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_CO
 /**
  * Created by tmatvienko on 12/2/14.
  */
-public class ApiConfig implements HiveEntity {
+public class ApiConfigVO implements HiveEntity {
 
     private static final long serialVersionUID = -4819848129715601667L;
 
@@ -21,7 +23,7 @@ public class ApiConfig implements HiveEntity {
     @JsonPolicyDef(REST_SERVER_CONFIG)
     private Long sessionTimeout;
 
-    public ApiConfig() {
+    public ApiConfigVO() {
     }
 
     public Set<IdentityProviderConfig> getProviderConfigs() {

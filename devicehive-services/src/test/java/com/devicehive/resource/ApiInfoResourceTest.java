@@ -3,7 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.application.JerseyConfig;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.ApiConfig;
+import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.model.IdentityProviderConfig;
@@ -48,7 +48,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_OAUTH_config() throws Exception {
-        ApiConfig apiConfig = performRequest("info/config/auth", "GET", emptyMap(), emptyMap(), null, OK, ApiConfig.class);
+        ApiConfigVO apiConfig = performRequest("info/config/auth", "GET", emptyMap(), emptyMap(), null, OK, ApiConfigVO.class);
         assertThat(apiConfig, notNullValue());
         assertThat(apiConfig.getProviderConfigs(), notNullValue());
         assertThat(apiConfig.getProviderConfigs().size(), is(4));

@@ -4,7 +4,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.ApiConfig;
+import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.model.IdentityProviderConfig;
@@ -73,8 +73,8 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     @Override
     public Response getOauth2Config() {
-        logger.debug("ApiConfig requested");
-        ApiConfig apiConfig = new ApiConfig();
+        logger.debug("ApiConfigVO requested");
+        ApiConfigVO apiConfig = new ApiConfigVO();
 
         Set<IdentityProviderConfig> providerConfigs = new HashSet<>();
 
