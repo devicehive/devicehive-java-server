@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
 import com.devicehive.model.ApiConfig;
-import com.devicehive.model.ApiInfo;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,7 +16,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-@Api(tags = {"ApiInfo"}, description = "API information", consumes = "application/json")
+@Api(tags = {"ApiInfoVO"}, description = "API information", consumes = "application/json")
 @Path("/info")
 @Produces({"application/json"})
 public interface ApiInfoResource {
@@ -28,7 +28,7 @@ public interface ApiInfoResource {
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "Returns version of API, server timestamp and WebSocket base uri",
-                    response = ApiInfo.class),
+                    response = ApiInfoVO.class),
     })
     Response getApiInfo(@Context UriInfo uriInfo);
 

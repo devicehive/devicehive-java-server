@@ -1,6 +1,7 @@
-package com.devicehive.model;
+package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Temporal;
@@ -11,9 +12,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_IN
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
- * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfo</a>
+ * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfoVO</a>
  */
-public class ApiInfo implements HiveEntity {
+public class ApiInfoVO implements HiveEntity {
 
 
     private static final long serialVersionUID = -4899398629379606180L;
@@ -31,7 +32,7 @@ public class ApiInfo implements HiveEntity {
     @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
-    public ApiInfo() {
+    public ApiInfoVO() {
     }
 
     public String getApiVersion() {

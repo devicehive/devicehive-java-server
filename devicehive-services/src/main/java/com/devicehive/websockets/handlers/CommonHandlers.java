@@ -7,7 +7,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.ApiInfo;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -52,7 +52,7 @@ public class CommonHandlers extends WebsocketHandlers {
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
-        ApiInfo apiInfo = new ApiInfo();
+        ApiInfoVO apiInfo = new ApiInfoVO();
         apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
         apiInfo.setServerTimestamp(timestampService.getTimestamp());
         WebSocketResponse response = new WebSocketResponse();

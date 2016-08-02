@@ -5,7 +5,7 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ApiConfig;
-import com.devicehive.model.ApiInfo;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.model.IdentityProviderConfig;
 import com.devicehive.resource.ApiInfoResource;
@@ -49,8 +49,8 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     @Override
     public Response getApiInfo(UriInfo uriInfo) {
-        logger.debug("ApiInfo requested");
-        ApiInfo apiInfo = new ApiInfo();
+        logger.debug("ApiInfoVO requested");
+        ApiInfoVO apiInfo = new ApiInfoVO();
         String version = Constants.class.getPackage().getImplementationVersion();
 
         if(version == null) {

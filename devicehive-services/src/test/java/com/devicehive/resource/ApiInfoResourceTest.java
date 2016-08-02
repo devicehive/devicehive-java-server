@@ -4,7 +4,7 @@ import com.devicehive.application.JerseyConfig;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Constants;
 import com.devicehive.model.ApiConfig;
-import com.devicehive.model.ApiInfo;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.model.IdentityProviderConfig;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_API_info() throws Exception {
-        ApiInfo apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
+        ApiInfoVO apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfoVO.class);
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
@@ -40,7 +40,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         performRequest(path, "GET", singletonMap("value", wsBaseUri() + "/websocket"),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
 
-        apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfo.class);
+        apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfoVO.class);
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
