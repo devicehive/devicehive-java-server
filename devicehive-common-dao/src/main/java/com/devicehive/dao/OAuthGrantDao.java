@@ -1,6 +1,5 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.vo.OAuthGrantVO;
 

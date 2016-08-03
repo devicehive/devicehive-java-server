@@ -2,7 +2,7 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.OAuthClient;
+import com.devicehive.vo.OAuthClientVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -83,8 +83,8 @@ public class OAuthClientUpdate implements HiveEntity {
         this.oauthId = oauthId;
     }
 
-    public OAuthClient convertTo() {
-        OAuthClient client = new OAuthClient();
+    public OAuthClientVO convertTo() {
+        OAuthClientVO client = new OAuthClientVO();
         client.setId(id);
         if (name != null) {
             client.setName(name.orElse(null));
