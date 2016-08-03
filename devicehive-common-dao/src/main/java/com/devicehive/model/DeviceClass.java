@@ -12,7 +12,6 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,7 +70,7 @@ public class DeviceClass implements HiveEntity {
 
     @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private Set<Equipment> equipment;
+    private Set<DeviceClassEquipment> equipment;
 
     public Long getId() {
         return id;
@@ -123,11 +122,11 @@ public class DeviceClass implements HiveEntity {
         this.data = data;
     }
 
-    public Set<Equipment> getEquipment() {
+    public Set<DeviceClassEquipment> getEquipment() {
         return equipment;
     }
 
-    public void setEquipment(Set<Equipment> equipment) {
+    public void setEquipment(Set<DeviceClassEquipment> equipment) {
         this.equipment = equipment;
     }
 
@@ -162,7 +161,7 @@ public class DeviceClass implements HiveEntity {
             vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
 
             if (deviceClass.getEquipment() != null) {
-                Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(Equipment::convertDeviceClassEquipment);
+                Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipment);
                 vo.setEquipment(eqVos.collect(Collectors.toSet()));
             }
         }
@@ -186,8 +185,8 @@ public class DeviceClass implements HiveEntity {
         DeviceClass en = convertDeviceClassVOToEntity(vo);
         if (en != null) {
             if (vo.getEquipment() != null) {
-                Set<Equipment> equipmentSet = vo.getEquipment().stream().map(Equipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());
-                for (Equipment equipment : equipmentSet) {
+                Set<DeviceClassEquipment> equipmentSet = vo.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());
+                for (DeviceClassEquipment equipment : equipmentSet) {
                     equipment.setDeviceClass(en);
                 }
                 en.setEquipment(equipmentSet);

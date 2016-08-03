@@ -3,7 +3,6 @@ package com.devicehive.websockets;
 import com.devicehive.base.AbstractWebSocketMethodTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.fixture.JsonFixture;
-import com.devicehive.model.Equipment;
 import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;

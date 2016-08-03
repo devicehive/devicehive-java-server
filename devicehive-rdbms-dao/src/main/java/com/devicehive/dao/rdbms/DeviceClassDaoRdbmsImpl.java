@@ -2,7 +2,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.Equipment;
+import com.devicehive.model.DeviceClassEquipment;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.springframework.context.annotation.Profile;
@@ -50,13 +50,13 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     public DeviceClassWithEquipmentVO merge(DeviceClassWithEquipmentVO deviceClass) {
         DeviceClass entity = DeviceClass.convertWithEquipmentToEntity(deviceClass);
 
-        List<Equipment> existingEquipments = createNamedQuery(Equipment.class, "Equipment.getByDeviceClass", Optional.empty())
+        List<DeviceClassEquipment> existingEquipments = createNamedQuery(DeviceClassEquipment.class, "Equipment.getByDeviceClass", Optional.empty())
                 .setParameter("deviceClass", entity)
                 .getResultList();
 
         Set<String> codes = new HashSet<>();
         if (entity.getEquipment() != null) {
-            for (Equipment equipment : entity.getEquipment()) {
+            for (DeviceClassEquipment equipment : entity.getEquipment()) {
                 codes.add(equipment.getCode());
                 equipment.setDeviceClass(entity);
             }
@@ -64,7 +64,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
 
         DeviceClass merged = super.merge(entity);
 
-        for (Equipment equipment : existingEquipments) {
+        for (DeviceClassEquipment equipment : existingEquipments) {
             if (!codes.contains(equipment.getCode())) {
                 remove(equipment);
             }
@@ -104,11 +104,11 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
 
     @Override
     public DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        Equipment equipment = createNamedQuery(Equipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
+        DeviceClassEquipment equipment = createNamedQuery(DeviceClassEquipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
                 .setParameter("id", equipmentId)
                 .setParameter("deviceClassId", deviceClassId)
                 .getResultList()
                 .stream().findFirst().orElse(null);
-        return Equipment.convertDeviceClassEquipment(equipment);
+        return DeviceClassEquipment.convertDeviceClassEquipment(equipment);
     }
 }

@@ -31,7 +31,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class Equipment implements HiveEntity {
+public class DeviceClassEquipment implements HiveEntity {
 
     private static final long serialVersionUID = -107312669477890926L;
     @SerializedName("id")
@@ -140,7 +140,7 @@ public class Equipment implements HiveEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Equipment equipment = (Equipment) o;
+        DeviceClassEquipment equipment = (DeviceClassEquipment) o;
 
         if (id != null ? !id.equals(equipment.id) : equipment.id != null) return false;
         return !(code != null ? !code.equals(equipment.code) : equipment.code != null);
@@ -154,7 +154,7 @@ public class Equipment implements HiveEntity {
         return result;
     }
 
-    public static DeviceClassEquipmentVO convertDeviceClassEquipment(Equipment equipment) {
+    public static DeviceClassEquipmentVO convertDeviceClassEquipment(DeviceClassEquipment equipment) {
         DeviceClassEquipmentVO vo = null;
         if (equipment != null) {
             vo = new DeviceClassEquipmentVO();
@@ -167,10 +167,10 @@ public class Equipment implements HiveEntity {
         return vo;
     }
 
-    public static Equipment convertDeviceClassEquipmentVOToEntity(DeviceClassEquipmentVO vo) {
-        Equipment en = null;
+    public static DeviceClassEquipment convertDeviceClassEquipmentVOToEntity(DeviceClassEquipmentVO vo) {
+        DeviceClassEquipment en = null;
         if (vo != null) {
-            en = new Equipment();
+            en = new DeviceClassEquipment();
             en.setId(vo.getId());
             en.setData(vo.getData());
             en.setName(vo.getName());
