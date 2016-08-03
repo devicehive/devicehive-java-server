@@ -1,6 +1,7 @@
-package com.devicehive.model;
+package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 
 import java.util.Objects;
 

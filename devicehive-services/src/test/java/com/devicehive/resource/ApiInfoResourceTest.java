@@ -6,7 +6,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
-import com.devicehive.model.IdentityProviderConfig;
+import com.devicehive.vo.IdentityProviderConfig;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

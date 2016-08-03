@@ -20,8 +20,6 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakOAuthGrant;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.OAuthClient;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;

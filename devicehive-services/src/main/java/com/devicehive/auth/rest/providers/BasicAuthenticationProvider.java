@@ -4,7 +4,6 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.OAuthClient;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.OAuthClientService;

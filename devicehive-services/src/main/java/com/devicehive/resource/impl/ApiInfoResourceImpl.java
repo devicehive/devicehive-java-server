@@ -7,7 +7,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
-import com.devicehive.model.IdentityProviderConfig;
+import com.devicehive.vo.IdentityProviderConfig;
 import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;

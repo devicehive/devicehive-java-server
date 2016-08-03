@@ -2,7 +2,6 @@ package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.IdentityProviderConfig;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Set;

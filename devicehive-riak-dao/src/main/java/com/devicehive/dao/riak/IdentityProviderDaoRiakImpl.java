@@ -9,7 +9,6 @@ import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.dao.riak.model.RiakIdentityProvider;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.IdentityProvider;
 import com.devicehive.vo.IdentityProviderVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

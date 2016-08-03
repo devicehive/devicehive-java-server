@@ -6,8 +6,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.model.IdentityProvider;
-import com.devicehive.model.AccessKeyRequest;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;

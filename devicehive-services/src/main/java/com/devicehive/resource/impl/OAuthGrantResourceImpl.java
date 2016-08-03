@@ -6,7 +6,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;

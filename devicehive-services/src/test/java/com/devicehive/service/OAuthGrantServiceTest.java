@@ -2,8 +2,6 @@ package com.devicehive.service;
 
 import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.OAuthClient;
-import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
