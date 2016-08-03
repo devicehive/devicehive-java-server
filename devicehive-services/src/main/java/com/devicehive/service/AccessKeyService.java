@@ -25,9 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,9 +61,6 @@ public class AccessKeyService {
     @Autowired
     private DeviceDao deviceDao;
 
-
-    @PersistenceContext(unitName = Constants.PERSISTENCE_UNIT)
-    private EntityManager em;
 
     @Transactional
     public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
@@ -145,9 +139,9 @@ public class AccessKeyService {
         if (accessKey.getExpirationDate() != null) {
             final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
             if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod / 2) {
-                if (em.contains(accessKey)) {
-                    em.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
-                }
+                // previously EntityManager.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
+                // was used because authenticate from various threads could update expiration date too often and run into deadlock
+                // Migration on JWT can solve this problem
                 accessKey.setExpirationDate(new Date(timestampService.getTimestamp().getTime() + expirationPeriod));
                 return accessKeyDao.merge(accessKey);
             }
