@@ -1,6 +1,7 @@
-package com.devicehive.model;
+package com.devicehive.vo;
 
 
+import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
 public class AccessToken implements HiveEntity {

@@ -3,7 +3,7 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessToken;
+import com.devicehive.vo.AccessToken;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.OAuthTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
