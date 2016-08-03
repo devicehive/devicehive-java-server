@@ -7,6 +7,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.vo.DeviceEquipmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -32,38 +33,39 @@ public class DeviceEquipmentService {
      * @return List of DeviceEquipment for specified device
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceEquipment> findByFK(@NotNull Device device) {
+    public List<DeviceEquipmentVO> findByFK(@NotNull Device device) {
         return deviceEquipmentDao.getByDevice(device);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public DeviceEquipment findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
+    public DeviceEquipmentVO findByCodeAndDevice(@NotNull String code, @NotNull Device device) {
         return deviceEquipmentDao.getByDeviceAndCode(code, device);
     }
 
     @Transactional
-    public void createDeviceEquipment(DeviceEquipment deviceEquipment) {
-        DeviceEquipment equipment = findByCodeAndDevice(deviceEquipment.getCode(), deviceEquipment.getDevice());
-        if (equipment != null) {
-            equipment.setTimestamp(timestampService.getTimestamp());
-            equipment.setParameters(deviceEquipment.getParameters());
-            deviceEquipmentDao.merge(equipment);
-        } else {
-            deviceEquipment.setTimestamp(timestampService.getTimestamp());
-            deviceEquipmentDao.persist(deviceEquipment);
-        }
-    }
-
-    @Transactional
     public DeviceNotification refreshDeviceEquipment(DeviceNotification notificationMessage, Device device) {
-        DeviceEquipment deviceEquipment = null;
+        DeviceEquipmentVO deviceEquipment = null;
         if (notificationMessage.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
             deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notificationMessage, device);
             if (deviceEquipment.getTimestamp() == null) {
+                // TODO [rafa] why do we need timestamp here?
                 deviceEquipment.setTimestamp(timestampService.getTimestamp());
             }
         }
-        createDeviceEquipment(deviceEquipment);
+        createDeviceEquipment(deviceEquipment, device);
         return notificationMessage;
+    }
+
+    @Transactional
+    public void createDeviceEquipment(DeviceEquipmentVO deviceEquipment, Device device) {
+        DeviceEquipmentVO equipment = findByCodeAndDevice(deviceEquipment.getCode(), device);
+        if (equipment != null) {
+            equipment.setTimestamp(timestampService.getTimestamp());
+            equipment.setParameters(deviceEquipment.getParameters());
+            deviceEquipmentDao.merge(equipment, device);
+        } else {
+            deviceEquipment.setTimestamp(timestampService.getTimestamp());
+            deviceEquipmentDao.persist(deviceEquipment, device);
+        }
     }
 }

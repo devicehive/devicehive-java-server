@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
+import com.devicehive.vo.DeviceEquipmentVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -11,11 +12,11 @@ import java.util.List;
  */
 public interface DeviceEquipmentDao {
 
-    List<DeviceEquipment> getByDevice(Device device);
+    List<DeviceEquipmentVO> getByDevice(Device device);
 
-    DeviceEquipment getByDeviceAndCode(@NotNull String code, @NotNull Device device);
+    DeviceEquipmentVO getByDeviceAndCode(@NotNull String code, @NotNull Device device);
 
-    DeviceEquipment merge(DeviceEquipment deviceEquipment);
+    DeviceEquipmentVO merge(DeviceEquipmentVO deviceEquipment, Device device);
 
-    void persist(DeviceEquipment deviceEquipment);
+    void persist(DeviceEquipmentVO deviceEquipment, Device device);
 }

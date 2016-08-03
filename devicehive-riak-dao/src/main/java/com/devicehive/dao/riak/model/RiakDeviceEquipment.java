@@ -1,67 +1,28 @@
-package com.devicehive.model;
+package com.devicehive.dao.riak.model;
 
-
-import com.devicehive.json.strategies.JsonPolicyDef;
+import com.basho.riak.client.api.annotations.RiakIndex;
+import com.devicehive.model.Device;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceEquipmentVO;
-import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
-import static com.devicehive.model.DeviceEquipment.Queries.Names;
-import static com.devicehive.model.DeviceEquipment.Queries.Values;
+public class RiakDeviceEquipment {
 
-
-@Entity
-@Table(name = "device_equipment")
-@NamedQueries({
-                  @NamedQuery(name = Names.DELETE_BY_ID, query = Values.DELETE_BY_ID),
-                  @NamedQuery(name = Names.GET_BY_DEVICE_AND_CODE, query = Values.GET_BY_DEVICE_AND_CODE),
-                  @NamedQuery(name = Names.DELETE_BY_FK, query = Values.DELETE_BY_FK),
-                  @NamedQuery(name = Names.GET_BY_DEVICE, query = Values.GET_BY_DEVICE)
-              })
-@Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class DeviceEquipment implements HiveEntity {
-
-    private static final long serialVersionUID = 479737367629574073L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @SerializedName("sid")
     private Long id;
-    @Column
-    @NotNull(message = "code field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of code should not be more than 128 " +
-                                        "symbols.")
-    @SerializedName("id")
-    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
+
     private String code;
-    @Column
-    @NotNull
-    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
-    @Temporal(TemporalType.TIMESTAMP)
+
     private Date timestamp;
-    @SerializedName("parameters")
-    @Embedded
-    @AttributeOverrides({
-                            @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
-                        })
-    @JsonPolicyDef(DEVICE_EQUIPMENT_SUBMITTED)
+
     private JsonStringWrapper parameters;
-    @ManyToOne
-    @JoinColumn(name = "device_id", updatable = false)
-    @NotNull(message = "device field cannot be null.")
+
     private Device device;
-    @Version
-    @Column(name = "entity_version")
+
     private long entityVersion;
 
     public long getEntityVersion() {
@@ -112,6 +73,12 @@ public class DeviceEquipment implements HiveEntity {
         this.device = device;
     }
 
+    //Riak indexes
+    @RiakIndex(name = "device")
+    public String getDeviceSi() {
+        return device.getGuid();
+    }
+
     public static class Queries {
 
         public interface Names {
@@ -126,8 +93,8 @@ public class DeviceEquipment implements HiveEntity {
 
             String DELETE_BY_ID = "delete from DeviceEquipment de where de.id = :id";
             String GET_BY_DEVICE_AND_CODE =
-                "select de from DeviceEquipment de " +
-                "where de.device = :device and de.code = :code";
+                    "select de from DeviceEquipment de " +
+                            "where de.device = :device and de.code = :code";
             String DELETE_BY_FK = "delete from DeviceEquipment de where de.device = :device";
             String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device = :device";
         }
@@ -141,23 +108,21 @@ public class DeviceEquipment implements HiveEntity {
 
     }
 
-    public static List<DeviceEquipmentVO> convertToVo(List<DeviceEquipment> equipment) {
+    public static List<DeviceEquipmentVO> convertToVo(List<RiakDeviceEquipment> equipment) {
         if (equipment == null) {
             return Collections.emptyList();
         }
-        return equipment.stream().map(DeviceEquipment::convertToVo).collect(Collectors.toList());
+        return equipment.stream().map(RiakDeviceEquipment::convertToVo).collect(Collectors.toList());
     }
 
-    public static List<DeviceEquipment> convertToEntity(List<DeviceEquipmentVO> equipment) {
+    public static List<RiakDeviceEquipment> convertToEntity(List<DeviceEquipmentVO> equipment) {
         if (equipment == null) {
             return Collections.emptyList();
         }
-        return equipment.stream().map(DeviceEquipment::convertToEntity).collect(Collectors.toList());
+        return equipment.stream().map(RiakDeviceEquipment::convertToEntity).collect(Collectors.toList());
     }
 
-
-
-    public static DeviceEquipmentVO convertToVo(DeviceEquipment equipment) {
+    public static DeviceEquipmentVO convertToVo(RiakDeviceEquipment equipment) {
         DeviceEquipmentVO vo = null;
         if (equipment != null) {
             vo = new DeviceEquipmentVO();
@@ -170,10 +135,10 @@ public class DeviceEquipment implements HiveEntity {
         return vo;
     }
 
-    public static DeviceEquipment convertToEntity(DeviceEquipmentVO equipment) {
-        DeviceEquipment vo = null;
+    public static RiakDeviceEquipment convertToEntity(DeviceEquipmentVO equipment) {
+        RiakDeviceEquipment vo = null;
         if (equipment != null) {
-            vo = new DeviceEquipment();
+            vo = new RiakDeviceEquipment();
             vo.setCode(equipment.getCode());
             vo.setId(equipment.getId());
             vo.setParameters(equipment.getParameters());
@@ -182,5 +147,4 @@ public class DeviceEquipment implements HiveEntity {
 
         return vo;
     }
-
 }

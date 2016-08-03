@@ -6,6 +6,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
+import com.devicehive.vo.DeviceEquipmentVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -74,7 +75,7 @@ public class ServerResponsesFactory {
         return notification;
     }
 
-    public static DeviceEquipment parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
+    public static DeviceEquipmentVO parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
         final String notificationParameters = notification.getParameters().getJsonString();
         if (notificationParameters == null) {
             throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
@@ -90,8 +91,8 @@ public class ServerResponsesFactory {
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
     }
 
-    private static DeviceEquipment constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
-        DeviceEquipment result = new DeviceEquipment();
+    private static DeviceEquipmentVO constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
+        DeviceEquipmentVO result = new DeviceEquipmentVO();
         final JsonElement jsonElement = jsonEquipmentObject.get(Constants.EQUIPMENT);
         if (jsonElement == null) {
             throw new HiveException(Messages.NO_EQUIPMENT_IN_JSON, HttpServletResponse.SC_BAD_REQUEST);
@@ -100,7 +101,6 @@ public class ServerResponsesFactory {
         result.setCode(deviceEquipmentCode);
         jsonEquipmentObject.remove(Constants.EQUIPMENT);
         result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
-        result.setDevice(device);
         return result;
     }
 

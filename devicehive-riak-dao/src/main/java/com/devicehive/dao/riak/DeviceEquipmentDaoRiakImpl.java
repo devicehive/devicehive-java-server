@@ -10,9 +10,11 @@ import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.DeviceEquipmentDao;
+import com.devicehive.dao.riak.model.RiakDeviceEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
+import com.devicehive.vo.DeviceEquipmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -35,18 +37,19 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     private RiakQuorum quorum;
 
     @Override
-    public List<DeviceEquipment> getByDevice(Device device) {
+    public List<DeviceEquipmentVO> getByDevice(Device device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
-            return fetchMultiple(response, DeviceEquipment.class);
+            List<RiakDeviceEquipment> ts = fetchMultiple(response, RiakDeviceEquipment.class);
+            return RiakDeviceEquipment.convertToVo(ts);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot get device equipment by device.", e);
         }
     }
 
     @Override
-    public DeviceEquipment getByDeviceAndCode(@NotNull String code, @NotNull Device device) {
+    public DeviceEquipmentVO getByDeviceAndCode(@NotNull String code, @NotNull Device device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -59,9 +62,9 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
                 FetchValue fetchOp = new FetchValue.Builder(location)
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
-                DeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), DeviceEquipment.class);
+                RiakDeviceEquipment deviceEquipment = getOrNull(client.execute(fetchOp), RiakDeviceEquipment.class);
                 if (deviceEquipment.getCode().equals(code)) {
-                    return deviceEquipment;
+                    return RiakDeviceEquipment.convertToVo(deviceEquipment);
                 }
             }
 
@@ -72,12 +75,13 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     }
 
     @Override
-    public void persist(DeviceEquipment deviceEquipment) {
-        merge(deviceEquipment);
+    public void persist(DeviceEquipmentVO deviceEquipment, Device device) {
+        merge(deviceEquipment, device);
     }
 
     @Override
-    public DeviceEquipment merge(DeviceEquipment deviceEquipment) {
+    public DeviceEquipmentVO merge(DeviceEquipmentVO entity, Device device) {
+        RiakDeviceEquipment deviceEquipment = RiakDeviceEquipment.convertToEntity(entity);
         Location deviceEquipmentCounters = new Location(COUNTER_NS, "device_equipment_counter");
         try {
             if (deviceEquipment.getId() == null) {
@@ -89,7 +93,7 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
-            return deviceEquipment;
+            return RiakDeviceEquipment.convertToVo(deviceEquipment);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge device equipment.", e);
         }

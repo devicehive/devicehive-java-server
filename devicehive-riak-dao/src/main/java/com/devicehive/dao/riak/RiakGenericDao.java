@@ -36,9 +36,6 @@ public class RiakGenericDao {
     @Autowired
     RiakQuorum quorum;
 
-    //TODO increase counter by huger number
-    //TODO increment counter to be configurable and have default value
-    //TODO here we should use QUORUM or ALL when incrementing the value, that will prevent from problems.
     protected Long getId(Location location) {
         return getId(location, 1);
     }

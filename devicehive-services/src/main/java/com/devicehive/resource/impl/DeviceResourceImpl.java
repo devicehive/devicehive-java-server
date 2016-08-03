@@ -11,6 +11,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceEquipmentVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +139,7 @@ public class DeviceResourceImpl implements DeviceResource {
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
-        List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
+        List<DeviceEquipmentVO> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully for device {}", guid);
 
@@ -155,7 +156,7 @@ public class DeviceResourceImpl implements DeviceResource {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
-        DeviceEquipment equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
+        DeviceEquipmentVO equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
             return ResponseFactory

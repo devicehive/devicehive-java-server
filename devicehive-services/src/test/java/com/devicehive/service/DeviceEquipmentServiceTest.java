@@ -1,10 +1,14 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.*;
+import com.devicehive.model.Device;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceEquipmentVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +40,11 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
 
         Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
-        DeviceEquipment de = new DeviceEquipment();
-        de.setDevice(device);
+        DeviceEquipmentVO de = new DeviceEquipmentVO();
         de.setCode(RandomStringUtils.randomAlphabetic(10));
-        deviceEquipmentService.createDeviceEquipment(de);
+        deviceEquipmentService.createDeviceEquipment(de, device);
 
-        DeviceEquipment saved = deviceEquipmentService.findByCodeAndDevice(de.getCode(), device);
+        DeviceEquipmentVO saved = deviceEquipmentService.findByCodeAndDevice(de.getCode(), device);
         assertThat(saved, notNullValue());
         assertThat(saved.getCode(), equalTo(de.getCode()));
         assertThat(saved.getTimestamp(), notNullValue());
@@ -59,17 +62,16 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
 
         Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
-        DeviceEquipment de = new DeviceEquipment();
-        de.setDevice(device);
-        de.setCode(RandomStringUtils.randomAlphabetic(10));
-        deviceEquipmentService.createDeviceEquipment(de);
+        DeviceEquipmentVO devo = new DeviceEquipmentVO();
+        devo.setCode(RandomStringUtils.randomAlphabetic(10));
+        deviceEquipmentService.createDeviceEquipment(devo, device);
 
-        DeviceEquipment saved = deviceEquipmentService.findByCodeAndDevice(de.getCode(), device);
+        DeviceEquipmentVO saved = deviceEquipmentService.findByCodeAndDevice(devo.getCode(), device);
 
         saved.setParameters(new JsonStringWrapper("{\"param\": \"value\"}"));
-        deviceEquipmentService.createDeviceEquipment(saved);
+        deviceEquipmentService.createDeviceEquipment(saved, device);
 
-        DeviceEquipment updated = deviceEquipmentService.findByCodeAndDevice(de.getCode(), device);
+        DeviceEquipmentVO updated = deviceEquipmentService.findByCodeAndDevice(devo.getCode(), device);
         assertThat(saved.getId(), equalTo(updated.getId()));
         assertThat(updated.getParameters().getJsonString(), equalTo("{\"param\": \"value\"}"));
     }
@@ -86,15 +88,14 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
 
         Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
-        DeviceEquipment de = new DeviceEquipment();
-        de.setDevice(device);
-        de.setCode(RandomStringUtils.randomAlphabetic(10));
-        deviceEquipmentService.createDeviceEquipment(de);
+        DeviceEquipmentVO devo = new DeviceEquipmentVO();
+        devo.setCode(RandomStringUtils.randomAlphabetic(10));
+        deviceEquipmentService.createDeviceEquipment(devo, device);
 
-        List<DeviceEquipment> deviceEquipments = deviceEquipmentService.findByFK(device);
+        List<DeviceEquipmentVO> deviceEquipments = deviceEquipmentService.findByFK(device);
         assertThat(deviceEquipments, notNullValue());
         assertThat(deviceEquipments, hasSize(1));
-        assertThat(deviceEquipments.stream().findFirst().get().getCode(), equalTo(de.getCode()));
+        assertThat(deviceEquipments.stream().findFirst().get().getCode(), equalTo(devo.getCode()));
     }
 
     @Test
@@ -109,21 +110,20 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
 
         Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
-        DeviceEquipment de = new DeviceEquipment();
-        de.setDevice(device);
-        de.setCode(RandomStringUtils.randomAlphabetic(10));
-        deviceEquipmentService.createDeviceEquipment(de);
+        DeviceEquipmentVO devo = new DeviceEquipmentVO();
+        devo.setCode(RandomStringUtils.randomAlphabetic(10));
+        deviceEquipmentService.createDeviceEquipment(devo, device);
 
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification(SpecialNotifications.EQUIPMENT);
         notification.setParameters(new JsonStringWrapper("{\"equipment\": \"some_code\"}"));
         deviceEquipmentService.refreshDeviceEquipment(notification, device);
 
-        List<DeviceEquipment> equipments = deviceEquipmentService.findByFK(device);
+        List<DeviceEquipmentVO> equipments = deviceEquipmentService.findByFK(device);
         assertThat(equipments, notNullValue());
         assertThat(equipments, hasSize(2));
         assertThat(
-                equipments.stream().map(DeviceEquipment::getCode).collect(Collectors.toSet()),
-                hasItems("some_code", de.getCode()));
+                equipments.stream().map(DeviceEquipmentVO::getCode).collect(Collectors.toSet()),
+                hasItems("some_code", devo.getCode()));
     }
 }

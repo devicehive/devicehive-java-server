@@ -5,6 +5,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.DeviceEquipmentVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -186,7 +187,7 @@ public interface DeviceResource {
             "parameters: current equipment state")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.",
-                    response = DeviceEquipment.class,
+                    response = DeviceEquipmentVO.class,
                     responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
@@ -213,7 +214,7 @@ public interface DeviceResource {
     @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",
-                    response = DeviceEquipment.class),
+                    response = DeviceEquipmentVO.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If device or equipment is not found.")
