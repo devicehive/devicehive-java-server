@@ -3,8 +3,8 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.IdentityProvider;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.IdentityProviderVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class IdentityProviderService {
     private IdentityProviderDao identityProviderDao;
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public IdentityProvider find(@NotNull String name) {
+    public IdentityProviderVO find(@NotNull String name) {
         return identityProviderDao.getByName(name);
     }
 
@@ -36,11 +36,11 @@ public class IdentityProviderService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public IdentityProvider update(@NotNull String providerName, IdentityProvider identityProvider) {
+    public IdentityProviderVO update(@NotNull String providerName, IdentityProviderVO identityProvider) {
         if (!StringUtils.equals(providerName, identityProvider.getName())) {
             throw new IllegalParametersException(String.format(Messages.IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED, providerName, identityProvider.getName()));
         }
-        IdentityProvider existing = find(providerName);
+        IdentityProviderVO existing = find(providerName);
         if (existing == null) {
             throw new IllegalParametersException(String.format(Messages.IDENTITY_PROVIDER_NOT_FOUND, providerName));
         }

@@ -1,6 +1,6 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.IdentityProvider;
+import com.devicehive.vo.IdentityProviderVO;
 
 import javax.validation.constraints.NotNull;
 
@@ -9,7 +9,7 @@ import javax.validation.constraints.NotNull;
  */
 public interface IdentityProviderDao {
 
-    IdentityProvider getByName(@NotNull String name);
+    IdentityProviderVO getByName(@NotNull String name);
 
     /**
      * Delete identity provider by name.
@@ -17,7 +17,7 @@ public interface IdentityProviderDao {
      */
     boolean deleteById(@NotNull String name);
 
-    IdentityProvider merge(IdentityProvider existing);
+    IdentityProviderVO merge(IdentityProviderVO existing);
 
-    void persist(IdentityProvider identityProvider);
+    void persist(IdentityProviderVO identityProvider);
 }

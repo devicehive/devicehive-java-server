@@ -7,8 +7,10 @@ import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.IdentityProviderDao;
+import com.devicehive.dao.riak.model.RiakIdentityProvider;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.IdentityProvider;
+import com.devicehive.vo.IdentityProviderVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +35,7 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
     private RiakQuorum quorum;
 
     @Override
-    public IdentityProvider getByName(@NotNull String name) {
+    public IdentityProviderVO getByName(@NotNull String name) {
         //TODO configurable quorum?
         try {
             Location objectKey = new Location(CONFIG_NS, name);
@@ -41,7 +43,9 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             FetchValue.Response response = client.execute(fetch);
-            return getOrNull(response, IdentityProvider.class);
+            RiakIdentityProvider object = getOrNull(response, RiakIdentityProvider.class);
+            IdentityProviderVO entity = RiakIdentityProvider.convertToVO(object);
+            return entity;
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch Identity by name.", e);
@@ -62,10 +66,12 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
     }
 
     @Override
-    public IdentityProvider merge(IdentityProvider existing) {
+    public IdentityProviderVO merge(IdentityProviderVO existing) {
         try {
+            RiakIdentityProvider riakIdentityProvider = RiakIdentityProvider.convertToEntity(existing);
+
             Location objectKey = new Location(CONFIG_NS, existing.getName());
-            StoreValue storeOp = new StoreValue.Builder(existing)
+            StoreValue storeOp = new StoreValue.Builder(riakIdentityProvider)
                     .withLocation(objectKey)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
@@ -78,7 +84,7 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
     }
 
     @Override
-    public void persist(IdentityProvider identityProvider) {
+    public void persist(IdentityProviderVO identityProvider) {
         merge(identityProvider);
     }
 }

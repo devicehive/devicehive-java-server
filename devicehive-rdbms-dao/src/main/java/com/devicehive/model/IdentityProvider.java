@@ -1,6 +1,7 @@
 package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.IdentityProviderVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -103,4 +104,27 @@ public class IdentityProvider implements HiveEntity {
         return name == null ? 0 : name.hashCode();
     }
 
+    public static IdentityProviderVO convertToVO(IdentityProvider identityProvider) {
+        IdentityProviderVO vo = null;
+        if (identityProvider != null) {
+            vo = new IdentityProviderVO();
+            vo.setApiEndpoint(identityProvider.getApiEndpoint());
+            vo.setName(identityProvider.getName());
+            vo.setTokenEndpoint(identityProvider.getTokenEndpoint());
+            vo.setVerificationEndpoint(identityProvider.getVerificationEndpoint());
+        }
+        return vo;
+    }
+
+    public static IdentityProvider convertToEntity(IdentityProviderVO identityProvider) {
+        IdentityProvider vo = null;
+        if (identityProvider != null) {
+            vo = new IdentityProvider();
+            vo.setApiEndpoint(identityProvider.getApiEndpoint());
+            vo.setName(identityProvider.getName());
+            vo.setTokenEndpoint(identityProvider.getTokenEndpoint());
+            vo.setVerificationEndpoint(identityProvider.getVerificationEndpoint());
+        }
+        return vo;
+    }
 }

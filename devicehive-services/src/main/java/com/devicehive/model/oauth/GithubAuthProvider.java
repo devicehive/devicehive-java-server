@@ -12,6 +12,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.IdentityProviderVO;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonArray;
@@ -44,7 +45,8 @@ public class GithubAuthProvider extends AuthProvider {
     private static final Logger logger = LoggerFactory.getLogger(GithubAuthProvider.class);
     
     private static final String GITHUB_PROVIDER_NAME = "Github";
-    private IdentityProvider identityProvider;
+
+    private IdentityProviderVO identityProvider;
 
     @Autowired
     private IdentityProviderService identityProviderService;

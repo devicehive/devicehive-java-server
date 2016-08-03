@@ -2,6 +2,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.model.IdentityProvider;
+import com.devicehive.vo.IdentityProviderVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -12,11 +13,12 @@ import java.util.Optional;
 @Repository
 public class IdentityProviderDaoRdbmsImpl extends RdbmsGenericDao implements IdentityProviderDao {
     @Override
-    public IdentityProvider getByName(@NotNull String name) {
-        return createNamedQuery(IdentityProvider.class, "IdentityProvider.getByName", Optional.of(CacheConfig.refresh()))
+    public IdentityProviderVO getByName(@NotNull String name) {
+        IdentityProvider identityProvider = createNamedQuery(IdentityProvider.class, "IdentityProvider.getByName", Optional.of(CacheConfig.refresh()))
                 .setParameter("name", name)
                 .getResultList()
                 .stream().findFirst().orElse(null);
+        return IdentityProvider.convertToVO(identityProvider);
     }
 
     @Override
@@ -27,12 +29,15 @@ public class IdentityProviderDaoRdbmsImpl extends RdbmsGenericDao implements Ide
     }
 
     @Override
-    public IdentityProvider merge(IdentityProvider existing) {
-        return super.merge(existing);
+    public IdentityProviderVO merge(IdentityProviderVO existing) {
+        IdentityProvider identityProvider = IdentityProvider.convertToEntity(existing);
+        IdentityProvider merge = super.merge(identityProvider);
+        return IdentityProvider.convertToVO(merge);
     }
 
     @Override
-    public void persist(IdentityProvider identityProvider) {
-        super.persist(identityProvider);
+    public void persist(IdentityProviderVO identityProvider) {
+        IdentityProvider newEntity = IdentityProvider.convertToEntity(identityProvider);
+        super.persist(newEntity);
     }
 }
