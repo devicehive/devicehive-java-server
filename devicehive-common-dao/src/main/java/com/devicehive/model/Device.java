@@ -2,10 +2,7 @@ package com.devicehive.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.*;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -190,7 +187,8 @@ public class Device implements HiveEntity {
             vo.setId(dc.getId());
             vo.setName(dc.getName());
             //TODO Network convert = Network.convertNetwork(dc.getNetwork());
-            vo.setNetwork(dc.getNetwork());
+            NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
+            vo.setNetwork(networkVO);
             vo.setStatus(dc.getStatus());
         }
         return vo;
@@ -210,7 +208,8 @@ public class Device implements HiveEntity {
             entity.setId(dc.getId());
             entity.setName(dc.getName());
             //TODO ???vo.setNetwork();
-            entity.setNetwork(dc.getNetwork());
+            Network network = Network.convert(dc.getNetwork());
+            entity.setNetwork(network);
             entity.setStatus(dc.getStatus());
         }
         return entity;

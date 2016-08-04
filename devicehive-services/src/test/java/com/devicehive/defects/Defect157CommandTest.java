@@ -4,7 +4,6 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
@@ -37,7 +36,7 @@ public class Defect157CommandTest extends AbstractResourceTest {
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
+        deviceUpdate.setNetwork(Optional.of(network));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(),

@@ -14,18 +14,6 @@ public class RiakNetwork {
 
     public RiakNetwork() {}
 
-    public RiakNetwork(NetworkVO vo) {
-        id = vo.getId();
-        key = vo.getKey();
-        name = vo.getName();
-        description = vo.getDescription();
-        entityVersion = vo.getEntityVersion();
-        if (vo instanceof NetworkWithUsersAndDevicesVO) {
-            //todo: find if we should copy child entities
-
-        }
-    }
-
     public Long getId() {
         return id;
     }
@@ -71,13 +59,29 @@ public class RiakNetwork {
         return getName();
     }
 
-    public NetworkVO convert() {
-        NetworkVO vo = new NetworkVO();
-        vo.setId(id);
-        vo.setKey(key);
-        vo.setName(name);
-        vo.setDescription(description);
-        vo.setEntityVersion(entityVersion);
+    public static NetworkVO convert(RiakNetwork network) {
+        NetworkVO vo = null;
+        if (network != null) {
+            vo = new NetworkVO();
+            vo.setId(network.getId());
+            vo.setKey(network.getKey());
+            vo.setName(network.getName());
+            vo.setDescription(network.getDescription());
+            vo.setEntityVersion(network.getEntityVersion());
+        }
+        return vo;
+    }
+
+    public static RiakNetwork convert(NetworkVO network) {
+        RiakNetwork vo = null;
+        if (network != null) {
+            vo = new RiakNetwork();
+            vo.setId(network.getId());
+            vo.setKey(network.getKey());
+            vo.setName(network.getName());
+            vo.setDescription(network.getDescription());
+            vo.setEntityVersion(network.getEntityVersion());
+        }
         return vo;
     }
 }

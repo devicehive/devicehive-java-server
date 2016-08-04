@@ -21,6 +21,7 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.riak.model.NetworkDevice;
 import com.devicehive.dao.riak.model.RiakDevice;
+import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
@@ -135,7 +136,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             //TODO [rafa] refreshRefs
             DeviceVO deviceVO = RiakDevice.convertToVo(device);
 //            deviceVO.setDeviceClass(device.getDeviceClass());
-            deviceVO.setNetwork(device.getNetwork());
+//            deviceVO.setNetwork(device.getNetwork());
+            //TODO [rafa] do we need next refresh commands? Seems that all references are reconstructed.
             refreshRefs(deviceVO);
             return deviceVO;
         } catch (ExecutionException | InterruptedException e) {
@@ -165,7 +167,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             throw new HivePersistenceLayerException("Cannot persist device.", e);
         }
 
-        Network network = device.getNetwork();
+        RiakNetwork network = device.getNetwork();
         if (network != null && network.getId() != null) {
             logger.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
             networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
@@ -441,8 +443,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             if (device.getNetwork() != null) {
                 // todo: remove when migrate Device->DeviceVO
                 NetworkVO networkVO = networkDao.find(device.getNetwork().getId());
-                Network network = Network.convert(networkVO);
-                device.setNetwork(network);
+                device.setNetwork(networkVO);
             }
 
             if (device.getDeviceClass() != null) {

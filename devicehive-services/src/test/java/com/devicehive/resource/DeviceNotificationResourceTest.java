@@ -33,7 +33,7 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
+        deviceUpdate.setNetwork(Optional.of(network));
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device

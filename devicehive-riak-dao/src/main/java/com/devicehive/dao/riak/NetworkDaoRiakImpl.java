@@ -95,7 +95,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         if (newNetwork.getId() == null) {
             newNetwork.setId(getId(networkCounter));
         }
-        RiakNetwork network = new RiakNetwork(newNetwork);
+        RiakNetwork network = RiakNetwork.convert(newNetwork);
 
         Location location = new Location(NETWORK_NS, String.valueOf(network.getId()));
         StoreValue storeOp = new StoreValue.Builder(network)
@@ -142,7 +142,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     @Override
     public NetworkVO find(@NotNull Long networkId) {
         RiakNetwork vo = get(networkId);
-        return vo != null ? vo.convert() : null;
+        return RiakNetwork.convert(vo);
     }
 
     private RiakNetwork get(@NotNull  Long networkId) {
@@ -173,7 +173,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                 .build();
         try {
             client.execute(storeOp);
-            return existing.convert();
+            return RiakNetwork.convert(existing);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Can't execute store operation on network network", e);
         }

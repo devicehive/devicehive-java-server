@@ -737,7 +737,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(Network.convert(network)));
+        device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -762,7 +762,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(Network.convert(network)));
+        device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -787,7 +787,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setName(Optional.ofNullable(randomUUID().toString()));
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(Network.convert(network)));
+        device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));

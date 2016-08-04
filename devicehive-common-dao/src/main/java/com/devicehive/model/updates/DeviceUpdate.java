@@ -5,6 +5,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class DeviceUpdate implements HiveEntity {
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private Optional<Network> network;
+    private Optional<NetworkVO> network;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
@@ -82,11 +83,11 @@ public class DeviceUpdate implements HiveEntity {
         this.data = data;
     }
 
-    public Optional<Network> getNetwork() {
+    public Optional<NetworkVO> getNetwork() {
         return network;
     }
 
-    public void setNetwork(Optional<Network> network) {
+    public void setNetwork(Optional<NetworkVO> network) {
         this.network = network;
     }
 

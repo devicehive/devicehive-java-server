@@ -108,7 +108,7 @@ public class InitialDataLoader {
         device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
         device.setStatus("Offline");
-        device.setNetwork(Network.convert(network));
+        device.setNetwork(network);
         device.setDeviceClass(deviceClass);
         deviceDao.persist(device);
 

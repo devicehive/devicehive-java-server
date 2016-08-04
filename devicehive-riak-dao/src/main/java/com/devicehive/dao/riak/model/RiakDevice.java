@@ -1,11 +1,11 @@
 package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.Network;
 import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 
 public class RiakDevice {
 
@@ -19,7 +19,7 @@ public class RiakDevice {
 
     private JsonStringWrapper data;
 
-    private Network network;
+    private RiakNetwork network;
 
     private RiakDeviceClass deviceClass;
 
@@ -65,11 +65,11 @@ public class RiakDevice {
         this.status = status;
     }
 
-    public Network getNetwork() {
+    public RiakNetwork getNetwork() {
         return network;
     }
 
-    public void setNetwork(Network network) {
+    public void setNetwork(RiakNetwork network) {
         this.network = network;
     }
 
@@ -106,7 +106,8 @@ public class RiakDevice {
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
-            vo.setNetwork(dc.getNetwork());
+            NetworkVO networkVO = RiakNetwork.convert(dc.getNetwork());
+            vo.setNetwork(networkVO);
             vo.setStatus(dc.getStatus());
         }
         return vo;
@@ -123,7 +124,8 @@ public class RiakDevice {
             entity.setGuid(dc.getGuid());
             entity.setId(dc.getId());
             entity.setName(dc.getName());
-            entity.setNetwork(dc.getNetwork());
+            RiakNetwork network = RiakNetwork.convert(dc.getNetwork());
+            entity.setNetwork(network);
             entity.setStatus(dc.getStatus());
         }
         return entity;

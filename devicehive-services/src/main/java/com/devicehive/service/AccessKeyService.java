@@ -239,15 +239,11 @@ public class AccessKeyService {
             }
         }
         permissions.removeAll(toRemove);
-        boolean hasAccess;
-        hasAccess = allowedDevices.contains(null) ?
-                userService.hasAccessToDevice(accessKeyUser, device.getGuid()) :
-                allowedDevices.contains(device.getGuid()) && userService.hasAccessToDevice(accessKeyUser, device.getGuid());
+        boolean hasAccess = hasPrincipalAccessToDevice(allowedDevices, accessKeyUser, device);
 
-        hasAccess = hasAccess && allowedNetworks.contains(null) ?
-                accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()) :
-                (accessKeyUser.isAdmin() || accessKeyUser.getNetworks().contains(device.getNetwork()))
-                        && allowedNetworks.contains(device.getNetwork().getId());
+        if (hasAccess) {
+            hasAccess = hasUserAccessToNetwork(allowedNetworks, accessKeyUser, device);
+        }
 
         return hasAccess;
     }
@@ -354,5 +350,32 @@ public class AccessKeyService {
         logger.debug("Removing expired access keys");
         int removed = accessKeyDao.deleteOlderThan(timestampService.getTimestamp());
         logger.info("Removed {} expired access keys", removed);
+    }
+
+    private boolean hasPrincipalAccessToDevice(Set<String> allowedDevices, User accessKeyUser, DeviceVO device) {
+        boolean hasAccess = false;
+        if (allowedDevices.contains(null)) {
+            hasAccess = userService.hasAccessToDevice(accessKeyUser, device.getGuid());
+        } else if (allowedDevices.contains(device.getGuid())) {
+            hasAccess = userService.hasAccessToDevice(accessKeyUser, device.getGuid());
+        }
+        return hasAccess;
+    }
+
+    private boolean hasUserAccessToNetwork(Set<Long> allowedNetworks, User accessKeyUser, DeviceVO device) {
+        boolean hasAccess = false;
+        boolean testIsAdminOrNetworkListContains = accessKeyUser.isAdmin() || hasNetworksThat(accessKeyUser.getNetworks(), device.getNetwork());
+        hasAccess = allowedNetworks.contains(null) ? testIsAdminOrNetworkListContains : (testIsAdminOrNetworkListContains)
+                && allowedNetworks.contains(device.getNetwork().getId());
+        return hasAccess;
+    }
+
+    private boolean hasNetworksThat(Set<Network> nets, NetworkVO vo) {
+        for (Network net : nets) {
+            if (net.getId().equals(vo.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

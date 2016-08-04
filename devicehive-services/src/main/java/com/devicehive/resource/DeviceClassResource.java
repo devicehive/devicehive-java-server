@@ -1,7 +1,6 @@
 package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import io.swagger.annotations.*;

@@ -32,7 +32,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
+        deviceUpdate.setNetwork(Optional.of(network));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -60,7 +60,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
+        deviceUpdate.setNetwork(Optional.of(network));
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -92,7 +92,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(Network.convert(network)));
+        deviceUpdate.setNetwork(Optional.of(network));
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device
