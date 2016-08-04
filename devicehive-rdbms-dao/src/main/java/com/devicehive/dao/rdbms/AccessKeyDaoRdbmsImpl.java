@@ -2,8 +2,8 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.User;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -47,7 +47,7 @@ public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyD
     }
 
     @Override
-    public Optional<AccessKeyVO> getByUserAndLabel(User user, String label) {
+    public Optional<AccessKeyVO> getByUserAndLabel(UserVO user, String label) {
         Optional<AccessKey> accessKeyOptional = createNamedQuery(AccessKey.class, "AccessKey.getByUserAndLabel", Optional.<CacheConfig>empty())
                 .setParameter("userId", user.getId())
                 .setParameter("label", label)

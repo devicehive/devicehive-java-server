@@ -1,6 +1,6 @@
 -- 1. Default users
 -- admin -> test_admin : admin_pass
-INSERT INTO "user" (login, password_hash, password_salt, role, status, login_attempts, entity_version) VALUES ('test_admin', '+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=', '9KynX3ShWnFym4y8Dla039py', 0, 0, 0, 0);
+INSERT INTO "user" (login, password_hash, password_salt, role, status, login_attempts) VALUES ('test_admin', '+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=', '9KynX3ShWnFym4y8Dla039py', 0, 0, 0);
 
 INSERT INTO access_key (label, key, expiration_date, user_id, entity_version) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1, 1);
 INSERT INTO access_key_permission (access_key_id, entity_version) VALUES (1, 1);

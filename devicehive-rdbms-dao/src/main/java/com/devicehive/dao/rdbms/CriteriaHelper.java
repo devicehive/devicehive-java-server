@@ -3,6 +3,7 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
+import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
 import java.util.*;
@@ -32,14 +33,15 @@ public class CriteriaHelper {
                 predicates.add(cb.like(from.get("name"), pattern)));
 
         principalOpt.flatMap(principal -> {
-            User user = principal.getUser();
+            UserVO user = principal.getUser();
             if (user == null && principal.getKey() != null) {
                 user = principal.getKey().getUser();
             }
             return ofNullable(user);
         }).ifPresent(user -> {
             if (!user.isAdmin()) {
-                predicates.add(from.join("users").in(user));
+                User usr = User.convertToEntity(user);
+                predicates.add(from.join("users").in(usr));
             }
         });
 
@@ -110,7 +112,7 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
-    public static Predicate[] oAuthGrantsListPredicates(CriteriaBuilder cb, Root<OAuthGrant> from, User user, Optional<Date> startOpt, Optional<Date> endOpt, Optional<String> oAuthIdOpt,
+    public static Predicate[] oAuthGrantsListPredicates(CriteriaBuilder cb, Root<OAuthGrant> from, UserVO user, Optional<Date> startOpt, Optional<Date> endOpt, Optional<String> oAuthIdOpt,
                                                         Optional<Integer> typeOpt, Optional<String> scopeOpt, Optional<String> redirectUri, Optional<Integer> accessType) {
         List<Predicate> predicates = new LinkedList<>();
 
@@ -205,7 +207,7 @@ public class CriteriaHelper {
         final Join<Device, Network> usersJoin = (Join) networkJoin.fetch("users", JoinType.LEFT);
         from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
-            User user = p.getUser();
+            UserVO user = p.getUser();
             if (user == null && p.getKey() != null) {
                 user = p.getKey().getUser();
             }

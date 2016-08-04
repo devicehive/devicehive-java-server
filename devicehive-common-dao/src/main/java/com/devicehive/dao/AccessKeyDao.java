@@ -1,7 +1,7 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.User;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 
 import java.util.Date;
 import java.util.List;
@@ -12,7 +12,7 @@ public interface AccessKeyDao {
 
     Optional<AccessKeyVO> getByKey(String key);
 
-    Optional<AccessKeyVO> getByUserAndLabel(User user, String label);
+    Optional<AccessKeyVO> getByUserAndLabel(UserVO user, String label);
 
     int deleteByIdAndUser(Long keyId, Long userId);
 

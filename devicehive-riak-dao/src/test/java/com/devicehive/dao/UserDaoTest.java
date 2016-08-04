@@ -5,6 +5,7 @@ import com.devicehive.model.User;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,30 +39,30 @@ public class UserDaoTest extends AbstractResourceTest {
 
     @Test
     public void testCreate() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setId(100L);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         userDao.persist(user);
 
-        User newUser = userDao.find(100L);
+        UserVO newUser = userDao.find(100L);
         assertNotNull(newUser);
     }
 
     @Test
     public void testDelete() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setId(100L);
         userDao.persist(user);
 
         userDao.deleteById(100L);
 
-        User newUser = userDao.find(100L);
+        UserVO newUser = userDao.find(100L);
         assertNull(newUser);
     }
 
     @Test
     public void testMerge() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setId(100L);
         user.setLogin("before merge");
         userDao.persist(user);
@@ -69,61 +70,61 @@ public class UserDaoTest extends AbstractResourceTest {
         user.setLogin("after merge");
         userDao.merge(user);
 
-        User newUser = userDao.find(100L);
+        UserVO newUser = userDao.find(100L);
         assertEquals("after merge", newUser.getLogin());
     }
 
     public void testFindByName() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         user.setLogin("login");
         userDao.persist(user);
 
-        Optional<User> newUser = userDao.findByName("login");
+        Optional<UserVO> newUser = userDao.findByName("login");
         assertTrue(newUser.isPresent());
         assertEquals(id, newUser.get().getId());
     }
 
     @Test
     public void testFindByGoogleName() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         user.setGoogleLogin("google login");
         userDao.persist(user);
 
-        User newUser = userDao.findByGoogleName("google login");
+        UserVO newUser = userDao.findByGoogleName("google login");
         assertEquals(id, newUser.getId());
     }
 
     @Test
     public void testFindByFacebookName() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         user.setFacebookLogin("facebook login");
         userDao.persist(user);
 
-        User newUser = userDao.findByFacebookName("facebook login");
+        UserVO newUser = userDao.findByFacebookName("facebook login");
         assertEquals(id, newUser.getId());
     }
 
     @Test
     public void testFindByGithubName() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         user.setGithubLogin("github login");
         userDao.persist(user);
 
-        User newUser = userDao.findByGithubName("github login");
+        UserVO newUser = userDao.findByGithubName("github login");
         assertEquals(id, newUser.getId());
     }
 
     @Test
     public void testFindByIdentityName() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         user.setLogin("login");
@@ -133,22 +134,22 @@ public class UserDaoTest extends AbstractResourceTest {
         user.setStatus(UserStatus.ACTIVE);
         userDao.persist(user);
 
-        Optional<User> emptyUser = userDao.findByIdentityName("login", "google login", "facebook login", "github login");
+        Optional<UserVO> emptyUser = userDao.findByIdentityName("login", "google login", "facebook login", "github login");
         assertFalse(emptyUser.isPresent());
 
-        Optional<User> presentGoogle = userDao.findByIdentityName("l", "google login", "", "");
+        Optional<UserVO> presentGoogle = userDao.findByIdentityName("l", "google login", "", "");
         assertTrue(presentGoogle.isPresent());
 
-        Optional<User> presentFacebook = userDao.findByIdentityName("l", "", "facebook login", "");
+        Optional<UserVO> presentFacebook = userDao.findByIdentityName("l", "", "facebook login", "");
         assertTrue(presentFacebook.isPresent());
 
-        Optional<User> presentGithub = userDao.findByIdentityName("l", "", "", "github login");
+        Optional<UserVO> presentGithub = userDao.findByIdentityName("l", "", "", "github login");
         assertTrue(presentGithub.isPresent());
     }
 
     @Test
     public void testHasAccessToNetwork() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         userDao.persist(user);
@@ -170,7 +171,7 @@ public class UserDaoTest extends AbstractResourceTest {
 
     @Test
     public void testUnassignNetwork() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         Long id = 100L;
         user.setId(id);
         userDao.persist(user);

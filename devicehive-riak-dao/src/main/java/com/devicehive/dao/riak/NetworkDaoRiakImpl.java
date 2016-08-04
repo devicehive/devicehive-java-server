@@ -26,6 +26,7 @@ import com.devicehive.model.User;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -180,7 +181,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public void assignToNetwork(NetworkVO network, User user) {
+    public void assignToNetwork(NetworkVO network, UserVO user) {
         assert network != null && network.getId() != null;
         assert user != null && user.getId() != null;
 
@@ -237,7 +238,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         if (principalOptional.isPresent()) {
             HivePrincipal principal = principalOptional.get();
             if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
-                User user = principal.getUser();
+                UserVO user = principal.getUser();
                 if (user == null && principal.getKey() != null) {
                     user = principal.getKey().getUser();
                 }
@@ -336,7 +337,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         NetworkVO networkVO = find(networkId);
         if (networkVO != null) {
             NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(networkVO);
-            Set<User> users = userNetworkDao.findUsersInNetwork(networkId).stream()
+            Set<UserVO> users = userNetworkDao.findUsersInNetwork(networkId).stream()
                     .map(userDao::find)
                     .collect(Collectors.toSet());
             vo.setUsers(users);

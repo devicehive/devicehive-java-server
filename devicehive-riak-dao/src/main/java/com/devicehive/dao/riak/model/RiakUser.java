@@ -1,106 +1,44 @@
-package com.devicehive.model;
-
+package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
-import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
-import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Date;
-import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+public class RiakUser {
 
-@Entity(name = "User")
-@Table(name = "\"user\"")
-@NamedQueries({
-        @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"), //TODO this actually finds by login, not name - consider refactoring
-        @NamedQuery(name = "User.findByGoogleName", query = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByFacebookName", query = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByGithubName", query = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByIdentityName", query = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3"),
-        @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u.id = :user and n = :network"),
-        @NamedQuery(name = "User.hasAccessToDevice", query = "select count(distinct n) from Network n join n.devices d join n.users u where u.id = :user and d.guid = :guid"),
-        @NamedQuery(name = "User.getWithNetworksById", query = "select u from User u left join fetch u.networks where u.id = :id"),
-        @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
-})
-@Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-public class User implements HiveEntity {
-    private static final long serialVersionUID = -8980491502416082011L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @SerializedName("id")
-    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Long id;
 
-    @Column
-    @SerializedName("login")
-    @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
-            "symbols.")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
-    @Column(name = "password_hash")
     private String passwordHash;
 
-    @Column(name = "password_salt")
     private String passwordSalt;
 
-    @Column(name = "login_attempts")
     private Integer loginAttempts;
 
-    @Column
-    @SerializedName("role")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserRole role;
 
-    @Column
-    @SerializedName("status")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
 
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
-    @JsonPolicyDef({USER_PUBLISHED})
-    private Set<Network> networks;
-
-    @Column(name = "last_login")
-    @SerializedName("lastLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin;
 
-    @Column(name="google_login")
-    @SerializedName("googleLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String googleLogin;
 
-    @Column(name = "facebook_login")
-    @SerializedName("facebookLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String facebookLogin;
 
-    @Column(name = "github_login")
-    @SerializedName("githubLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private String githubLogin;
 
-    @SerializedName("data")
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
-    })
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private long entityVersion;
+
     private JsonStringWrapper data;
 
     /**
@@ -166,14 +104,6 @@ public class User implements HiveEntity {
         this.passwordHash = passwordHash;
     }
 
-    public Set<Network> getNetworks() {
-        return networks;
-    }
-
-    public void setNetworks(Set<Network> networks) {
-        this.networks = networks;
-    }
-
     public Integer getLoginAttempts() {
         return loginAttempts;
     }
@@ -204,6 +134,14 @@ public class User implements HiveEntity {
 
     public void setGithubLogin(String githubLogin) {
         this.githubLogin = StringUtils.trim(githubLogin);
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public JsonStringWrapper getData() {
@@ -246,7 +184,7 @@ public class User implements HiveEntity {
             return false;
         }
 
-        User user = (User) o;
+        RiakUser user = (RiakUser) o;
 
         return id != null && id.equals(user.id);
     }
@@ -256,8 +194,7 @@ public class User implements HiveEntity {
         return id == null ? 0 : id.hashCode();
     }
 
-
-    public static UserVO convertToVo(User dc) {
+    public static UserVO convertToVo(RiakUser dc) {
         UserVO vo = null;
         if (dc != null) {
             vo = new UserVO();
@@ -278,10 +215,10 @@ public class User implements HiveEntity {
         return vo;
     }
 
-    public static User convertToEntity(UserVO dc) {
-        User vo = null;
+    public static RiakUser convertToEntity(UserVO dc) {
+        RiakUser vo = null;
         if (dc != null) {
-            vo = new User();
+            vo = new RiakUser();
             vo.setData(dc.getData());
             vo.setFacebookLogin(dc.getFacebookLogin());
             vo.setGithubLogin(dc.getGithubLogin());

@@ -12,11 +12,7 @@ import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,7 +60,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         final HivePrincipal principal = new HivePrincipal(user);
@@ -87,7 +83,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO network = DeviceFixture.createNetwork();
         network = networkService.create(network);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -121,7 +117,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -144,7 +140,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -179,7 +175,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -222,7 +218,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device2 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -260,12 +256,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        User user1 = new User();
+        UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
@@ -316,12 +312,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        User user1 = new User();
+        UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
@@ -340,10 +336,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
-        final AccessKey accessKey = new AccessKey();
-        final AccessKeyPermission permission = new AccessKeyPermission();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
+//        final AccessKey accessKey = new AccessKey();
+//        final AccessKeyPermission permission = new AccessKeyPermission();
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
@@ -429,12 +425,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        User user1 = new User();
+        UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
@@ -453,10 +449,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
-        final AccessKey accessKey = new AccessKey();
-        final AccessKeyPermission permission = new AccessKeyPermission();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
+//        final AccessKey accessKey = new AccessKey();
+//        final AccessKeyPermission permission = new AccessKeyPermission();
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
@@ -541,7 +537,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device2 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");

@@ -17,6 +17,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.InsertCommand;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -230,7 +231,7 @@ public class CommandHandlers extends WebsocketHandlers {
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
-        final User user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        final UserVO user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         final DeviceCommand command = commandService.insert(deviceCommand, device, user);
         commandUpdateSubscribeAction(session, command.getId());
         WebSocketResponse response = new WebSocketResponse();
@@ -261,7 +262,8 @@ public class CommandHandlers extends WebsocketHandlers {
             logger.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        final User user = principal.getUser() != null ? principal.getUser() :
+        //TODO [rafa] unused local variable?
+        final UserVO user = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {

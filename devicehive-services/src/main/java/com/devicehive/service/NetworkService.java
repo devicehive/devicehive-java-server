@@ -14,10 +14,7 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,7 +198,7 @@ public class NetworkService {
     }
 
     @Transactional
-    public NetworkVO createOrUpdateNetworkByUser(Optional<NetworkVO> networkNullable, User user) {
+    public NetworkVO createOrUpdateNetworkByUser(Optional<NetworkVO> networkNullable, UserVO user) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;

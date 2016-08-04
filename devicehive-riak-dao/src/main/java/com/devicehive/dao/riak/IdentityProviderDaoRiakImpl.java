@@ -35,7 +35,6 @@ public class IdentityProviderDaoRiakImpl extends RiakGenericDao implements Ident
 
     @Override
     public IdentityProviderVO getByName(@NotNull String name) {
-        //TODO configurable quorum?
         try {
             Location objectKey = new Location(CONFIG_NS, name);
             FetchValue fetch = new FetchValue.Builder(objectKey)

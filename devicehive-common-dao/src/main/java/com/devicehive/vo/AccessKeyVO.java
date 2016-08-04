@@ -35,7 +35,7 @@ public class AccessKeyVO implements HiveEntity {
     private String key;
 
     @NotNull(message = "User column cannot be null")
-    private User user;
+    private UserVO user;
 
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Date expirationDate;
@@ -74,11 +74,11 @@ public class AccessKeyVO implements HiveEntity {
         this.key = key;
     }
 
-    public User getUser() {
+    public UserVO getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(UserVO user) {
         this.user = user;
     }
 

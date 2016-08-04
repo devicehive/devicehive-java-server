@@ -5,11 +5,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.ConfigurationVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -42,7 +38,7 @@ public class InitialDataLoader {
 
     public void initialData () {
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setId(2L);
         user.setLogin("test_admin");
         user.setPasswordHash("+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=");
@@ -50,7 +46,6 @@ public class InitialDataLoader {
         user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
         user.setLoginAttempts(0);
-        user.setEntityVersion(0);
         userDao.persist(user);
 
         AccessKeyVO key = new AccessKeyVO();
@@ -114,7 +109,7 @@ public class InitialDataLoader {
         deviceDao.persist(device);
 
         //live data
-        User user2 = new User();
+        UserVO user2 = new UserVO();
         user2.setId(1L);
         user2.setLogin("dhadmin");
         user2.setPasswordHash("DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=");
@@ -122,7 +117,6 @@ public class InitialDataLoader {
         user2.setRole(UserRole.ADMIN);
         user2.setStatus(UserStatus.ACTIVE);
         user2.setLoginAttempts(0);
-        user2.setEntityVersion(0);
         userDao.persist(user2);
 
         key = new AccessKeyVO();

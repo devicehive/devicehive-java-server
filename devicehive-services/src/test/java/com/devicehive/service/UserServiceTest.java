@@ -7,14 +7,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.junit.Rule;
@@ -65,7 +65,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_NoSuchElementException_if_network_is_null_when_assign_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
@@ -79,7 +79,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_assign_network_to_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
@@ -93,12 +93,12 @@ public class UserServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), first.getId());
 
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), notNullValue());
-        assertThat(user.getNetworks(), hasSize(1));
-        assertThat(user.getNetworks(), hasItem(new CustomTypeSafeMatcher<Network>("expect network") {
+        UserWithNetworkVO user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), notNullValue());
+        assertThat(user1.getNetworks(), hasSize(1));
+        assertThat(user1.getNetworks(), hasItem(new CustomTypeSafeMatcher<NetworkVO>("expect network") {
             @Override
-            protected boolean matchesSafely(Network item) {
+            protected boolean matchesSafely(NetworkVO item) {
                 return first.getId().equals(item.getId()) && first.getName().equals(item.getName());
             }
         }));
@@ -111,20 +111,20 @@ public class UserServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), second.getId());
 
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), notNullValue());
-        assertThat(user.getNetworks(), hasSize(2));
-        assertThat(user.getNetworks(),
+        user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), notNullValue());
+        assertThat(user1.getNetworks(), hasSize(2));
+        assertThat(user1.getNetworks(),
                 hasItems(
-                        new CustomTypeSafeMatcher<Network>("expect network") {
+                        new CustomTypeSafeMatcher<NetworkVO>("expect network") {
                             @Override
-                            protected boolean matchesSafely(Network item) {
+                            protected boolean matchesSafely(NetworkVO item) {
                                 return first.getId().equals(item.getId()) && first.getName().equals(item.getName());
                             }
                         },
-                        new CustomTypeSafeMatcher<Network>("expect network") {
+                        new CustomTypeSafeMatcher<NetworkVO>("expect network") {
                             @Override
-                            protected boolean matchesSafely(Network item) {
+                            protected boolean matchesSafely(NetworkVO item) {
                                 return second.getId().equals(item.getId()) && second.getName().equals(item.getName());
                             }
                         }
@@ -133,7 +133,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_unassign_network_from_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
@@ -145,9 +145,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(first, notNullValue());
         assertThat(first.getId(), notNullValue());
         userService.assignNetwork(user.getId(), first.getId());
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), notNullValue());
-        assertThat(user.getNetworks(), hasSize(1));
+        UserWithNetworkVO user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), notNullValue());
+        assertThat(user1.getNetworks(), hasSize(1));
 
         network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -155,25 +155,25 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(second, notNullValue());
         assertThat(second.getId(), notNullValue());
         userService.assignNetwork(user.getId(), second.getId());
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), notNullValue());
-        assertThat(user.getNetworks(), hasSize(2));
+        user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), notNullValue());
+        assertThat(user1.getNetworks(), hasSize(2));
 
         userService.unassignNetwork(user.getId(), first.getId());
 
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), hasSize(1));
-        assertThat(user.getNetworks(), hasItem(new CustomTypeSafeMatcher<Network>("expect network") {
+        user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), hasSize(1));
+        assertThat(user1.getNetworks(), hasItem(new CustomTypeSafeMatcher<NetworkVO>("expect network") {
             @Override
-            protected boolean matchesSafely(Network item) {
+            protected boolean matchesSafely(NetworkVO item) {
                 return second.getId().equals(item.getId()) && second.getName().equals(item.getName());
             }
 
         }));
 
         userService.unassignNetwork(user.getId(), second.getId());
-        user = userService.findUserWithNetworks(user.getId());
-        assertThat(user.getNetworks(), is(empty()));
+        user1 = userService.findUserWithNetworks(user.getId());
+        assertThat(user1.getNetworks(), is(empty()));
     }
 
     @Test
@@ -192,7 +192,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_do_nothing_if_network_is_null_when_unassign_user_from_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
@@ -203,13 +203,13 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_null_if_user_does_not_exist_when_authenticate() throws Exception {
-        User user = userService.authenticate(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10));
+        UserVO user = userService.authenticate(RandomStringUtils.randomAlphabetic(10), RandomStringUtils.randomAlphabetic(10));
         assertThat(user, nullValue());
     }
 
     @Test
     public void should_authenticate_user_successfully() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -220,7 +220,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        User authenticated = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated = userService.authenticate(user.getLogin(), "123");
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getLoginAttempts(), equalTo(0));
         assertThat(authenticated.getLastLogin(), notNullValue());
@@ -228,10 +228,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_increase_login_attempts_if_user_failed_to_login() throws Exception {
-        User newUser = new User();
+        UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        User user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, "123");
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -246,7 +246,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (ActionNotAllowedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = userDao.find(user.getId());
+            UserVO updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -256,10 +256,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_lock_user_if_max_login_attempts_reached() throws Exception {
-        User newUser = new User();
+        UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        User user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, "123");
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -276,7 +276,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (ActionNotAllowedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = userDao.find(user.getId());
+            UserVO updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -289,7 +289,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = userDao.find(user.getId());
+        UserVO updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(0));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.LOCKED_OUT));
@@ -298,7 +298,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_authenticate_user_after_not_successful_authentication() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -309,7 +309,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        User authenticated = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated = userService.authenticate(user.getLogin(), "123");
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getLoginAttempts(), equalTo(0));
         assertThat(authenticated.getLastLogin(), notNullValue());
@@ -320,7 +320,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = userDao.find(user.getId());
+        UserVO updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(1));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -334,7 +334,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_modify_last_login_within_login_timeout() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -347,8 +347,8 @@ public class UserServiceTest extends AbstractResourceTest {
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 20000); //login timeout 20 sec
 
-        User authenticated1 = userService.authenticate(user.getLogin(), "123");
-        User authenticated2 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -358,7 +358,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_modify_last_login_if_login_timeout_is_reached() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -370,8 +370,8 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
-        User authenticated1 = userService.authenticate(user.getLogin(), "123");
-        User authenticated2 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -394,7 +394,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_AccessDeniedException_if_user_is_disabled_when_findUser_called() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.DISABLED);
         user = userService.createUser(user, "123");
@@ -407,7 +407,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_AccessDeniedException_if_password_is_wrong_when_funcUser_called() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -425,7 +425,7 @@ public class UserServiceTest extends AbstractResourceTest {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
 
-        User updatedUser = userDao.find(user.getId());
+        UserVO updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(1));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -439,7 +439,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_login_statistic_on_successful_login_when_findUser_called() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -458,10 +458,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_lock_user_if_max_login_attempts_reached_when_findUser_called() throws Exception {
-        User newUser = new User();
+        UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        User user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, "123");
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -478,7 +478,7 @@ public class UserServiceTest extends AbstractResourceTest {
             } catch (AccessDeniedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
-            User updatedUser = userDao.find(user.getId());
+            UserVO updatedUser = userDao.find(user.getId());
             assertThat(updatedUser, notNullValue());
             assertThat(updatedUser.getLoginAttempts(), equalTo(attempt));
             assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
@@ -491,7 +491,7 @@ public class UserServiceTest extends AbstractResourceTest {
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
-        User updatedUser = userDao.find(user.getId());
+        UserVO updatedUser = userDao.find(user.getId());
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getLoginAttempts(), equalTo(0));
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.LOCKED_OUT));
@@ -500,7 +500,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_modify_last_login_if_login_timeout_is_reached_when_findUser_called() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -512,8 +512,8 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
-        User authenticated1 = userService.findUser(user.getLogin(), "123");
-        User authenticated2 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated1 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated2 = userService.findUser(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -524,7 +524,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_user_by_id() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -542,7 +542,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_user_with_networks() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -556,7 +556,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user.getId(), network.getId());
         }
 
-        User userWithNetworks = userService.findUserWithNetworks(user.getId());
+        UserWithNetworkVO userWithNetworks = userService.findUserWithNetworks(user.getId());
         assertThat(userWithNetworks, notNullValue());
         assertThat(userWithNetworks.getNetworks(), notNullValue());
         assertThat(userWithNetworks.getNetworks(), not(empty()));
@@ -565,7 +565,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_user_without_networks() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -578,7 +578,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
 
@@ -604,7 +604,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_IllegalParametersException_if_id_provided_for_create() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setId(-1L);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
@@ -618,7 +618,7 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_ActionNotAllowedException_if_login_exists() throws Exception {
         String login = RandomStringUtils.randomAlphabetic(10);
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(login);
         user.setStatus(UserStatus.ACTIVE);
 
@@ -627,7 +627,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
 
-        user = new User();
+        user = new UserVO();
         user.setLogin(login);
         user.setStatus(UserStatus.ACTIVE);
 
@@ -636,7 +636,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_user_without_password() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
 
@@ -650,13 +650,13 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_ActionNotAllowedException_if_any_identity_login_already_exists() throws Exception {
         String google = RandomStringUtils.randomAlphabetic(10);
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setGoogleLogin(google);
         userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         try {
-            user = new User();
+            user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user.setGoogleLogin(google);
@@ -667,13 +667,13 @@ public class UserServiceTest extends AbstractResourceTest {
         }
 
         String facebook = RandomStringUtils.randomAlphabetic(10);
-        user = new User();
+        user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setFacebookLogin(facebook);
         userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         try {
-            user = new User();
+            user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user.setFacebookLogin(facebook);
@@ -684,13 +684,13 @@ public class UserServiceTest extends AbstractResourceTest {
         }
 
         String github = RandomStringUtils.randomAlphabetic(10);
-        user = new User();
+        user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setGithubLogin(github);
         userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         try {
-            user = new User();
+            user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user.setGithubLogin(github);
@@ -703,7 +703,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -718,7 +718,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_true_if_user_has_access_to_device() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -745,7 +745,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_false_if_user_does_not_have_access_to_device() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -770,7 +770,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_true_if_user_is_admin_when_request_access_to_device() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.ADMIN);
@@ -795,7 +795,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_true_if_user_is_admin_when_request_access_to_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.ADMIN);
@@ -810,7 +810,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_true_if_user_has_access_to_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -827,7 +827,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_false_if_user_does_not_have_access_to_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -844,10 +844,10 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_return_user_by_google_login() throws Exception {
         String google = RandomStringUtils.randomAlphabetic(10);
 
-        User user = userService.findGoogleUser(google);
+        UserVO user = userService.findGoogleUser(google);
         assertThat(user, nullValue());
 
-        user = new User();
+        user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -863,10 +863,10 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_return_user_by_facebook_login() throws Exception {
         String facebook = RandomStringUtils.randomAlphabetic(10);
 
-        User user = userService.findFacebookUser(facebook);
+        UserVO user = userService.findFacebookUser(facebook);
         assertThat(user, nullValue());
 
-        user = new User();
+        user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -882,10 +882,10 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_return_user_by_github_login() throws Exception {
         String gitgub = RandomStringUtils.randomAlphabetic(10);
 
-        User user = userService.findGithubUser(gitgub);
+        UserVO user = userService.findGithubUser(gitgub);
         assertThat(user, nullValue());
 
-        user = new User();
+        user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -900,7 +900,7 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_refresh_user_login_data() throws Exception {
         configurationService.save(Constants.MAX_LOGIN_ATTEMPTS, 10);
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -942,13 +942,13 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_throw_ActionNotAllowedException_trying_to_set_existing_login_when_update() throws Exception {
         String existingLogin = RandomStringUtils.randomAlphabetic(10);
 
-        User first = new User();
+        UserVO first = new UserVO();
         first.setLogin(existingLogin);
         first.setStatus(UserStatus.ACTIVE);
         first.setRole(UserRole.CLIENT);
         userService.createUser(first, "123");
 
-        User second = new User();
+        UserVO second = new UserVO();
         second.setLogin(RandomStringUtils.randomAlphabetic(10));
         second.setStatus(UserStatus.ACTIVE);
         second.setRole(UserRole.CLIENT);
@@ -964,7 +964,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_user_identity_logins() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
@@ -979,7 +979,7 @@ public class UserServiceTest extends AbstractResourceTest {
         update.setGoogleLogin(Optional.ofNullable(RandomStringUtils.random(10)));
         update.setGithubLogin(Optional.ofNullable(RandomStringUtils.random(10)));
 
-        User updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
@@ -991,14 +991,14 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_throw_ActionNotAllowedException_if_user_with_any_login_exists_when_update() throws Exception {
         String google = RandomStringUtils.randomAlphabetic(10);
-        User firstGoogleUser = new User();
+        UserVO firstGoogleUser = new UserVO();
         firstGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         firstGoogleUser.setGoogleLogin(google);
         firstGoogleUser.setStatus(UserStatus.ACTIVE);
         firstGoogleUser = userService.createUser(firstGoogleUser, RandomStringUtils.randomAlphabetic(10));
         assertThat(firstGoogleUser.getGoogleLogin(), equalTo(google));
 
-        User secondGoogleUser = new User();
+        UserVO secondGoogleUser = new UserVO();
         secondGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         secondGoogleUser.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
         secondGoogleUser.setStatus(UserStatus.ACTIVE);
@@ -1017,13 +1017,13 @@ public class UserServiceTest extends AbstractResourceTest {
         }
 
         String facebook = RandomStringUtils.randomAlphabetic(10);
-        User firstFacebookUser = new User();
+        UserVO firstFacebookUser = new UserVO();
         firstFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         firstFacebookUser.setFacebookLogin(facebook);
         firstFacebookUser.setStatus(UserStatus.ACTIVE);
         userService.createUser(firstFacebookUser, RandomStringUtils.randomAlphabetic(10));
 
-        User secondFacebookUser = new User();
+        UserVO secondFacebookUser = new UserVO();
         secondFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         secondFacebookUser.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
         secondFacebookUser.setStatus(UserStatus.ACTIVE);
@@ -1041,13 +1041,13 @@ public class UserServiceTest extends AbstractResourceTest {
         }
 
         String github = RandomStringUtils.randomAlphabetic(10);
-        User firstGithubUser = new User();
+        UserVO firstGithubUser = new UserVO();
         firstGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         firstGithubUser.setGithubLogin(github);
         firstGithubUser.setStatus(UserStatus.ACTIVE);
         userService.createUser(firstGithubUser, RandomStringUtils.randomAlphabetic(10));
 
-        User secondGithubUser = new User();
+        UserVO secondGithubUser = new UserVO();
         secondGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         secondGithubUser.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
         secondGithubUser.setStatus(UserStatus.ACTIVE);
@@ -1068,14 +1068,14 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_password_with_admin_role() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
-        User updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1084,7 +1084,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_without_old_password() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -1099,7 +1099,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_password_with_client_role_if_old_password_provided() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -1107,7 +1107,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
         update.setOldPassword(Optional.ofNullable("123"));
-        User updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1116,7 +1116,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_with_wrong_old_password() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -1132,7 +1132,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_IllegalParametersException_if_() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
@@ -1148,17 +1148,17 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_return_list_of_users_by_login() throws Exception {
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        User testUser = new User();
+        UserVO testUser = new UserVO();
         testUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         testUser.setStatus(UserStatus.ACTIVE);
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
 
-        List<User> users = userService.getList(testUser.getLogin(), null, null, null, null, null, 100, 0);
+        List<UserVO> users = userService.getList(testUser.getLogin(), null, null, null, null, null, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(1));
         assertThat(users.stream().findFirst().get().getId(), equalTo(testUser.getId()));
@@ -1167,23 +1167,23 @@ public class UserServiceTest extends AbstractResourceTest {
     @Test
     public void should_return_list_of_users_by_login_pattern() throws Exception {
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         String prefix = RandomStringUtils.randomAlphabetic(10);
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
 
-        List<User> users = userService.getList(null, "%" + prefix + "%", null, null, null, null, 100, 0);
+        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, null, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(10));
-        for (User user : users) {
+        for (UserVO user : users) {
             assertThat(user.getLogin(), startsWith(prefix));
         }
     }
@@ -1192,23 +1192,23 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_return_list_of_users_by_role() throws Exception {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user.setRole(UserRole.ADMIN);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user.setRole(UserRole.CLIENT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<User> users = userService.getList(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0);
+        List<UserVO> users = userService.getList(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(10));
-        for (User user : users) {
+        for (UserVO user : users) {
             assertThat(user.getLogin(), startsWith(prefix));
             assertThat(user.getRole(), equalTo(UserRole.CLIENT));
         }
@@ -1218,21 +1218,21 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_return_list_of_users_by_status() throws Exception {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         for (int i = 0; i < 10; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.LOCKED_OUT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<User> users = userService.getList(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0);
+        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(10));
-        for (User user : users) {
+        for (UserVO user : users) {
             assertThat(user.getLogin(), startsWith(prefix));
             assertThat(user.getStatus(), equalTo(UserStatus.LOCKED_OUT));
         }
@@ -1244,12 +1244,12 @@ public class UserServiceTest extends AbstractResourceTest {
         List<String> prefixes = Arrays.asList("a", "b", "c", "d", "e");
         Collections.shuffle(prefixes);
         for (String prefix : prefixes) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + "_" + suffix);
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<User> users = userService.getList(null, "%" + suffix, null, null, "login", true, 100, 0);
+        List<UserVO> users = userService.getList(null, "%" + suffix, null, null, "login", true, 100, 0);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(5));
 
@@ -1275,19 +1275,19 @@ public class UserServiceTest extends AbstractResourceTest {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         List<Long> ids = new ArrayList<>(100);
         for (int i = 0; i < 100; i++) {
-            User user = new User();
+            UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             user = userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
             ids.add(user.getId());
         }
 
-        List<User> users = userService.getList(null, "%" + prefix + "%", null, null, null, false, 20, 10);
+        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, false, 20, 10);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(20));
 
         List<Long> expectedIds = ids.stream().skip(10).limit(20).collect(Collectors.toList());
-        List<Long> returnedIds = users.stream().map(User::getId).collect(Collectors.toList());
+        List<Long> returnedIds = users.stream().map(UserVO::getId).collect(Collectors.toList());
         assertThat(returnedIds, equalTo(expectedIds));
     }
 }

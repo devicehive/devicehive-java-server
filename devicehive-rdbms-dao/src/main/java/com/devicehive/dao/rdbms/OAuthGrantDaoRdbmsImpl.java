@@ -4,6 +4,7 @@ import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.model.OAuthGrant;
 import com.devicehive.model.User;
 import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -24,13 +25,14 @@ import static java.util.Optional.ofNullable;
 public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGrantDao {
 
     @Override
-    public OAuthGrantVO getByIdAndUser(User user, Long grantId) {
-        return OAuthGrant.convert(createNamedQuery(OAuthGrant.class, "OAuthGrant.getByIdAndUser",
+    public OAuthGrantVO getByIdAndUser(UserVO user, Long grantId) {
+        OAuthGrant grant = createNamedQuery(OAuthGrant.class, "OAuthGrant.getByIdAndUser",
                 of(CacheConfig.refresh()))
                 .setParameter("grantId", grantId)
-                .setParameter("user", user)
+                .setParameter("user", user.getId())
                 .getResultList()
-                .stream().findFirst().orElse(null));
+                .stream().findFirst().orElse(null);
+        return OAuthGrant.convert(grant);
     }
 
     @Override
@@ -43,10 +45,10 @@ public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGran
     }
 
     @Override
-    public int deleteByUserAndId(User user, Long grantId) {
+    public int deleteByUserAndId(UserVO user, Long grantId) {
         return createNamedQuery("OAuthGrant.deleteByUserAndId", of(CacheConfig.refresh()))
                 .setParameter("grantId", grantId)
-                .setParameter("user", user)
+                .setParameter("user", user.getId())
                 .executeUpdate();
     }
 
@@ -77,7 +79,7 @@ public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGran
     }
 
     @Override
-    public List<OAuthGrantVO> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull UserVO user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,

@@ -9,6 +9,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.OAuthClientVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
         String pass = (String) authentication.getCredentials();
         logger.debug("Basic authentication requested for username {}", key);
 
-        User user = null;
+        UserVO user = null;
         try {
             user = userService.authenticate(key, pass);
         } catch (HiveException e) {

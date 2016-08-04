@@ -4,6 +4,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.vo.UserVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -36,7 +37,7 @@ public interface UserResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "List users", notes = "Gets list of users.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns array of User resources in the response body.", response = User.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "If successful, this method returns array of User resources in the response body.", response = UserVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")

@@ -4,6 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.User;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -24,7 +25,7 @@ public interface NetworkDao {
 
     NetworkVO merge(NetworkVO existing);
 
-    void assignToNetwork(NetworkVO network, User user);
+    void assignToNetwork(NetworkVO network, UserVO user);
 
     List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                        Integer skip, Optional<HivePrincipal> principal);

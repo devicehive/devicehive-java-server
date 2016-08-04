@@ -21,6 +21,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ParseUtil;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -284,7 +285,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public Response insert(String guid, DeviceCommandWrapper deviceCommand) {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        UserVO authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
         if (device == null) {
@@ -308,7 +309,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public Response update(String guid, Long commandId, DeviceCommandWrapper command) {
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final User authUser = principal.getUser() != null ? principal.getUser() :
+        //TODO [rafa] unused local variable?
+        final UserVO authUser = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
         LOGGER.debug("Device command update requested. command {}", command);
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);

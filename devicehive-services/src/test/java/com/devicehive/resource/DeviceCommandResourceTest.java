@@ -3,7 +3,6 @@ package com.devicehive.resource;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;

@@ -28,10 +28,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "oauth_grant")
 @NamedQueries({
         @NamedQuery(name = "OAuthGrant.getByIdAndUser", query = "select oag from OAuthGrant oag join fetch oag.client join fetch oag.accessKey ak join fetch ak.permissions " +
-                "join fetch oag.user where oag.id = :grantId and oag.user = :user"),
+                "join fetch oag.user where oag.id = :grantId and oag.user.id = :user"),
         @NamedQuery(name = "OAuthGrant.getById", query = "select oag from OAuthGrant oag join fetch oag.client join fetch oag.accessKey ak join fetch ak.permissions " +
                 "join fetch oag.user where oag.id = :grantId"),
-        @NamedQuery(name = "OAuthGrant.deleteByUserAndId", query = "delete from OAuthGrant oag where oag.id = :grantId and oag.user = :user"),
+        @NamedQuery(name = "OAuthGrant.deleteByUserAndId", query = "delete from OAuthGrant oag where oag.id = :grantId and oag.user.id = :user"),
         @NamedQuery(name = "OAuthGrant.deleteById", query = "delete from OAuthGrant oag where oag.id = :grantId"),
         @NamedQuery(name = "OAuthGrant.getByCodeAndOAuthID", query = "select oag from OAuthGrant oag join fetch oag.client c join fetch oag.accessKey ak " +
                 "join fetch ak.permissions where oag.authCode = :authCode and c.oauthId = :oauthId")
@@ -246,8 +246,9 @@ public class OAuthGrant implements HiveEntity {
             result.setScope(grant.getScope());
             result.setNetworkIds(grant.getNetworkIds());
             result.setEntityVersion(grant.getEntityVersion());
-            result.setUser(grant.getUser());
             result.setAccessKey(AccessKey.convert(grant.getAccessKey()));
+            User user = User.convertToEntity(grant.getUser());
+            result.setUser(user);
             return result;
         } else {
             return null;

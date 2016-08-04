@@ -15,13 +15,14 @@ import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.riak.model.RiakUser;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -81,50 +82,29 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public Optional<User> findByName(String name) {
-        User user = findBySomeIdentityName(name, "login");
+    public Optional<UserVO> findByName(String name) {
+        UserVO user = findBySomeIdentityName(name, "login");
         return Optional.ofNullable(user);
     }
 
     @Override
-    public User findByGoogleName(String name) {
+    public UserVO findByGoogleName(String name) {
         return findBySomeIdentityName(name, "googleLogin");
     }
 
     @Override
-    public User findByFacebookName(String name) {
+    public UserVO findByFacebookName(String name) {
         return findBySomeIdentityName(name, "facebookLogin");
     }
 
     @Override
-    public User findByGithubName(String name) {
+    public UserVO findByGithubName(String name) {
         return findBySomeIdentityName(name, "githubLogin");
     }
 
-    private User findBySomeIdentityName(String name, String identityName) {
-        if (name == null) {
-            return null;
-        }
-        BinIndexQuery biq = new BinIndexQuery.Builder(USER_NS, identityName, name).build();
-        try {
-            BinIndexQuery.Response response = client.execute(biq);
-            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
-            if (entries.isEmpty()) {
-                return null;
-            }
-            Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
-                    .build();
-            return getOrNull(client.execute(fetchOp), User.class);
-        } catch (ExecutionException | InterruptedException e) {
-            throw new HivePersistenceLayerException("Cannot find by identity.", e);
-        }
-    }
-
     @Override
-    public Optional<User> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        User userToCheck;
+    public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
+        UserVO userToCheck;
         userToCheck = findByGoogleName(googleLogin);
         if (userToCheck != null) {
             if (doesUserAlreadyExist(userToCheck, login)) {
@@ -149,12 +129,8 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         return Optional.empty();
     }
 
-    private boolean doesUserAlreadyExist(User user, String login) {
-        return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
-    }
-
     @Override
-    public long hasAccessToNetwork(User user, NetworkVO network) {
+    public long hasAccessToNetwork(UserVO user, NetworkVO network) {
         Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
         if (networks != null && networks.contains(network.getId())) {
             return 1L;
@@ -164,7 +140,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToDevice(User user, String deviceGuid) {
+    public long hasAccessToDevice(UserVO user, String deviceGuid) {
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
         for (Long networkId : networkIds) {
             Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
@@ -185,26 +161,24 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public User getWithNetworksById(long id) {
-        User user = find(id);
+    public UserWithNetworkVO getWithNetworksById(long id) {
+        UserVO user = find(id);
         if (user == null) {
-            return user;
+            return null;
         }
 
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(id);
-        if (networkIds == null) {
-            return user;
+        UserWithNetworkVO userWithNetworkVO = UserWithNetworkVO.fromUserVO(user);
+        if (networkIds != null) {
+            //TODO [rafa] [implement bulk fetch method here]
+            Set<NetworkVO> networks = new HashSet<>();
+            for (Long networkId : networkIds) {
+                NetworkVO network = networkDao.find(networkId);
+                networks.add(network);
+            }
+            userWithNetworkVO.setNetworks(networks);
         }
-        Set<NetworkVO> networks = new HashSet<>();
-        //todo: rewrite when migrate User->UserVO
-        Set<Network> oldNetworks = new HashSet<>();
-        for (Long networkId : networkIds) {
-            NetworkVO network = networkDao.find(networkId);
-            networks.add(network);
-            oldNetworks.add(Network.convert(network));
-        }
-        user.setNetworks(oldNetworks);
-        return user;
+        return userWithNetworkVO;
     }
 
     @Override
@@ -220,35 +194,38 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public User find(Long id) {
+    public UserVO find(Long id) {
         try {
             Location location = new Location(USER_NS, String.valueOf(id));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
-            return getOrNull(client.execute(fetchOp), User.class);
+            RiakUser riakUser = getOrNull(client.execute(fetchOp), RiakUser.class);
+            return RiakUser.convertToVo(riakUser);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find by id", e);
         }
     }
 
     @Override
-    public void persist(User user) {
+    public void persist(UserVO user) {
         merge(user);
     }
 
     @Override
-    public User merge(User user) {
+    public UserVO merge(UserVO user) {
+        RiakUser entity = RiakUser.convertToEntity(user);
         try {
-            if (user.getId() == null) {
-                user.setId(getId(userCounters));
+            if (entity.getId() == null) {
+                entity.setId(getId(userCounters));
             }
-            Location location = new Location(USER_NS, String.valueOf(user.getId()));
-            StoreValue storeOp = new StoreValue.Builder(user)
+            Location location = new Location(USER_NS, String.valueOf(entity.getId()));
+            StoreValue storeOp = new StoreValue.Builder(entity)
                     .withLocation(location)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
+            user.setId(entity.getId());
             return user;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge user.", e);
@@ -256,20 +233,20 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public void unassignNetwork(@NotNull User existingUser, @NotNull long networkId) {
+    public void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId) {
         userNetworkDao.delete(existingUser.getId(), networkId);
     }
 
     @Override
-    public List<User> getList(String login, String loginPattern,
+    public List<UserVO> getList(String login, String loginPattern,
                               Integer role, Integer status,
                               String sortField, Boolean sortOrderAsc,
                               Integer take, Integer skip) {
 
 
-        List<User> result = new ArrayList<>();
+        List<UserVO> result = new ArrayList<>();
         if (login != null) {
-            Optional<User> user = findByName(login);
+            Optional<UserVO> user = findByName(login);
             if (user.isPresent()) {
                 result.add(user.get());
             }
@@ -346,8 +323,8 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
                 RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
                 future.await();
                 MapReduce.Response response = future.get();
-                Collection users = response.getResultsFromAllPhases(User.class);
-                result.addAll(users);
+                Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
+                result.addAll(users.stream().map(RiakUser::convertToVo).collect(Collectors.toList()));
 
                 if (skip != null) {
                     result = result.stream().skip(skip).collect(Collectors.toList());
@@ -362,4 +339,31 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         }
         return result;
     }
+
+    private boolean doesUserAlreadyExist(UserVO user, String login) {
+        return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
+    }
+
+    private UserVO findBySomeIdentityName(String name, String identityName) {
+        if (name == null) {
+            return null;
+        }
+        BinIndexQuery biq = new BinIndexQuery.Builder(USER_NS, identityName, name).build();
+        try {
+            BinIndexQuery.Response response = client.execute(biq);
+            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
+            if (entries.isEmpty()) {
+                return null;
+            }
+            Location location = entries.get(0).getRiakObjectLocation();
+            FetchValue fetchOp = new FetchValue.Builder(location)
+                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
+                    .build();
+            RiakUser riakUser = getOrNull(client.execute(fetchOp), RiakUser.class);
+            return RiakUser.convertToVo(riakUser);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new HivePersistenceLayerException("Cannot find by identity.", e);
+        }
+    }
+
 }

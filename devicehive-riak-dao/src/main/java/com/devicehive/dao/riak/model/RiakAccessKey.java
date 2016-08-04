@@ -6,6 +6,7 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 
 import java.util.Date;
 import java.util.Set;
@@ -18,7 +19,7 @@ public class RiakAccessKey {
 
     private String key;
 
-    private User user;
+    private RiakUser user;
 
     private Date expirationDate;
 
@@ -52,11 +53,11 @@ public class RiakAccessKey {
         this.key = key;
     }
 
-    public User getUser() {
+    public RiakUser getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(RiakUser user) {
         this.user = user;
     }
 
@@ -118,7 +119,8 @@ public class RiakAccessKey {
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
-            result.setUser(accessKey.getUser());
+            RiakUser user = RiakUser.convertToEntity(accessKey.getUser());
+            result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
             result.setPermissions(accessKey.getPermissions());
@@ -141,7 +143,8 @@ public class RiakAccessKey {
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
-            result.setUser(accessKey.getUser());
+            UserVO user = RiakUser.convertToVo(accessKey.getUser());
+            result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
             result.setPermissions(accessKey.getPermissions());

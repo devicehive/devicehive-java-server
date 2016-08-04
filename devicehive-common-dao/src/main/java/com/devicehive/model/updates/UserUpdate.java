@@ -5,6 +5,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.UserVO;
 
 import java.util.Optional;
 
@@ -107,8 +108,8 @@ public class UserUpdate implements HiveEntity {
         return null;
     }
 
-    public User convertTo() {
-        User result = new User();
+    public UserVO convertTo() {
+        UserVO result = new UserVO();
         if (login != null) {
             result.setLogin(login.orElse(null));
         }

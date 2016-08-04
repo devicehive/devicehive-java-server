@@ -13,6 +13,7 @@ import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.IdentityProviderVO;
+import com.devicehive.vo.UserVO;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
@@ -78,7 +79,7 @@ public class FacebookAuthProvider extends AuthProvider {
                 verifyAccessToken(accessToken);
             }
             final String userEmail = getIdentityProviderEmail(accessToken);
-            final User user = findUser(userEmail);
+            final UserVO user = findUser(userEmail);
             return accessKeyService.authenticate(user);
         }
         logger.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, FACEBOOK_PROVIDER_NAME));
@@ -127,8 +128,8 @@ public class FacebookAuthProvider extends AuthProvider {
         return jsonElement.getAsJsonObject().get("email").getAsString();
     }
 
-    private User findUser(final String email) {
-        final User user = userService.findFacebookUser(email);
+    private UserVO findUser(final String email) {
+        final UserVO user = userService.findFacebookUser(email);
         if (user == null) {
             logger.error("No user with email {} found for identity provider {}", email, FACEBOOK_PROVIDER_NAME);
             throw new HiveException(Messages.USER_NOT_FOUND, Response.Status.UNAUTHORIZED.getStatusCode());

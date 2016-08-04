@@ -9,7 +9,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLIS
 
 public class NetworkWithUsersAndDevicesVO extends NetworkVO {
 
-    private Set<User> users;
+    private Set<UserVO> users;
 
     @JsonPolicyDef({NETWORK_PUBLISHED})
     private Set<DeviceVO> devices;
@@ -24,11 +24,11 @@ public class NetworkWithUsersAndDevicesVO extends NetworkVO {
         setEntityVersion(vo.getEntityVersion());
     }
 
-    public Set<User> getUsers() {
+    public Set<UserVO> getUsers() {
         return users;
     }
 
-    public void setUsers(Set<User> users) {
+    public void setUsers(Set<UserVO> users) {
         this.users = users;
     }
 

@@ -18,11 +18,13 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakAccessKey;
+import com.devicehive.dao.riak.model.RiakUser;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.UserVO;
 import com.devicehive.vo.AccessKeyVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -109,7 +111,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     }
 
     @Override
-    public Optional<AccessKeyVO> getByUserAndLabel(User user, String label) {
+    public Optional<AccessKeyVO> getByUserAndLabel(UserVO user, String label) {
         IntIndexQuery biq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "user", user.getId()).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
@@ -324,4 +326,27 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
         return vo;
     }
 
+    private AccessKey restoreReferences(AccessKey key, UserVO user) {
+        //TODO [rafa] change once AccessKey is changed
+        RiakUser riakUser = RiakUser.convertToEntity(user);
+        User user1 = new User();
+        user1.setId(riakUser.getId());
+        key.setUser(user1);
+        if (key.getPermissions() != null) {
+            for (AccessKeyPermission permission : key.getPermissions()) {
+                permission.setAccessKey(key);
+            }
+        }
+        return key;
+    }
+
+    private AccessKey restoreReferences(AccessKey key, User user) {
+        key.setUser(user);
+        if (key.getPermissions() != null) {
+            for (AccessKeyPermission permission : key.getPermissions()) {
+                permission.setAccessKey(key);
+            }
+        }
+        return key;
+    }
 }

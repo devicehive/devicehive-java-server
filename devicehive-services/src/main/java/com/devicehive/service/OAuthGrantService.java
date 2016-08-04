@@ -3,8 +3,6 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
 import com.devicehive.model.enums.UserStatus;
@@ -13,6 +11,7 @@ import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
@@ -40,7 +42,7 @@ public class OAuthGrantService {
     private TimestampService timestampService;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public OAuthGrantVO get(@NotNull User user, @NotNull Long grantId) {
+    public OAuthGrantVO get(@NotNull UserVO user, @NotNull Long grantId) {
         if (user.isAdmin()) {
             return oAuthGrantDao.getById(grantId);
         } else {
@@ -49,7 +51,7 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public OAuthGrantVO save(@NotNull OAuthGrantVO grant, @NotNull User user) {
+    public OAuthGrantVO save(@NotNull OAuthGrantVO grant, @NotNull UserVO user) {
         validate(grant);
         OAuthClientVO client = clientService.getByOAuthID(grant.getClient().getOauthId());
         grant.setClient(client);
@@ -70,7 +72,7 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public boolean delete(@NotNull User user, @NotNull Long grantId) {
+    public boolean delete(@NotNull UserVO user, @NotNull Long grantId) {
         OAuthGrantVO existing;
         if (user.isAdmin()) {
             existing = oAuthGrantDao.getById(grantId);
@@ -89,7 +91,7 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public OAuthGrantVO update(@NotNull User user, @NotNull Long grantId, OAuthGrantUpdate grantToUpdate) {
+    public OAuthGrantVO update(@NotNull UserVO user, @NotNull Long grantId, OAuthGrantUpdate grantToUpdate) {
         OAuthGrantVO existing = get(user, grantId);
         if (existing == null) {
             return null;
@@ -138,7 +140,7 @@ public class OAuthGrantService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<OAuthGrantVO> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull UserVO user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,
@@ -193,7 +195,7 @@ public class OAuthGrantService {
                                                        @NotNull String login,
                                                        @NotNull String password,
                                                        OAuthClientVO client) {
-        User user = userService.authenticate(login, password);
+        UserVO user = userService.authenticate(login, password);
         if (user == null || !user.getStatus().equals(UserStatus.ACTIVE)) {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, SC_UNAUTHORIZED);
         }

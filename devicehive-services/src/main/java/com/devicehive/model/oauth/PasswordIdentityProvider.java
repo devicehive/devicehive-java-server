@@ -8,6 +8,7 @@ import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +43,11 @@ public class PasswordIdentityProvider extends AuthProvider {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
-        final User user = findUser(request.getLogin(), request.getPassword());
+        final UserVO user = findUser(request.getLogin(), request.getPassword());
         return accessKeyService.authenticate(user);
     }
 
-    private User findUser(String login, String password) {
+    private UserVO findUser(String login, String password) {
         return userService.findUser(login, password);
     }
 }

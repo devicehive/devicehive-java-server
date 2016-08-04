@@ -91,6 +91,7 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
+            entity.setId(deviceEquipment.getId());
             return RiakDeviceEquipment.convertToVo(deviceEquipment);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge device equipment.", e);

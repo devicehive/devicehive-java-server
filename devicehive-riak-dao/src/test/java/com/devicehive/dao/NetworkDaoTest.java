@@ -5,6 +5,7 @@ import com.devicehive.model.User;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -147,7 +148,7 @@ public class NetworkDaoTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNetworksWithUserFilter() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         userDao.persist(user);
         assertNotNull(user.getId());

@@ -18,6 +18,8 @@ import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,8 +64,8 @@ public class UserService {
      * @return User object if authentication is successful or null if not
      */
     @Transactional(noRollbackFor = ActionNotAllowedException.class)
-    public User authenticate(String login, String password) {
-        Optional<User> userOpt = userDao.findByName(login);
+    public UserVO authenticate(String login, String password) {
+        Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             return null;
         }
@@ -72,8 +74,8 @@ public class UserService {
     }
 
     @Transactional(noRollbackFor = AccessDeniedException.class)
-    public User findUser(String login, String password) {
-        Optional<User> userOpt = userDao.findByName(login);
+    public UserVO findUser(String login, String password) {
+        Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
             throw new AccessDeniedException(Messages.USER_NOT_FOUND);
@@ -85,7 +87,7 @@ public class UserService {
                 .orElseThrow(() -> new AccessDeniedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
-    private Optional<User> checkPassword(User user, String password) {
+    private Optional<UserVO> checkPassword(UserVO user, String password) {
         boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
 
         long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
@@ -94,7 +96,8 @@ public class UserService {
                 || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
 
         if (validPassword && mustUpdateLoginStatistic) {
-            return of(updateStatisticOnSuccessfulLogin(user, loginTimeout));
+            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
+            return of(user1);
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts() >=
@@ -108,7 +111,7 @@ public class UserService {
         return of(user);
     }
 
-    private User updateStatisticOnSuccessfulLogin(User user, long loginTimeout) {
+    private UserVO updateStatisticOnSuccessfulLogin(UserVO user, long loginTimeout) {
         boolean update = false;
         if (user.getLoginAttempts() != 0) {
             update = true;
@@ -122,8 +125,8 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public User updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
-        User existing = userDao.find(id);
+    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
+        UserVO existing = userDao.find(id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
@@ -135,7 +138,7 @@ public class UserService {
         if (userToUpdate.getLogin() != null) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             final String oldLogin = existing.getLogin();
-            Optional<User> withSuchLogin = userDao.findByName(newLogin);
+            Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);
 
             if (withSuchLogin.isPresent() && !withSuchLogin.get().getId().equals(id)) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
@@ -150,7 +153,7 @@ public class UserService {
                     userToUpdate.getGithubLogin().orElse(null) : null;
 
             if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                Optional<User> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
+                Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
                         facebookLogin, githubLogin);
                 if (userWithSameIdentity.isPresent()) {
                     throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
@@ -206,7 +209,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDao.find(userId);
+        UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
@@ -224,7 +227,7 @@ public class UserService {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
-        User existingUser = userDao.find(userId);
+        UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
@@ -233,12 +236,9 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
+    public List<UserVO> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
-        return userDao.getList(login, loginPattern,
-                role, status,
-                sortField, sortOrderAsc,
-                take, skip);
+        return userDao.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
     }
 
     /**
@@ -248,7 +248,7 @@ public class UserService {
      * @return User model without networks, or null if there is no such user
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public User findById(@NotNull long id) {
+    public UserVO findById(@NotNull long id) {
         return userDao.find(id);
     }
 
@@ -260,19 +260,19 @@ public class UserService {
      * @return User model with networks, or null, if there is no such user
      */
     @Transactional(propagation = Propagation.SUPPORTS)
-    public User findUserWithNetworks(@NotNull long id) {
+    public UserWithNetworkVO findUserWithNetworks(@NotNull long id) {
         return userDao.getWithNetworksById(id);
 
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public User createUser(@NotNull User user, String password) {
+    public UserVO createUser(@NotNull UserVO user, String password) {
         if (user.getId() != null) {
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
         final String userLogin = StringUtils.trim(user.getLogin());
         user.setLogin(userLogin);
-        Optional<User> existing = userDao.findByName(user.getLogin());
+        Optional<UserVO> existing = userDao.findByName(user.getLogin());
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
@@ -286,7 +286,7 @@ public class UserService {
         final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
         final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
         if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-            Optional<User> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
+            Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
                     facebookLogin, githubLogin);
             if (userWithSameIdentity.isPresent()) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
@@ -314,7 +314,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToDevice(User user, String deviceGuid) {
+    public boolean hasAccessToDevice(UserVO user, String deviceGuid) {
         if (!user.isAdmin()) {
             long count = userDao.hasAccessToDevice(user, deviceGuid);
             return count > 0;
@@ -323,7 +323,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToNetwork(User user, NetworkVO network) {
+    public boolean hasAccessToNetwork(UserVO user, NetworkVO network) {
         if (!user.isAdmin()) {
             long count = userDao.hasAccessToNetwork(user, network);
             return count > 0;
@@ -332,22 +332,22 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public User findGoogleUser(String login) {
+    public UserVO findGoogleUser(String login) {
         return userDao.findByGoogleName(login);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public User findFacebookUser(String login) {
+    public UserVO findFacebookUser(String login) {
         return userDao.findByFacebookName(login);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public User findGithubUser(String login) {
+    public UserVO findGithubUser(String login) {
         return userDao.findByGithubName(login);
     }
 
     @Transactional
-    public User refreshUserLoginData(User user) {
+    public UserVO refreshUserLoginData(UserVO user) {
         hiveValidator.validate(user);
         final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
         return updateStatisticOnSuccessfulLogin(user, loginTimeout);

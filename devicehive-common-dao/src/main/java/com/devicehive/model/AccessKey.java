@@ -1,9 +1,9 @@
 package com.devicehive.model;
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -153,7 +153,8 @@ public class AccessKey implements HiveEntity {
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
-            result.setUser(accessKey.getUser());
+            User user = User.convertToEntity(accessKey.getUser());
+            result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
             result.setPermissions(accessKey.getPermissions());
@@ -170,7 +171,8 @@ public class AccessKey implements HiveEntity {
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
-            result.setUser(accessKey.getUser());
+            UserVO user = User.convertToVo(accessKey.getUser());
+            result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
             result.setPermissions(accessKey.getPermissions());

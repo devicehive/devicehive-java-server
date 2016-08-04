@@ -27,6 +27,7 @@ import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,6 +163,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
+            vo.setId(device.getId());
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot persist device.", e);
@@ -205,7 +207,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
 
         if (principal != null) {
-            User user = principal.getUser();
+            UserVO user = principal.getUser();
             if (user == null && principal.getKey() != null) {
                 user = principal.getKey().getUser();
             }
@@ -364,7 +366,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
-                User user = principal.getUser();
+                UserVO user = principal.getUser();
                 if (user == null && principal.getKey() != null) {
                     user = principal.getKey().getUser();
                 }

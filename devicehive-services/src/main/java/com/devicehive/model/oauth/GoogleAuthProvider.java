@@ -13,6 +13,7 @@ import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.IdentityProviderVO;
+import com.devicehive.vo.UserVO;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
@@ -72,7 +73,7 @@ public class GoogleAuthProvider extends AuthProvider {
         if (isIdentityProviderAllowed()) {
             final String accessToken = request.getAccessToken() == null ? getAccessToken(request.getCode(), request.getRedirectUri()) : request.getAccessToken();
             final String userEmail = getIdentityProviderEmail(accessToken);
-            final User user = findUser(userEmail);
+            final UserVO user = findUser(userEmail);
             return accessKeyService.authenticate(user);
         }
         logger.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GOOGLE_PROVIDER_NAME));
@@ -116,8 +117,8 @@ public class GoogleAuthProvider extends AuthProvider {
         return verificationResponse.getAsJsonObject().get("email").getAsString();
     }
 
-    private User findUser(final String email) {
-        final User user = userService.findGoogleUser(email);
+    private UserVO findUser(final String email) {
+        final UserVO user = userService.findGoogleUser(email);
         if (user == null) {
             logger.error("No user with email {} found for identity provider {}", email, GOOGLE_PROVIDER_NAME);
             throw new HiveException(Messages.USER_NOT_FOUND, Response.Status.UNAUTHORIZED.getStatusCode());

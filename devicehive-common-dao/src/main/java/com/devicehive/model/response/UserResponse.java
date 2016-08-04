@@ -2,10 +2,9 @@ package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.Network;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.UserWithNetworkVO;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -15,6 +14,7 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -53,7 +53,7 @@ public class UserResponse implements HiveEntity {
     private Date lastLogin = new Date(0);
 
 
-    public static UserResponse createFromUser(User u) {
+    public static UserResponse createFromUser(UserWithNetworkVO u) {
         UserResponse response = new UserResponse();
         response.setId(u.getId());
         response.setLogin(u.getLogin());
@@ -61,9 +61,7 @@ public class UserResponse implements HiveEntity {
         response.setRole(u.getRole());
         response.setStatus(u.getStatus());
         response.networks = new HashSet<>();
-        for (Network n : u.getNetworks()) {
-            response.networks.add(UserNetworkResponse.fromNetwork(n));
-        }
+        response.networks.addAll(u.getNetworks().stream().map(UserNetworkResponse::fromNetwork).collect(Collectors.toList()));
         response.setLastLogin(u.getLastLogin());
         return response;
     }

@@ -8,19 +8,20 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.CustomTypeSafeMatcher;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -272,7 +273,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_networks_only_for_user() throws Exception {
-        User user1 = new User();
+        UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user1 = userService.createUser(user1, "123");
         Set<String> expectedNames = new HashSet<>();
@@ -285,7 +286,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user1.getId(), created.getId());
         }
 
-        User user2 = new User();
+        UserVO user2 = new UserVO();
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
@@ -308,7 +309,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_all_networks_for_admin() throws Exception {
-        User user1 = new User();
+        UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.ADMIN);
         user1 = userService.createUser(user1, "123");
@@ -320,7 +321,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user1.getId(), created.getId());
         }
 
-        User user2 = new User();
+        UserVO user2 = new UserVO();
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
         user2 = userService.createUser(user2, "123");
         for (int i = 0; i < 10; i++) {
@@ -369,7 +370,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_networks_for_access_key_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -402,7 +403,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_with_devices_and_device_classes_for_admin() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -435,7 +436,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_null_network_if_user_is_not_an_admin() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -463,7 +464,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_for_if_client_is_assigned_to_it() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -497,7 +498,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_with_devices_and_device_classes_for_admin_access_key() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -536,7 +537,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_with_devices_and_device_classes_for_assigned_user_access_key() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -578,7 +579,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_return_network_with_devices_and_device_classes_for_unassigned_user_access_key() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -612,7 +613,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_without_devices_if_access_key_does_not_have_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -649,7 +650,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_not_return_network_with_devices_if_access_key_does_not_have_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -676,7 +677,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_only_with_permitted_devices_for_access_key() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -729,7 +730,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_network_without_devices_if_access_key_does_not_have_device_guid_in_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -768,7 +769,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_permitted_network() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -895,7 +896,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -914,7 +915,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_throw_exception_when_updates_network_by_user_if_user_is_client() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -933,7 +934,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_verify_network_if_client_has_access() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -954,7 +955,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -975,7 +976,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_verify_network_key_if_access_key_has_access_to_network() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -1000,7 +1001,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_throw_ActionNotAllowedException_if_access_key_does_not_have_access_to_network_when_verifies() throws Exception {
         configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");

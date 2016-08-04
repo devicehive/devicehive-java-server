@@ -14,11 +14,7 @@ import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +61,7 @@ public class AccessKeyService {
 
 
     @Transactional
-    public AccessKeyVO create(@NotNull User user, @NotNull AccessKeyVO accessKey) {
+    public AccessKeyVO create(@NotNull UserVO user, @NotNull AccessKeyVO accessKey) {
         if (accessKey.getLabel() == null) {
             throw new IllegalParametersException(Messages.LABEL_IS_REQUIRED);
         }
@@ -167,7 +163,7 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public AccessKeyVO authenticate(@NotNull User user) {
+    public AccessKeyVO authenticate(@NotNull UserVO user) {
         userService.refreshUserLoginData(user);
 
         AccessKeyVO accessKey = authenticationUtils.prepareAccessKey(user);
@@ -191,7 +187,7 @@ public class AccessKeyService {
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToNetwork(AccessKeyVO accessKey, NetworkVO targetNetwork) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
-        User user = accessKey.getUser();
+        UserVO user = accessKey.getUser();
         boolean hasNullPermission = permissions.stream().anyMatch(perm -> perm.getNetworkIdsAsSet() == null);
         if (hasNullPermission) {
             return userService.hasAccessToNetwork(user, targetNetwork);
@@ -199,10 +195,9 @@ public class AccessKeyService {
             Set<Long> allowedNetworks = permissions.stream().map(AccessKeyPermission::getNetworkIdsAsSet)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
-            user = userService.findUserWithNetworks(user.getId());
-            Network nw = Network.convert(targetNetwork);
+            UserWithNetworkVO userWithNetworks = userService.findUserWithNetworks(user.getId());
             return allowedNetworks.contains(targetNetwork.getId()) &&
-                    (user.isAdmin() || user.getNetworks().contains(nw));
+                    (user.isAdmin() || hasNetworksThat(userWithNetworks.getNetworks(), targetNetwork));
         }
     }
 
@@ -212,7 +207,7 @@ public class AccessKeyService {
         Set<String> allowedDevices = new HashSet<>();
         Set<Long> allowedNetworks = new HashSet<>();
 
-        User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
+        UserWithNetworkVO accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
         Set<AccessKeyPermission> toRemove = new HashSet<>();
 
         //TODO [rafa] requires network from device here
@@ -251,7 +246,7 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKeyVO createAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
+    public AccessKeyVO createAccessKeyFromOAuthGrant(OAuthGrantVO grant, UserVO user, Date now) {
         AccessKeyVO newKey = new AccessKeyVO();
         newKey.setType(AccessKeyType.OAUTH);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
@@ -279,7 +274,7 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKeyVO updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
+    public AccessKeyVO updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, UserVO user, Date now) {
         AccessKeyVO existing = find(grant.getAccessKey().getId(), user.getId());
         deleteAccessKeyPermissions(existing);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
@@ -354,7 +349,7 @@ public class AccessKeyService {
         logger.info("Removed {} expired access keys", removed);
     }
 
-    private boolean hasPrincipalAccessToDevice(Set<String> allowedDevices, User accessKeyUser, DeviceVO device) {
+    private boolean hasPrincipalAccessToDevice(Set<String> allowedDevices, UserVO accessKeyUser, DeviceVO device) {
         boolean hasAccess = false;
         if (allowedDevices.contains(null)) {
             hasAccess = userService.hasAccessToDevice(accessKeyUser, device.getGuid());
@@ -364,7 +359,7 @@ public class AccessKeyService {
         return hasAccess;
     }
 
-    private boolean hasUserAccessToNetwork(Set<Long> allowedNetworks, User accessKeyUser, DeviceVO device) {
+    private boolean hasUserAccessToNetwork(Set<Long> allowedNetworks, UserWithNetworkVO accessKeyUser, DeviceVO device) {
         boolean hasAccess = false;
         boolean testIsAdminOrNetworkListContains = accessKeyUser.isAdmin() || hasNetworksThat(accessKeyUser.getNetworks(), device.getNetwork());
         hasAccess = allowedNetworks.contains(null) ? testIsAdminOrNetworkListContains : (testIsAdminOrNetworkListContains)
@@ -372,8 +367,8 @@ public class AccessKeyService {
         return hasAccess;
     }
 
-    private boolean hasNetworksThat(Set<Network> nets, NetworkVO vo) {
-        for (Network net : nets) {
+    private boolean hasNetworksThat(Set<NetworkVO> nets, NetworkVO vo) {
+        for (NetworkVO net : nets) {
             if (net.getId().equals(vo.getId())) {
                 return true;
             }

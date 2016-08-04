@@ -6,6 +6,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -80,11 +81,12 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     }
 
     @Override
-    public void assignToNetwork(NetworkVO network, User user) {
+    public void assignToNetwork(NetworkVO network, UserVO user) {
         assert network != null && network.getId() != null;
         assert user != null && user.getId() != null;
         Network existing = find(Network.class, network.getId());
-        existing.getUsers().add(user);
+        User userReference = reference(User.class, user.getId());
+        existing.getUsers().add(userReference);
         super.merge(existing);
     }
 

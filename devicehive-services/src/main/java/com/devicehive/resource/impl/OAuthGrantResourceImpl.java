@@ -6,7 +6,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
 import com.devicehive.model.updates.OAuthGrantUpdate;
@@ -17,6 +16,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +59,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
         } else {
             sortField = sortField.toLowerCase();
         }
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         List<OAuthGrantVO> result = grantService.list(user, start, end, clientOAuthId,
                                                     type == null ? null : Type.forName(type).ordinal(), scope,
                                                     redirectUri, accessType == null ? null
@@ -80,7 +80,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     @Override
     public Response get(String userId, long grantId) {
         logger.debug("OAuthGrant: get requested. User id: {}, grant id: {}", userId, grantId);
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         OAuthGrantVO grant = grantService.get(user, grantId);
         if (grant == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
@@ -95,7 +95,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     @Override
     public Response insert(String userId, OAuthGrantVO grant) {
         logger.debug("OAuthGrant: insert requested. User id: {}, grant: {}", userId, grant);
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         grantService.save(grant, user);
         logger.debug("OAuthGrant: insert proceed successfully. User id: {}, grant: {}", userId, grant);
         if (grant.getType().equals(Type.TOKEN)) {
@@ -108,7 +108,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     @Override
     public Response update(String userId, Long grantId, OAuthGrantUpdate grant) {
         logger.debug("OAuthGrant: update requested. User id: {}, grant id: {}", userId, grantId);
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         OAuthGrantVO updated = grantService.update(user, grantId, grant);
         if (updated == null) {
             throw new HiveException(String.format(Messages.GRANT_NOT_FOUND, grantId), NOT_FOUND.getStatusCode());
@@ -124,15 +124,15 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
     @Override
     public Response delete(String userId, Long grantId) {
         logger.debug("OAuthGrant: delete requested. User id: {}, grant id: {}", userId, grantId);
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         grantService.delete(user, grantId);
         logger.debug("OAuthGrant: delete proceed successfully. User id: {}, grant id: {}", userId, grantId);
         return ResponseFactory.response(NO_CONTENT);
     }
 
-    private User getUser(String userId) {
+    private UserVO getUser(String userId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        UserVO current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;
         }
@@ -141,7 +141,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
             if (current.getId().equals(id)) {
                 return current;
             } else if (current.isAdmin()) {
-                User result = userService.findById(id);
+                UserVO result = userService.findById(id);
                 if (result == null) {
                     logger.error("OAuthGrant: user with id {} not found", id);
                     throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());

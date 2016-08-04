@@ -1,39 +1,40 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.User;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
 public interface UserDao {
-    Optional<User> findByName(String name);
+    Optional<UserVO> findByName(String name);
 
-    User findByGoogleName(String name);
+    UserVO findByGoogleName(String name);
 
-    User findByFacebookName(String name);
+    UserVO findByFacebookName(String name);
 
-    User findByGithubName(String name);
+    UserVO findByGithubName(String name);
 
-    Optional<User> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin);
+    Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin);
 
-    long hasAccessToNetwork(User user, NetworkVO network);
+    long hasAccessToNetwork(UserVO user, NetworkVO network);
 
-    long hasAccessToDevice(User user, String deviceGuid);
+    long hasAccessToDevice(UserVO user, String deviceGuid);
 
-    User getWithNetworksById(long id);
+    UserWithNetworkVO getWithNetworksById(long id);
 
     int deleteById(long id);
 
-    User find(Long id);
+    UserVO find(Long id);
 
-    void persist(User user);
+    void persist(UserVO user);
 
-    User merge(User existing);
+    UserVO merge(UserVO existing);
 
-    void unassignNetwork(@NotNull User existingUser, @NotNull long networkId);
+    void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId);
 
-    List<User> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
+    List<UserVO> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                        Boolean sortOrderAsc, Integer take, Integer skip);
 }

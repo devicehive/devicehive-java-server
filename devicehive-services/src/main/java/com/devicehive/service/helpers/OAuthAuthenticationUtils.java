@@ -16,6 +16,7 @@ import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +40,7 @@ public class OAuthAuthenticationUtils {
     @Autowired
     private TimestampService timestampService;
 
-    public AccessKeyVO prepareAccessKey(final User user) {
+    public AccessKeyVO prepareAccessKey(final UserVO user) {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setUser(user);
         accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin(), System.currentTimeMillis()));
@@ -62,10 +63,6 @@ public class OAuthAuthenticationUtils {
                 break;
         }
         return permission;
-    }
-
-    public IdentityProviderEnum getIdentityProvider(final String providerName) {
-        return IdentityProviderEnum.forName(providerName);
     }
 
     public void validateActions(AccessKeyVO accessKey) {

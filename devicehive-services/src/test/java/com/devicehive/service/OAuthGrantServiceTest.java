@@ -9,6 +9,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
     @Test
     public void should_save_grant() throws Exception {
         OAuthClientVO client = createClient();
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
         OAuthGrantVO grant = new OAuthGrantVO();
         grant.setClient(client);
         grant.setType(Type.CODE);
@@ -58,14 +59,14 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
         return oAuthClientService.insert(client);
     }
 
-    public User createUser(UserRole role) throws Exception {
-        User user = new User();
+    public UserVO createUser(UserRole role) throws Exception {
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(role);
         return userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
     }
 
-    public OAuthGrantVO createGrant(OAuthClientVO client, User user) {
+    public OAuthGrantVO createGrant(OAuthClientVO client, UserVO user) {
         OAuthGrantVO grant = new OAuthGrantVO();
         grant.setClient(client);
         grant.setType(Type.CODE);
@@ -77,7 +78,7 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
     @Test
     public void should_get_grant_by_user() throws Exception {
         OAuthClientVO client = createClient();
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
         OAuthGrantVO grant = createGrant(client, user);
 
         OAuthGrantVO returned = grantService.get(user, grant.getId());
@@ -88,10 +89,10 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
     @Test
     public void should_not_get_grant_by_not_owner() throws Exception {
         OAuthClientVO client = createClient();
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
         OAuthGrantVO grant = createGrant(client, user);
 
-        User anotherUser = createUser(UserRole.CLIENT);
+        UserVO anotherUser = createUser(UserRole.CLIENT);
         OAuthGrantVO returned = grantService.get(anotherUser, grant.getId());
         assertThat(returned, nullValue());
     }
@@ -99,10 +100,10 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
     @Test
     public void should_get_grant_by_admin() throws Exception {
         OAuthClientVO client = createClient();
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
         OAuthGrantVO grant = createGrant(client, user);
 
-        User admin = createUser(UserRole.ADMIN);
+        UserVO admin = createUser(UserRole.ADMIN);
         OAuthGrantVO returned = grantService.get(admin, grant.getId());
         assertThat(returned, notNullValue());
         assertThat(returned.getId(), equalTo(grant.getId()));
@@ -111,7 +112,7 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
     @Test
     public void should_update_oauth_grant() throws Exception {
         OAuthClientVO client = createClient();
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
         OAuthGrantVO grant = createGrant(client, user);
 
         OAuthClientVO newClient = createClient();
@@ -143,7 +144,7 @@ public class OAuthGrantServiceTest extends AbstractResourceTest {
         client.setRedirectUri(RandomStringUtils.randomAlphabetic(10));
         client = oAuthClientService.insert(client);
 
-        User user = createUser(UserRole.CLIENT);
+        UserVO user = createUser(UserRole.CLIENT);
 
         OAuthGrantVO grant = new OAuthGrantVO();
         grant.setClient(client);

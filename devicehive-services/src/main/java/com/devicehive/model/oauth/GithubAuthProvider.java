@@ -13,6 +13,7 @@ import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.IdentityProviderVO;
+import com.devicehive.vo.UserVO;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonArray;
@@ -77,7 +78,7 @@ public class GithubAuthProvider extends AuthProvider {
             if (request.getCode() != null) {
                 final String accessToken = getAccessToken(request.getCode());
                 final String email = getIdentityProviderEmail(accessToken);
-                final User user = findUser(email);
+                final UserVO user = findUser(email);
                 return accessKeyService.authenticate(user);
             }
             logger.error(Messages.INVALID_AUTH_CODE);
@@ -120,8 +121,8 @@ public class GithubAuthProvider extends AuthProvider {
         return null;
     }
 
-    private User findUser(final String email) {
-        final User user = userService.findGithubUser(email);
+    private UserVO findUser(final String email) {
+        final UserVO user = userService.findGithubUser(email);
         if (user == null) {
             logger.error("No user with email {} found for identity provider {}", email, GITHUB_PROVIDER_NAME);
             throw new HiveException(Messages.USER_NOT_FOUND, Response.Status.UNAUTHORIZED.getStatusCode());

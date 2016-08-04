@@ -25,6 +25,7 @@ import com.devicehive.model.enums.Type;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public OAuthGrantVO getByIdAndUser(User user, Long grantId) {
+    public OAuthGrantVO getByIdAndUser(UserVO user, Long grantId) {
         RiakOAuthGrant grant = get(grantId);
         if (grant != null && user != null && grant.getUserId() == user.getId()) {
             return restoreRefs(grant, null);
@@ -113,7 +114,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
 
 
     @Override
-    public int deleteByUserAndId(User user, Long grantId) {
+    public int deleteByUserAndId(UserVO user, Long grantId) {
         try {
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(grantId));
 
@@ -200,7 +201,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     }
 
     @Override
-    public List<OAuthGrantVO> list(@NotNull User user,
+    public List<OAuthGrantVO> list(@NotNull UserVO user,
                                  Date start,
                                  Date end,
                                  String clientOAuthId,
@@ -371,7 +372,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
                 vo.setAccessKey(accessKeyDao.find(grant.getAccessKeyId()));
             }
 
-            User user = userDao.find(grant.getUserId());
+            UserVO user = userDao.find(grant.getUserId());
             if (user != null) {
                 vo.setUser(user);
             }

@@ -73,7 +73,7 @@ public class DeviceService {
     //TODO [rafa] equipmentSet parameter looks strange
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
                                                Set<DeviceClassEquipmentVO> equipmentSet,
-                                               User user) {
+                                                UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
         NetworkVO vo = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
@@ -366,21 +366,19 @@ public class DeviceService {
     private NetworkVO findNetworkForAuth(NetworkVO network) {
         if (network == null) {
             HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            User user = findUserFromAuth(principal);
+            UserVO user = findUserFromAuth(principal);
             if (user != null) {
-                Set<Network> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
+                Set<NetworkVO> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
                 if (userNetworks.isEmpty()) {
                     throw new HiveException(Messages.NO_NETWORKS_ASSIGNED_TO_USER, PRECONDITION_FAILED.getStatusCode());
                 }
-
-                Network firstNetwork = userNetworks.iterator().next();
-                return Network.convertNetwork(firstNetwork);
+                return userNetworks.iterator().next();
             }
         }
         return network;
     }
 
-    private User findUserFromAuth(HivePrincipal principal) {
+    private UserVO findUserFromAuth(HivePrincipal principal) {
         if (principal.getUser() != null) {
             return principal.getUser();
         }

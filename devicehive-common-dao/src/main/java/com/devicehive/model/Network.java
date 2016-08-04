@@ -176,8 +176,13 @@ public class Network implements HiveEntity {
 
     public static NetworkWithUsersAndDevicesVO convertWithDevicesAndUsers(Network network) {
         if (network != null) {
-            NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(convertNetwork(network));
-            vo.setUsers(network.getUsers());
+            NetworkVO vo1 = convertNetwork(network);
+            NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(vo1);
+            if (network.getUsers() != null) {
+                vo.setUsers(network.getUsers().stream().map(User::convertToVo).collect(Collectors.toSet()));
+            } else {
+                vo.setUsers(Collections.emptySet());
+            }
             if (network.getDevices() != null) {
                 Set<DeviceVO> deviceList = network.getDevices().stream().map(Device::convertToVo).collect(Collectors.toSet());
                 vo.setDevices(deviceList);

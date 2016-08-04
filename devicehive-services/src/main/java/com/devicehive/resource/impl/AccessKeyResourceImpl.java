@@ -4,9 +4,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
@@ -16,6 +14,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,9 +97,8 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
      */
     @Override
     public Response insert(String userId, AccessKeyVO key) {
-
         logger.debug("Access key : insert requested for userId : {}", userId);
-        User user = getUser(userId);
+        UserVO user = getUser(userId);
         AccessKeyVO generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
         return ResponseFactory.response(CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
@@ -149,9 +147,9 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
 
     }
 
-    private User getUser(String userId) {
+    private UserVO getUser(String userId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        UserVO currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Long id;
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
@@ -165,7 +163,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
             }
         }
 
-        User result;
+        UserVO result;
         if (!currentUser.getId().equals(id) && currentUser.isAdmin()) {
             result = userService.findById(id);
             if (result == null) {

@@ -5,21 +5,17 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.AccessKeyDao;
-import com.devicehive.dao.AccessKeyPermissionDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.*;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.OAuthClientVO;
-import com.devicehive.vo.OAuthGrantVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -57,12 +53,12 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     public void should_throw_IllegalParametersException_when_label_is_null() throws Exception {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.LABEL_IS_REQUIRED);
-        accessKeyService.create(new User(), new AccessKeyVO());
+        accessKeyService.create(new UserVO(), new AccessKeyVO());
     }
 
     @Test
     public void should_throw_ActionNotAllowedException_when_access_key_already_exists() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -84,7 +80,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_IllegalParametersException_if_id_is_not_null_when_create() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -99,7 +95,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_access_key_for_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -144,7 +140,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_IllegalParametersException_if_new_permissions_is_null() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
@@ -164,7 +160,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_access_key() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
@@ -204,7 +200,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     public void should_expire_key_of_session_type_if_period_is_reached_when_authenticate_by_key() throws Exception {
         configurationService.save(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -230,7 +226,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     public void should_not_expire_key_of_session_type__if_period_not_reached_when_authenticate_by_key() throws Exception {
         configurationService.save(Constants.SESSION_TIMEOUT, 0);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -255,7 +251,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     public void should_just_return_access_key_if_access_key_is_not_of_session_type_when_authenticate() throws Exception {
         configurationService.save(Constants.SESSION_TIMEOUT, 0);
 
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
@@ -274,7 +270,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_external_access_key_for_admin() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
@@ -300,7 +296,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_external_access_key_for_client() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
@@ -327,7 +323,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_access_key_by_user_id_and_key_id() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
@@ -342,7 +338,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_network_access_permissions_for_client_null_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setRole(UserRole.CLIENT);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
@@ -362,7 +358,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_network_access_permissions_for_admin_null_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setRole(UserRole.ADMIN);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
@@ -379,7 +375,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_network_access_permissions_for_client_with_permissions() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setRole(UserRole.CLIENT);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
@@ -396,28 +392,26 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey = accessKeyService.create(user, accessKey);
 
         userService.assignNetwork(user.getId(), network.getId());
-        assertFalse(
-                accessKeyService.hasAccessToNetwork(accessKey, network));
+        assertFalse(accessKeyService.hasAccessToNetwork(accessKey, network));
 
         AccessKeyUpdate update = new AccessKeyUpdate();
         permission = new AccessKeyPermission();
         permission.setNetworkIdsCollection(singleton(network.getId()));
         update.setPermissions(Optional.of(singleton(permission)));
-        assertTrue(
-                accessKeyService.update(user.getId(), accessKey.getId(), update));
+        assertTrue(accessKeyService.update(user.getId(), accessKey.getId(), update));
         userService.unassignNetwork(user.getId(), network.getId());
         accessKey = accessKeyService.find(accessKey.getId(), user.getId());
-        assertFalse(
-                accessKeyService.hasAccessToNetwork(accessKey, network));
+        boolean keyHasAccessToNetwork = accessKeyService.hasAccessToNetwork(accessKey, network);
+        assertFalse(keyHasAccessToNetwork);
 
         userService.assignNetwork(user.getId(), network.getId());
-        assertTrue(
-                accessKeyService.hasAccessToNetwork(accessKey, network));
+        keyHasAccessToNetwork = accessKeyService.hasAccessToNetwork(accessKey, network);
+        assertTrue(keyHasAccessToNetwork);
     }
 
     @Test
     public void should_create_access_key_from_oauth_grant() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, RandomStringUtils.random(10));
 
@@ -446,7 +440,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_access_key_from_oauth_grant() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, RandomStringUtils.random(10));
 
@@ -484,7 +478,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_device_access_permissions_and_return_true_for_admin() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, RandomStringUtils.random(10));
@@ -514,7 +508,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_device_access_permissions_and_return_true_for_client() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, RandomStringUtils.random(10));
@@ -546,7 +540,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_device_access_permissions_and_return_false() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, RandomStringUtils.random(10));
@@ -577,7 +571,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     @Ignore
     @Test
     public void should_list_access_keys_by_user() throws Exception {
-        User user = new User();
+        UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, RandomStringUtils.random(10));
 
