@@ -107,6 +107,8 @@ public class AccessKeyService {
         if (toUpdate.getType() != null) {
             existing.setType(toUpdate.getType().map(v -> toUpdate.getTypeEnum()).orElse(null));
         }
+        //todo: [gpopov] implement merge with permissions after complete migration on VO
+        accessKeyDao.merge(existing);
         if (toUpdate.getPermissions() != null) {
             if (!toUpdate.getPermissions().isPresent()) {
                 logger.error("New permissions shouldn't be empty in request parameters");
