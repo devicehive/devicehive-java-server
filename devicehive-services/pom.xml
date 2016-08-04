@@ -113,6 +113,9 @@
 
         <profile>
             <id>booted-rdbms</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <finalName>devicehive-rdbms-${project.version}-boot</finalName>
             </properties>
@@ -127,7 +130,7 @@
         <profile>
             <id>booted-riak</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
                 <finalName>devicehive-riak-${project.version}-boot</finalName>

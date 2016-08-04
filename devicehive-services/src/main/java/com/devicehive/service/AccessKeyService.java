@@ -127,7 +127,6 @@ public class AccessKeyService {
                 accessKeyPermissionDao.persist(existing, permission);
             }
         }
-        accessKeyDao.merge(existing);
         return true;
     }
 
