@@ -16,7 +16,6 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;

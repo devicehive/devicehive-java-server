@@ -1,7 +1,6 @@
 package com.devicehive.auth;
 
 import com.devicehive.model.AccessKey;
-import com.devicehive.model.Device;
 import com.devicehive.model.User;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.OAuthClientVO;

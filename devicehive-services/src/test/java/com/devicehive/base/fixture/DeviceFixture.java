@@ -1,13 +1,12 @@
 package com.devicehive.base.fixture;
 
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.Network;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 
 import java.util.Optional;
@@ -79,7 +78,7 @@ public class DeviceFixture {
         return deviceUpdate;
     }
 
-    public static DeviceUpdate createDevice(Device device, DeviceClassUpdate dc) {
+    public static DeviceUpdate createDevice(DeviceVO device, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
         deviceUpdate.setGuid(Optional.ofNullable(device.getGuid()));
         deviceUpdate.setName(Optional.ofNullable(device.getName()));
@@ -88,9 +87,9 @@ public class DeviceFixture {
         return deviceUpdate;
     }
 
-    public static Device createDevice() {
+    public static DeviceVO createDeviceVO() {
         final UUID uuid = UUID.randomUUID();
-        final Device device = new Device();
+        final DeviceVO device = new DeviceVO();
         device.setGuid(uuid.toString());
         device.setName("name-" + uuid.toString());
         return device;

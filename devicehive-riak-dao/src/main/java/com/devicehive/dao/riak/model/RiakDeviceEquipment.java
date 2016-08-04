@@ -1,7 +1,6 @@
 package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
-import com.devicehive.model.Device;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceEquipmentVO;
 import org.apache.commons.lang3.ObjectUtils;

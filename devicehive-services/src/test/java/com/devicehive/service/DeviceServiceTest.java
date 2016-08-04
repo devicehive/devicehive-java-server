@@ -59,7 +59,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_throw_HiveException_when_role_client_creates_device_without_network() throws Exception {
         expectedException.expect(HiveException.class);
 
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
@@ -79,7 +79,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_save_and_notify_role_admin() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
@@ -116,7 +116,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         expectedException.expect(HiveException.class);
         expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
 
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
@@ -139,7 +139,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         expectedException.expect(HiveException.class);
         expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
 
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
@@ -174,7 +174,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_save_and_notify_role_key() throws UnknownHostException {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
@@ -212,13 +212,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_save_and_find_without_permissions() {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
 
-        final Device device0 = DeviceFixture.createDevice();
+        final DeviceVO device0 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getGuid(), dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc);
 
-        final Device device2 = DeviceFixture.createDevice();
+        final DeviceVO device2 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
         User user = new User();
@@ -251,11 +251,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_save_and_find_by_user() throws UnknownHostException {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
@@ -307,11 +307,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_save_and_find_by_device_id() throws UnknownHostException {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
@@ -362,18 +362,18 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_and_find_by_device_name() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         String deviceName1 = RandomStringUtils.randomAlphabetic(10);
         device.setName(deviceName1);
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         String deviceName2 = RandomStringUtils.randomAlphabetic(10);
         device1.setName(deviceName2);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
 
-        final Device device2 = DeviceFixture.createDevice();
+        final DeviceVO device2 = DeviceFixture.createDeviceVO();
         String deviceName3 = RandomStringUtils.randomAlphabetic(10);
         device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
@@ -391,18 +391,18 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_and_find_by_device_status() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         String status = RandomStringUtils.randomAlphabetic(10);
         device.setStatus(status);
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
 
         String status1 = RandomStringUtils.randomAlphabetic(10);
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         device1.setStatus(status1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
 
-        final Device device2 = DeviceFixture.createDevice();
+        final DeviceVO device2 = DeviceFixture.createDeviceVO();
         device2.setStatus(status1);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
@@ -420,11 +420,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_and_find_by_network_id() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc1 = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc1);
 
@@ -469,13 +469,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_and_find_by_device_class_id() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
@@ -491,13 +491,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_and_find_by_device_class_name() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
@@ -513,7 +513,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_device() {
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dcUpdate);
 
@@ -530,13 +530,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
     public void should_return_device_count() {
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
 
-        final Device device0 = DeviceFixture.createDevice();
+        final DeviceVO device0 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate0 = DeviceFixture.createDevice(device0.getGuid(), dc);
 
-        final Device device1 = DeviceFixture.createDevice();
+        final DeviceVO device1 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1.getGuid(), dc);
 
-        final Device device2 = DeviceFixture.createDevice();
+        final DeviceVO device2 = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2.getGuid(), dc);
 
         User user = new User();
@@ -571,7 +571,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         expectedException.expect(HiveException.class);
         expectedException.expectMessage(Messages.UNAUTHORIZED_REASON_PHRASE);
 
-        final Device device = DeviceFixture.createDevice();
+        final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
              deviceService.deviceSave(deviceUpdate,emptyEquipmentSet);

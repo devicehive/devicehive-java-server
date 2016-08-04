@@ -2,7 +2,6 @@ package com.devicehive.auth;
 
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.AvailableActions;
-import com.devicehive.model.Device;
 import com.devicehive.model.Subnet;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.vo.DeviceVO;

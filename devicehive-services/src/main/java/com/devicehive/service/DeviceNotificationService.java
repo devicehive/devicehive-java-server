@@ -2,7 +2,6 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;

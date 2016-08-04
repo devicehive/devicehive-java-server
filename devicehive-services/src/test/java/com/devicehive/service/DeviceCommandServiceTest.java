@@ -1,18 +1,16 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.User;
-import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DeviceCommandServiceTest extends AbstractResourceTest {
     private static final String DEFAULT_STATUS = "default_status";

@@ -10,7 +10,6 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.CommandUpdateSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -56,22 +55,6 @@ public class CommandHandlers extends WebsocketHandlers {
     private AsyncMessageSupplier asyncMessageDeliverer;
     @Autowired
     private SubscriptionSessionMap subscriptionSessionMap;
-
-    public static String createAccessDeniedForGuidsMessage(List<String> guids,
-                                                           List<Device> allowedDevices) {
-        Set<String> guidsWithDeniedAccess = new HashSet<>();
-        Set<String> allowedGuids = new HashSet<>(allowedDevices.size());
-        for (Device device : allowedDevices) {
-            allowedGuids.add(device.getGuid());
-        }
-        for (String deviceGuid : guids) {
-            if (!allowedGuids.contains(deviceGuid)) {
-                guidsWithDeniedAccess.add(deviceGuid);
-            }
-        }
-        return String.format(Messages.DEVICES_NOT_FOUND,
-                             StringUtils.join(guidsWithDeniedAccess.toArray(), ", "));
-    }
 
     @Action("command/subscribe")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")

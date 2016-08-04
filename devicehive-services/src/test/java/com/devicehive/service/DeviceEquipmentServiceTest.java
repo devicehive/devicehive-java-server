@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.Device;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.SpecialNotifications;
