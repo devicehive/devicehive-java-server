@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.Device;
 import com.devicehive.vo.DeviceVO;
 
 import javax.validation.constraints.NotNull;
@@ -25,7 +24,7 @@ public interface DeviceDao {
 
     long getAllowedDeviceCount(HivePrincipal principal, List<String> guids);
 
-    List<Device> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
                          Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                          Integer skip, HivePrincipal principal);
 

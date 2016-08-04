@@ -47,7 +47,7 @@ public interface DeviceResource {
     @ApiOperation(value = "List devices", notes = "Gets list of devices.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Device resources in the response body.",
-                    response = Device.class, responseContainer = "List"),
+                    response = DeviceVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")

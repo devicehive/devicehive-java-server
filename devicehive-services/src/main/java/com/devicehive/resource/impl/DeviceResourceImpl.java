@@ -66,7 +66,7 @@ public class DeviceResourceImpl implements DeviceResource {
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        List<Device> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
+        List<DeviceVO> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
                 deviceClassName, sortField, sortOrder, take, skip, principal);
 
         logger.debug("Device list proceed result. Result list contains {} elems", result.size());

@@ -321,7 +321,7 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public List<Device> getList(String name,
+    public List<DeviceVO> getList(String name,
                                 String namePattern,
                                 String status,
                                 Long networkId,

@@ -136,7 +136,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<Device> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
                                 Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
@@ -154,6 +154,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         cacheQuery(query, of(CacheConfig.refresh()));
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
-        return query.getResultList();
+        List<Device> resultList = query.getResultList();
+        return resultList.stream().map(Device::convertToVo).collect(Collectors.toList());
     }
 }

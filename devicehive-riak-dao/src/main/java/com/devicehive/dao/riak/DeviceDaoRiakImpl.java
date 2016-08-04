@@ -247,7 +247,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<Device> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
                                 Long deviceClassId, String deviceClassName, String sortField,
                                 @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
@@ -425,9 +425,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(Device.class).stream()
+            return response.getResultsFromAllPhases(RiakDevice.class).stream()
                     .skip(skip)
                     .limit(take)
+                    .map(RiakDevice::convertToVo)
                     .collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Exception accessing Riak Storage.", e);

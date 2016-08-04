@@ -100,11 +100,11 @@ public class RiakDevice {
             vo = new DeviceVO();
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
-            //TODO ???vo.setDeviceClass();
+            vo.setDeviceClass(dc.getDeviceClass());
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
-            //TODO ???vo.setNetwork();
+            vo.setNetwork(dc.getNetwork());
             vo.setStatus(dc.getStatus());
         }
         return vo;

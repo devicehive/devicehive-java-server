@@ -382,7 +382,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.getList(deviceName1, null, null, null, null, null, null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.getList(deviceName1, null, null, null, null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(devices.size(), 1);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -410,8 +410,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.getList(null, null, status1, null, null, null, null, null, false, null, null, null);
-        Collections.sort(devices, (Device a, Device b) -> a.getId().compareTo(b.getId()));
+        final List<DeviceVO> devices = deviceService.getList(null, null, status1, null, null, null, null, null, false, null, null, null);
+        Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
         assertNotNull(devices);
         assertEquals(2, devices.size());
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
@@ -460,7 +460,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.getList(null, null, null, network1.getId(), null, null, null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.getList(null, null, null, network1.getId(), null, null, null, null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
         assertNotNull(devices.get(0).getNetwork());
@@ -481,19 +481,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
 
-        {
-            final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, false, null, null, null);
-            System.out.println(devices);
-        }
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        {
-            deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-            deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-
-            final List<Device> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, false, null, null, null);
-            assertNotNull(devices);
-            assertEquals(device.getGuid(), devices.get(0).getGuid());
-        }
+        final List<DeviceVO> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, false, null, null, null);
+        assertNotNull(devices);
+        assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
 
     @Test
@@ -509,15 +502,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
-        {
-            final List<Device> devices = deviceService.getList(null, null, null, null, null, null, null, null, false, null, null, null);
-            System.out.println(devices);
-        }
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(), null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(), null, false, null, null, null);
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
