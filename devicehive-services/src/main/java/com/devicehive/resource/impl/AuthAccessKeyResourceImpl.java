@@ -8,6 +8,7 @@ import com.devicehive.model.oauth.IdentityProviderEnum;
 import com.devicehive.resource.AuthAccessKeyResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.AccessKeyService;
+import com.devicehive.vo.AccessKeyVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,14 +30,14 @@ public class AuthAccessKeyResourceImpl implements AuthAccessKeyResource {
     @Override
     public Response login(AccessKeyRequestVO request) {
         final IdentityProviderEnum identityProviderEnum = IdentityProviderEnum.forName(request.getProviderName());
-        AccessKey accessKey = accessKeyService.createAccessKey(request, identityProviderEnum);
+        AccessKeyVO accessKey = accessKeyService.createAccessKey(request, identityProviderEnum);
         return ResponseFactory.response(OK, accessKey, JsonPolicyDef.Policy.ACCESS_KEY_SUBMITTED);
     }
 
     @Override
     public Response logout() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        AccessKey accessKey = principal.getKey();
+        AccessKeyVO accessKey = principal.getKey();
         accessKeyService.delete(null, accessKey.getId());
         return ResponseFactory.response(NO_CONTENT);
     }

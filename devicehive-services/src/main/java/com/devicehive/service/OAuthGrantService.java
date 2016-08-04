@@ -10,6 +10,7 @@ import com.devicehive.model.enums.Type;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.OAuthGrantUpdate;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +58,7 @@ public class OAuthGrantService {
         }
         Date now = timestampService.getTimestamp();
         grant.setTimestamp(now);
-        AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
+        AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
         grant.setAccessKey(key);
         grant.setUser(user);
         if (grant.getType().equals(Type.CODE)) {
@@ -124,7 +125,7 @@ public class OAuthGrantService {
         }
         Date now = timestampService.getTimestamp();
         existing.setTimestamp(now);
-        AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
+        AccessKeyVO key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
         existing.setAccessKey(key);
         if (existing.getAuthCode() != null) {
             existing.setAuthCode(UUID.randomUUID().toString());
@@ -170,7 +171,7 @@ public class OAuthGrantService {
     }
 
 
-    public AccessKey accessTokenRequestForCodeType(@NotNull String code,
+    public AccessKeyVO accessTokenRequestForCodeType(@NotNull String code,
                                                    String redirectUri,
                                                    @NotNull String clientId) {
         OAuthGrantVO grant = get(code, clientId);
@@ -188,7 +189,7 @@ public class OAuthGrantService {
     }
 
     @Transactional
-    public AccessKey accessTokenRequestForPasswordType(@NotNull String scope,
+    public AccessKeyVO accessTokenRequestForPasswordType(@NotNull String scope,
                                                        @NotNull String login,
                                                        @NotNull String password,
                                                        OAuthClientVO client) {
@@ -210,11 +211,11 @@ public class OAuthGrantService {
             grant.setScope(scope);
             grant.setAccessType(AccessType.ONLINE);
             grant.setType(Type.PASSWORD);
-            AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
+            AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
             grant.setAccessKey(key);
             oAuthGrantDao.persist(grant);
         } else {
-            AccessKey key = accessKeyService.updateAccessKeyFromOAuthGrant(grant, user, now);
+            AccessKeyVO key = accessKeyService.updateAccessKeyFromOAuthGrant(grant, user, now);
             grant.setAccessKey(key);
         }
         return grant.getAccessKey();

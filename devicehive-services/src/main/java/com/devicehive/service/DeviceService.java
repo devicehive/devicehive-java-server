@@ -148,7 +148,7 @@ public class DeviceService {
 
     private DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
                                               Set<DeviceClassEquipmentVO> equipmentSet,
-                                              AccessKey key) {
+                                              AccessKeyVO key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));

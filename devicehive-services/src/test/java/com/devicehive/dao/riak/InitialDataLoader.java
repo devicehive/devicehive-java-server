@@ -5,6 +5,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.ConfigurationVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.DeviceVO;
@@ -52,16 +53,16 @@ public class InitialDataLoader {
         user.setEntityVersion(0);
         userDao.persist(user);
 
-        AccessKey key = new AccessKey();
+        AccessKeyVO key = new AccessKeyVO();
         key.setId(1L);
         key.setLabel("Access Key for dhadmin");
         key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
         key.setExpirationDate(null);
         key.setUser(user);
         key.setEntityVersion(1);
-        if (key.getPermissions() == null) key.setPermissions(new HashSet<>());
+        key.setPermissions(new HashSet<>());
         AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setAccessKey(key);
+        permission.setAccessKey(AccessKey.convert(key));
         permission.setEntityVersion(1L);
         key.getPermissions().add(permission);
         accessKeyDao.persist(key);
@@ -124,7 +125,7 @@ public class InitialDataLoader {
         user2.setEntityVersion(0);
         userDao.persist(user2);
 
-        key = new AccessKey();
+        key = new AccessKeyVO();
         key.setId(2L);
         key.setLabel("Access Key for dhadmin");
         key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
@@ -132,9 +133,9 @@ public class InitialDataLoader {
         key.setUser(user2);
         key.setType(AccessKeyType.DEFAULT);
         key.setEntityVersion(1);
-        if (key.getPermissions() == null) key.setPermissions(new HashSet<>());
+        key.setPermissions(new HashSet<>());
         AccessKeyPermission permission2 = new AccessKeyPermission();
-        permission.setAccessKey(key);
+        permission.setAccessKey(AccessKey.convert(key));
         permission.setEntityVersion(1L);
         key.getPermissions().add(permission2);
         accessKeyDao.persist(key);

@@ -8,6 +8,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.OAuthTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.OAuthGrantService;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class OAuthTokenResourceImpl implements OAuthTokenResource {
         logger.debug("OAuthToken: token requested. Grant type: {}, code: {}, redirect URI: {}, client id: {}",
                      grantType, code, redirectUri, clientId);
         OAuthClientVO client = (OAuthClientVO) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        AccessKey key;
+        AccessKeyVO key;
         switch (grantType) {
             case AUTHORIZATION_CODE:
                 if (clientId == null && client != null) {

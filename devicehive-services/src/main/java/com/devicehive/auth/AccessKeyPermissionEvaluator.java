@@ -2,6 +2,7 @@ package com.devicehive.auth;
 
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.PermissionEvaluator;
@@ -23,7 +24,7 @@ public class AccessKeyPermissionEvaluator implements PermissionEvaluator {
                 return true;
             }
 
-            AccessKey accessKey = ((HivePrincipal) hiveAuthentication.getPrincipal()).getKey();
+            AccessKeyVO accessKey = ((HivePrincipal) hiveAuthentication.getPrincipal()).getKey();
             HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
 
             AccessKeyAction action = AccessKeyAction.valueOf(permission.toString().trim());

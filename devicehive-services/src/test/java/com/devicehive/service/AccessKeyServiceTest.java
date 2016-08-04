@@ -16,6 +16,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
@@ -56,7 +57,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     public void should_throw_IllegalParametersException_when_label_is_null() throws Exception {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.LABEL_IS_REQUIRED);
-        accessKeyService.create(new User(), new AccessKey());
+        accessKeyService.create(new User(), new AccessKeyVO());
     }
 
     @Test
@@ -66,7 +67,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         String label = RandomStringUtils.randomAlphabetic(10);
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(label);
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -75,7 +76,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.DUPLICATE_LABEL_FOUND);
 
-        accessKey = new AccessKey();
+        accessKey = new AccessKeyVO();
         accessKey.setLabel(label);
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKeyService.create(user, accessKey);
@@ -87,7 +88,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setId(-1L);
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
 
@@ -102,7 +103,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setType(AccessKeyType.SESSION);
@@ -115,7 +116,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         permission.setSubnetsArray("localhost");
         accessKey.setPermissions(singleton(permission));
 
-        AccessKey created = accessKeyService.create(user, accessKey);
+        AccessKeyVO created = accessKeyService.create(user, accessKey);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getKey(), equalTo(accessKey.getKey()));
@@ -146,7 +147,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -166,7 +167,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -180,9 +181,8 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
         update.setPermissions(Optional.of(singleton(permission)));
 
-        assertTrue(
-                accessKeyService.update(user.getId(), accessKey.getId(), update));
-        AccessKey updated = accessKeyService.find(accessKey.getId(), user.getId());
+        assertTrue(accessKeyService.update(user.getId(), accessKey.getId(), update));
+        AccessKeyVO updated = accessKeyService.find(accessKey.getId(), user.getId());
         assertThat(updated.getLabel(), equalTo(update.getLabel().get()));
         assertThat(updated.getType(), equalTo(AccessKeyType.SESSION));
         assertThat(updated.getExpirationDate().getTime(), equalTo(update.getExpirationDate().get().getTime()));
@@ -208,7 +208,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
@@ -218,7 +218,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setExpirationDate(Date.from(initialDate.toInstant()));
         accessKey = accessKeyService.create(user, accessKey);
 
-        AccessKey authenticated = accessKeyService.authenticate(accessKey.getKey());
+        AccessKeyVO authenticated = accessKeyService.authenticate(accessKey.getKey());
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getId(), equalTo(accessKey.getId()));
         assertThat(authenticated.getExpirationDate(), notNullValue());
@@ -234,7 +234,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
@@ -244,7 +244,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setExpirationDate(initial);
         accessKey = accessKeyService.create(user, accessKey);
 
-        AccessKey authenticated = accessKeyService.authenticate(accessKey.getKey());
+        AccessKeyVO authenticated = accessKeyService.authenticate(accessKey.getKey());
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getId(), equalTo(accessKey.getId()));
         assertThat(authenticated.getExpirationDate(), notNullValue());
@@ -259,14 +259,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey.setType(AccessKeyType.DEFAULT);
         accessKey = accessKeyService.create(user, accessKey);
 
-        AccessKey authenticated = accessKeyService.authenticate(accessKey.getKey());
+        AccessKeyVO authenticated = accessKeyService.authenticate(accessKey.getKey());
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getId(), equalTo(accessKey.getId()));
         assertThat(authenticated.getLabel(), equalTo(accessKey.getLabel()));
@@ -279,7 +279,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = accessKeyService.authenticate(user);
+        AccessKeyVO accessKey = accessKeyService.authenticate(user);
         assertThat(accessKey, notNullValue());
         assertThat(accessKey.getId(), notNullValue());
         assertThat(accessKey.getLabel(), notNullValue());
@@ -305,7 +305,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = accessKeyService.authenticate(user);
+        AccessKeyVO accessKey = accessKeyService.authenticate(user);
         assertThat(accessKey, notNullValue());
         assertThat(accessKey.getId(), notNullValue());
         assertThat(accessKey.getLabel(), notNullValue());
@@ -330,12 +330,12 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         User user = new User();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
 
-        AccessKey found = accessKeyService.find(accessKey.getId(), user.getId());
+        AccessKeyVO found = accessKeyService.find(accessKey.getId(), user.getId());
         assertThat(found, notNullValue());
         assertThat(found.getId(), equalTo(accessKey.getId()));
     }
@@ -346,7 +346,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -366,7 +366,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -386,7 +386,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setNetworkIdsCollection(singleton(-1L));
@@ -430,7 +430,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
 
-        AccessKey key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
+        AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
         assertThat(key, notNullValue());
         assertThat(key.getLabel(), notNullValue());
         assertThat(key.getKey(), notNullValue());
@@ -457,7 +457,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         grant.setClient(client);
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
-        AccessKey created = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
+        AccessKeyVO created = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
 
         OAuthClientVO newClient = new OAuthClientVO();
         newClient.setName(RandomStringUtils.randomAlphabetic(10));
@@ -468,7 +468,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         newGrant.setScope(AccessKeyAction.MANAGE_ACCESS_KEY.getValue());
         newGrant.setAccessType(AccessType.ONLINE);
 
-        AccessKey updated = accessKeyService.updateAccessKeyFromOAuthGrant(newGrant, user, new Date());
+        AccessKeyVO updated = accessKeyService.updateAccessKeyFromOAuthGrant(newGrant, user, new Date());
         assertThat(updated.getId(), equalTo(created.getId()));
         assertThat(updated.getLabel(), notNullValue());
         assertThat(updated.getKey(), notNullValue());
@@ -504,7 +504,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), network.getId());
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setPermissions(singleton(new AccessKeyPermission()));
         accessKey = accessKeyService.create(user, accessKey);
@@ -534,7 +534,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), network.getId());
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDeviceGuidsCollection(Arrays.asList(device.getGuid().orElse(null)));
@@ -564,7 +564,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         device.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(device, emptySet());
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setDeviceGuids(null);
@@ -582,7 +582,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, RandomStringUtils.random(10));
 
         for (int i = 0; i < 50; i++) {
-            AccessKey accessKey = new AccessKey();
+            AccessKeyVO accessKey = new AccessKeyVO();
             accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
             accessKey.setPermissions(singleton(new AccessKeyPermission()));
             accessKey.setType(AccessKeyType.DEFAULT);
@@ -593,7 +593,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 //            .setParameter("user", user.getId())
 //            .getResultList();
 
-        List<AccessKey> keys = accessKeyService.list(user.getId(), null, null, null, null, false, 0, 100);
+        List<AccessKeyVO> keys = accessKeyService.list(user.getId(), null, null, null, null, false, 0, 100);
         assertThat(keys, hasSize(50));
     }
 }

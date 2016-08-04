@@ -3,9 +3,9 @@ package com.devicehive.auth.rest.providers;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
+import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String token = (String) authentication.getPrincipal();
 
-        AccessKey accessKey = accessKeyService.authenticate(token);
+        AccessKeyVO accessKey = accessKeyService.authenticate(token);
         if (accessKey == null
                 || accessKey.getUser() == null || !accessKey.getUser().getStatus().equals(UserStatus.ACTIVE)
                 || (accessKey.getExpirationDate() != null && accessKey.getExpirationDate().before(new Date()))) {

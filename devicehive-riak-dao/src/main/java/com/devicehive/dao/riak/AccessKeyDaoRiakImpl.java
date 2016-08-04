@@ -17,11 +17,13 @@ import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.riak.model.RiakAccessKey;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -59,19 +61,21 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
 
     @Override
-    public AccessKey getById(Long keyId, Long userId) {
+    public AccessKeyVO getById(Long keyId, Long userId) {
         try {
             Location location = new Location(ACCESS_KEY_NS, String.valueOf(keyId));
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
             FetchValue.Response execute = client.execute(fetchOp);
-            AccessKey result = getOrNull(execute, AccessKey.class);
-            if (result != null && userId != null) {
-                User user = userDao.find(result.getUserId());
-                return restoreReferences(result, user);
+            RiakAccessKey result = getOrNull(execute, RiakAccessKey.class);
+            if (result != null && userId != null && !result.getUser().getId().equals(userId)) {
+                return null;
+            }
+            if (result != null) {
+                return restoreReferences(result);
             } else {
-                return result;
+                return null;
             }
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot fetch access key by id and user id.", e);
@@ -79,7 +83,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     }
 
     @Override
-    public Optional<AccessKey> getByKey(String key) {
+    public Optional<AccessKeyVO> getByKey(String key) {
         BinIndexQuery biq = new BinIndexQuery.Builder(ACCESS_KEY_NS, "key", key).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -92,13 +96,12 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
                 FetchValue.Response execute = client.execute(fetchOp);
-                AccessKey result = getOrNull(execute, AccessKey.class);
+                RiakAccessKey result = getOrNull(execute, RiakAccessKey.class);
+                AccessKeyVO vo = null;
                 if (result != null) {
-                    //todo: discuss - may be it's better to keep user inside
-                    User user = userDao.find(result.getUserId());
-                    restoreReferences(result, user);
+                    vo = restoreReferences(result);
                 }
-                return Optional.ofNullable(result);
+                return Optional.ofNullable(vo);
             }
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot fetch access key by key string.", e);
@@ -106,7 +109,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     }
 
     @Override
-    public Optional<AccessKey> getByUserAndLabel(User user, String label) {
+    public Optional<AccessKeyVO> getByUserAndLabel(User user, String label) {
         IntIndexQuery biq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", user.getId()).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
@@ -120,9 +123,10 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
                         .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                         .build();
                 FetchValue.Response execute = client.execute(fetchOp);
-                AccessKey accessKey = getOrNull(execute, AccessKey.class);
+                RiakAccessKey accessKey = getOrNull(execute, RiakAccessKey.class);
                 if (accessKey != null && accessKey.getLabel() != null && accessKey.getLabel().equals(label)) {
-                    return Optional.of(accessKey);
+                    AccessKeyVO vo = restoreReferences(accessKey);
+                    return Optional.of(vo);
                 }
             }
             return Optional.empty();
@@ -133,8 +137,8 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
     @Override
     public int deleteByIdAndUser(Long keyId, Long userId) {
-        AccessKey key = find(keyId);
-        if (key != null && userId != key.getUserId()) {
+        AccessKeyVO key = find(keyId);
+        if (key != null && key.getUser() != null && !userId.equals(key.getUser().getId())) {
             return 0;
         }
         if (key != null) {
@@ -178,47 +182,40 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     }
 
     @Override
-    public AccessKey find(Long id) {
+    public AccessKeyVO find(Long id) {
         return getById(id, null);
     }
 
     @Override
-    public void persist(AccessKey accessKey) {
+    public void persist(AccessKeyVO accessKey) {
         merge(accessKey);
     }
 
     @Override
-    public AccessKey merge(AccessKey key) {
+    public AccessKeyVO merge(AccessKeyVO key) {
         try {
-            User user = key.getUser();
             if (key.getId() == null) {
                 key.setId(getId(COUNTERS_LOCATION));
-                Location location = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
-                StoreValue storeValue = new StoreValue.Builder(key.getId())
-                        .withLocation(location)
-                        .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
-                        .build();
-                client.execute(storeValue);
             }
 
             Location accessKeyLocation = new Location(ACCESS_KEY_NS, String.valueOf(key.getId()));
-            removeReferences(key);
-            StoreValue storeOp = new StoreValue.Builder(key)
+            RiakAccessKey riakAccessKey = RiakAccessKey.convert(key);
+            StoreValue storeOp = new StoreValue.Builder(riakAccessKey)
                     .withLocation(accessKeyLocation)
                     .withOption(quorum.getWriteQuorumOption(), quorum.getWriteQuorum())
                     .build();
             client.execute(storeOp);
-            return restoreReferences(key, user);
+            return restoreReferences(riakAccessKey);
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot store access key.", e);
         }
     }
 
     @Override
-    public List<AccessKey> list(Long userId, String label,
-                                String labelPattern, Integer type,
-                                String sortField, Boolean sortOrderAsc,
-                                Integer take, Integer skip) {
+    public List<AccessKeyVO> list(Long userId, String label,
+                                  String labelPattern, Integer type,
+                                  String sortField, Boolean sortOrderAsc,
+                                  Integer take, Integer skip) {
         try {
             String sortFunction = sortMap.get(sortField);
             if (sortFunction == null) {
@@ -299,32 +296,25 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
             future.await();
             MapReduce.Response response = future.get();
-            return response.getResultsFromAllPhases(AccessKey.class).stream()
+            List<RiakAccessKey> keys = response.getResultsFromAllPhases(RiakAccessKey.class).stream()
                     .skip(skip)
                     .limit(take)
                     .collect(Collectors.toList());
+            return keys.stream().map(RiakAccessKey::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new HivePersistenceLayerException("Cannot perform search access key.", e);
         }
     }
 
-    private void removeReferences(AccessKey key) {
+    private AccessKeyVO restoreReferences(RiakAccessKey key) {
+        AccessKeyVO vo = RiakAccessKey.convert(key);
 
         if (key.getPermissions() != null) {
             for (AccessKeyPermission permission : key.getPermissions()) {
-                permission.setAccessKey(null);
+                permission.setAccessKey(AccessKey.convert(vo));
             }
         }
-    }
-
-    private AccessKey restoreReferences(AccessKey key, User user) {
-        key.setUser(user);
-        if (key.getPermissions() != null) {
-            for (AccessKeyPermission permission : key.getPermissions()) {
-                permission.setAccessKey(key);
-            }
-        }
-        return key;
+        return vo;
     }
 
 }

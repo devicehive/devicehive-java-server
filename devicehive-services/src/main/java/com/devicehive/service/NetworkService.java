@@ -14,6 +14,7 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -90,9 +91,9 @@ public class NetworkService {
         return result.orElse(null);
     }
 
-    private Set<Long> permittedNetworksIds(AccessKey accessKey) {
+    private Set<Long> permittedNetworksIds(AccessKeyVO accessKey) {
         return ofNullable(accessKey)
-                .map(AccessKey::getPermissions)
+                .map(AccessKeyVO::getPermissions)
                 .map(AccessKeyBasedFilterForNetworks::createExtraFilters)
                 .map(filters -> filters.stream().map(AccessKeyBasedFilterForNetworks::getNetworkIds).filter(s -> s != null).collect(Collectors.toSet()))
                 .flatMap(setOfSets -> {
@@ -102,9 +103,9 @@ public class NetworkService {
                 }).orElse(null);
     }
 
-    private Set<String> permittedDeviceGuids(AccessKey accessKey) {
+    private Set<String> permittedDeviceGuids(AccessKeyVO accessKey) {
         return ofNullable(accessKey)
-                .map(AccessKey::getPermissions)
+                .map(AccessKeyVO::getPermissions)
                 .map(AccessKeyBasedFilterForDevices::createExtraFilters)
                 .map(filters -> filters.stream().map(AccessKeyBasedFilterForDevices::getDeviceGuids).filter(s -> s != null).collect(Collectors.toSet()))
                 .map(setOfSets -> {
@@ -232,7 +233,7 @@ public class NetworkService {
     }
 
     @Transactional
-    public NetworkVO createOrVerifyNetworkByKey(Optional<NetworkVO> networkNullable, AccessKey key) {
+    public NetworkVO createOrVerifyNetworkByKey(Optional<NetworkVO> networkNullable, AccessKeyVO key) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;

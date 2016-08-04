@@ -15,6 +15,7 @@ import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.OAuthGrantVO;
@@ -64,11 +65,11 @@ public class AccessKeyService {
 
 
     @Transactional
-    public AccessKey create(@NotNull User user, @NotNull AccessKey accessKey) {
+    public AccessKeyVO create(@NotNull User user, @NotNull AccessKeyVO accessKey) {
         if (accessKey.getLabel() == null) {
             throw new IllegalParametersException(Messages.LABEL_IS_REQUIRED);
         }
-        Optional<AccessKey> akOpt = accessKeyDao.getByUserAndLabel(user, accessKey.getLabel());
+        Optional<AccessKeyVO> akOpt = accessKeyDao.getByUserAndLabel(user, accessKey.getLabel());
         if (akOpt.isPresent()) {
             logger.error("Access key with label {} already exists", accessKey.getLabel());
             throw new ActionNotAllowedException(Messages.DUPLICATE_LABEL_FOUND);
@@ -85,7 +86,7 @@ public class AccessKeyService {
         accessKeyDao.persist(accessKey);
         for (AccessKeyPermission current : accessKey.getPermissions()) {
             AccessKeyPermission permission = preparePermission(current);
-            permission.setAccessKey(accessKey);
+            permission.setAccessKey(AccessKey.convert(accessKey));
             accessKeyPermissionDao.persist(accessKey, permission);
         }
         return accessKeyDao.find(accessKey.getId());
@@ -93,7 +94,7 @@ public class AccessKeyService {
 
     @Transactional
     public boolean update(@NotNull Long userId, @NotNull Long keyId, AccessKeyUpdate toUpdate) {
-        AccessKey existing = find(keyId, userId);
+        AccessKeyVO existing = find(keyId, userId);
         if (existing == null) {
             return false;
         }
@@ -117,25 +118,27 @@ public class AccessKeyService {
             }
 
             Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().get();
-            AccessKey toValidate = toUpdate.convertTo();
+            AccessKeyVO toValidate = toUpdate.convertTo();
             authenticationUtils.validateActions(toValidate);
             deleteAccessKeyPermissions(existing);
             for (AccessKeyPermission current : permissionsToReplace) {
                 AccessKeyPermission permission = preparePermission(current);
-                permission.setAccessKey(existing);
+                permission.setAccessKey(AccessKey.convert(existing));
                 accessKeyPermissionDao.persist(existing, permission);
             }
         }
+        accessKeyDao.merge(existing);
         return true;
     }
 
     @Transactional
-    public AccessKey authenticate(@NotNull String key) {
-        Optional<AccessKey> accessKeyOpt = accessKeyDao.getByKey(key);
+    public AccessKeyVO authenticate(@NotNull String key) {
+        Optional<AccessKeyVO> accessKeyOpt = accessKeyDao.getByKey(key);
+
         if (!accessKeyOpt.isPresent()) {
             return null;
         }
-        AccessKey accessKey = accessKeyOpt.get();
+        AccessKeyVO accessKey = accessKeyOpt.get();
         final Long expirationPeriod = configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT);
         if (accessKey.getExpirationDate() != null) {
             final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
@@ -150,7 +153,7 @@ public class AccessKeyService {
         return accessKey;
     }
 
-    public AccessKey createAccessKey(@NotNull AccessKeyRequestVO request, IdentityProviderEnum identityProviderEnum) {
+    public AccessKeyVO createAccessKey(@NotNull AccessKeyRequestVO request, IdentityProviderEnum identityProviderEnum) {
         switch (identityProviderEnum) {
             case GOOGLE:
                 return googleAuthProvider.createAccessKey(request);
@@ -165,10 +168,10 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public AccessKey authenticate(@NotNull User user) {
+    public AccessKeyVO authenticate(@NotNull User user) {
         userService.refreshUserLoginData(user);
 
-        AccessKey accessKey = authenticationUtils.prepareAccessKey(user);
+        AccessKeyVO accessKey = authenticationUtils.prepareAccessKey(user);
 
         Set<AccessKeyPermission> permissions = new HashSet<>();
         final AccessKeyPermission permission = authenticationUtils.preparePermission(user.getRole());
@@ -176,18 +179,18 @@ public class AccessKeyService {
         accessKey.setPermissions(permissions);
         accessKeyDao.persist(accessKey);
 
-        permission.setAccessKey(accessKey);
+        permission.setAccessKey(AccessKey.convert(accessKey));
         accessKeyPermissionDao.persist(accessKey, permission);
         return accessKey;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public AccessKey find(@NotNull Long keyId, @NotNull Long userId) {
+    public AccessKeyVO find(@NotNull Long keyId, @NotNull Long userId) {
         return accessKeyDao.getById(keyId, userId);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToNetwork(AccessKey accessKey, NetworkVO targetNetwork) {
+    public boolean hasAccessToNetwork(AccessKeyVO accessKey, NetworkVO targetNetwork) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         User user = accessKey.getUser();
         boolean hasNullPermission = permissions.stream().anyMatch(perm -> perm.getNetworkIdsAsSet() == null);
@@ -205,7 +208,7 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToDevice(AccessKey accessKey, String deviceGuid) {
+    public boolean hasAccessToDevice(AccessKeyVO accessKey, String deviceGuid) {
         Set<AccessKeyPermission> permissions = accessKey.getPermissions();
         Set<String> allowedDevices = new HashSet<>();
         Set<Long> allowedNetworks = new HashSet<>();
@@ -249,8 +252,8 @@ public class AccessKeyService {
     }
 
     @Transactional
-    public AccessKey createAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
-        AccessKey newKey = new AccessKey();
+    public AccessKeyVO createAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
+        AccessKeyVO newKey = new AccessKeyVO();
         newKey.setType(AccessKeyType.OAUTH);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
             Date expirationDate = new Date(now.getTime() + 600000);  //the key is valid for 10 minutes
@@ -270,15 +273,15 @@ public class AccessKeyService {
         return newKey;
     }
 
-    private void deleteAccessKeyPermissions(AccessKey key) {
+    private void deleteAccessKeyPermissions(AccessKeyVO key) {
         logger.debug("Deleting all permission of access key {}", key.getId());
         int deleted = accessKeyPermissionDao.deleteByAccessKey(key);
         logger.info("Deleted {} permissions by access key {}", deleted, key.getId());
     }
 
     @Transactional
-    public AccessKey updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
-        AccessKey existing = find(grant.getAccessKey().getId(), user.getId());
+    public AccessKeyVO updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, User user, Date now) {
+        AccessKeyVO existing = find(grant.getAccessKey().getId(), user.getId());
         deleteAccessKeyPermissions(existing);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
             Date expirationDate = new Date(now.getTime() + 600000);  //the key is valid for 10 minutes
@@ -299,7 +302,7 @@ public class AccessKeyService {
         String key = keyProcessor.generateKey();
         existing.setKey(key);
         for (AccessKeyPermission current : permissions) {
-            current.setAccessKey(existing);
+            current.setAccessKey(AccessKey.convert(existing));
             accessKeyPermissionDao.persist(existing, current);
         }
         accessKeyDao.merge(existing);
@@ -307,7 +310,7 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<AccessKey> list(Long userId, String label,
+    public List<AccessKeyVO> list(Long userId, String label,
                                 String labelPattern, Integer type,
                                 String sortField, Boolean sortOrderAsc,
                                 Integer take, Integer skip) {

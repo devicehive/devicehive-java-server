@@ -12,6 +12,7 @@ import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.DeviceVO;
@@ -148,7 +149,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setType(AccessKeyType.SESSION);
@@ -159,7 +160,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         permission.setNetworkIdsCollection(Arrays.asList(1L, 2L));
         permission.setSubnetsArray("localhost");
         accessKey.setPermissions(singleton(permission));
-        AccessKey createdkey = accessKeyService.create(user, accessKey);
+        AccessKeyVO createdkey = accessKeyService.create(user, accessKey);
 
         final HivePrincipal principal = new HivePrincipal(createdkey);
 
@@ -190,7 +191,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetwork(Optional.ofNullable(created));
 
-        final AccessKey accessKey = new AccessKey();
+        final AccessKeyVO accessKey = new AccessKeyVO();
         final AccessKeyPermission permission = new AccessKeyPermission();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
@@ -283,7 +284,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
-        final AccessKey accessKey = new AccessKey();
+        final AccessKeyVO accessKey = new AccessKeyVO();
         final AccessKeyPermission permission = new AccessKeyPermission();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);

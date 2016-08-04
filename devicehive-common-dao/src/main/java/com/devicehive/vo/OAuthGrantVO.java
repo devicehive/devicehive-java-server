@@ -48,7 +48,7 @@ public class OAuthGrantVO implements HiveEntity {
     @SerializedName("accessKey")
     @NotNull(message = "access key field cannot be null")
     @JsonPolicyDef({OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED, OAUTH_GRANT_SUBMITTED_TOKEN})
-    private AccessKey accessKey;
+    private AccessKeyVO accessKey;
 
     @NotNull(message = "user field cannot be null")
     private User user;
@@ -112,11 +112,11 @@ public class OAuthGrantVO implements HiveEntity {
         this.client = client;
     }
 
-    public AccessKey getAccessKey() {
+    public AccessKeyVO getAccessKey() {
         return accessKey;
     }
 
-    public void setAccessKey(AccessKey accessKey) {
+    public void setAccessKey(AccessKeyVO accessKey) {
         this.accessKey = accessKey;
     }
 

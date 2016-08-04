@@ -11,6 +11,7 @@ import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.AccessKeyPermissionDao;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.vo.AccessKeyVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -29,7 +30,7 @@ public class AccessKeyPermissionDaoRiakImpl extends RiakGenericDao implements Ac
     private AccessKeyDao accessKeyDao;
 
     @Override
-    public int deleteByAccessKey(AccessKey key) {
+    public int deleteByAccessKey(AccessKeyVO key) {
         if (key.getPermissions() != null) {
             int result = key.getPermissions().size();
             key.getPermissions().clear();
@@ -40,16 +41,16 @@ public class AccessKeyPermissionDaoRiakImpl extends RiakGenericDao implements Ac
     }
 
     @Override
-    public void persist(AccessKey key, AccessKeyPermission accessKeyPermission) {
+    public void persist(AccessKeyVO key, AccessKeyPermission accessKeyPermission) {
         if (accessKeyPermission.getAccessKey() == null) {
-            accessKeyPermission.setAccessKey(key);
+            accessKeyPermission.setAccessKey(AccessKey.convert(key));
         }
         merge(accessKeyPermission);
     }
 
     @Override
     public AccessKeyPermission merge(AccessKeyPermission accessKeyPermission) {
-        AccessKey accessKey = accessKeyPermission.getAccessKey();
+        AccessKeyVO accessKey = AccessKey.convert(accessKeyPermission.getAccessKey());
         accessKey = accessKeyDao.find(accessKey.getId());
 
         if (accessKeyPermission.getId() == null) {

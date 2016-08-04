@@ -15,6 +15,7 @@ import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
-        List<AccessKey> keyList = accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip);
+        List<AccessKeyVO> keyList = accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip);
 
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
 
@@ -77,7 +78,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         logger.debug("Access key : get requested for userId : {} and accessKeyId", userId, accessKeyId);
 
         Long id = getUser(userId).getId();
-        AccessKey result = accessKeyService.find(accessKeyId, id);
+        AccessKeyVO result = accessKeyService.find(accessKeyId, id);
         if (result == null) {
             logger.debug("Access key : list failed for userId : {} and accessKeyId : {}. Reason: No access key found" +
                     ".", userId, accessKeyId);
@@ -96,11 +97,11 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insert(String userId, AccessKey key) {
+    public Response insert(String userId, AccessKeyVO key) {
 
         logger.debug("Access key : insert requested for userId : {}", userId);
         User user = getUser(userId);
-        AccessKey generatedKey = accessKeyService.create(user, key);
+        AccessKeyVO generatedKey = accessKeyService.create(user, key);
         logger.debug("Access key : insert proceed successfully for userId : {}", userId);
         return ResponseFactory.response(CREATED, generatedKey, ACCESS_KEY_SUBMITTED);
     }
@@ -134,7 +135,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
-        List<AccessKey> existingDefaultKeys = accessKeyService.list(id, null, null, AccessKeyType.DEFAULT.getValue(), null, null, 2, 0);
+        List<AccessKeyVO> existingDefaultKeys = accessKeyService.list(id, null, null, AccessKeyType.DEFAULT.getValue(), null, null, 2, 0);
         if(existingDefaultKeys.size() < 2){
             logger.debug("Rejected removing the last default access key");
             throw new HiveException(Messages.CANT_DELETE_LAST_DEFAULT_ACCESS_KEY, FORBIDDEN.getStatusCode());

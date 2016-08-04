@@ -3,6 +3,7 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.updates.AccessKeyUpdate;
+import com.devicehive.vo.AccessKeyVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -125,7 +126,7 @@ public interface AccessKeyResource {
                             "   \"label\": \"Access key label\",\n" +
                             "}", required = true)
             @JsonPolicyApply(ACCESS_KEY_PUBLISHED)
-            AccessKey key);
+                    AccessKeyVO key);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/update">DeviceHive RESTful API:

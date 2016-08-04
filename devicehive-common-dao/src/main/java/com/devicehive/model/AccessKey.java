@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyVO;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -82,9 +83,6 @@ public class AccessKey implements HiveEntity {
     @Column(name = "entity_version")
     private long entityVersion;
 
-    @Transient
-    private long userId;
-
     public Set<AccessKeyPermission> getPermissions() {
         return permissions;
     }
@@ -131,7 +129,6 @@ public class AccessKey implements HiveEntity {
 
     public void setUser(User user) {
         this.user = user;
-        this.userId = user != null ? user.getId() : -1;
     }
 
     public Date getExpirationDate() {
@@ -150,31 +147,37 @@ public class AccessKey implements HiveEntity {
         this.type = type;
     }
 
-    public long getUserId() {
-        return userId;
+    public static AccessKey convert(AccessKeyVO accessKey) {
+        if (accessKey != null) {
+            AccessKey result = new AccessKey();
+            result.setId(accessKey.getId());
+            result.setLabel(accessKey.getLabel());
+            result.setKey(accessKey.getKey());
+            result.setUser(accessKey.getUser());
+            result.setExpirationDate(accessKey.getExpirationDate());
+            result.setType(accessKey.getType());
+            result.setPermissions(accessKey.getPermissions());
+            result.setEntityVersion(accessKey.getEntityVersion());
+            return result;
+        } else {
+            return null;
+        }
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
-    }
-
-    @RiakIndex(name = "label")
-    public String getLabelSi() {
-        return label;
-    }
-
-    @RiakIndex(name = "userId")
-    public long getUserIdSi() {
-        return userId;
-    }
-
-    @RiakIndex(name = "key")
-    public String getKeySi() {
-        return key;
-    }
-
-    @RiakIndex(name = "expirationDate")
-    public Long getExpirationDateSi() {
-        return expirationDate != null ? expirationDate.getTime() : -1;
+    public static AccessKeyVO convert(AccessKey accessKey) {
+        if (accessKey != null) {
+            AccessKeyVO result = new AccessKeyVO();
+            result.setId(accessKey.getId());
+            result.setLabel(accessKey.getLabel());
+            result.setKey(accessKey.getKey());
+            result.setUser(accessKey.getUser());
+            result.setExpirationDate(accessKey.getExpirationDate());
+            result.setType(accessKey.getType());
+            result.setPermissions(accessKey.getPermissions());
+            result.setEntityVersion(accessKey.getEntityVersion());
+            return result;
+        } else {
+            return null;
+        }
     }
 }

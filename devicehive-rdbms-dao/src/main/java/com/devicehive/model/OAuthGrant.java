@@ -247,7 +247,7 @@ public class OAuthGrant implements HiveEntity {
             result.setNetworkIds(grant.getNetworkIds());
             result.setEntityVersion(grant.getEntityVersion());
             result.setUser(grant.getUser());
-            result.setAccessKey(grant.getAccessKey());
+            result.setAccessKey(AccessKey.convert(grant.getAccessKey()));
             return result;
         } else {
             return null;
@@ -268,7 +268,7 @@ public class OAuthGrant implements HiveEntity {
             result.setNetworkIds(grant.getNetworkIds());
             result.setEntityVersion(grant.getEntityVersion());
             //todo: vertify usage
-            result.setAccessKey(grant.getAccessKey());
+            result.setAccessKey(AccessKey.convert(grant.getAccessKey()));
             return result;
         } else {
             return null;

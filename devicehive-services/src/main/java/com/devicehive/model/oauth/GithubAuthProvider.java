@@ -11,6 +11,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.IdentityProviderVO;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -71,7 +72,7 @@ public class GithubAuthProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKey createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public AccessKeyVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (isIdentityProviderAllowed()) {
             if (request.getCode() != null) {
                 final String accessToken = getAccessToken(request.getCode());

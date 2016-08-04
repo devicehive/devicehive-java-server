@@ -1,18 +1,18 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
+import com.devicehive.vo.AccessKeyVO;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 public interface AccessKeyDao {
-    AccessKey getById(Long keyId, Long userId);
+    AccessKeyVO getById(Long keyId, Long userId);
 
-    Optional<AccessKey> getByKey(String key);
+    Optional<AccessKeyVO> getByKey(String key);
 
-    Optional<AccessKey> getByUserAndLabel(User user, String label);
+    Optional<AccessKeyVO> getByUserAndLabel(User user, String label);
 
     int deleteByIdAndUser(Long keyId, Long userId);
 
@@ -20,14 +20,14 @@ public interface AccessKeyDao {
 
     int deleteOlderThan(Date date);
 
-    AccessKey find(Long id);
+    AccessKeyVO find(Long id);
 
-    void persist(AccessKey accessKey);
+    void persist(AccessKeyVO accessKey);
 
-    AccessKey merge(AccessKey existing);
+    AccessKeyVO merge(AccessKeyVO existing);
 
-    List<AccessKey> list(Long userId, String label,
-                         String labelPattern, Integer type,
-                         String sortField, Boolean sortOrderAsc,
-                         Integer take, Integer skip);
+    List<AccessKeyVO> list(Long userId, String label,
+                           String labelPattern, Integer type,
+                           String sortField, Boolean sortOrderAsc,
+                           Integer take, Integer skip);
 }

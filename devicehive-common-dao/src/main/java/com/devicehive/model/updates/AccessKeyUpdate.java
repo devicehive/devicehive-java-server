@@ -5,6 +5,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyVO;
 
 import java.util.Date;
 import java.util.Optional;
@@ -69,8 +70,8 @@ public class AccessKeyUpdate implements HiveEntity {
         return null;
     }
 
-    public AccessKey convertTo() {
-        AccessKey result = new AccessKey();
+    public AccessKeyVO convertTo() {
+        AccessKeyVO result = new AccessKeyVO();
 
         if (label != null) {
             result.setLabel(label.orElse(null));

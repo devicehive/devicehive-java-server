@@ -19,10 +19,10 @@ import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakOAuthGrant;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.enums.Type;
+import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.OAuthGrantVO;
 import org.slf4j.Logger;
@@ -184,7 +184,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             if (oAuthGrant.getId() == null) {
                 oAuthGrant.setId(getId(oauthGrantCounters));
             }
-            AccessKey accessKey = oAuthGrant.getAccessKey();
+            AccessKeyVO accessKey = oAuthGrant.getAccessKey();
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));
             RiakOAuthGrant riakOAuthGrant = removeRefs(oAuthGrant);
             StoreValue storeOp = new StoreValue.Builder(riakOAuthGrant)
@@ -362,7 +362,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
         return RiakOAuthGrant.convert(grant);
     }
 
-    private OAuthGrantVO restoreRefs(RiakOAuthGrant grant, AccessKey accessKey) {
+    private OAuthGrantVO restoreRefs(RiakOAuthGrant grant, AccessKeyVO accessKey) {
         OAuthGrantVO vo = RiakOAuthGrant.convert(grant);
         if (vo != null) {
             if (accessKey != null) {
