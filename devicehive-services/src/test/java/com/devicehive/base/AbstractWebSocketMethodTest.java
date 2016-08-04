@@ -4,8 +4,6 @@ import com.devicehive.application.websocket.WebSocketAuthenticationManager;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -26,7 +24,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class is not thread safe!

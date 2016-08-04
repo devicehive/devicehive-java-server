@@ -1,10 +1,10 @@
 package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 
@@ -32,11 +32,11 @@ public class UserResourceTest extends AbstractResourceTest {
         testUser.setPassword(Optional.ofNullable(password));
         testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
-        User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), notNullValue());
 
         final long userid = user.getId();
-        user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, User.class);
+        user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, UserVO.class);
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
         assertThat(user.getId(), equalTo(userid));
 
@@ -46,7 +46,7 @@ public class UserResourceTest extends AbstractResourceTest {
         testUser.setPassword(Optional.ofNullable(password));
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, NO_CONTENT, Response.class);
 
-        user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, User.class);
+        user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, UserVO.class);
         assertThat(user.getStatus(), equalTo(UserStatus.DISABLED));
 
         testUser = new UserUpdate();

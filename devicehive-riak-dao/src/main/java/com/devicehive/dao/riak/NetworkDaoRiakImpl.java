@@ -22,7 +22,6 @@ import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.User;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;

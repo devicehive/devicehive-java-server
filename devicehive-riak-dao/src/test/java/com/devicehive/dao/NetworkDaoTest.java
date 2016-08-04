@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
-import com.devicehive.model.User;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;

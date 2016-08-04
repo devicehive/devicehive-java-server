@@ -41,13 +41,6 @@ public class RiakUser {
 
     private JsonStringWrapper data;
 
-    /**
-     * @return true, if user is admin
-     */
-    public boolean isAdmin() {
-        return UserRole.ADMIN.equals(role);
-    }
-
     public Long getId() {
         return id;
     }

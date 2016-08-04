@@ -18,14 +18,12 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakAccessKey;
-import com.devicehive.dao.riak.model.RiakUser;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
-import com.devicehive.vo.UserVO;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -312,7 +310,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
         AccessKeyVO vo = RiakAccessKey.convert(key);
 
         if (vo.getUser() != null && vo.getUser().getId() != null) {
-            User user = userDao.find(vo.getUser().getId());
+            UserVO user = userDao.find(vo.getUser().getId());
             vo.setUser(user);
         }
 
@@ -326,27 +324,4 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
         return vo;
     }
 
-    private AccessKey restoreReferences(AccessKey key, UserVO user) {
-        //TODO [rafa] change once AccessKey is changed
-        RiakUser riakUser = RiakUser.convertToEntity(user);
-        User user1 = new User();
-        user1.setId(riakUser.getId());
-        key.setUser(user1);
-        if (key.getPermissions() != null) {
-            for (AccessKeyPermission permission : key.getPermissions()) {
-                permission.setAccessKey(key);
-            }
-        }
-        return key;
-    }
-
-    private AccessKey restoreReferences(AccessKey key, User user) {
-        key.setUser(user);
-        if (key.getPermissions() != null) {
-            for (AccessKeyPermission permission : key.getPermissions()) {
-                permission.setAccessKey(key);
-            }
-        }
-        return key;
-    }
 }

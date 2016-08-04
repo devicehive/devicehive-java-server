@@ -3,7 +3,6 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
 import com.google.gson.annotations.SerializedName;
 
@@ -13,7 +12,6 @@ import java.util.Date;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_LISTED;
 
 public class AccessKeyVO implements HiveEntity {
 

@@ -12,6 +12,7 @@ import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -147,7 +148,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(response);
 
         //register user
-        User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), Matchers.notNullValue());
 
         //testing that user has no access to device
@@ -176,7 +177,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
         //create user
-        User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), Matchers.notNullValue());
 
         //create network
@@ -196,7 +197,10 @@ public class DeviceResourceTest extends AbstractResourceTest {
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));
-        key.setUser(user);
+        //TODO [Anton] needs to be VO i suppose
+        User usr = new User();
+        usr.setId(user.getId());
+        key.setUser(usr);
 
         //Create key for user
         key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKey.class);
@@ -229,7 +233,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
 
         //create user
-        User user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, User.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), Matchers.notNullValue());
 
         //create network
@@ -247,7 +251,10 @@ public class DeviceResourceTest extends AbstractResourceTest {
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));
-        key.setUser(user);
+        //TODO [Anton] needs to be VO i suppose
+        User usr = new User();
+        usr.setId(user.getId());
+        key.setUser(usr);
 
         //Create key for user
         key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKey.class);

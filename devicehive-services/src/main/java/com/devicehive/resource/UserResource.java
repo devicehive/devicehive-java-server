@@ -2,7 +2,6 @@ package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.Network;
-import com.devicehive.model.User;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.UserVO;
 import io.swagger.annotations.*;
@@ -82,7 +81,7 @@ public interface UserResource {
     @ApiOperation(value = "Get user", notes = "Gets information about user and its assigned networks.\n" +
             "Only administrators are allowed to get information about any user. User-level accounts can only retrieve information about themselves.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -98,7 +97,7 @@ public interface UserResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'GET_CURRENT_USER')")
     @ApiOperation(value = "Get current user", notes = "Get information about the current user.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 409, message = "If user is not signed in")
@@ -118,7 +117,7 @@ public interface UserResource {
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     @ApiOperation(value = "Create user", notes = "Creates new user.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = User.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")

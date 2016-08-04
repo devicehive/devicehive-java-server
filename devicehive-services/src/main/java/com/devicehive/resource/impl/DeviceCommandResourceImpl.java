@@ -10,7 +10,6 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;

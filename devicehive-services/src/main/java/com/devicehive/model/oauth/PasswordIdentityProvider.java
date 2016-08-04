@@ -2,11 +2,9 @@ package com.devicehive.model.oauth;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.model.User;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.UserService;
+import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;

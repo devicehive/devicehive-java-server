@@ -1,7 +1,6 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.User;
 
 import java.util.Set;
 

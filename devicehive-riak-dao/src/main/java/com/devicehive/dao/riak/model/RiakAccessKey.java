@@ -3,7 +3,6 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.model.User;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;

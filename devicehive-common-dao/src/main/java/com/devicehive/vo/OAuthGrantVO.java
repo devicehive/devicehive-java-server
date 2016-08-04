@@ -2,11 +2,9 @@ package com.devicehive.vo;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.User;
-import com.devicehive.model.enums.*;
+import com.devicehive.model.enums.Type;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
@@ -22,7 +20,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PUBLISHED;
 
 public class OAuthGrantVO implements HiveEntity {
     @SerializedName("id")
