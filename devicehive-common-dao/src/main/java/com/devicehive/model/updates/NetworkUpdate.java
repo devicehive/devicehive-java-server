@@ -1,12 +1,9 @@
 package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 
 import java.util.Optional;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -22,8 +19,6 @@ public class NetworkUpdate implements HiveEntity {
     private Optional<String> name;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private Optional<String> description;
-    @JsonPolicyDef({NETWORK_PUBLISHED})
-    private Set<Device> devices;
 
     public Long getId() {
         return id;

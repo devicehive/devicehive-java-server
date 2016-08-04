@@ -1,12 +1,11 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
 import com.devicehive.model.User;
 
 import java.util.Set;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class NetworkWithUsersAndDevicesVO extends NetworkVO {
 

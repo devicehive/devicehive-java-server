@@ -1,15 +1,10 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
 import com.devicehive.model.HiveEntity;
-import com.devicehive.model.User;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.Set;
-
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class NetworkVO implements HiveEntity {
 
