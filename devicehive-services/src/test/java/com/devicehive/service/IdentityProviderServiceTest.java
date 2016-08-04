@@ -6,6 +6,8 @@ import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.vo.IdentityProviderVO;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -20,7 +22,11 @@ import static org.junit.Assert.*;
 
 public class IdentityProviderServiceTest extends AbstractResourceTest {
 
-    @Autowired
+    @Before
+    public void beforeMethod() {
+        org.junit.Assume.assumeTrue(txManager != null);
+    }
+    @Autowired(required = false)
     private PlatformTransactionManager txManager;
 
     @Autowired
