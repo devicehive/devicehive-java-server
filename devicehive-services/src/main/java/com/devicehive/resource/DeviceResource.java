@@ -2,8 +2,6 @@ package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;

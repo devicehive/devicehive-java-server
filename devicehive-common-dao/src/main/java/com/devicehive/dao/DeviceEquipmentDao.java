@@ -1,7 +1,5 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 

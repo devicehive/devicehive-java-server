@@ -1,8 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceEquipmentDao;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.service.time.TimestampService;

@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.google.gson.annotations.SerializedName;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.model.DeviceEquipment.Queries.Names;
 import static com.devicehive.model.DeviceEquipment.Queries.Values;
-
 
 @Entity
 @Table(name = "device_equipment")

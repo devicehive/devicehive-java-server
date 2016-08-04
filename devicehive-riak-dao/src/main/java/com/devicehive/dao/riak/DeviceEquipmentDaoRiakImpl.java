@@ -1,9 +1,6 @@
 package com.devicehive.dao.riak;
 
 import com.basho.riak.client.api.RiakClient;
-import com.basho.riak.client.api.commands.datatypes.CounterUpdate;
-import com.basho.riak.client.api.commands.datatypes.FetchCounter;
-import com.basho.riak.client.api.commands.datatypes.UpdateCounter;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
@@ -12,8 +9,6 @@ import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.dao.riak.model.RiakDeviceEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.Device;
-import com.devicehive.model.DeviceEquipment;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
