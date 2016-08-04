@@ -2,6 +2,7 @@ package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.Device;
+import com.devicehive.vo.DeviceVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -12,15 +13,15 @@ import java.util.Map;
  */
 public interface DeviceDao {
 
-    Device findByUUID(String uuid);
+    DeviceVO findByUUID(String uuid);
 
-    void persist(Device device);
+    void persist(DeviceVO device);
 
-    Device merge(Device device);
+    DeviceVO merge(DeviceVO device);
 
     int deleteByUUID(String guid);
 
-    List<Device> getDeviceList(List<String> guids, HivePrincipal principal);
+    List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal);
 
     long getAllowedDeviceCount(HivePrincipal principal, List<String> guids);
 

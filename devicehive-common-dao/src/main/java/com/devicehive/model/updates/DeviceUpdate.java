@@ -4,6 +4,7 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Optional;
@@ -97,8 +98,8 @@ public class DeviceUpdate implements HiveEntity {
         this.blocked = blocked;
     }
 
-    public Device convertTo() {
-        Device device = new Device();
+    public DeviceVO convertTo() {
+        DeviceVO device = new DeviceVO();
         if (guid != null) {
             device.setGuid(guid.orElse(null));
         }

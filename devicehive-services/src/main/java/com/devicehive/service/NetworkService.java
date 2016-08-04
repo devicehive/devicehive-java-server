@@ -14,6 +14,7 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class NetworkService {
                         }
                     }
                     if (permittedDevices != null && !permittedDevices.isEmpty()) {
-                        Set<Device> allowed = network.getDevices().stream()
+                        Set<DeviceVO> allowed = network.getDevices().stream()
                                 .filter(device -> permittedDevices.contains(device.getGuid()))
                                 .collect(Collectors.toSet());
                         network.setDevices(allowed);

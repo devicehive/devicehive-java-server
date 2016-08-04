@@ -7,6 +7,7 @@ import com.devicehive.model.User;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,7 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
         return find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
     }
 
-    public DeviceCommand insert(DeviceCommandWrapper commandWrapper, Device device, User user) {
+    public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, User user) {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceGuid(device.getGuid());

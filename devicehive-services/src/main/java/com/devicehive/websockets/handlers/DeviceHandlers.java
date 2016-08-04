@@ -10,6 +10,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
 import com.devicehive.websockets.handlers.annotations.WsParam;
@@ -75,7 +76,7 @@ public class DeviceHandlers extends WebsocketHandlers {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY')")
     public WebSocketResponse processDeviceGet(@WsParam(Constants.DEVICE_ID) String deviceId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device toResponse = null;
+        DeviceVO toResponse = null;
         if(deviceId != null){
             toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
         }else{

@@ -21,6 +21,7 @@ import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ParseUtil;
+import com.devicehive.vo.DeviceVO;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -68,7 +69,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Date timestamp = TimestampQueryParamParser.parse(startTs);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         List<String> notificationNames = StringUtils.isNoneEmpty(notification) ? Collections.singletonList(notification) : null;
 
@@ -94,7 +95,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                     String.format(Messages.DEVICE_NOT_FOUND, guid)));
@@ -214,7 +215,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     Messages.INVALID_REQUEST_PARAMETERS);
             return ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
         }
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

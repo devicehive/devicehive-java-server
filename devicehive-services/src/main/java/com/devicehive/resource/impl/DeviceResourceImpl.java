@@ -12,6 +12,7 @@ import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +102,7 @@ public class DeviceResourceImpl implements DeviceResource {
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         logger.debug("Device get proceed successfully. Guid {}", guid);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
@@ -112,21 +113,15 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response delete(String guid) {
-
         logger.debug("Device delete requested");
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        final DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null || !guid.equals(device.getGuid())) {
             logger.debug("No device found for guid : {}", guid);
-            return ResponseFactory
-                    .response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-
         deviceService.deleteDevice(guid, principal);
-
         logger.debug("Device with id = {} is deleted", guid);
-
         return ResponseFactory.response(NO_CONTENT);
     }
 
@@ -138,7 +133,7 @@ public class DeviceResourceImpl implements DeviceResource {
         logger.debug("Device equipment requested for device {}", guid);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
         List<DeviceEquipmentVO> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully for device {}", guid);
@@ -151,10 +146,9 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response equipmentByCode(String guid, String code) {
-
         logger.debug("Device equipment by code requested");
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
 
         DeviceEquipmentVO equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {

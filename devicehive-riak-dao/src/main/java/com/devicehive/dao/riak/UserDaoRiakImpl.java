@@ -21,6 +21,7 @@ import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -167,13 +168,13 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     public long hasAccessToDevice(User user, String deviceGuid) {
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
         for (Long networkId : networkIds) {
-            Set<Device> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
+            Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
                     .map(deviceDao::findByUUID)
                     .collect(Collectors.toSet());
             if (devices != null) {
                 long guidCount = devices
                         .stream()
-                        .map(Device::getGuid)
+                        .map(DeviceVO::getGuid)
                         .filter(g -> g.equals(deviceGuid))
                         .count();
                 if (guidCount > 0) {

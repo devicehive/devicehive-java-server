@@ -10,6 +10,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.handlers.annotations.Action;
@@ -112,7 +113,8 @@ public class CommonHandlers extends WebsocketHandlers {
         HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
 
         if(deviceId != null){
-            principal.setDevice(deviceService.findByGuidWithPermissionsCheck(deviceId, principal));
+            DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+            principal.setDevice(byGuidWithPermissionsCheck);
         }
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
         SecurityContextHolder.getContext().setAuthentication(authentication);

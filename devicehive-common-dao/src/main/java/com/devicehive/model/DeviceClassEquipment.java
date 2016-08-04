@@ -19,12 +19,12 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "equipment",
        uniqueConstraints = @UniqueConstraint(columnNames = "code"))
 @NamedQueries({
-                  @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from Equipment e where e.deviceClass = :deviceClass"),
-                  @NamedQuery(name = "Equipment.getByDeviceClassAndId", query =  "select e from Equipment e " +
+                  @NamedQuery(name = "Equipment.getByDeviceClass", query = "select e from DeviceClassEquipment e where e.deviceClass = :deviceClass"),
+                  @NamedQuery(name = "Equipment.getByDeviceClassAndId", query =  "select e from DeviceClassEquipment e " +
                                                                                   "join e.deviceClass dc " +
                                                                                   "where e.id = :id and dc.id = :deviceClassId"),
-                  @NamedQuery(name = "Equipment.deleteByDeviceClass", query = "delete from Equipment e where e.deviceClass = :deviceClass"),
-                  @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from Equipment e " +
+                  @NamedQuery(name = "Equipment.deleteByDeviceClass", query = "delete from DeviceClassEquipment e where e.deviceClass = :deviceClass"),
+                  @NamedQuery(name = "Equipment.deleteByIdAndDeviceClass", query = "delete from DeviceClassEquipment e " +
                                                                                    "where e.id = :id " +
                                                                                    "and e.deviceClass in " +
                                                                                    "(select dc from DeviceClass dc where dc.id = :deviceClassId)")

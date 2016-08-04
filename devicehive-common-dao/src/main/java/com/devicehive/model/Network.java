@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.google.gson.annotations.SerializedName;
@@ -10,7 +11,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -175,7 +179,12 @@ public class Network implements HiveEntity {
         if (network != null) {
             NetworkWithUsersAndDevicesVO vo = new NetworkWithUsersAndDevicesVO(convertNetwork(network));
             vo.setUsers(network.getUsers());
-            vo.setDevices(network.getDevices());
+            if (network.getDevices() != null) {
+                Set<DeviceVO> deviceList = network.getDevices().stream().map(Device::convertToVo).collect(Collectors.toSet());
+                vo.setDevices(deviceList);
+            } else {
+                vo.setDevices(Collections.emptySet());
+            }
             return vo;
         }
         return null;

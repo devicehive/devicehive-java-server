@@ -5,6 +5,7 @@ import com.devicehive.model.AvailableActions;
 import com.devicehive.model.Device;
 import com.devicehive.model.Subnet;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.vo.DeviceVO;
 
 import java.net.InetAddress;
 import java.util.HashSet;
@@ -120,7 +121,7 @@ public class CheckPermissionsHelper {
         return filtered;
     }
 
-    public static boolean checkFilteredPermissions(Set<AccessKeyPermission> permissions, Device device) {
+    public static boolean checkFilteredPermissions(Set<AccessKeyPermission> permissions, DeviceVO device) {
         for (AccessKeyPermission permission : permissions) {
             Set<Long> networks = permission.getNetworkIdsAsSet();
             if (networks != null && !networks.contains(device.getNetwork().getId())) {

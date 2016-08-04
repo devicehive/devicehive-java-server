@@ -20,9 +20,11 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.riak.model.NetworkDevice;
+import com.devicehive.dao.riak.model.RiakDevice;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +91,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
      */
     public void changeStatusForDevices(String status, List<String> guids) {
         for (String guid : guids) {
-            Device device = findByUUID(guid);
+            DeviceVO device = findByUUID(guid);
             if (device != null) {
                 device.setStatus(status);
                 persist(device);
@@ -106,7 +108,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
         final Map<String, Integer> deviceInfo = new HashMap<>();
         for (String guid : guids) {
-            Device device = findByUUID(guid);
+            DeviceVO device = findByUUID(guid);
             if (device != null && device.getDeviceClass() != null) {
                 refreshRefs(device);
                 deviceInfo.put(guid, device.getDeviceClass().getOfflineTimeout());
@@ -117,7 +119,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
 
     @Override
-    public Device findByUUID(String uuid) {
+    public DeviceVO findByUUID(String uuid) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", uuid).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -129,8 +131,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             FetchValue fetchOp = new FetchValue.Builder(location)
                     .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
                     .build();
-            Device device = getOrNull(client.execute(fetchOp), Device.class);
-            return refreshRefs(device);
+            RiakDevice device = getOrNull(client.execute(fetchOp), RiakDevice.class);
+            //TODO [rafa] refreshRefs
+            return RiakDevice.convertToVo(device);
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot find device by UUID.", e);
@@ -138,7 +141,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public void persist(Device device) {
+    public void persist(DeviceVO vo) {
+        RiakDevice device = RiakDevice.convertToEntity(vo);
         try {
             if (device.getId() == null) {
                 device.setId(getId());
@@ -166,7 +170,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public Device merge(Device device) {
+    public DeviceVO merge(DeviceVO device) {
         persist(device);
         return device;
     }
@@ -191,8 +195,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
-        List<Device> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
+    public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
+        List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
 
         if (principal != null) {
             User user = principal.getUser();
@@ -427,7 +431,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         }
     }
 
-    private Device refreshRefs(Device device) {
+    private DeviceVO refreshRefs(DeviceVO device) {
         if (device != null) {
             if (device.getNetwork() != null) {
                 // todo: remove when migrate Device->DeviceVO

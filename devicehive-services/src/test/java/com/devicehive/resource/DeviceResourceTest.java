@@ -10,6 +10,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -46,7 +47,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(response);
 
         // get device
-        Device device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, OK, Device.class);
+        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
@@ -81,7 +82,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(response);
 
         // get device
-        Device device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, OK, Device.class);
+        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));

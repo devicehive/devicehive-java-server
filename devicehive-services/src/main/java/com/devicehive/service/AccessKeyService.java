@@ -15,6 +15,7 @@ import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.OAuthGrantVO;
 import org.apache.commons.lang3.StringUtils;
@@ -212,7 +213,8 @@ public class AccessKeyService {
         User accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
         Set<AccessKeyPermission> toRemove = new HashSet<>();
 
-        Device device = deviceDao.findByUUID(deviceGuid);
+        //TODO [rafa] requires network from device here
+        DeviceVO device = deviceDao.findByUUID(deviceGuid);
 
         for (AccessKeyPermission currentPermission : permissions) {
             if (currentPermission.getDeviceGuidsAsSet() == null) {

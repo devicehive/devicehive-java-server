@@ -13,6 +13,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -264,7 +265,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
-        HivePrincipal principal = new HivePrincipal(new Device());
+        HivePrincipal principal = new HivePrincipal(new DeviceVO());
         networkService.list(null, null, null, true, 100, 0, principal);
     }
 
@@ -566,7 +567,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
-        for (Device device : returnedNetwork.getDevices()) {
+        for (DeviceVO device : returnedNetwork.getDevices()) {
             assertThat(device.getDeviceClass(), notNullValue());
             assertThat(device.getDeviceClass().getId(), notNullValue());
             assertThat(device.getDeviceClass().getName(), notNullValue());
@@ -717,9 +718,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(1));
-        assertThat(returnedNetwork.getDevices(), hasItem(new CustomTypeSafeMatcher<Device>("expect device") {
+        assertThat(returnedNetwork.getDevices(), hasItem(new CustomTypeSafeMatcher<DeviceVO>("expect device") {
             @Override
-            protected boolean matchesSafely(Device item) {
+            protected boolean matchesSafely(DeviceVO item) {
                 return item.getGuid().equals(notification.getDeviceGuid());
             }
         }));

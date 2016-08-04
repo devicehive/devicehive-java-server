@@ -2,6 +2,10 @@ package com.devicehive.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -9,6 +13,9 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -84,23 +91,11 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private DeviceClass deviceClass;
 
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
-
     @Column(name = "blocked")
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Boolean blocked;
-
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
-    }
 
     public JsonStringWrapper getData() {
         return data;
@@ -180,4 +175,45 @@ public class Device implements HiveEntity {
             static final String ID = "id";
         }
     }
+
+    public static DeviceVO convertToVo(Device dc) {
+        DeviceVO vo = null;
+        if (dc != null) {
+            vo = new DeviceVO();
+            vo.setId(dc.getId());
+            vo.setBlocked(dc.getBlocked());
+            vo.setData(dc.getData());
+            //TODO ???vo.setDeviceClass();
+            vo.setDeviceClass(dc.getDeviceClass());
+            vo.setGuid(dc.getGuid());
+            vo.setId(dc.getId());
+            vo.setName(dc.getName());
+            //TODO Network convert = Network.convertNetwork(dc.getNetwork());
+            vo.setNetwork(dc.getNetwork());
+            vo.setStatus(dc.getStatus());
+        }
+        return vo;
+    }
+
+    public static Device convertToEntity(DeviceVO dc) {
+        Device entity = null;
+        if (dc != null) {
+            entity = new Device();
+            entity.setId(dc.getId());
+            entity.setBlocked(dc.getBlocked());
+            entity.setData(dc.getData());
+            //TODO ??? next lines conversion
+            //DeviceClass deviceClass = DeviceClass.convertToEntity(dc.getDeviceClass());
+            entity.setDeviceClass(dc.getDeviceClass());
+            entity.setGuid(dc.getGuid());
+            entity.setId(dc.getId());
+            entity.setName(dc.getName());
+            //TODO ???vo.setNetwork();
+            entity.setNetwork(dc.getNetwork());
+            entity.setStatus(dc.getStatus());
+        }
+        return entity;
+    }
+
+
 }

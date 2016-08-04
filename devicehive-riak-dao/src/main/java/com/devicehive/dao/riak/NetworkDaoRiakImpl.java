@@ -22,6 +22,7 @@ import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.Device;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.model.User;
 import com.devicehive.dao.riak.model.UserNetwork;
@@ -321,7 +322,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         Optional<NetworkWithUsersAndDevicesVO> result = findWithUsers(networkId);
 
         if (result.isPresent()) {
-            Set<Device> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
+            Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
                     .map(deviceDao::findByUUID)
                     .collect(Collectors.toSet());
             result.get().setDevices(devices);

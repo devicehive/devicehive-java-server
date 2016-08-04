@@ -17,6 +17,7 @@ import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.InsertCommand;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -128,11 +129,11 @@ public class CommandHandlers extends WebsocketHandlers {
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
-                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                List<DeviceVO> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 if (actualDevices.size() != devices.size()) {
                     throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
                 }
-                for (Device d : actualDevices) {
+                for (DeviceVO d : actualDevices) {
                     csList.add(new CommandSubscription(principal, d.getGuid(), reqId, namesStr,
                             WebsocketHandlerCreator.createCommandInsert(session)));
                 }
@@ -239,7 +240,7 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         if (device == null) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
         }
@@ -279,7 +280,7 @@ public class CommandHandlers extends WebsocketHandlers {
         }
         final User user = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }

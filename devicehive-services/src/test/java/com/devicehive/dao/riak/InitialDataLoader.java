@@ -7,6 +7,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.ConfigurationVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -105,14 +106,13 @@ public class InitialDataLoader {
 
         //INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES
         // ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
-        Device device = new Device();
+        DeviceVO device = new DeviceVO();
         device.setId(1L);
         device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
         device.setStatus("Offline");
         device.setNetwork(Network.convert(network));
         device.setDeviceClass(dc);
-        device.setEntityVersion(1);
         deviceDao.persist(device);
 
         //live data

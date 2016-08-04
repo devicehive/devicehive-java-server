@@ -35,7 +35,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     @Override
     public DeviceClassWithEquipmentVO find(long id) {
         DeviceClass entity = find(DeviceClass.class, id);
-        return DeviceClass.convertDeviceClassWithEquipment(entity);
+        return DeviceClass.convertToVo(entity);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
         DeviceClass dc = DeviceClass.convertWithEquipmentToEntity(deviceClass);
         super.persist(dc);
         deviceClass.setId(dc.getId());
-        return DeviceClass.convertDeviceClassWithEquipment(dc);
+        return DeviceClass.convertToVo(dc);
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
             }
         }
 
-        return DeviceClass.convertDeviceClassWithEquipment(merged);
+        return DeviceClass.convertToVo(merged);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
 
         CacheHelper.cacheable(query);
         List<DeviceClass> resultList = query.getResultList();
-        Stream<DeviceClassWithEquipmentVO> objectStream = resultList.stream().map(DeviceClass::convertDeviceClassWithEquipment);
+        Stream<DeviceClassWithEquipmentVO> objectStream = resultList.stream().map(DeviceClass::convertToVo);
         return objectStream.collect(Collectors.toList());
     }
 
@@ -99,7 +99,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
                 .setParameter("name", name)
                 .getResultList()
                 .stream().findFirst().orElse(null);
-        return DeviceClass.convertDeviceClassWithEquipment(deviceClass);
+        return DeviceClass.convertToVo(deviceClass);
     }
 
     @Override

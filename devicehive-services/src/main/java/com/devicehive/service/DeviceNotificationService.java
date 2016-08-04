@@ -8,6 +8,7 @@ import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,7 +34,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         return find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
     }
 
-    public void submitDeviceNotification(final DeviceNotification notification, final Device device) {
+    public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
             store(currentNotification, DeviceNotification.class);
@@ -47,7 +48,7 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         store(notification, DeviceNotification.class);
     }
 
-    public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, Device device) {
+    public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
         DeviceNotification message = new DeviceNotification();
         message.setId(Math.abs(new Random().nextInt()));
         message.setDeviceGuid(device.getGuid());
@@ -57,14 +58,15 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         return message;
     }
 
-    private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, Device device) {
+    private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
         switch (notificationMessage.getNotification()) {
             case SpecialNotifications.EQUIPMENT:
                 deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
                 break;
             case SpecialNotifications.DEVICE_STATUS:
-                notificationsToCreate.add(refreshDeviceStatusCase(notificationMessage, device));
+                DeviceNotification deviceNotification = refreshDeviceStatusCase(notificationMessage, device);
+                notificationsToCreate.add(deviceNotification);
                 break;
             default:
                 break;
@@ -74,10 +76,10 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         return notificationsToCreate;
 
     }
-    private DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, Device device) {
-        device = deviceDao.findByUUID(device.getGuid());
+    private DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, DeviceVO device) {
+        DeviceVO devicevo = deviceDao.findByUUID(device.getGuid());
         String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
-        device.setStatus(status);
-        return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_UPDATE);
+        devicevo.setStatus(status);
+        return ServerResponsesFactory.createNotificationForDevice(devicevo, SpecialNotifications.DEVICE_UPDATE);
     }
 }

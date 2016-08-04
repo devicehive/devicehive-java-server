@@ -5,6 +5,7 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Network;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
@@ -72,30 +74,35 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
 
 
     @Override
-    public Device findByUUID(String uuid) {
-        return createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
+    public DeviceVO findByUUID(String uuid) {
+        Device deviceEntity = createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
                 .setParameter("guid", uuid)
                 .getResultList()
                 .stream().findFirst().orElse(null);
+        return Device.convertToVo(deviceEntity);
     }
 
     @Override
-    public void persist(Device device) {
+    public void persist(DeviceVO vo) {
+        Device device = Device.convertToEntity(vo);
         device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
         super.persist(device);
+        vo.setId(device.getId());
     }
 
 
     @Override
-    public Device merge(Device device) {
+    public DeviceVO merge(DeviceVO vo) {
+        Device device = Device.convertToEntity(vo);
         device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
-        return super.merge(device);
+        Device merged = super.merge(device);
+        return Device.convertToVo(merged);
     }
 
     @Override
@@ -106,7 +113,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
+    public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
         final Root<Device> from = criteria.from(Device.class);
@@ -114,7 +121,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         criteria.where(predicates);
         final TypedQuery<Device> query = createQuery(criteria);
         CacheHelper.cacheable(query);
-        return query.getResultList();
+        return query.getResultList().stream().map(Device::convertToVo).collect(Collectors.toList());
     }
 
     @Override

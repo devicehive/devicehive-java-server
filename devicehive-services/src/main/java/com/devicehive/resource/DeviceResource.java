@@ -6,6 +6,7 @@ import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -129,7 +130,7 @@ public interface DeviceResource {
     @Path("/{id}")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
-            response = Device.class)
+            response = DeviceVO.class)
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),

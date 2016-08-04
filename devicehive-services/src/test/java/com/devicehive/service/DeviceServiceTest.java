@@ -14,6 +14,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Rule;
@@ -101,7 +102,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertNotNull(existingNotification);
         assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
 
-        final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
         assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
@@ -199,7 +200,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
-        final Device existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
     }
 
@@ -238,7 +239,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
+        final List<DeviceVO> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()), null);
         assertNotNull(devices);
         assertEquals(devices.size(), 3);
@@ -293,7 +294,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
+        final List<DeviceVO> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
         assertNotNull(devices);
         assertEquals(1, devices.size());
@@ -346,13 +347,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
+        final DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
 
         HivePrincipal principal = new HivePrincipal(existingDevice);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        final List<Device> devices = deviceService.findByGuidWithPermissionsCheck(
+        final List<DeviceVO> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
         assertNotNull(devices);
         assertEquals(1, devices.size());
@@ -517,7 +518,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dcUpdate);
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        Device existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
+        DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
 
         deviceService.deleteDevice(device.getGuid(), null);

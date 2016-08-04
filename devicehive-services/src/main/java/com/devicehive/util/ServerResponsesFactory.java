@@ -7,6 +7,7 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
 import com.devicehive.vo.DeviceEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -64,7 +65,7 @@ public class ServerResponsesFactory {
         return statusJsonObject.get(Constants.STATUS).getAsString();
     }
 
-    public static DeviceNotification createNotificationForDevice(Device device, String notificationName) {
+    public static DeviceNotification createNotificationForDevice(DeviceVO device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification(notificationName);
         notification.setDeviceGuid(device.getGuid());
@@ -75,7 +76,7 @@ public class ServerResponsesFactory {
         return notification;
     }
 
-    public static DeviceEquipmentVO parseDeviceEquipmentNotification(DeviceNotification notification, Device device) {
+    public static DeviceEquipmentVO parseDeviceEquipmentNotification(DeviceNotification notification, DeviceVO device) {
         final String notificationParameters = notification.getParameters().getJsonString();
         if (notificationParameters == null) {
             throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
@@ -91,7 +92,7 @@ public class ServerResponsesFactory {
         return constructDeviceEquipmentObject(jsonEquipmentObject, device);
     }
 
-    private static DeviceEquipmentVO constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, Device device) {
+    private static DeviceEquipmentVO constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, DeviceVO device) {
         DeviceEquipmentVO result = new DeviceEquipmentVO();
         final JsonElement jsonElement = jsonEquipmentObject.get(Constants.EQUIPMENT);
         if (jsonElement == null) {

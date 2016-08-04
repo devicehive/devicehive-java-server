@@ -150,7 +150,7 @@ public class DeviceClass implements HiveEntity {
         return id != null ? id.hashCode() : 0;
     }
 
-    public static DeviceClassWithEquipmentVO convertDeviceClassWithEquipment(DeviceClass deviceClass) {
+    public static DeviceClassWithEquipmentVO convertToVo(DeviceClass deviceClass) {
         DeviceClassWithEquipmentVO vo = null;
         if (deviceClass != null) {
             vo = new DeviceClassWithEquipmentVO();
@@ -168,7 +168,7 @@ public class DeviceClass implements HiveEntity {
         return vo;
     }
 
-    public static DeviceClass convertDeviceClassVOToEntity(DeviceClassVO vo) {
+    public static DeviceClass convertToEntity(DeviceClassVO vo) {
         DeviceClass en = null;
         if (vo != null) {
             en = new DeviceClass();
@@ -182,7 +182,7 @@ public class DeviceClass implements HiveEntity {
     }
 
     public static DeviceClass convertWithEquipmentToEntity(DeviceClassWithEquipmentVO vo) {
-        DeviceClass en = convertDeviceClassVOToEntity(vo);
+        DeviceClass en = convertToEntity(vo);
         if (en != null) {
             if (vo.getEquipment() != null) {
                 Set<DeviceClassEquipment> equipmentSet = vo.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());

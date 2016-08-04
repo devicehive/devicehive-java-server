@@ -15,6 +15,7 @@ import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.Device;
 import com.devicehive.model.DeviceEquipment;
 import com.devicehive.vo.DeviceEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -37,7 +38,7 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     private RiakQuorum quorum;
 
     @Override
-    public List<DeviceEquipmentVO> getByDevice(Device device) {
+    public List<DeviceEquipmentVO> getByDevice(DeviceVO device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -49,7 +50,7 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     }
 
     @Override
-    public DeviceEquipmentVO getByDeviceAndCode(@NotNull String code, @NotNull Device device) {
+    public DeviceEquipmentVO getByDeviceAndCode(@NotNull String code, @NotNull DeviceVO device) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_EQUIPMENT_NS, "device", device.getGuid()).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
@@ -75,12 +76,12 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     }
 
     @Override
-    public void persist(DeviceEquipmentVO deviceEquipment, Device device) {
+    public void persist(DeviceEquipmentVO deviceEquipment, DeviceVO device) {
         merge(deviceEquipment, device);
     }
 
     @Override
-    public DeviceEquipmentVO merge(DeviceEquipmentVO entity, Device device) {
+    public DeviceEquipmentVO merge(DeviceEquipmentVO entity, DeviceVO device) {
         RiakDeviceEquipment deviceEquipment = RiakDeviceEquipment.convertToEntity(entity);
         Location deviceEquipmentCounters = new Location(COUNTER_NS, "device_equipment_counter");
         try {

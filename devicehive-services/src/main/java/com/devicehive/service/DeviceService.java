@@ -12,6 +12,7 @@ import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,9 +84,10 @@ public class DeviceService {
         Network network = nwVo != null ? findNetworkForAuth(Network.convert(nwVo)) : null;
         network = findNetworkForAuth(network);
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
-        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
+        // TODO [requies a lot of details]!
+        DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
-            Device device = deviceUpdate.convertTo();
+            DeviceVO device = deviceUpdate.convertTo();
             if (deviceClass != null) {
                 //TODO [rafa] changed
                 DeviceClass dc = new DeviceClass();
@@ -151,14 +153,14 @@ public class DeviceService {
                                               Set<DeviceClassEquipmentVO> equipmentSet,
                                               AccessKey key) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
-        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
+        //TODO [requires a lot of details]
+        DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, Network.convertNetwork(existingDevice.getNetwork()))) {
             logger.error("Access key {} has no access to device network {}", key, existingDevice.getNetwork().getId());
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
         Network nw = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO network = networkService.createOrVerifyNetworkByKey(
-                Optional.ofNullable(Network.convertNetwork(nw)), key);
+        NetworkVO network = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(Network.convertNetwork(nw)), key);
         network = Network.convertNetwork(findNetworkForAuth(Network.convert(network)));
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
@@ -166,7 +168,7 @@ public class DeviceService {
             dc.setId(deviceClass.getId());
             dc.setName(deviceClass.getName());
 
-            Device device = deviceUpdate.convertTo();
+            DeviceVO device = deviceUpdate.convertTo();
             device.setDeviceClass(dc);
             device.setNetwork(Network.convert(network));
             deviceDao.persist(device);
@@ -211,10 +213,11 @@ public class DeviceService {
             network = Network.convert(networkService.createOrVerifyNetwork(Optional.ofNullable(Network.convertNetwork(network))));
         }
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
-        Device existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
+        //TODO [requires a lot of details]
+        DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 
         if (existingDevice == null) {
-            Device device = deviceUpdate.convertTo();
+            DeviceVO device = deviceUpdate.convertTo();
             if (deviceClass != null) {
                 DeviceClass dc = new DeviceClass();
                 dc.setId(deviceClass.getId());
@@ -251,22 +254,22 @@ public class DeviceService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public Device findByGuidWithPermissionsCheck(String guid, HivePrincipal principal) {
-        List<Device> result = findByGuidWithPermissionsCheck(Arrays.asList(guid), principal);
+    public DeviceVO findByGuidWithPermissionsCheck(String guid, HivePrincipal principal) {
+        List<DeviceVO> result = findByGuidWithPermissionsCheck(Arrays.asList(guid), principal);
         return result.isEmpty() ? null : result.get(0);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<Device> findByGuidWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
+    public List<DeviceVO> findByGuidWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
         return getDeviceList(new ArrayList<>(guids), principal);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     @SuppressWarnings("unchecked")
     public List<String> findGuidsWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
-        final List<Device> devices =  getDeviceList(new ArrayList<>(guids), principal);
+        final List<DeviceVO> devices =  getDeviceList(new ArrayList<>(guids), principal);
         return devices.stream()
-                .map(Device::getGuid)
+                .map(DeviceVO::getGuid)
                 .collect(Collectors.toList());
     }
 
@@ -293,14 +296,15 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public Device getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
+    public DeviceVO getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
         if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
             logger.error("Allowed device count is equal to 0");
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
 
-        Device device = deviceDao.findByUUID(deviceId);
+        //TODO with network and device class
+        DeviceVO device = deviceDao.findByUUID(deviceId);
 
         if (device == null) {
             logger.error("Device with guid {} not found", deviceId);
@@ -312,7 +316,7 @@ public class DeviceService {
     //TODO: only migrated to genericDAO, need to migrate Device PK to guid and use directly GenericDAO#remove
     @Transactional
     public boolean deleteDevice(@NotNull String guid, HivePrincipal principal) {
-        List<Device> existing = getDeviceList(Arrays.asList(guid), principal);
+        List<DeviceVO> existing = getDeviceList(Arrays.asList(guid), principal);
         return existing.isEmpty() || deviceDao.deleteByUUID(guid) != 0;
     }
 
@@ -357,7 +361,7 @@ public class DeviceService {
         return false;
     }
 
-    private List<Device> getDeviceList(List<String> guids, HivePrincipal principal) {
+    private List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         return deviceDao.getDeviceList(guids, principal);
     }
 

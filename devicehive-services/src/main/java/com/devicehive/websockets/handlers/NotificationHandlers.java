@@ -15,6 +15,7 @@ import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.InsertNotification;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -112,10 +113,11 @@ public class NotificationHandlers extends WebsocketHandlers {
             List<NotificationSubscription> nsList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
             if (devices != null) {
-                List<Device> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
-                for (Device d : actualDevices) {
-                    nsList.add(new NotificationSubscription(principal, d.getGuid(), reqId, StringUtils.join(names, ","),
-                                                            WebsocketHandlerCreator.createNotificationInsert(session)));
+                List<DeviceVO> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                for (DeviceVO d : actualDevices) {
+                    WebsocketHandlerCreator<DeviceNotification> notificationInsert = WebsocketHandlerCreator.createNotificationInsert(session);
+                    NotificationSubscription notificationSubscription = new NotificationSubscription(principal, d.getGuid(), reqId, StringUtils.join(names, ","), notificationInsert);
+                    nsList.add(notificationSubscription);
                 }
             } else {
                 NotificationSubscription forAll =
@@ -212,7 +214,7 @@ public class NotificationHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
 
-        Device device;
+        DeviceVO device;
         if (deviceGuid == null) {
             device = principal.getDevice();
         } else {

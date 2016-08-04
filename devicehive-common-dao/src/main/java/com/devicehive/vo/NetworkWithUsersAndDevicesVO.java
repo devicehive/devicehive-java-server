@@ -13,7 +13,7 @@ public class NetworkWithUsersAndDevicesVO extends NetworkVO {
     private Set<User> users;
 
     @JsonPolicyDef({NETWORK_PUBLISHED})
-    private Set<Device> devices;
+    private Set<DeviceVO> devices;
 
     public NetworkWithUsersAndDevicesVO() {}
 
@@ -33,11 +33,11 @@ public class NetworkWithUsersAndDevicesVO extends NetworkVO {
         this.users = users;
     }
 
-    public Set<Device> getDevices() {
+    public Set<DeviceVO> getDevices() {
         return devices;
     }
 
-    public void setDevices(Set<Device> devices) {
+    public void setDevices(Set<DeviceVO> devices) {
         this.devices = devices;
     }
 }

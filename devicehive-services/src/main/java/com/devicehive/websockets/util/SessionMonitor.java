@@ -7,6 +7,7 @@ import com.devicehive.messages.subscriptions.CommandSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.Device;
 import com.devicehive.service.DeviceActivityService;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,14 +49,15 @@ public class SessionMonitor {
 
     public void updateDeviceSession(WebSocketSession session) {
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
-        Device authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
+        DeviceVO authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
         if (authorizedDevice != null) {
-            deviceActivityService.update(authorizedDevice.getGuid());
+            String deviceGuid = authorizedDevice.getGuid();
+            deviceActivityService.update(deviceGuid);
         }
         Set<UUID> commandSubscriptions = HiveWebsocketSessionState.get(session).getCommandSubscriptions();
         for (UUID subId : commandSubscriptions) {
             for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
-                if (subscription.getDeviceGuid() != Constants.NULL_SUBSTITUTE) {
+                if (!Constants.NULL_SUBSTITUTE.equals(subscription.getDeviceGuid())) {
                     deviceActivityService.update(subscription.getDeviceGuid());
                 }
             }

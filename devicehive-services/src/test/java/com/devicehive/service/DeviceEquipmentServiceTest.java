@@ -9,6 +9,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<DeviceClassEquipmentVO>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipmentVO de = new DeviceEquipmentVO();
         de.setCode(RandomStringUtils.randomAlphabetic(10));
@@ -60,7 +61,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<DeviceClassEquipmentVO>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipmentVO devo = new DeviceEquipmentVO();
         devo.setCode(RandomStringUtils.randomAlphabetic(10));
@@ -86,7 +87,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<DeviceClassEquipmentVO>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipmentVO devo = new DeviceEquipmentVO();
         devo.setCode(RandomStringUtils.randomAlphabetic(10));
@@ -108,7 +109,7 @@ public class DeviceEquipmentServiceTest extends AbstractResourceTest {
         du.setDeviceClass(Optional.ofNullable(dc));
         deviceService.deviceSave(du, Collections.<DeviceClassEquipmentVO>emptySet());
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(du.getGuid().orElse(null), null);
 
         DeviceEquipmentVO devo = new DeviceEquipmentVO();
         devo.setCode(RandomStringUtils.randomAlphabetic(10));

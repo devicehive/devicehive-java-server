@@ -127,9 +127,9 @@ public class DeviceEquipment implements HiveEntity {
             String DELETE_BY_ID = "delete from DeviceEquipment de where de.id = :id";
             String GET_BY_DEVICE_AND_CODE =
                 "select de from DeviceEquipment de " +
-                "where de.device = :device and de.code = :code";
+                "where de.device.id = :device and de.code = :code";
             String DELETE_BY_FK = "delete from DeviceEquipment de where de.device = :device";
-            String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device = :device";
+            String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device.id = :device";
         }
 
         public static interface Parameters {

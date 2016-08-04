@@ -21,6 +21,7 @@ import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ParseUtil;
+import com.devicehive.vo.DeviceVO;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -178,7 +179,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
 
         if (device == null) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceGuid);
@@ -254,10 +255,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
         DeviceCommand command = commandService.find(Long.valueOf(commandId), device.getGuid());
@@ -286,7 +286,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
         if (device == null) {
             LOGGER.warn("Device command insert failed. No device with guid = {} found", guid);
@@ -312,7 +312,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final User authUser = principal.getUser() != null ? principal.getUser() :
                 (principal.getKey() != null ? principal.getKey().getUser() : null);
         LOGGER.debug("Device command update requested. command {}", command);
-        Device device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             LOGGER.warn("Device command update failed. No device with guid = {} found", guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
