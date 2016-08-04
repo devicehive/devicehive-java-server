@@ -116,11 +116,11 @@ public class RiakDevice {
             entity = new RiakDevice();
             entity.setBlocked(dc.getBlocked());
             entity.setData(dc.getData());
-            //TODO ???vo.setDeviceClass();
+            entity.setDeviceClass(dc.getDeviceClass());
             entity.setGuid(dc.getGuid());
             entity.setId(dc.getId());
             entity.setName(dc.getName());
-            //TODO ???vo.setNetwork();
+            entity.setNetwork(dc.getNetwork());
             entity.setStatus(dc.getStatus());
         }
         return entity;

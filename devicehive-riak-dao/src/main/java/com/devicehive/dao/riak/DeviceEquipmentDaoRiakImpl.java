@@ -83,6 +83,8 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     @Override
     public DeviceEquipmentVO merge(DeviceEquipmentVO entity, DeviceVO device) {
         RiakDeviceEquipment deviceEquipment = RiakDeviceEquipment.convertToEntity(entity);
+        deviceEquipment.setDevice(device.getGuid());
+
         Location deviceEquipmentCounters = new Location(COUNTER_NS, "device_equipment_counter");
         try {
             if (deviceEquipment.getId() == null) {

@@ -21,7 +21,7 @@ public class RiakDeviceEquipment {
 
     private JsonStringWrapper parameters;
 
-    private Device device;
+    private String deviceGuid;
 
     private long entityVersion;
 
@@ -65,47 +65,18 @@ public class RiakDeviceEquipment {
         this.parameters = parameters;
     }
 
-    public Device getDevice() {
-        return device;
+    public String getDevice() {
+        return deviceGuid;
     }
 
-    public void setDevice(Device device) {
-        this.device = device;
+    public void setDevice(String device) {
+        this.deviceGuid = device;
     }
 
     //Riak indexes
     @RiakIndex(name = "device")
     public String getDeviceSi() {
-        return device.getGuid();
-    }
-
-    public static class Queries {
-
-        public interface Names {
-
-            String DELETE_BY_ID = "DeviceEquipment.deleteById";
-            String GET_BY_DEVICE_AND_CODE = "DeviceEquipment.getByDeviceAndCode";
-            String DELETE_BY_FK = "DeviceEquipment.deleteByFK";
-            String GET_BY_DEVICE = "DeviceEquipment.getByDevice";
-        }
-
-        interface Values {
-
-            String DELETE_BY_ID = "delete from DeviceEquipment de where de.id = :id";
-            String GET_BY_DEVICE_AND_CODE =
-                    "select de from DeviceEquipment de " +
-                            "where de.device = :device and de.code = :code";
-            String DELETE_BY_FK = "delete from DeviceEquipment de where de.device = :device";
-            String GET_BY_DEVICE = "select de from DeviceEquipment de where de.device = :device";
-        }
-
-        public static interface Parameters {
-
-            static final String ID = "id";
-            static final String DEVICE = "device";
-            static final String CODE = "code";
-        }
-
+        return deviceGuid;
     }
 
     public static List<DeviceEquipmentVO> convertToVo(List<RiakDeviceEquipment> equipment) {

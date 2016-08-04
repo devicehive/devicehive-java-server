@@ -133,7 +133,11 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     .build();
             RiakDevice device = getOrNull(client.execute(fetchOp), RiakDevice.class);
             //TODO [rafa] refreshRefs
-            return RiakDevice.convertToVo(device);
+            DeviceVO deviceVO = RiakDevice.convertToVo(device);
+            deviceVO.setDeviceClass(device.getDeviceClass());
+            deviceVO.setNetwork(device.getNetwork());
+            refreshRefs(deviceVO);
+            return deviceVO;
         } catch (ExecutionException | InterruptedException e) {
             logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot find device by UUID.", e);

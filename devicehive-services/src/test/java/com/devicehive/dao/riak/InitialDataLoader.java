@@ -101,8 +101,7 @@ public class InitialDataLoader {
         network.setDescription("A DeviceHive network for VirtualLed sample");
         networkDao.persist(network);
 
-        DeviceClass dc = new DeviceClass();
-        dc.setId(deviceClass.getId());
+        DeviceClass dc = DeviceClass.convertToEntity(deviceClass);
 
         //INSERT INTO device (guid, name, status, network_id, device_class_id, entity_version) VALUES
         // ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
