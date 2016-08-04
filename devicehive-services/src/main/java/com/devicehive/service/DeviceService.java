@@ -10,10 +10,7 @@ import com.devicehive.model.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,10 +87,10 @@ public class DeviceService {
             DeviceVO device = deviceUpdate.convertTo();
             if (deviceClass != null) {
                 //TODO [rafa] changed
-                DeviceClass dc = new DeviceClass();
+                DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
-                dc.setPermanent(deviceClass.getIsPermanent());
+                dc.setIsPermanent(deviceClass.getIsPermanent());
                 device.setDeviceClass(dc);
             }
             if (network != null) {
@@ -110,10 +107,10 @@ public class DeviceService {
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null) {
-                DeviceClass dc = new DeviceClass();
+                DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
-                dc.setPermanent(deviceClass.getIsPermanent());
+                dc.setIsPermanent(deviceClass.getIsPermanent());
                 existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getStatus() != null) {
@@ -164,7 +161,7 @@ public class DeviceService {
         network = Network.convertNetwork(findNetworkForAuth(Network.convert(network)));
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
-            DeviceClass dc = new DeviceClass();
+            DeviceClassVO dc = new DeviceClassVO();
             dc.setId(deviceClass.getId());
             dc.setName(deviceClass.getName());
 
@@ -178,8 +175,8 @@ public class DeviceService {
                 logger.error("Access key {} has no access to device {}", key, existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
-            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getPermanent()) {
-                DeviceClass dc = new DeviceClass();
+            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getIsPermanent()) {
+                DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
@@ -219,7 +216,7 @@ public class DeviceService {
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo();
             if (deviceClass != null) {
-                DeviceClass dc = new DeviceClass();
+                DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 device.setDeviceClass(dc);
@@ -231,7 +228,7 @@ public class DeviceService {
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (deviceUpdate.getDeviceClass() != null) {
-                DeviceClass dc = new DeviceClass();
+                DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);

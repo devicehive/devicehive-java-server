@@ -184,7 +184,8 @@ public class Device implements HiveEntity {
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
             //TODO ???vo.setDeviceClass();
-            vo.setDeviceClass(dc.getDeviceClass());
+            DeviceClassVO classVO = DeviceClass.convertToVo(dc.getDeviceClass());
+            vo.setDeviceClass(classVO);
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
@@ -203,8 +204,8 @@ public class Device implements HiveEntity {
             entity.setBlocked(dc.getBlocked());
             entity.setData(dc.getData());
             //TODO ??? next lines conversion
-            //DeviceClass deviceClass = DeviceClass.convertToEntity(dc.getDeviceClass());
-            entity.setDeviceClass(dc.getDeviceClass());
+            DeviceClass deviceClass = DeviceClass.convertToEntity(dc.getDeviceClass());
+            entity.setDeviceClass(deviceClass);
             entity.setGuid(dc.getGuid());
             entity.setId(dc.getId());
             entity.setName(dc.getName());

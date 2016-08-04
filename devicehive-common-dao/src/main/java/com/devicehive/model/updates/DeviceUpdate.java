@@ -108,9 +108,7 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (deviceClass != null) {
             DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClass.orElse(null).convertTo();
-            DeviceClass convertedDeviceClass = new DeviceClass();
-            convertedDeviceClass.setId(deviceClassWithEquipmentVO.getId());
-            device.setDeviceClass(convertedDeviceClass);
+            device.setDeviceClass(deviceClassWithEquipmentVO);
         }
         if (name != null) {
             device.setName(name.orElse(null));

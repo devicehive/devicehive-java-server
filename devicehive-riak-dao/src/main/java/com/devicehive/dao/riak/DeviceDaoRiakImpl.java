@@ -134,7 +134,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             RiakDevice device = getOrNull(client.execute(fetchOp), RiakDevice.class);
             //TODO [rafa] refreshRefs
             DeviceVO deviceVO = RiakDevice.convertToVo(device);
-            deviceVO.setDeviceClass(device.getDeviceClass());
+//            deviceVO.setDeviceClass(device.getDeviceClass());
             deviceVO.setNetwork(device.getNetwork());
             refreshRefs(deviceVO);
             return deviceVO;
@@ -447,8 +447,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
             if (device.getDeviceClass() != null) {
                 DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
-                DeviceClass deviceClass = DeviceClass.convertWithEquipmentToEntity(deviceClassWithEquipmentVO);
-                device.setDeviceClass(deviceClass);
+                device.setDeviceClass(deviceClassWithEquipmentVO);
             }
         }
 

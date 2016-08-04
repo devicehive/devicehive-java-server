@@ -37,7 +37,7 @@ public class DeviceVO implements HiveEntity {
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClass deviceClass;
+    private DeviceClassVO deviceClass;
 
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
@@ -92,11 +92,11 @@ public class DeviceVO implements HiveEntity {
         this.network = network;
     }
 
-    public DeviceClass getDeviceClass() {
+    public DeviceClassVO getDeviceClass() {
         return deviceClass;
     }
 
-    public void setDeviceClass(DeviceClass deviceClass) {
+    public void setDeviceClass(DeviceClassVO deviceClass) {
         this.deviceClass = deviceClass;
     }
 

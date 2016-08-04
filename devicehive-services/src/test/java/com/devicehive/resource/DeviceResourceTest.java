@@ -10,6 +10,7 @@ import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -57,11 +58,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedNetwork.getId(), notNullValue());
         assertThat(network.getName(), is(savedNetwork.getName()));
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
-        DeviceClass savedClass = device.getDeviceClass();
+        DeviceClassVO savedClass = device.getDeviceClass();
         assertThat(savedClass, notNullValue());
         assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent().get()));
+        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout().get()));
         assertThat(savedClass.getData(), notNullValue());
     }
@@ -92,11 +93,11 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedNetwork.getId(), notNullValue());
         assertThat(network.getName(), is(savedNetwork.getName()));
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
-        DeviceClass savedClass = device.getDeviceClass();
+        DeviceClassVO savedClass = device.getDeviceClass();
         assertThat(savedClass, notNullValue());
         assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getPermanent(), is(deviceClass.getPermanent().get()));
+        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
         assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout().get()));
         assertThat(savedClass.getData(), notNullValue());
     }
