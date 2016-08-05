@@ -118,7 +118,8 @@ public class CriteriaHelper {
         List<Predicate> predicates = new LinkedList<>();
 
         if (!user.isAdmin()) {
-            predicates.add(from.join("user").in(user));
+            User u = User.convertToEntity(user);
+            predicates.add(from.join("user").in(u));
         }
 
         startOpt.ifPresent(start -> predicates.add(cb.greaterThan(from.get("timestamp"), start)));

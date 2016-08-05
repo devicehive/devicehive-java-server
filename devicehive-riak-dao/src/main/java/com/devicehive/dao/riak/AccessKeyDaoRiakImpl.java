@@ -112,7 +112,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
     @Override
     public Optional<AccessKeyVO> getByUserAndLabel(UserVO user, String label) {
-        IntIndexQuery biq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "user", user.getId()).build();
+        IntIndexQuery biq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", user.getId()).build();
         try {
             IntIndexQuery.Response response = client.execute(biq);
             List<IntIndexQuery.Response.Entry> entries = response.getEntries();
