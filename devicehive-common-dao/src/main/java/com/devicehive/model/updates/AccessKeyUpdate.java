@@ -1,8 +1,6 @@
 package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.vo.AccessKeyPermissionVO;

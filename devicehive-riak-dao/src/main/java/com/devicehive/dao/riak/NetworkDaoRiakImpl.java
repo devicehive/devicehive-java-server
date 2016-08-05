@@ -21,7 +21,6 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;

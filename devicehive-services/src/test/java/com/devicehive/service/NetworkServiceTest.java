@@ -8,7 +8,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.DeviceClassUpdate;

@@ -4,7 +4,6 @@ import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;

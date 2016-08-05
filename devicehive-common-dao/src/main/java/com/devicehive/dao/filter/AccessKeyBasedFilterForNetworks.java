@@ -1,6 +1,5 @@
 package com.devicehive.dao.filter;
 
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.vo.AccessKeyPermissionVO;
 
 import java.util.Collection;
