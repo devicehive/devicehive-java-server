@@ -97,7 +97,7 @@ public class RiakAccessKey {
         return label;
     }
 
-    @RiakIndex(name = "user")
+    @RiakIndex(name = "userId")
     public long getUserIdSi() {
         return user.getId();
     }

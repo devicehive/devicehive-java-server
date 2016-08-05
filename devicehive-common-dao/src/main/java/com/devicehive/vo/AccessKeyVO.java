@@ -47,6 +47,10 @@ public class AccessKeyVO implements HiveEntity {
 
     private long entityVersion;
 
+    public AccessKeyVO() {
+        this.type = AccessKeyType.DEFAULT;
+    }
+
     public Long getId() {
         return id;
     }
