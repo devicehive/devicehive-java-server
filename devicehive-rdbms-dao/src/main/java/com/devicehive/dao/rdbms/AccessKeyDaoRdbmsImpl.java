@@ -98,7 +98,9 @@ public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyD
 
     @Override
     public AccessKeyVO merge(AccessKeyVO existing) {
-        return AccessKey.convert(super.merge(AccessKey.convert(existing)));
+        AccessKey entity = AccessKey.convert(existing);
+        AccessKey merge = super.merge(entity);
+        return AccessKey.convert(merge);
     }
 
     @Override
@@ -132,6 +134,7 @@ public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyD
     @Override
     public void persist(AccessKeyVO key, AccessKeyPermissionVO accessKeyPermission) {
         AccessKeyPermission entity = AccessKeyPermission.convert(accessKeyPermission);
+        entity.setAccessKey(reference(AccessKey.class, key.getId()));
         super.persist(entity);
         accessKeyPermission.setId(entity.getId());
     }

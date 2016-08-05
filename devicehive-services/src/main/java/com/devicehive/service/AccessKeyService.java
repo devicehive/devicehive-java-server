@@ -105,6 +105,13 @@ public class AccessKeyService {
         if (toUpdate.getType() != null) {
             existing.setType(toUpdate.getType().map(v -> toUpdate.getTypeEnum()).orElse(null));
         }
+        if (toUpdate.getPermissions() != null) {
+            if (toUpdate.getPermissions().isPresent()) {
+                existing.setPermissions(toUpdate.getPermissions().get());
+            } else {
+                existing.setPermissions(Collections.emptySet());
+            }
+        }
         accessKeyDao.merge(existing);
         if (toUpdate.getPermissions() != null) {
             if (!toUpdate.getPermissions().isPresent()) {
@@ -296,9 +303,6 @@ public class AccessKeyService {
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         String key = keyProcessor.generateKey();
         existing.setKey(key);
-        for (AccessKeyPermissionVO current : permissions) {
-            accessKeyDao.persist(existing, current);
-        }
         accessKeyDao.merge(existing);
         return existing;
     }

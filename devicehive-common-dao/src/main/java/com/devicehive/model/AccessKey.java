@@ -75,14 +75,10 @@ public class AccessKey implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private AccessKeyType type;
 
-    @OneToMany(mappedBy = "accessKey", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "accessKey", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @NotNull
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Set<AccessKeyPermission> permissions;
-
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
 
     public Set<AccessKeyPermission> getPermissions() {
         return permissions;
@@ -90,14 +86,6 @@ public class AccessKey implements HiveEntity {
 
     public void setPermissions(Set<AccessKeyPermission> permissions) {
         this.permissions = permissions;
-    }
-
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
     }
 
     public Long getId() {
@@ -149,8 +137,9 @@ public class AccessKey implements HiveEntity {
     }
 
     public static AccessKey convert(AccessKeyVO accessKey) {
+        AccessKey result = null;
         if (accessKey != null) {
-            AccessKey result = new AccessKey();
+            result = new AccessKey();
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
@@ -159,12 +148,12 @@ public class AccessKey implements HiveEntity {
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
             Set<AccessKeyPermission> permissions = AccessKeyPermission.convertToEntity(accessKey.getPermissions());
+            for (AccessKeyPermission permission : permissions) {
+                permission.setAccessKey(result);
+            }
             result.setPermissions(permissions);
-            result.setEntityVersion(accessKey.getEntityVersion());
-            return result;
-        } else {
-            return null;
         }
+        return result;
     }
 
     public static AccessKeyVO convert(AccessKey accessKey) {
@@ -179,7 +168,6 @@ public class AccessKey implements HiveEntity {
             result.setType(accessKey.getType());
             Set<AccessKeyPermissionVO> permissions = AccessKeyPermission.converttoVO(accessKey.getPermissions());
             result.setPermissions(permissions);
-            result.setEntityVersion(accessKey.getEntityVersion());
             return result;
         } else {
             return null;

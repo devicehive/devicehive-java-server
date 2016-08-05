@@ -73,18 +73,6 @@ public class AccessKeyPermission implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper deviceGuids;
 
-    @Version
-    @Column(name = "entity_version")
-    private long entityVersion;
-
-    public long getEntityVersion() {
-        return entityVersion;
-    }
-
-    public void setEntityVersion(long entityVersion) {
-        this.entityVersion = entityVersion;
-    }
-
     public Long getId() {
 
         return id;
