@@ -1,8 +1,8 @@
 package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.Network;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -202,7 +202,7 @@ public interface UserResource {
     @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get user's network", notes = "Gets information about user/network association.")
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = Network.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user or network not found")

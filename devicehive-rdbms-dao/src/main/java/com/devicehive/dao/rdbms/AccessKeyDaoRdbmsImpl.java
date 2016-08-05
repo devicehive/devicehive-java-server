@@ -2,6 +2,8 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.model.AccessKey;
+import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 import org.springframework.context.annotation.Profile;
@@ -118,5 +120,28 @@ public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyD
         cacheQuery(query, of(CacheConfig.bypass()));
         return query.getResultList().stream().map(AccessKey::convert).collect(Collectors.toList());
     }
+
+    @Override
+    public int deleteByAccessKey(AccessKeyVO key) {
+        AccessKey accessKey = AccessKey.convert(key);
+        return createNamedQuery("AccessKeyPermission.deleteByAccessKey", Optional.<CacheConfig>empty())
+                .setParameter("accessKey", accessKey)
+                .executeUpdate();
+    }
+
+    @Override
+    public void persist(AccessKeyVO key, AccessKeyPermissionVO accessKeyPermission) {
+        AccessKeyPermission entity = AccessKeyPermission.convert(accessKeyPermission);
+        super.persist(entity);
+        accessKeyPermission.setId(entity.getId());
+    }
+
+    @Override
+    public AccessKeyPermissionVO merge(AccessKeyVO key, AccessKeyPermissionVO existing) {
+        AccessKeyPermission entity = AccessKeyPermission.convert(existing);
+        AccessKeyPermission merge = super.merge(entity);
+        return AccessKeyPermission.convert(merge);
+    }
+
 
 }

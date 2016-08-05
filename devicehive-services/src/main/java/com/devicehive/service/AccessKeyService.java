@@ -3,10 +3,10 @@ package com.devicehive.service;
 import com.devicehive.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.*;
+import com.devicehive.dao.AccessKeyDao;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.oauth.*;
@@ -54,9 +54,6 @@ public class AccessKeyService {
     private AccessKeyDao accessKeyDao;
 
     @Autowired
-    private AccessKeyPermissionDao accessKeyPermissionDao;
-
-    @Autowired
     private DeviceDao deviceDao;
 
 
@@ -80,11 +77,12 @@ public class AccessKeyService {
         accessKey.setKey(key);
         accessKey.setUser(user);
         accessKeyDao.persist(accessKey);
-        for (AccessKeyPermission current : accessKey.getPermissions()) {
-            AccessKeyPermission permission = preparePermission(current);
-            permission.setAccessKey(AccessKey.convert(accessKey));
-            accessKeyPermissionDao.persist(accessKey, permission);
-        }
+        // TODO should be cascaded
+//        for (AccessKeyPermission current : accessKey.getPermissions()) {
+//            AccessKeyPermission permission = preparePermission(current);
+//            permission.setAccessKey(AccessKey.convert(accessKey));
+//            accessKeyPermissionDao.persist(accessKey, permission);
+//        }
         return accessKeyDao.find(accessKey.getId());
     }
 
@@ -107,24 +105,26 @@ public class AccessKeyService {
         if (toUpdate.getType() != null) {
             existing.setType(toUpdate.getType().map(v -> toUpdate.getTypeEnum()).orElse(null));
         }
-        //todo: [gpopov] implement merge with permissions after complete migration on VO
         accessKeyDao.merge(existing);
         if (toUpdate.getPermissions() != null) {
             if (!toUpdate.getPermissions().isPresent()) {
                 logger.error("New permissions shouldn't be empty in request parameters");
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
-
-            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().get();
-            AccessKeyVO toValidate = toUpdate.convertTo();
-            authenticationUtils.validateActions(toValidate);
-            deleteAccessKeyPermissions(existing);
-            for (AccessKeyPermission current : permissionsToReplace) {
-                AccessKeyPermission permission = preparePermission(current);
-                permission.setAccessKey(AccessKey.convert(existing));
-                accessKeyPermissionDao.persist(existing, permission);
-            }
         }
+
+        //todo: [gpopov] implement merge with permissions after complete migration on VO
+        //TODO that operation should be cascaded.
+//            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().get();
+//            AccessKeyVO toValidate = toUpdate.convertTo();
+//            authenticationUtils.validateActions(toValidate);
+//            deleteAccessKeyPermissions(existing);
+//            for (AccessKeyPermission current : permissionsToReplace) {
+//                AccessKeyPermission permission = preparePermission(current);
+//                permission.setAccessKey(AccessKey.convert(existing));
+//                accessKeyPermissionDao.persist(existing, permission);
+//            }
+//        }
         return true;
     }
 
@@ -170,14 +170,13 @@ public class AccessKeyService {
 
         AccessKeyVO accessKey = authenticationUtils.prepareAccessKey(user);
 
-        Set<AccessKeyPermission> permissions = new HashSet<>();
-        final AccessKeyPermission permission = authenticationUtils.preparePermission(user.getRole());
+        Set<AccessKeyPermissionVO> permissions = new HashSet<>();
+        final AccessKeyPermissionVO permission = authenticationUtils.preparePermission(user.getRole());
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         accessKeyDao.persist(accessKey);
 
-        permission.setAccessKey(AccessKey.convert(accessKey));
-        accessKeyPermissionDao.persist(accessKey, permission);
+        accessKeyDao.persist(accessKey, permission);
         return accessKey;
     }
 
@@ -188,13 +187,13 @@ public class AccessKeyService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToNetwork(AccessKeyVO accessKey, NetworkVO targetNetwork) {
-        Set<AccessKeyPermission> permissions = accessKey.getPermissions();
+        Set<AccessKeyPermissionVO> permissions = accessKey.getPermissions();
         UserVO user = accessKey.getUser();
         boolean hasNullPermission = permissions.stream().anyMatch(perm -> perm.getNetworkIdsAsSet() == null);
         if (hasNullPermission) {
             return userService.hasAccessToNetwork(user, targetNetwork);
         } else {
-            Set<Long> allowedNetworks = permissions.stream().map(AccessKeyPermission::getNetworkIdsAsSet)
+            Set<Long> allowedNetworks = permissions.stream().map(AccessKeyPermissionVO::getNetworkIdsAsSet)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
             UserWithNetworkVO userWithNetworks = userService.findUserWithNetworks(user.getId());
@@ -205,17 +204,17 @@ public class AccessKeyService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public boolean hasAccessToDevice(AccessKeyVO accessKey, String deviceGuid) {
-        Set<AccessKeyPermission> permissions = accessKey.getPermissions();
+        Set<AccessKeyPermissionVO> permissions = accessKey.getPermissions();
         Set<String> allowedDevices = new HashSet<>();
         Set<Long> allowedNetworks = new HashSet<>();
 
         UserWithNetworkVO accessKeyUser = userService.findUserWithNetworks(accessKey.getUser().getId());
-        Set<AccessKeyPermission> toRemove = new HashSet<>();
+        Set<AccessKeyPermissionVO> toRemove = new HashSet<>();
 
         //TODO [rafa] requires network from device here
         DeviceVO device = deviceDao.findByUUID(deviceGuid);
 
-        for (AccessKeyPermission currentPermission : permissions) {
+        for (AccessKeyPermissionVO currentPermission : permissions) {
             if (currentPermission.getDeviceGuidsAsSet() == null) {
                 allowedDevices.add(null);
             } else {
@@ -257,8 +256,8 @@ public class AccessKeyService {
         }
         newKey.setUser(user);
         newKey.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
-        Set<AccessKeyPermission> permissions = new HashSet<>();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        Set<AccessKeyPermissionVO> permissions = new HashSet<>();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDomainArray(grant.getClient().getDomain());
         permission.setActionsArray(StringUtils.split(grant.getScope(), ' '));
         permission.setSubnetsArray(grant.getClient().getSubnet());
@@ -271,7 +270,7 @@ public class AccessKeyService {
 
     private void deleteAccessKeyPermissions(AccessKeyVO key) {
         logger.debug("Deleting all permission of access key {}", key.getId());
-        int deleted = accessKeyPermissionDao.deleteByAccessKey(key);
+        int deleted = accessKeyDao.deleteByAccessKey(key);
         logger.info("Deleted {} permissions by access key {}", deleted, key.getId());
     }
 
@@ -286,8 +285,8 @@ public class AccessKeyService {
             existing.setExpirationDate(null);
         }
         existing.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
-        Set<AccessKeyPermission> permissions = new HashSet<>();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        Set<AccessKeyPermissionVO> permissions = new HashSet<>();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDomainArray(grant.getClient().getDomain());
         permission.setActionsArray(StringUtils.split(grant.getScope(), ' '));
         permission.setSubnetsArray(grant.getClient().getSubnet());
@@ -297,9 +296,8 @@ public class AccessKeyService {
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         String key = keyProcessor.generateKey();
         existing.setKey(key);
-        for (AccessKeyPermission current : permissions) {
-            current.setAccessKey(AccessKey.convert(existing));
-            accessKeyPermissionDao.persist(existing, current);
+        for (AccessKeyPermissionVO current : permissions) {
+            accessKeyDao.persist(existing, current);
         }
         accessKeyDao.merge(existing);
         return existing;
@@ -323,8 +321,8 @@ public class AccessKeyService {
         return removed > 0;
     }
 
-    private AccessKeyPermission preparePermission(AccessKeyPermission current) {
-        AccessKeyPermission newPermission = new AccessKeyPermission();
+    private AccessKeyPermissionVO preparePermission(AccessKeyPermissionVO current) {
+        AccessKeyPermissionVO newPermission = new AccessKeyPermissionVO();
         if (current.getDomainsAsSet() != null) {
             newPermission.setDomains(current.getDomains());
         }

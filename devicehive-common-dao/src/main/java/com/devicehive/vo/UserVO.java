@@ -3,7 +3,6 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.Network;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,11 +11,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserVO implements HiveEntity {
 
     @SerializedName("id")

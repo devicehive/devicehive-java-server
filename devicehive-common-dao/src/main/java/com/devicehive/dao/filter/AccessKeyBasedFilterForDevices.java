@@ -1,6 +1,7 @@
 package com.devicehive.dao.filter;
 
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.vo.AccessKeyPermissionVO;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,12 +55,12 @@ public class AccessKeyBasedFilterForDevices {
         return result;
     }
 
-    public static Set<AccessKeyBasedFilterForDevices> createExtraFilters(Set<AccessKeyPermission> permissionSet) {
+    public static Set<AccessKeyBasedFilterForDevices> createExtraFilters(Set<AccessKeyPermissionVO> permissionSet) {
         if (permissionSet == null) {
             return null;
         }
         Set<AccessKeyBasedFilterForDevices> result = new HashSet<>();
-        for (AccessKeyPermission akp : permissionSet) {
+        for (AccessKeyPermissionVO akp : permissionSet) {
             result.add(new AccessKeyBasedFilterForDevices(akp.getDeviceGuidsAsSet(), akp.getNetworkIdsAsSet()));
         }
         return result;

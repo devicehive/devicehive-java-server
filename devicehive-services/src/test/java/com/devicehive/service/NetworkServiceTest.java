@@ -356,7 +356,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             }
         }
 
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(allowedIds);
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setPermissions(Collections.singleton(permission));
@@ -391,7 +391,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
 
@@ -520,7 +520,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
@@ -560,7 +560,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
@@ -601,7 +601,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
@@ -636,7 +636,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray("do nothing");
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
@@ -663,7 +663,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(Arrays.asList(-1L, -2L));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
@@ -708,7 +708,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(Collections.singleton(created.getId()));
         permission.setDeviceGuidsCollection(Collections.singleton(notification.getDeviceGuid()));
         accessKey.setPermissions(Collections.singleton(permission));
@@ -754,7 +754,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDeviceGuidsCollection(Collections.singleton("-1"));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
@@ -787,7 +787,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), second.getId());
 
         AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(Arrays.asList(first.getId(), -1L, -2L));
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
@@ -991,7 +991,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setUser(user);
-        accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(Collections.singleton(new AccessKeyPermissionVO()));
 
         NetworkVO stored = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
         assertThat(created.getId(), equalTo(stored.getId()));
@@ -1014,7 +1014,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setUser(user);
-        accessKey.setPermissions(Collections.singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(Collections.singleton(new AccessKeyPermissionVO()));
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);

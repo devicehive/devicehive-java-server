@@ -149,7 +149,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setType(AccessKeyType.SESSION);
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
         permission.setDomainArray("domain1", "domain2");
@@ -188,7 +188,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate.setNetwork(Optional.ofNullable(created));
 
         final AccessKeyVO accessKey = new AccessKeyVO();
-        final AccessKeyPermission permission = new AccessKeyPermission();
+        final AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         final HivePrincipal principal = new HivePrincipal(accessKey);
@@ -281,7 +281,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
 
         final AccessKeyVO accessKey = new AccessKeyVO();
-        final AccessKeyPermission permission = new AccessKeyPermission();
+        final AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
         final HivePrincipal principal = new HivePrincipal(accessKey);

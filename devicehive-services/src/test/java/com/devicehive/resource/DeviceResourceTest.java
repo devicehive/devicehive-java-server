@@ -189,7 +189,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         AccessKeyVO key = new AccessKeyVO();
         key.setType(AccessKeyType.DEFAULT);
         key.setLabel(RandomStringUtils.randomAlphabetic(10));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));
@@ -242,7 +242,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         AccessKeyVO key = new AccessKeyVO();
         key.setType(AccessKeyType.DEFAULT);
         key.setLabel(RandomStringUtils.randomAlphabetic(10));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));

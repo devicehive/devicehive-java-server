@@ -2,8 +2,8 @@ package com.devicehive.dao.riak.model;
 
 
 import com.basho.riak.client.api.annotations.RiakIndex;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 
@@ -24,7 +24,7 @@ public class RiakAccessKey {
 
     private AccessKeyType type;
 
-    private Set<AccessKeyPermission> permissions;
+    private Set<RiakAccessKeyPermission> permissions;
 
     private long entityVersion;
 
@@ -76,11 +76,11 @@ public class RiakAccessKey {
         this.type = type;
     }
 
-    public Set<AccessKeyPermission> getPermissions() {
+    public Set<RiakAccessKeyPermission> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Set<AccessKeyPermission> permissions) {
+    public void setPermissions(Set<RiakAccessKeyPermission> permissions) {
         this.permissions = permissions;
     }
 
@@ -113,8 +113,9 @@ public class RiakAccessKey {
     }
 
     public static RiakAccessKey convert(AccessKeyVO accessKey) {
+        RiakAccessKey result = null;
         if (accessKey != null) {
-            RiakAccessKey result = new RiakAccessKey();
+            result = new RiakAccessKey();
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
@@ -122,23 +123,17 @@ public class RiakAccessKey {
             result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
-            result.setPermissions(accessKey.getPermissions());
+            Set<RiakAccessKeyPermission> permissions = RiakAccessKeyPermission.convertToEntity(accessKey.getPermissions());
+            result.setPermissions(permissions);
             result.setEntityVersion(accessKey.getEntityVersion());
-            if (accessKey.getPermissions() != null) {
-                for (AccessKeyPermission permission : accessKey.getPermissions()) {
-                    permission.setAccessKey(null);
-                }
-            }
-
-            return result;
-        } else {
-            return null;
         }
+        return result;
     }
 
     public static AccessKeyVO convert(RiakAccessKey accessKey) {
+        AccessKeyVO result = null;
         if (accessKey != null) {
-            AccessKeyVO result = new AccessKeyVO();
+            result = new AccessKeyVO();
             result.setId(accessKey.getId());
             result.setLabel(accessKey.getLabel());
             result.setKey(accessKey.getKey());
@@ -146,11 +141,10 @@ public class RiakAccessKey {
             result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
-            result.setPermissions(accessKey.getPermissions());
+            Set<AccessKeyPermissionVO> permissions = RiakAccessKeyPermission.converttoVO(accessKey.getPermissions());
+            result.setPermissions(permissions);
             result.setEntityVersion(accessKey.getEntityVersion());
-            return result;
-        } else {
-            return null;
         }
+        return result;
     }
 }

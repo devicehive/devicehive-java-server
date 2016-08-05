@@ -1,6 +1,7 @@
 package com.devicehive.auth;
 
 import com.devicehive.model.AccessKeyPermission;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,8 @@ public class AccessKeyPermissionEvaluator implements PermissionEvaluator {
             AccessKeyAction action = AccessKeyAction.valueOf(permission.toString().trim());
             logger.debug("Checking {} for permissions {}", authentication.getName(), permission);
 
-            Set<AccessKeyPermission> filteredPermissions = CheckPermissionsHelper.filterPermissions(accessKey.getPermissions(), action, details.getClientInetAddress(), details.getOrigin());
+            Set<AccessKeyPermissionVO> filteredPermissions = CheckPermissionsHelper.filterPermissions(accessKey, accessKey.getPermissions(),
+                    action, details.getClientInetAddress(), details.getOrigin());
             if (filteredPermissions.isEmpty()) {
                 logger.warn("Principal doesn't have required permission {}. Access denied", permission);
                 return false;

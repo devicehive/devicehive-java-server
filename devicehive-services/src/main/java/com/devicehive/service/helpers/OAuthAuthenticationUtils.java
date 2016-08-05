@@ -12,6 +12,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.service.IdentityProviderService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +51,8 @@ public class OAuthAuthenticationUtils {
         return accessKey;
     }
 
-    public AccessKeyPermission preparePermission(final UserRole userRole) {
-        AccessKeyPermission permission = new AccessKeyPermission();
+    public AccessKeyPermissionVO preparePermission(final UserRole userRole) {
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         switch (userRole) {
             case ADMIN:
                 break;
@@ -63,7 +64,7 @@ public class OAuthAuthenticationUtils {
     }
 
     public void validateActions(AccessKeyVO accessKey) {
-        for (AccessKeyPermission permission : accessKey.getPermissions()) {
+        for (AccessKeyPermissionVO permission : accessKey.getPermissions()) {
             if (permission.getActionsAsSet() != null && !permission.getActionsAsSet().isEmpty()) {
                 if (!AvailableActions.validate(permission.getActionsAsSet())) {
                     throw new HiveException(Messages.UNKNOWN_ACTION, Response.Status.BAD_REQUEST.getStatusCode());

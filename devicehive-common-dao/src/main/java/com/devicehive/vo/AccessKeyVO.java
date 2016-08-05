@@ -1,7 +1,6 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.enums.AccessKeyType;
 import com.google.gson.annotations.SerializedName;
@@ -44,7 +43,7 @@ public class AccessKeyVO implements HiveEntity {
 
     @NotNull
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
-    private Set<AccessKeyPermission> permissions;
+    private Set<AccessKeyPermissionVO> permissions;
 
     private long entityVersion;
 
@@ -96,11 +95,11 @@ public class AccessKeyVO implements HiveEntity {
         this.type = type;
     }
 
-    public Set<AccessKeyPermission> getPermissions() {
+    public Set<AccessKeyPermissionVO> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Set<AccessKeyPermission> permissions) {
+    public void setPermissions(Set<AccessKeyPermissionVO> permissions) {
         this.permissions = permissions;
     }
 

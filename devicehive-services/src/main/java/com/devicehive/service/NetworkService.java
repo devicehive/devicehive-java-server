@@ -68,9 +68,9 @@ public class NetworkService {
                     return found.stream().findFirst();
                 }).map(network -> {
                     if (principal.getKey() != null) {
-                        Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
-                        Set<AccessKeyPermission> filtered = CheckPermissionsHelper
-                                .filterPermissions(permissions, AccessKeyAction.GET_DEVICE,
+                        Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
+                        Set<AccessKeyPermissionVO> filtered = CheckPermissionsHelper
+                                .filterPermissions(principal.getKey(), permissions, AccessKeyAction.GET_DEVICE,
                                         details.getClientInetAddress(), details.getOrigin());
                         if (filtered.isEmpty()) {
                             network.setDevices(Collections.emptySet());

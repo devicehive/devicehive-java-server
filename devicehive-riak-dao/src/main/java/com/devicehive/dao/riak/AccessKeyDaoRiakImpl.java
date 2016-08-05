@@ -19,9 +19,8 @@ import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakAccessKey;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import com.devicehive.model.AccessKey;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,8 +37,11 @@ import java.util.stream.Collectors;
 public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao {
 
     private static final Namespace ACCESS_KEY_NS = new Namespace("accessKey");
+
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
             "accessKeyCounter");
+
+    private static final Namespace COUNTER_NS = new Namespace("counters", "access_key_permission_counters");
 
     @Autowired
     RiakClient client;
@@ -212,6 +214,44 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     }
 
     @Override
+    public int deleteByAccessKey(AccessKeyVO key) {
+        //TODO [rafa] that logic looks strange, i think in case of null we expected to clear whole collection.
+        if (key.getPermissions() != null) {
+            int result = key.getPermissions().size();
+            key.getPermissions().clear();
+            merge(key);
+            return result;
+        }
+        return 0;
+    }
+
+    @Override
+    public void persist(AccessKeyVO key, AccessKeyPermissionVO accessKeyPermission) {
+        merge(key, accessKeyPermission);
+    }
+
+    @Override
+    public AccessKeyPermissionVO merge(AccessKeyVO key, AccessKeyPermissionVO accessKeyPermission) {
+        AccessKeyVO accessKeyVO = find(key.getId());
+        if (accessKeyVO != null && accessKeyVO.getPermissions() != null) {
+            Iterator<AccessKeyPermissionVO> iterator = accessKeyVO.getPermissions().iterator();
+            while (iterator.hasNext()) {
+                AccessKeyPermissionVO next = iterator.next();
+                if (next.getId().equals(accessKeyPermission.getId())) {
+                    iterator.remove();
+                    break;
+                }
+            }
+
+            accessKeyVO.getPermissions().add(accessKeyPermission);
+
+            merge(accessKeyVO);
+        }
+
+        return accessKeyPermission;
+    }
+
+    @Override
     public List<AccessKeyVO> list(Long userId, String label,
                                   String labelPattern, Integer type,
                                   String sortField, Boolean sortOrderAsc,
@@ -314,13 +354,8 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             vo.setUser(user);
         }
 
-        if (key.getPermissions() != null) {
-            for (AccessKeyPermission permission : key.getPermissions()) {
-                permission.setAccessKey(AccessKey.convert(vo));
-            }
-        }
-
         return vo;
     }
+
 
 }

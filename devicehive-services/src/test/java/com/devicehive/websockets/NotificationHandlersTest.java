@@ -4,6 +4,7 @@ import com.devicehive.base.AbstractWebSocketMethodTest;
 import com.devicehive.base.fixture.JsonFixture;
 import com.devicehive.model.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -96,7 +97,7 @@ public class NotificationHandlersTest extends AbstractWebSocketMethodTest {
     public void should_return_401_response_for_key_if_action_is_not_allowed() throws Exception {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(UUID.randomUUID().toString());
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
         AccessKeyVO createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
@@ -139,7 +140,7 @@ public class NotificationHandlersTest extends AbstractWebSocketMethodTest {
     public void should_return_401_status_for_key_without_permission_to_subscribe() throws Exception {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(UUID.randomUUID().toString());
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
         AccessKeyVO createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),

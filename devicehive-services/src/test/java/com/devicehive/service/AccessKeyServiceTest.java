@@ -7,7 +7,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.AccessType;
@@ -65,7 +64,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         String label = RandomStringUtils.randomAlphabetic(10);
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(label);
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
         assertThat(accessKey, notNullValue());
 
@@ -74,7 +73,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         accessKey = new AccessKeyVO();
         accessKey.setLabel(label);
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKeyService.create(user, accessKey);
     }
 
@@ -104,7 +103,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
         accessKey.setType(AccessKeyType.SESSION);
 
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
         permission.setDomainArray("domain1", "domain2");
@@ -120,7 +119,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(created.getType(), equalTo(accessKey.getType()));
         assertThat(created.getPermissions(), hasSize(1));
 
-        AccessKeyPermission createdPermission = created.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO createdPermission = created.getPermissions().stream().findFirst().get();
         assertThat(createdPermission.getActionsAsSet(), hasSize(2));
         assertThat(createdPermission.getActionsAsSet(), hasItems(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue()));
         assertThat(createdPermission.getDeviceGuidsAsSet(), hasSize(3));
@@ -145,7 +144,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
 
         AccessKeyUpdate update = new AccessKeyUpdate();
@@ -165,14 +164,14 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
 
         AccessKeyUpdate update = new AccessKeyUpdate();
         update.setLabel(Optional.of(RandomStringUtils.randomAlphabetic(10)));
         update.setExpirationDate(Optional.of(new Date(0)));
         update.setType(Optional.of(AccessKeyType.SESSION.getValue()));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
         permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
         update.setPermissions(Optional.of(singleton(permission)));
@@ -183,7 +182,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(updated.getType(), equalTo(AccessKeyType.SESSION));
         assertThat(updated.getExpirationDate().getTime(), equalTo(update.getExpirationDate().get().getTime()));
         assertThat(updated.getPermissions(), hasSize(1));
-        AccessKeyPermission updatedPerm = updated.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO updatedPerm = updated.getPermissions().stream().findFirst().get();
         assertThat(updatedPerm.getActionsAsSet(), hasSize(2));
         assertThat(updatedPerm.getActionsAsSet(), hasItems(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue()));
         assertThat(updatedPerm.getDeviceGuidsAsSet(), hasSize(3));
@@ -207,7 +206,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey.setType(AccessKeyType.SESSION);
 
         ZonedDateTime initialDate = LocalDateTime.now().plusMinutes(1).atZone(ZoneId.systemDefault());
@@ -233,7 +232,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey.setType(AccessKeyType.SESSION);
 
         Date initial = new Date();
@@ -258,7 +257,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setKey(RandomStringUtils.random(20));
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey.setType(AccessKeyType.DEFAULT);
         accessKey = accessKeyService.create(user, accessKey);
 
@@ -286,7 +285,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(accessKey.getType(), equalTo(AccessKeyType.SESSION));
 
         assertThat(accessKey.getPermissions(), hasSize(1));
-        AccessKeyPermission permission = accessKey.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO permission = accessKey.getPermissions().stream().findFirst().get();
         assertThat(permission.getActions(), nullValue());
         assertThat(permission.getDeviceGuids(), nullValue());
         assertThat(permission.getNetworkIds(), nullValue());
@@ -312,7 +311,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(accessKey.getType(), equalTo(AccessKeyType.SESSION));
 
         assertThat(accessKey.getPermissions(), hasSize(1));
-        AccessKeyPermission permission = accessKey.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO permission = accessKey.getPermissions().stream().findFirst().get();
         assertThat(permission.getActionsAsSet(), hasSize(AvailableActions.getClientActions().length));
         assertThat(permission.getActionsAsSet(), hasItems(AvailableActions.getClientActions()));
         assertThat(permission.getDeviceGuids(), nullValue());
@@ -328,7 +327,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
 
         AccessKeyVO found = accessKeyService.find(accessKey.getId(), user.getId());
@@ -344,7 +343,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -364,7 +363,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -384,9 +383,9 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(singleton(-1L));
-        Set<AccessKeyPermission> permissions = new HashSet<>();
+        Set<AccessKeyPermissionVO> permissions = new HashSet<>();
         permissions.add(permission);
         accessKey.setPermissions(permissions);
         accessKey = accessKeyService.create(user, accessKey);
@@ -395,7 +394,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertFalse(accessKeyService.hasAccessToNetwork(accessKey, network));
 
         AccessKeyUpdate update = new AccessKeyUpdate();
-        permission = new AccessKeyPermission();
+        permission = new AccessKeyPermissionVO();
         permission.setNetworkIdsCollection(singleton(network.getId()));
         update.setPermissions(Optional.of(singleton(permission)));
         assertTrue(accessKeyService.update(user.getId(), accessKey.getId(), update));
@@ -431,7 +430,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(key.getPermissions(), notNullValue());
         assertThat(key.getPermissions(), hasSize(1));
         assertThat(key.getExpirationDate(), notNullValue());
-        AccessKeyPermission permission = key.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO permission = key.getPermissions().stream().findFirst().get();
         assertThat(permission.getActionsAsSet(), hasSize(1));
         assertThat(permission.getActionsAsSet(), hasItem(AccessKeyAction.GET_DEVICE.getValue()));
         assertThat(permission.getDomainsAsSet(), hasSize(1));
@@ -469,7 +468,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertThat(updated.getPermissions(), notNullValue());
         assertThat(updated.getPermissions(), hasSize(1));
         assertThat(updated.getExpirationDate(), notNullValue());
-        AccessKeyPermission permission = updated.getPermissions().stream().findFirst().get();
+        AccessKeyPermissionVO permission = updated.getPermissions().stream().findFirst().get();
         assertThat(permission.getActionsAsSet(), hasSize(1));
         assertThat(permission.getActionsAsSet(), hasItem(AccessKeyAction.MANAGE_ACCESS_KEY.getValue()));
         assertThat(permission.getDomainsAsSet(), hasSize(1));
@@ -500,7 +499,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setPermissions(singleton(new AccessKeyPermission()));
+        accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey = accessKeyService.create(user, accessKey);
 
         assertTrue(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
@@ -530,7 +529,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDeviceGuidsCollection(Arrays.asList(device.getGuid().orElse(null)));
         accessKey.setPermissions(singleton(permission));
         accessKey = accessKeyService.create(user, accessKey);
@@ -560,7 +559,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        AccessKeyPermission permission = new AccessKeyPermission();
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDeviceGuids(null);
         accessKey.setPermissions(singleton(permission));
         accessKey = accessKeyService.create(user, accessKey);
@@ -578,7 +577,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 50; i++) {
             AccessKeyVO accessKey = new AccessKeyVO();
             accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-            accessKey.setPermissions(singleton(new AccessKeyPermission()));
+            accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
             accessKey.setType(AccessKeyType.DEFAULT);
             accessKeyService.create(user, accessKey);
         }

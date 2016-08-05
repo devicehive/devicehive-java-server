@@ -25,9 +25,6 @@ public class InitialDataLoader {
     AccessKeyDao accessKeyDao;
 
     @Autowired
-    AccessKeyPermissionDao accessKeyPermissionDao;
-
-    @Autowired
     ConfigurationDao configurationDao;
 
     @Autowired
@@ -56,9 +53,7 @@ public class InitialDataLoader {
         key.setUser(user);
         key.setEntityVersion(1);
         key.setPermissions(new HashSet<>());
-        AccessKeyPermission permission = new AccessKeyPermission();
-        permission.setAccessKey(AccessKey.convert(key));
-        permission.setEntityVersion(1L);
+        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         key.getPermissions().add(permission);
         accessKeyDao.persist(key);
 
@@ -128,9 +123,7 @@ public class InitialDataLoader {
         key.setType(AccessKeyType.DEFAULT);
         key.setEntityVersion(1);
         key.setPermissions(new HashSet<>());
-        AccessKeyPermission permission2 = new AccessKeyPermission();
-        permission.setAccessKey(AccessKey.convert(key));
-        permission.setEntityVersion(1L);
+        AccessKeyPermissionVO permission2 = new AccessKeyPermissionVO();
         key.getPermissions().add(permission2);
         accessKeyDao.persist(key);
 

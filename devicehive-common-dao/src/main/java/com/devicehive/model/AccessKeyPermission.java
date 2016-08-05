@@ -3,6 +3,7 @@ package com.devicehive.model;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.google.gson.*;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -11,8 +12,10 @@ import javax.persistence.*;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -103,90 +106,8 @@ public class AccessKeyPermission implements HiveEntity {
         return domains;
     }
 
-    public void setDomainArray(String... domains) {
-        Gson gson = GsonFactory.createGson();
-        this.domains = new JsonStringWrapper(gson.toJsonTree(domains).toString());
-    }
-
     public void setDomains(JsonStringWrapper domains) {
         this.domains = domains;
-    }
-
-    public Set<String> getDomainsAsSet() {
-        return getJsonAsSet(domains);
-    }
-
-    public Set<Subnet> getSubnetsAsSet() {
-        if (subnets == null) {
-            return null;
-        }
-        JsonParser parser = new JsonParser();
-        JsonElement elem = parser.parse(subnets.getJsonString());
-        if (elem instanceof JsonNull) {
-            return null;
-        }
-        if (elem instanceof JsonArray) {
-            JsonArray json = (JsonArray) elem;
-            Set<Subnet> result = new HashSet<>(json.size());
-            for (JsonElement current : json) {
-                if (!current.isJsonNull()) {
-                    result.add(new Subnet(current.getAsString()));
-                } else {
-                    result.add(null);
-                }
-            }
-            return result;
-        }
-        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
-    }
-
-    public Set<String> getActionsAsSet() {
-        return getJsonAsSet(actions);
-    }
-
-    public Set<String> getDeviceGuidsAsSet() {
-        return getJsonAsSet(deviceGuids);
-    }
-
-    public Set<Long> getNetworkIdsAsSet() {
-        if (networkIds == null) {
-            return null;
-        }
-        JsonParser parser = new JsonParser();
-        JsonElement elem = parser.parse(networkIds.getJsonString());
-        if (elem instanceof JsonNull) {
-            return null;
-        }
-        if (elem instanceof JsonArray) {
-            JsonArray json = (JsonArray) elem;
-            Set<Long> result = new HashSet<>(json.size());
-            for (JsonElement current : json) {
-                result.add(current.getAsLong());
-            }
-            return result;
-        }
-        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
-    }
-
-    private Set<String> getJsonAsSet(JsonStringWrapper wrapper) {
-        if (wrapper == null) {
-            return null;
-        }
-        JsonParser parser = new JsonParser();
-        JsonElement elem = parser.parse(wrapper.getJsonString());
-        if (elem instanceof JsonNull) {
-            return null;
-        }
-
-        if (elem instanceof JsonArray) {
-            JsonArray json = (JsonArray) elem;
-            Set<String> result = new HashSet<>(json.size());
-            for (JsonElement current : json) {
-                result.add(current.getAsString());
-            }
-            return result;
-        }
-        throw new HiveException("JSON array expected!", HttpServletResponse.SC_BAD_REQUEST);
     }
 
     public JsonStringWrapper getSubnets() {
@@ -197,11 +118,6 @@ public class AccessKeyPermission implements HiveEntity {
         this.subnets = subnets;
     }
 
-    public void setSubnetsArray(String... subnets) {
-        Gson gson = GsonFactory.createGson();
-        this.subnets = new JsonStringWrapper(gson.toJsonTree(subnets).toString());
-    }
-
     public JsonStringWrapper getActions() {
         return actions;
     }
@@ -210,22 +126,12 @@ public class AccessKeyPermission implements HiveEntity {
         this.actions = actions;
     }
 
-    public void setActionsArray(String... actions) {
-        Gson gson = GsonFactory.createGson();
-        this.actions = new JsonStringWrapper(gson.toJsonTree(actions).toString());
-    }
-
     public JsonStringWrapper getNetworkIds() {
         return networkIds;
     }
 
     public void setNetworkIds(JsonStringWrapper networkIds) {
         this.networkIds = networkIds;
-    }
-
-    public void setNetworkIdsCollection(Collection<Long> actions) {
-        Gson gson = GsonFactory.createGson();
-        this.networkIds = new JsonStringWrapper(gson.toJsonTree(actions).toString());
     }
 
     public JsonStringWrapper getDeviceGuids() {
@@ -239,5 +145,53 @@ public class AccessKeyPermission implements HiveEntity {
     public void setDeviceGuidsCollection(Collection<String> deviceGuids) {
         Gson gson = GsonFactory.createGson();
         this.deviceGuids = new JsonStringWrapper(gson.toJsonTree(deviceGuids).toString());
+    }
+
+    public static AccessKeyPermission convert(AccessKeyPermissionVO accessKey) {
+        AccessKeyPermission result = null;
+        if (accessKey != null) {
+            result = new AccessKeyPermission();
+            result.setId(accessKey.getId());
+            result.setActions(accessKey.getActions());
+            result.setDeviceGuids(accessKey.getDeviceGuids());
+            result.setDomains(accessKey.getDomains());
+            result.setNetworkIds(accessKey.getNetworkIds());
+            result.setSubnets(accessKey.getSubnets());
+        }
+        return result;
+    }
+
+    public static AccessKeyPermissionVO convert(AccessKeyPermission accessKey) {
+        AccessKeyPermissionVO result = null;
+        if (accessKey != null) {
+            result = new AccessKeyPermissionVO();
+            result.setId(accessKey.getId());
+            result.setActions(accessKey.getActions());
+            result.setDeviceGuids(accessKey.getDeviceGuids());
+            result.setDomains(accessKey.getDomains());
+            result.setNetworkIds(accessKey.getNetworkIds());
+            result.setSubnets(accessKey.getSubnets());
+        }
+        return result;
+    }
+
+    public static Set<AccessKeyPermission> convertToEntity(Collection<AccessKeyPermissionVO> accessKeys) {
+        Set<AccessKeyPermission> result = null;
+        if (accessKeys != null) {
+            result = accessKeys.stream().map(AccessKeyPermission::convert).collect(Collectors.toSet());
+        } else {
+            result = Collections.emptySet();
+        }
+        return result;
+    }
+
+    public static Set<AccessKeyPermissionVO> converttoVO(Collection<AccessKeyPermission> accessKeys) {
+        Set<AccessKeyPermissionVO> result = null;
+        if (accessKeys != null) {
+            result = accessKeys.stream().map(AccessKeyPermission::convert).collect(Collectors.toSet());
+        } else {
+            result = Collections.emptySet();
+        }
+        return result;
     }
 }

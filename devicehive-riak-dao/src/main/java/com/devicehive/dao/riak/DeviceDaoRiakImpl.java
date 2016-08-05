@@ -24,10 +24,7 @@ import com.devicehive.dao.riak.model.RiakDevice;
 import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.*;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -386,9 +383,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 }
 
                 if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                    Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+                    Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
                     Set<String> deviceGuids = new HashSet<>();
-                    for (AccessKeyPermission permission : permissions) {
+                    for (AccessKeyPermissionVO permission : permissions) {
                         Set<String> guid = permission.getDeviceGuidsAsSet();
                         if (guid != null) {
                             deviceGuids.addAll(guid);

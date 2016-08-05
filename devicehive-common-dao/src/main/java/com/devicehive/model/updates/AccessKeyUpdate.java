@@ -5,6 +5,7 @@ import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 
 import java.util.Date;
@@ -24,7 +25,7 @@ public class AccessKeyUpdate implements HiveEntity {
     private Optional<Date> expirationDate;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
-    private Optional<Set<AccessKeyPermission>> permissions;
+    private Optional<Set<AccessKeyPermissionVO>> permissions;
 
     @JsonPolicyDef(ACCESS_KEY_PUBLISHED)
     private Optional<Integer> type;
@@ -47,11 +48,11 @@ public class AccessKeyUpdate implements HiveEntity {
     }
 
 
-    public Optional<Set<AccessKeyPermission>> getPermissions() {
+    public Optional<Set<AccessKeyPermissionVO>> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Optional<Set<AccessKeyPermission>> permissions) {
+    public void setPermissions(Optional<Set<AccessKeyPermissionVO>> permissions) {
         this.permissions = permissions;
     }
 

@@ -2,6 +2,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
 import com.google.gson.annotations.SerializedName;
@@ -157,7 +158,8 @@ public class AccessKey implements HiveEntity {
             result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
-            result.setPermissions(accessKey.getPermissions());
+            Set<AccessKeyPermission> permissions = AccessKeyPermission.convertToEntity(accessKey.getPermissions());
+            result.setPermissions(permissions);
             result.setEntityVersion(accessKey.getEntityVersion());
             return result;
         } else {
@@ -175,7 +177,8 @@ public class AccessKey implements HiveEntity {
             result.setUser(user);
             result.setExpirationDate(accessKey.getExpirationDate());
             result.setType(accessKey.getType());
-            result.setPermissions(accessKey.getPermissions());
+            Set<AccessKeyPermissionVO> permissions = AccessKeyPermission.converttoVO(accessKey.getPermissions());
+            result.setPermissions(permissions);
             result.setEntityVersion(accessKey.getEntityVersion());
             return result;
         } else {

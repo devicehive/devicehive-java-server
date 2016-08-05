@@ -22,10 +22,7 @@ import com.devicehive.dao.riak.model.RiakNetwork;
 import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.AccessKeyPermission;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -256,9 +253,9 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                 }
 
                 if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                    Set<AccessKeyPermission> permissions = principal.getKey().getPermissions();
+                    Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
                     Set<Long> ids = new HashSet<>();
-                    for (AccessKeyPermission permission : permissions) {
+                    for (AccessKeyPermissionVO permission : permissions) {
                         Set<Long> id = permission.getNetworkIdsAsSet();
                         if (id != null) {
                             ids.addAll(id);

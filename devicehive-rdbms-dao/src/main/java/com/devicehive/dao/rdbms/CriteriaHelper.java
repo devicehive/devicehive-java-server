@@ -3,6 +3,7 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
+import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
@@ -52,7 +53,7 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
-    public static Predicate[] networkPermissionsPredicates(CriteriaBuilder cb, Root<?> from, Set<AccessKeyPermission> permissions) {
+    public static Predicate[] networkPermissionsPredicates(CriteriaBuilder cb, Root<?> from, Set<AccessKeyPermissionVO> permissions) {
         List<Predicate> predicates = new ArrayList<>();
         for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(permissions)) {
             List<Predicate> filter = new ArrayList<>();

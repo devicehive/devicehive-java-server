@@ -1,7 +1,6 @@
 package com.devicehive.dao;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.User;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
