@@ -120,8 +120,7 @@ public class AccessKeyService {
             }
         }
 
-        //todo: [gpopov] implement merge with permissions after complete migration on VO
-        //TODO that operation should be cascaded.
+        //TODO [rafa] there are several operations removed, we need to restore it.
 //            Set<AccessKeyPermission> permissionsToReplace = toUpdate.getPermissions().get();
 //            AccessKeyVO toValidate = toUpdate.convertTo();
 //            authenticationUtils.validateActions(toValidate);
@@ -275,16 +274,9 @@ public class AccessKeyService {
         return newKey;
     }
 
-    private void deleteAccessKeyPermissions(AccessKeyVO key) {
-        logger.debug("Deleting all permission of access key {}", key.getId());
-        int deleted = accessKeyDao.deleteByAccessKey(key);
-        logger.info("Deleted {} permissions by access key {}", deleted, key.getId());
-    }
-
     @Transactional
     public AccessKeyVO updateAccessKeyFromOAuthGrant(OAuthGrantVO grant, UserVO user, Date now) {
         AccessKeyVO existing = find(grant.getAccessKey().getId(), user.getId());
-        deleteAccessKeyPermissions(existing);
         if (grant.getAccessType().equals(AccessType.ONLINE)) {
             Date expirationDate = new Date(now.getTime() + 600000);  //the key is valid for 10 minutes
             existing.setExpirationDate(expirationDate);
