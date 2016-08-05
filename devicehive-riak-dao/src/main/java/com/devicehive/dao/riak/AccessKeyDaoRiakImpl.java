@@ -234,10 +234,11 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
     public AccessKeyPermissionVO merge(AccessKeyVO key, AccessKeyPermissionVO accessKeyPermission) {
         AccessKeyVO accessKeyVO = find(key.getId());
         if (accessKeyVO != null && accessKeyVO.getPermissions() != null) {
+            //todo since permissions are stored inside the access key now, do we still need this cleanup?
             Iterator<AccessKeyPermissionVO> iterator = accessKeyVO.getPermissions().iterator();
             while (iterator.hasNext()) {
                 AccessKeyPermissionVO next = iterator.next();
-                if (next.getId().equals(accessKeyPermission.getId())) {
+                if (accessKeyPermission.getId() != null && next.getId().equals(accessKeyPermission.getId())) {
                     iterator.remove();
                     break;
                 }
