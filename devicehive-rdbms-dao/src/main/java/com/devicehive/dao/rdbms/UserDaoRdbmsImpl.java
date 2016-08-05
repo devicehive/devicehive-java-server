@@ -98,12 +98,17 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
                 .setParameter("id", id)
                 .getResultList()
                 .stream().findFirst().orElse(null);
+        if (user == null) {
+            return null;
+        }
         UserVO vo = User.convertToVo(user);
         UserWithNetworkVO userWithNetworkVO = UserWithNetworkVO.fromUserVO(vo);
         //TODO [rafa] change here to bulk fetch data
-        for (Network network : user.getNetworks()) {
-            NetworkVO networkVo = Network.convertNetwork(network);
-            userWithNetworkVO.getNetworks().add(networkVo);
+        if (user.getNetworks() != null) {
+            for (Network network : user.getNetworks()) {
+                NetworkVO networkVo = Network.convertNetwork(network);
+                userWithNetworkVO.getNetworks().add(networkVo);
+            }
         }
         return userWithNetworkVO;
     }
