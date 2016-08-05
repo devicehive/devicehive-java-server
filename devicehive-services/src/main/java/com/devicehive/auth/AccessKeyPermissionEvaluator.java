@@ -1,6 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;

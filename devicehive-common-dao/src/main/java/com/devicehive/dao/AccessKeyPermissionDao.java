@@ -1,6 +1,5 @@
 package com.devicehive.dao;
 
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.vo.AccessKeyVO;
 

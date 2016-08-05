@@ -4,6 +4,7 @@ import com.devicehive.base.AbstractWebSocketMethodTest;
 import com.devicehive.base.fixture.JsonFixture;
 import com.devicehive.model.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.vo.AccessKeyVO;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -93,13 +94,13 @@ public class NotificationHandlersTest extends AbstractWebSocketMethodTest {
     //fixme: authorized requests without permissions should return 403 error instead of 401
     @Test
     public void should_return_401_response_for_key_if_action_is_not_allowed() throws Exception {
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(UUID.randomUUID().toString());
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
-        AccessKey createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
-                singletonMap("Authorization", basicAuthHeader(ADMIN_LOGIN, "admin_pass")), accessKey, CREATED, AccessKey.class);
+        AccessKeyVO createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
+                singletonMap("Authorization", basicAuthHeader(ADMIN_LOGIN, "admin_pass")), accessKey, CREATED, AccessKeyVO.class);
         assertThat(createKey, notNullValue());
         assertThat(createKey.getKey(), notNullValue());
 
@@ -136,13 +137,13 @@ public class NotificationHandlersTest extends AbstractWebSocketMethodTest {
     //fixme: authorized requests without permissions should return 403 error instead of 401
     @Test
     public void should_return_401_status_for_key_without_permission_to_subscribe() throws Exception {
-        AccessKey accessKey = new AccessKey();
+        AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setLabel(UUID.randomUUID().toString());
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AvailableActions.GET_DEVICE);
         accessKey.setPermissions(Collections.singleton(permission));
-        AccessKey createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
-                singletonMap("Authorization", basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), accessKey, CREATED, AccessKey.class);
+        AccessKeyVO createKey = performRequest("/user/1/accesskey", "POST", emptyMap(),
+                singletonMap("Authorization", basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), accessKey, CREATED, AccessKeyVO.class);
         assertThat(createKey, notNullValue());
         assertThat(createKey.getKey(), notNullValue());
 

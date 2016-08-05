@@ -9,11 +9,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -190,20 +186,19 @@ public class DeviceResourceTest extends AbstractResourceTest {
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
-        AccessKey key = new AccessKey();
+        AccessKeyVO key = new AccessKeyVO();
         key.setType(AccessKeyType.DEFAULT);
         key.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));
-        //TODO [Anton] needs to be VO i suppose
-        User usr = new User();
+        UserVO usr = new UserVO();
         usr.setId(user.getId());
         key.setUser(usr);
 
         //Create key for user
-        key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKey.class);
+        key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKeyVO.class);
         assertThat(key.getId(), Matchers.notNullValue());
 
         //testing that user has no access to device
@@ -244,20 +239,19 @@ public class DeviceResourceTest extends AbstractResourceTest {
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
-        AccessKey key = new AccessKey();
+        AccessKeyVO key = new AccessKeyVO();
         key.setType(AccessKeyType.DEFAULT);
         key.setLabel(RandomStringUtils.randomAlphabetic(10));
         AccessKeyPermission permission = new AccessKeyPermission();
         permission.setActionsArray(AvailableActions.getClientActions());
         permission.setDeviceGuidsCollection(singleton("9999999"));
         key.setPermissions(singleton(permission));
-        //TODO [Anton] needs to be VO i suppose
-        User usr = new User();
+        UserVO usr = new UserVO();
         usr.setId(user.getId());
         key.setUser(usr);
 
         //Create key for user
-        key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKey.class);
+        key = performRequest("/user/current/accesskey", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), key, CREATED, AccessKeyVO.class);
         assertThat(key.getId(), Matchers.notNullValue());
 
         //testing that user has no access to network

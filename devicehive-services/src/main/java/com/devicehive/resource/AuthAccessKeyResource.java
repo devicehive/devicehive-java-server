@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
-import com.devicehive.model.AccessKey;
 import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.AccessKeyVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -22,7 +22,7 @@ public interface AuthAccessKeyResource {
     @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level access key.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns the object with the following properties in the response body.",
-                    response = AccessKey.class),
+                    response = AccessKeyVO.class),
             @ApiResponse(code = 403, message = "If identity provider is not allowed")
     })
     Response login(

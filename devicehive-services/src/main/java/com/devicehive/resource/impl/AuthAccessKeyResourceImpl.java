@@ -2,7 +2,6 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.AccessKey;
 import com.devicehive.vo.AccessKeyRequestVO;
 import com.devicehive.model.oauth.IdentityProviderEnum;
 import com.devicehive.resource.AuthAccessKeyResource;

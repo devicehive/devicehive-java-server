@@ -318,9 +318,8 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             for (AccessKeyPermission permission : key.getPermissions()) {
                 permission.setAccessKey(AccessKey.convert(vo));
             }
-        } else {
-
         }
+
         return vo;
     }
 

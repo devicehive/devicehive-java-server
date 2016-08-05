@@ -1,7 +1,6 @@
 package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
-import com.devicehive.model.AccessKey;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.vo.AccessKeyVO;
 import io.swagger.annotations.*;
@@ -35,7 +34,7 @@ public interface AccessKeyResource {
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "If successful, this method returns array of AccessKey resources in the response body.",
-                    response = AccessKey.class,
+                    response = AccessKeyVO.class,
                     responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
@@ -83,7 +82,7 @@ public interface AccessKeyResource {
     @ApiOperation(value = "Get user's access key", notes = "Gets information about access key and its permissions.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a AccessKey resource in the response body.",
-                    response = AccessKey.class),
+                    response = AccessKeyVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -111,7 +110,7 @@ public interface AccessKeyResource {
     @ApiResponses(value = {
             @ApiResponse(code = 201,
                     message = "If successful, this method returns a AccessKey resource in the response body.",
-                    response = AccessKey.class),
+                    response = AccessKeyVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
