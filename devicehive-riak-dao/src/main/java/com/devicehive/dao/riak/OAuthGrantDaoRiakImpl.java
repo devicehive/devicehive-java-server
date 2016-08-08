@@ -45,9 +45,10 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoRiakImpl.class);
 
-    private static final Namespace COUNTER_NS = new Namespace("counters", "oauth_grant_counters");
-
     private static final Namespace OAUTH_GRANT_NS = new Namespace("oauth_grant");
+
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "oauthGrantCounter");
 
     @Autowired
     private RiakClient client;
@@ -64,13 +65,10 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     @Autowired
     private RiakQuorum quorum;
 
-    private Location oauthGrantCounters;
 
     private final Map<String, String> sortMap = new HashMap<>();
 
     public OAuthGrantDaoRiakImpl() {
-        oauthGrantCounters = new Location(COUNTER_NS, "oauth_grant_counter");
-
         sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("timestamp", "function(a,b){ return a.timestamp %s b.timestamp; }");
         sortMap.put("authCode", "function(a,b){ return a.authCode %s b.authCode; }");
@@ -185,7 +183,7 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
     public OAuthGrantVO merge(OAuthGrantVO oAuthGrant) {
         try {
             if (oAuthGrant.getId() == null) {
-                oAuthGrant.setId(getId(oauthGrantCounters));
+                oAuthGrant.setId(getId(COUNTERS_LOCATION));
             }
             AccessKeyVO accessKey = oAuthGrant.getAccessKey();
             Location location = new Location(OAUTH_GRANT_NS, String.valueOf(oAuthGrant.getId()));

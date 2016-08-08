@@ -23,8 +23,9 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements DeviceEquipmentDao {
 
-    private static final Namespace COUNTER_NS = new Namespace("counters", "device_equipment_counters");
     private static final Namespace DEVICE_EQUIPMENT_NS = new Namespace("device_equipment");
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "deviceEquipmentCounter");
 
     @Autowired
     private RiakClient client;
@@ -80,10 +81,9 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
         RiakDeviceEquipment deviceEquipment = RiakDeviceEquipment.convertToEntity(entity);
         deviceEquipment.setDevice(device.getGuid());
 
-        Location deviceEquipmentCounters = new Location(COUNTER_NS, "device_equipment_counter");
         try {
             if (deviceEquipment.getId() == null) {
-                deviceEquipment.setId(getId(deviceEquipmentCounters));
+                deviceEquipment.setId(getId(COUNTERS_LOCATION));
             }
             Location location = new Location(DEVICE_EQUIPMENT_NS, String.valueOf(deviceEquipment.getId()));
             StoreValue storeOp = new StoreValue.Builder(deviceEquipment)

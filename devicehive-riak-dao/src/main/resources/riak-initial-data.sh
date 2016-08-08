@@ -31,7 +31,7 @@ curl -XPUT \
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
-    'http://127.0.0.1:8098/types/counters/buckets/user_counters/datatypes/user_counter'
+    'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/userCounter'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
@@ -54,7 +54,7 @@ curl -XPUT \
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
-    'http://127.0.0.1:8098/types/counters/buckets/check_counters/datatypes/accessKeyCounter'
+    'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/accessKeyCounter'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
@@ -65,7 +65,7 @@ curl -XPUT \
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
-    'http://127.0.0.1:8098/types/counters/buckets/check_counters/datatypes/deviceClassCounter'
+    'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/deviceClassCounter'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
@@ -76,7 +76,7 @@ curl -XPUT \
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
-    'http://127.0.0.1:8098/types/counters/buckets/network_counters/datatypes/network_counter'
+    'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/networkCounter'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
@@ -87,7 +87,7 @@ curl -XPUT \
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
-    'http://127.0.0.1:8098/types/counters/buckets/device_counters/datatypes/device_counter'
+    'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/deviceCounter'
 
 curl -XPUT \
     -H "Content-Type: application/json" \

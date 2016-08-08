@@ -37,8 +37,10 @@ import java.util.stream.Collectors;
 @Repository
 public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
 
-    private static final Namespace COUNTER_NS = new Namespace("counters", "user_counters");
     private static final Namespace USER_NS = new Namespace("user");
+
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "userCounter");
 
     @Autowired
     private RiakClient client;
@@ -58,13 +60,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Autowired
     private RiakQuorum quorum;
 
-    private Location userCounters;
-
     private final Map<String, String> sortMap = new HashMap<>();
 
     public UserDaoRiakImpl() {
-        userCounters = new Location(COUNTER_NS, "user_counter");
-
         sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("login", "function(a,b){ return a.login %s b.login; }");
         sortMap.put("role", "function(a,b){ return a.role %s b.role; }");
@@ -217,7 +215,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         RiakUser entity = RiakUser.convertToEntity(user);
         try {
             if (entity.getId() == null) {
-                entity.setId(getId(userCounters));
+                entity.setId(getId(COUNTERS_LOCATION));
             }
             Location location = new Location(USER_NS, String.valueOf(entity.getId()));
             StoreValue storeOp = new StoreValue.Builder(entity)

@@ -36,10 +36,10 @@ import java.util.stream.Stream;
 @Repository
 public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
-    private static final Namespace COUNTER_NS = new Namespace("counters", "network_counters");
     private static final Namespace NETWORK_NS = new Namespace("network");
 
-    private Location networkCounter = new Location(COUNTER_NS, "network_counter");
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "networkCounter");
 
     @Autowired
     private RiakClient client;
@@ -89,7 +89,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     @Override
     public void persist(@NotNull NetworkVO newNetwork) {
         if (newNetwork.getId() == null) {
-            newNetwork.setId(getId(networkCounter));
+            newNetwork.setId(getId(COUNTERS_LOCATION));
         }
         RiakNetwork network = RiakNetwork.convert(newNetwork);
 

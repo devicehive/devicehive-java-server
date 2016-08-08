@@ -32,7 +32,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
 
     private static final Namespace DEVICE_CLASS_NS = new Namespace("deviceClass");
 
-    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceClassCounter");
 
     @Autowired

@@ -38,10 +38,8 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
     private static final Namespace ACCESS_KEY_NS = new Namespace("accessKey");
 
-    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "check_counters"),
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "accessKeyCounter");
-
-    private static final Namespace COUNTER_NS = new Namespace("counters", "access_key_permission_counters");
 
     @Autowired
     RiakClient client;

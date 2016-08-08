@@ -34,9 +34,10 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
 
     private static final Logger logger = LoggerFactory.getLogger(OAuthClientDaoRiakImpl.class);
 
-    private static final Namespace COUNTER_NS = new Namespace("counters", "oauth_client_counters");
-
     private static final Namespace OAUTH_CLIENT_NS = new Namespace("oauth_client");
+
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "oauthClientCounter");
 
     @Autowired
     private RiakClient client;
@@ -44,13 +45,9 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     @Autowired
     private RiakQuorum quorum;
 
-    private Location oauthClientCounters;
-
     private final Map<String, String> sortMap = new HashMap<>();
 
     public OAuthClientDaoRiakImpl() {
-        oauthClientCounters = new Location(COUNTER_NS, "oauth_client_counter");
-
         sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
         sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
         sortMap.put("domain", "function(a,b){ return a.domain %s b.domain; }");
@@ -157,7 +154,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     public OAuthClientVO merge(OAuthClientVO oAuthClient) {
         try {
             if (oAuthClient.getId() == null) {
-                oAuthClient.setId(getId(oauthClientCounters));
+                oAuthClient.setId(getId(COUNTERS_LOCATION));
             }
             Location location = new Location(OAUTH_CLIENT_NS, String.valueOf(oAuthClient.getId()));
             StoreValue storeOp = new StoreValue.Builder(RiakOAuthClient.convert(oAuthClient))

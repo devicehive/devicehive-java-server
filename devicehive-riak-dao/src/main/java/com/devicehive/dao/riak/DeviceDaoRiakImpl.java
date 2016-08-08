@@ -44,8 +44,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     private static final Logger logger = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
 
     private static final Namespace DEVICE_NS = new Namespace("device");
-    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "device_counters"),
-            "device_counter");
+    private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
+            "deviceCounter");
 
     @Autowired
     private RiakClient client;
