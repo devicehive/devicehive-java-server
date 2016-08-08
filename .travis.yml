@@ -8,7 +8,9 @@ services:
   - postgresql
 before_script:
   sh -c "if [ '$DB' = 'riak' ]; then echo 1111; fi"
-script: 'mvn clean install -Pundertow,booted-$DB'
+script:
+  sh -c "if [ '$DB' = 'riak' ]; then mvn clean install -Pundertow,booted-riak; fi"
+  sh -c "if [ '$DB' = 'rdbms' ]; then mvn clean install -Pundertow,booted-rdbms; fi"
 sudo: false
 deploy:
   provider: releases
