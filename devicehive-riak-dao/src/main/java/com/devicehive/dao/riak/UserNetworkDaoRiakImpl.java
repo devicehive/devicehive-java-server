@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class UserNetworkDaoRiakImpl extends RiakGenericDao {
 
-    private static final Namespace USER_NETWORK_NS = new Namespace("userNetwork");
+    private static final Namespace USER_NETWORK_NS = new Namespace("user_network");
 
     @Autowired
     private RiakClient client;

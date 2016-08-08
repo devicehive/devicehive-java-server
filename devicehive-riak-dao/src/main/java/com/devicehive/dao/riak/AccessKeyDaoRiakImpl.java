@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @Repository
 public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao {
 
-    private static final Namespace ACCESS_KEY_NS = new Namespace("accessKey");
+    private static final Namespace ACCESS_KEY_NS = new Namespace("access_key");
 
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "accessKeyCounter");

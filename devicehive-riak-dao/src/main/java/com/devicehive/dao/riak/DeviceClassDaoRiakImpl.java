@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 @Repository
 public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClassDao {
 
-    private static final Namespace DEVICE_CLASS_NS = new Namespace("deviceClass");
+    private static final Namespace DEVICE_CLASS_NS = new Namespace("device_class");
 
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceClassCounter");

@@ -40,7 +40,7 @@ curl -XPUT \
     -H 'x-riak-index-key_bin: 1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=' \
     -H 'x-riak-index-expirationDate_int: -1' \
     -d "{\"id\": 1, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":2,\"login\":\"test_admin\",\"passwordHash\":\"+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=\",\"passwordSalt\":\"9KynX3ShWnFym4y8Dla039py\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":1,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
-    'http://127.0.0.1:8098/types/default/buckets/accessKey/keys/1'
+    'http://127.0.0.1:8098/types/default/buckets/access_key/keys/1'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
@@ -49,7 +49,7 @@ curl -XPUT \
     -H 'x-riak-index-key_bin: 1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=' \
     -H 'x-riak-index-expirationDate_int: -1' \
     -d "{\"id\": 2, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":1,\"login\":\"dhadmin\",\"passwordHash\":\"DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=\",\"passwordSalt\":\"sjQbZgcCmFxqTV4CCmGwpIHO\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":0,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
-    'http://127.0.0.1:8098/types/default/buckets/accessKey/keys/2'
+    'http://127.0.0.1:8098/types/default/buckets/access_key/keys/2'
 
 curl -XPOST \
     -H "Content-Type: application/json" \
@@ -60,7 +60,7 @@ curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-name_bin: Sample VirtualLed Device' \
     -d "{\"id\":1, \"name\":\"Sample VirtualLed Device\", \"permanent\": false, \"offlineTimeout\": 600, \"data\":null,\"equipment\":[]}" \
-    'http://127.0.0.1:8098/types/default/buckets/deviceClass/keys/1'
+    'http://127.0.0.1:8098/types/default/buckets/device_class/keys/1'
 
 curl -XPOST \
     -H "Content-Type: application/json" \

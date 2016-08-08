@@ -20,7 +20,7 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
 
-    private static final Namespace NETWORK_DEVICE_NS = new Namespace("networkDevice");
+    private static final Namespace NETWORK_DEVICE_NS = new Namespace("network_device");
 
     @Autowired
     private RiakClient client;
