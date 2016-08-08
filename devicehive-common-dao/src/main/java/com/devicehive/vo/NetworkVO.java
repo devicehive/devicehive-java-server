@@ -4,6 +4,9 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class NetworkVO implements HiveEntity {
@@ -12,12 +15,17 @@ public class NetworkVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
     @SerializedName("key")
+    @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String key;
     @SerializedName("name")
+    @NotNull(message = "name field cannot be null.")
+    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
+            "symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
     @SerializedName("description")
+    @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED,
             NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;

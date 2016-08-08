@@ -74,6 +74,7 @@ public class DeviceClassService {
         if (deviceClass.getIsPermanent() == null) {
             deviceClass.setIsPermanent(false);
         }
+        hiveValidator.validate(deviceClass);
         deviceClass = deviceClassDao.persist(deviceClass);
         // TODO [rafa] looks strange, very strange
 //        if (deviceClass.getEquipment() != null) {
