@@ -6,7 +6,7 @@
 
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
-    <packaging>${packaging.type}</packaging>
+    <packaging>pom</packaging>
     <version>2.1.0-SNAPSHOT</version>
     <name>DeviceHive Java Server</name>
 
@@ -67,6 +67,13 @@
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
     </properties>
+
+    <modules>
+        <module>devicehive-common-dao</module>
+        <module>devicehive-rdbms-dao</module>
+        <module>devicehive-riak-dao</module>
+        <module>devicehive-services</module>
+    </modules>
 
     <dependencies>
         <dependency>
@@ -463,9 +470,8 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
     <build>
-        <finalName>devicehive-${project.version}</finalName>
+        <!--<finalName>devicehive-${project.version}</finalName>-->
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -606,29 +612,6 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <version>${springboot.version}</version>
-                    <configuration>
-                        <classifier>boot</classifier>
-                        <addResources>false</addResources>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>repackage</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.springframework</groupId>
-                            <artifactId>springloaded</artifactId>
-                            <version>${springloaded.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-                <plugin>
                     <groupId>com.spotify</groupId>
                     <artifactId>docker-maven-plugin</artifactId>
                     <version>${docker-maven-plugin.version}</version>
@@ -647,96 +630,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <profiles>
-        <profile>
-            <id>undertow</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-undertow</artifactId>
-                    <version>${springboot.version}</version>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>embedded-tomcat</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <version>${springboot.version}</version>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <id>web-archive</id>
-            <properties>
-                <packaging.type>war</packaging.type>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <version>${springboot.version}</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.tomcat</groupId>
-                    <artifactId>tomcat-websocket</artifactId>
-                    <version>${tomcat.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>test-port-override</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
-                        <configuration>
-                            <argLine>
-                                -Dport=${server.test.port} -Dzk.port=${zk.test.port}
-                                -Dkafka.port=${kafka.test.port}
-                            </argLine>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
