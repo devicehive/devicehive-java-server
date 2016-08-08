@@ -3,7 +3,12 @@ jdk: oraclejdk8
 env:
   - DB=rbdms
   - DB=riak
-script: "mvn clean install -Pundertow,booted-${DB}"
+services:
+  - riak
+  - postgresql
+before_script:
+  sh -c "if [ '$DB' = 'riak' ]; then echo 1111; fi"
+script: 'mvn clean install -Pundertow,booted-${DB}'
 sudo: false
 deploy:
   provider: releases
