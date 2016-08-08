@@ -2,7 +2,7 @@ language: java
 jdk: oraclejdk8
 env:
   matrix:
-    - DB=rbdms
+    - DB=rdbms
     - DB=riak
 services:
   - riak
