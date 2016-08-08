@@ -1,5 +1,10 @@
 language: java
 jdk: oraclejdk8
+env:
+  database:
+    - DB=rbdms
+    - DB=riak
+script: "mvn clean install -Pundertow,booted-${DB}"
 sudo: false
 deploy:
   provider: releases
