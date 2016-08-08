@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
@@ -212,27 +211,6 @@ public class User implements HiveEntity {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
-    }
-
-    //Riak indexes
-    @RiakIndex(name = "login")
-    public String getLoginSi() {
-        return login;
-    }
-
-    @RiakIndex(name = "googleLogin")
-    public String getGoogleLoginSi() {
-        return googleLogin;
-    }
-
-    @RiakIndex(name = "facebookLogin")
-    public String getFacebookLoginSi() {
-        return facebookLogin;
-    }
-
-    @RiakIndex(name = "githubLogin")
-    public String getGithubLoginSi() {
-        return githubLogin;
     }
 
     @Override

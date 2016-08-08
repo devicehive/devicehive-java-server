@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.AccessType;

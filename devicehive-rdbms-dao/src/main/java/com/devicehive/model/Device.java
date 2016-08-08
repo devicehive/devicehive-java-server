@@ -1,8 +1,9 @@
 package com.devicehive.model;
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -10,9 +11,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -156,12 +154,6 @@ public class Device implements HiveEntity {
 
     public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
-    }
-
-    //Riak indexes
-    @RiakIndex(name = "guid")
-    public String getGuidSi() {
-        return guid;
     }
 
     public static class Queries {

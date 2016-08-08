@@ -1,7 +1,6 @@
 package com.devicehive.model;
 
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassVO;
@@ -86,16 +85,6 @@ public class DeviceClass implements HiveEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @RiakIndex(name = "name")
-    public void setNameRi(String nameRi) {
-        this.name = nameRi;
-    }
-
-    @RiakIndex(name = "name")
-    public String getNameRi() {
-        return name;
     }
 
     public Boolean getPermanent() {

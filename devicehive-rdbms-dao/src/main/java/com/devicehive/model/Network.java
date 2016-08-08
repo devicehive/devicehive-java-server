@@ -1,6 +1,5 @@
 package com.devicehive.model;
 
-import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
@@ -69,11 +68,6 @@ public class Network implements HiveEntity {
     @Version
     @Column(name = "entity_version")
     private Long entityVersion;
-
-    @RiakIndex(name = "name")
-    public String getNameSi() {
-        return name;
-    }
 
     public Set<Device> getDevices() {
         return devices;
