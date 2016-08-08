@@ -336,11 +336,6 @@
             <artifactId>swagger-jersey2-jaxrs</artifactId>
             <version>${swagger.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.basho.riak</groupId>
-            <artifactId>riak-client</artifactId>
-            <version>2.0.5</version>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>
