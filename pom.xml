@@ -73,6 +73,7 @@
         <module>devicehive-rdbms-dao</module>
         <module>devicehive-riak-dao</module>
         <module>devicehive-services</module>
+        <module>devicehive-shim-api</module>
     </modules>
 
     <dependencies>
