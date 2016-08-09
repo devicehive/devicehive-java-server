@@ -74,6 +74,7 @@
         <module>devicehive-riak-dao</module>
         <module>devicehive-services</module>
         <module>devicehive-shim-api</module>
+        <module>devicehive-shim-kafka-impl</module>
     </modules>
 
     <dependencies>
