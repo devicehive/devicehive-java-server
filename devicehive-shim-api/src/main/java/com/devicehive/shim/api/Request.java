@@ -7,13 +7,13 @@ public class Request {
 
     private final String contentType;
     private final byte[] body;
-    private final String replyTo;
     private final String correlationId;
 
-    private Request(String contentType, byte[] body, String replyTo, String correlationId) {
+    private String replyTo;
+
+    private Request(String contentType, byte[] body, String correlationId) {
         this.contentType = contentType;
         this.body = body;
-        this.replyTo = replyTo;
         this.correlationId = correlationId;
     }
 
@@ -27,6 +27,10 @@ public class Request {
 
     public String getReplyTo() {
         return replyTo;
+    }
+
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
     }
 
     public String getCorrelationId() {
@@ -56,7 +60,6 @@ public class Request {
     public static class Builder {
         private String contentType;
         private byte[] body;
-        private String replyTo;
         private String correlationId;
 
         public Builder withContentType(String contentType) {
@@ -69,18 +72,13 @@ public class Request {
             return this;
         }
 
-        public Builder withReplyTo(String replyTo) {
-            this.replyTo = replyTo;
-            return this;
-        }
-
         public Builder withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
         }
 
         public Request build() {
-            return new Request(contentType, body, replyTo, correlationId);
+            return new Request(contentType, body, correlationId);
         }
 
     }
