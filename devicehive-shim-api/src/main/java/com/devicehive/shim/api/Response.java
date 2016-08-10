@@ -1,4 +1,4 @@
-package com.devicehive.shim.api.server;
+package com.devicehive.shim.api;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -55,6 +55,18 @@ public class Response {
     @Override
     public int hashCode() {
         return Objects.hash(contentType, body, correlationId, errorCode, failed);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Response{");
+        sb.append("contentType='").append(contentType).append('\'');
+        sb.append(", body=").append(Arrays.toString(body));
+        sb.append(", correlationId='").append(correlationId).append('\'');
+        sb.append(", errorCode=").append(errorCode);
+        sb.append(", failed=").append(failed);
+        sb.append('}');
+        return sb.toString();
     }
 
     public static Builder newBuilder() {

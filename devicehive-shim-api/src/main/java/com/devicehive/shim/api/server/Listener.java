@@ -1,7 +1,9 @@
 package com.devicehive.shim.api.server;
 
-import com.devicehive.shim.api.client.Request;
+import com.devicehive.shim.api.Request;
 
 public interface Listener {
-    void onMessage(Request request);
+
+    Object onMessage(Request request);
+
 }

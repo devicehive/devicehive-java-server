@@ -1,4 +1,4 @@
-package com.devicehive.shim.api.client;
+package com.devicehive.shim.api;
 
 import java.util.Arrays;
 import java.util.Objects;
