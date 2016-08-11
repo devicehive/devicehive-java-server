@@ -2,7 +2,7 @@ package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.server.Listener;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.kafka.clients.producer.Producer;
@@ -15,27 +15,27 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ClientRequestHandler {
-    private static final Logger logger = LoggerFactory.getLogger(ClientRequestHandler.class);
+public class ClientRequestDispatcher {
+    private static final Logger logger = LoggerFactory.getLogger(ClientRequestDispatcher.class);
 
-    private Listener listener;
+    private RequestHandler requestHandler;
     private ExecutorService requestExecutor;
     private Producer<String, Response> responseProducer;
     private Gson gson;
 
-    public ClientRequestHandler(Listener listener, ExecutorService requestExecutor, Producer<String, Response> responseProducer) {
-        this.listener = listener;
+    public ClientRequestDispatcher(RequestHandler requestHandler, ExecutorService requestExecutor, Producer<String, Response> responseProducer) {
+        this.requestHandler = requestHandler;
         this.requestExecutor = requestExecutor;
         this.responseProducer = responseProducer;
 
         this.gson = new GsonBuilder().disableHtmlEscaping().create();
     }
 
-    void handleRequest(Request request) {
+    void onRequestReceived(Request request) {
         final String replyTo = request.getReplyTo();
         assert replyTo != null;
 
-        CompletableFuture.supplyAsync(() -> listener.onMessage(request), requestExecutor)
+        CompletableFuture.supplyAsync(() -> requestHandler.handle(request), requestExecutor)
                 .handleAsync((ok, ex) -> {
                     Response response;
                     if (ok != null) {

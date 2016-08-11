@@ -1,6 +1,5 @@
 package com.devicehive.shim.kafka.server;
 
-import com.devicehive.shim.kafka.client.conf.KafkaRpcClientConfig;
 import com.devicehive.shim.api.Request;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -15,9 +14,9 @@ public class RequestConsumerWorker implements Runnable {
 
     private String topic;
     private KafkaConsumer<String, Request> consumer;
-    private ClientRequestHandler requestHandler;
+    private ClientRequestDispatcher requestHandler;
 
-    public RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer, ClientRequestHandler requestHandler) {
+    public RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer, ClientRequestDispatcher requestHandler) {
         this.topic = topic;
         this.consumer = consumer;
         this.requestHandler = requestHandler;
@@ -32,7 +31,7 @@ public class RequestConsumerWorker implements Runnable {
                 ConsumerRecords<String, Request> records = consumer.poll(Long.MAX_VALUE);
                 records.forEach(record -> {
                     logger.trace("Topic {}, partition {}, offset {}", record.topic(), record.partition(), record.offset());
-                    requestHandler.handleRequest(record.value());
+                    requestHandler.onRequestReceived(record.value());
                 });
             }
 

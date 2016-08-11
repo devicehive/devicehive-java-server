@@ -25,7 +25,7 @@ public class ServerResponseListener {
     public List<ResponseConsumerWorker> startWorkers(int count) {
         List<ResponseConsumerWorker> workers = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            KafkaConsumer<String, Response> consumer = new KafkaConsumer<String, Response>(consumerProps);
+            KafkaConsumer<String, Response> consumer = new KafkaConsumer<>(consumerProps);
             ResponseConsumerWorker worker = new ResponseConsumerWorker(topic, requestResponseMatcher, consumer);
             consumerExecutor.submit(worker);
         }

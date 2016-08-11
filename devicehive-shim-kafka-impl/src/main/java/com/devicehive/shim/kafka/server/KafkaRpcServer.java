@@ -15,11 +15,11 @@ public class KafkaRpcServer implements RpcServer {
     private int consumerThreads;
     private Properties consumerProps;
     private ExecutorService consumerExecutor;
-    private ClientRequestHandler requestHandler;
+    private ClientRequestDispatcher requestHandler;
 
     private List<RequestConsumerWorker> consumerWorkers;
 
-    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps, ExecutorService consumerExecutor, ClientRequestHandler requestHandler) {
+    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps, ExecutorService consumerExecutor, ClientRequestDispatcher requestHandler) {
         this.topic = topic;
         this.consumerThreads = consumerThreads;
         this.consumerProps = consumerProps;
