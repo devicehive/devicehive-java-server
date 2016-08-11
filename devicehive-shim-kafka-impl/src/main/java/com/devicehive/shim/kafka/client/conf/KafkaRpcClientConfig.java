@@ -53,8 +53,9 @@ public class KafkaRpcClientConfig {
     }
 
     @Bean(destroyMethod = "shutdown")
-    public RpcClient rpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher) {
-        return new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher);
+    public RpcClient rpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
+                               ServerResponseListener responseListener) {
+        return new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
     }
 
     @Bean
@@ -62,21 +63,7 @@ public class KafkaRpcClientConfig {
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
         ServerResponseListener listener = new ServerResponseListener(RESPONSE_TOPIC, responseMatcher, consumerProps, executor);
-
-        List<ResponseConsumerWorker> workers = listener.startWorkers(responseConsumerThreads);
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                workers.forEach(ResponseConsumerWorker::shutdown);
-                executor.shutdown();
-                try {
-                    executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException e) {
-                    logger.error("Exception occurred while shutting executor service: {}", e);
-                }
-            }
-        });
+        listener.startWorkers(responseConsumerThreads);
         return listener;
     }
 

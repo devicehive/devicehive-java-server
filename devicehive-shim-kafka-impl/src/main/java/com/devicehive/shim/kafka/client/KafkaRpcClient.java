@@ -17,12 +17,15 @@ public class KafkaRpcClient implements RpcClient {
     private String replyToTopic;
     private Producer<String, Request> requestProducer;
     private RequestResponseMatcher requestResponseMatcher;
+    private ServerResponseListener responseListener;
 
-    public KafkaRpcClient(String requestTopic, String replyToTopic, Producer<String, Request> requestProducer, RequestResponseMatcher requestResponseMatcher) {
+    public KafkaRpcClient(String requestTopic, String replyToTopic, Producer<String, Request> requestProducer,
+                          RequestResponseMatcher requestResponseMatcher, ServerResponseListener responseListener) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
         this.requestProducer = requestProducer;
         this.requestResponseMatcher = requestResponseMatcher;
+        this.responseListener = responseListener;
     }
 
     @Override
@@ -45,4 +48,9 @@ public class KafkaRpcClient implements RpcClient {
                 });
     }
 
+    @Override
+    public void shutdown() {
+        requestProducer.close();
+        responseListener.shutdown();
+    }
 }

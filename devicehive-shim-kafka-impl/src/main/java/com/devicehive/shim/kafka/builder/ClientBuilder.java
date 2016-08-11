@@ -55,7 +55,7 @@ public class ClientBuilder {
         responseListener.startWorkers(consumerThreads);
 
         Producer<String, Request> requestProducer = new KafkaProducer<>(producerProps);
-        return new KafkaRpcClient(requestTopic, replyTopic, requestProducer, matcher);
+        return new KafkaRpcClient(requestTopic, replyTopic, requestProducer, matcher, responseListener);
     }
 
 }
