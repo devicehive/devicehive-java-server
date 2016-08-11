@@ -11,5 +11,5 @@ public interface RpcClient {
 
     void push(Request request);
 
-    void shutdown();
+    default void shutdown() { }
 }

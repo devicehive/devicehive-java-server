@@ -3,7 +3,6 @@ package com.devicehive.shim.kafka.client;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.kafka.server.RequestConsumerWorker;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -28,7 +27,7 @@ public class KafkaRpcClient implements RpcClient {
     private int consumerThreads;
 
     private Producer<String, Request> requestProducer;
-    private ResponseSupplier responseSupplier;
+    private RpcClientResponseSupplier responseSupplier;
 
     private ExecutorService executor;
     private List<ResponseConsumerWorker> workers;
@@ -44,7 +43,7 @@ public class KafkaRpcClient implements RpcClient {
 
     private void start() {
         requestProducer = new KafkaProducer<>(requestProducerProps);
-        responseSupplier = new ResponseSupplier();
+        responseSupplier = new RpcClientResponseSupplier();
 
         executor = Executors.newFixedThreadPool(consumerThreads);
         workers = new ArrayList<>(consumerThreads);

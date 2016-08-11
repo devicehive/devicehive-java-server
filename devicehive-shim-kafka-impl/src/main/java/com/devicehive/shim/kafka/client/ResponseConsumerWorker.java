@@ -13,10 +13,10 @@ public class ResponseConsumerWorker implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ResponseConsumerWorker.class);
 
     private String topic;
-    private ResponseSupplier responseSupplier;
+    private RpcClientResponseSupplier responseSupplier;
     private KafkaConsumer<String, Response> consumer;
 
-    public ResponseConsumerWorker(String topic, ResponseSupplier responseSupplier, KafkaConsumer<String, Response> consumer) {
+    public ResponseConsumerWorker(String topic, RpcClientResponseSupplier responseSupplier, KafkaConsumer<String, Response> consumer) {
         this.topic = topic;
         this.responseSupplier = responseSupplier;
         this.consumer = consumer;
@@ -31,7 +31,7 @@ public class ResponseConsumerWorker implements Runnable {
                 ConsumerRecords<String, Response> records = consumer.poll(Long.MAX_VALUE);
                 records.forEach(record -> {
                     logger.trace("Topic {}, partition {}, offset {}", record.topic(), record.partition(), record.offset());
-                    responseSupplier.deliverResponse(record.value());
+                    responseSupplier.offerResponse(record.value());
                 });
             }
         } catch (WakeupException e) {
