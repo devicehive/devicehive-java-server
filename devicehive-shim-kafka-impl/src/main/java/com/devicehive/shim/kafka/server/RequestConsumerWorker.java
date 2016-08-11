@@ -1,6 +1,6 @@
 package com.devicehive.shim.kafka.server;
 
-import com.devicehive.shim.kafka.client.KafkaRpcClientConfig;
+import com.devicehive.shim.kafka.client.conf.KafkaRpcClientConfig;
 import com.devicehive.shim.api.Request;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -13,10 +13,12 @@ import java.util.Collections;
 public class RequestConsumerWorker implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestConsumerWorker.class);
 
+    private String topic;
     private KafkaConsumer<String, Request> consumer;
     private ClientRequestHandler requestHandler;
 
-    public RequestConsumerWorker(KafkaConsumer<String, Request> consumer, ClientRequestHandler requestHandler) {
+    public RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer, ClientRequestHandler requestHandler) {
+        this.topic = topic;
         this.consumer = consumer;
         this.requestHandler = requestHandler;
     }
@@ -24,7 +26,7 @@ public class RequestConsumerWorker implements Runnable {
     @Override
     public void run() {
         try {
-            consumer.subscribe(Collections.singletonList(KafkaRpcClientConfig.REQUEST_TOPIC));
+            consumer.subscribe(Collections.singletonList(topic));
 
             while (!Thread.currentThread().isInterrupted()) {
                 ConsumerRecords<String, Request> records = consumer.poll(Long.MAX_VALUE);

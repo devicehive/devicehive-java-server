@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class RpcClientResponseSupplier {
-    private static final Logger logger = LoggerFactory.getLogger(RpcClientResponseSupplier.class);
+public class RequestResponseMatcher {
+    private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
     private final ConcurrentHashMap<String, CompletableFuture<Response>> correlationMap = new ConcurrentHashMap<>();
 

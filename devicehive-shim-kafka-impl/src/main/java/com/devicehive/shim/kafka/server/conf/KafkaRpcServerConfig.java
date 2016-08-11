@@ -1,11 +1,16 @@
-package com.devicehive.shim.kafka.server;
+package com.devicehive.shim.kafka.server.conf;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.Listener;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.devicehive.shim.kafka.server.ClientRequestHandler;
+import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -17,9 +22,13 @@ import org.springframework.core.env.Environment;
 
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Configuration
 public class KafkaRpcServerConfig {
+
+    public static final String REQUEST_TOPIC = "request_topic";
 
     public static final String SERVER_REQUEST_GROUP = "request-consumer-group";
 
@@ -32,25 +41,29 @@ public class KafkaRpcServerConfig {
     @Value("${worker.threads:1}")
     private int workerThreads;
 
-    @Bean(destroyMethod = "shutdown")
-    public RpcServer rpcServer(Listener listener) {
-        Properties consumerProps = consumerProps();
-        Properties producerProps = producerProps();
-
-        RpcServer server = KafkaRpcServer.newBuilder()
-                .withConsumerThreads(consumerThreads)
-                .withWorkerThreads(workerThreads)
-                .withListener(listener)
-                .withRequestConsumerProps(consumerProps)
-                .withResponseProducerProps(producerProps)
-                .build();
-        server.start();
-        return server;
+    @Bean
+    public Producer<String, Response> kafkaResponseProducer() {
+        return new KafkaProducer<>(producerProps());
     }
 
     @Bean
     public Listener listener() {
         return request -> "Hello " + request.getCorrelationId();
+    }
+
+    @Bean
+    public ClientRequestHandler clientRequestHandler(Listener listener, Producer<String, Response> responseProducer) {
+        ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
+        return new ClientRequestHandler(listener, workerExecutor, responseProducer);
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    public RpcServer rpcServer(ClientRequestHandler requestHandler) {
+        Properties consumerProps = consumerProps();
+        ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
+        RpcServer rpcServer = new KafkaRpcServer(REQUEST_TOPIC, consumerThreads, consumerProps, consumerExecutor, requestHandler);
+        rpcServer.start();
+        return rpcServer;
     }
 
     private Properties producerProps() {
