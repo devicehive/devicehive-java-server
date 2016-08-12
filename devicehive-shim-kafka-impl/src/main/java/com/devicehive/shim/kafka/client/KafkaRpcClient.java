@@ -32,7 +32,7 @@ public class KafkaRpcClient implements RpcClient {
     public void call(Request request, Consumer<Response> callback) {
         request.setReplyTo(replyToTopic);
         push(request);
-        requestResponseMatcher.addRequestCallack(request.getCorrelationId(), callback);
+        requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
     }
 
     @Override

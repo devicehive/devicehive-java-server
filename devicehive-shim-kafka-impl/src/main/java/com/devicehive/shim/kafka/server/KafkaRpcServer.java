@@ -15,16 +15,16 @@ public class KafkaRpcServer implements RpcServer {
     private int consumerThreads;
     private Properties consumerProps;
     private ExecutorService consumerExecutor;
-    private ClientRequestDispatcher requestHandler;
+    private ClientRequestDispatcher requestDispatcher;
 
     private List<RequestConsumerWorker> consumerWorkers;
 
-    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps, ExecutorService consumerExecutor, ClientRequestDispatcher requestHandler) {
+    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps, ExecutorService consumerExecutor, ClientRequestDispatcher requestDispatcher) {
         this.topic = topic;
         this.consumerThreads = consumerThreads;
         this.consumerProps = consumerProps;
         this.consumerExecutor = consumerExecutor;
-        this.requestHandler = requestHandler;
+        this.requestDispatcher = requestDispatcher;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class KafkaRpcServer implements RpcServer {
         consumerWorkers = new ArrayList<>(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
             KafkaConsumer<String, Request> consumer = new KafkaConsumer<>(consumerProps);
-            RequestConsumerWorker worker = new RequestConsumerWorker(topic, consumer, requestHandler);
+            RequestConsumerWorker worker = new RequestConsumerWorker(topic, consumer, requestDispatcher);
             consumerExecutor.submit(worker);
         }
 
@@ -40,7 +40,7 @@ public class KafkaRpcServer implements RpcServer {
 
     @Override
     public void shutdown() {
-        requestHandler.shutdown();
+        requestDispatcher.shutdown();
         consumerWorkers.forEach(RequestConsumerWorker::shutdown);
     }
 
