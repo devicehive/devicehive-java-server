@@ -43,22 +43,23 @@ public class ClientRequestDispatcher {
                                 .withContentType(request.getContentType())
                                 .withErrorCode(500)
                                 .withLast(request.isSingleReplyExpected())
+                                .withCorrelationId(request.getCorrelationId())
                                 .buildFailed();
-                        sendReply(replyTo, request.getCorrelationId(), response);
+                        sendReply(replyTo, response);
                     } else {
-                        sendReply(replyTo, request.getCorrelationId(), ok);
+                        sendReply(replyTo, ok);
                     }
                     return null;
                 }, requestExecutor);
 
     }
 
-    private void sendReply(String replyTo, String key, Response response) {
-        responseProducer.send(new ProducerRecord<>(replyTo, key, response), (recordMetadata, e) -> {
+    private void sendReply(String replyTo, Response response) {
+        responseProducer.send(new ProducerRecord<>(replyTo, response.getCorrelationId(), response), (recordMetadata, e) -> {
             if (e != null) {
                 logger.error("Send response failed", e);
             }
-            logger.debug("Response {} sent successfully", key);
+            logger.debug("Response sent successfully {}", response);
         });
     }
 
