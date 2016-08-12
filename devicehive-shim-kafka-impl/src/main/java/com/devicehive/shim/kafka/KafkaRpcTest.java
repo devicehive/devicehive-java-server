@@ -25,7 +25,17 @@ import java.util.concurrent.TimeoutException;
 public class KafkaRpcTest {
 
     public static void main(String ... args) throws InterruptedException, ExecutionException, TimeoutException {
-        RpcServer server = createServer();
+        RequestHandler handler = request -> {
+            String reqStr = new String(request.getBody());
+            return Response.newBuilder()
+                    .withBody(("Hello " + reqStr).getBytes())
+                    .withContentType("text/plain")
+                    .withLast(request.isSingleReplyExpected())
+                    .withCorrelationId(request.getCorrelationId())
+                    .buildSuccess();
+        };
+
+        RpcServer server = createServer(handler);
         server.start();
 
         RpcClient client = createClient();
@@ -36,7 +46,8 @@ public class KafkaRpcTest {
                 .withCorrelationId(UUID.randomUUID().toString())
                 .build();
 
-        CompletableFuture<Response> future = client.call(request);
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        client.call(request, future::complete);
 
         Response response = future.get(20, TimeUnit.SECONDS);
         System.out.println("Responded -> " + new String(response.getBody()));
@@ -47,7 +58,7 @@ public class KafkaRpcTest {
         System.exit(0);
     }
 
-    public static RpcServer createServer() {
+    public static RpcServer createServer(RequestHandler handler) {
         Properties producerProps = new Properties();
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -60,13 +71,12 @@ public class KafkaRpcTest {
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG,  "request-group");
         consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
 
-
         return new ServerBuilder()
                 .withConsumerThreads(1)
                 .withConsumerProps(consumerProps)
                 .withWorkerThreads(1)
                 .withProducerProps(producerProps)
-                .withRequestHandler(request -> "Hello " + new String(request.getBody()))
+                .withRequestHandler(handler)
                 .withTopic("request_topic")
                 .build();
     }

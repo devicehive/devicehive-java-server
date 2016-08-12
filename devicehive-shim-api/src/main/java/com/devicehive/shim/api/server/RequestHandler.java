@@ -1,9 +1,10 @@
 package com.devicehive.shim.api.server;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
 
 public interface RequestHandler {
 
-    Object handle(Request request);
+    Response handle(Request request);
 
 }

@@ -9,11 +9,14 @@ public class Request {
     private final byte[] body;
     private final String correlationId;
 
+    private final boolean singleReplyExpected;
+
     private String replyTo;
 
-    private Request(String contentType, byte[] body, String correlationId) {
+    private Request(String contentType, byte[] body, boolean singleReplyExpected, String correlationId) {
         this.contentType = contentType;
         this.body = body;
+        this.singleReplyExpected = singleReplyExpected;
         this.correlationId = correlationId;
     }
 
@@ -37,20 +40,37 @@ public class Request {
         return correlationId;
     }
 
+    public boolean isSingleReplyExpected() {
+        return singleReplyExpected;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Request)) return false;
         Request request = (Request) o;
-        return Objects.equals(contentType, request.contentType) &&
+        return singleReplyExpected == request.singleReplyExpected &&
+                Objects.equals(contentType, request.contentType) &&
                 Arrays.equals(body, request.body) &&
-                Objects.equals(replyTo, request.replyTo) &&
-                Objects.equals(correlationId, request.correlationId);
+                Objects.equals(correlationId, request.correlationId) &&
+                Objects.equals(replyTo, request.replyTo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contentType, body, replyTo, correlationId);
+        return Objects.hash(contentType, body, correlationId, singleReplyExpected, replyTo);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Request{");
+        sb.append("contentType='").append(contentType).append('\'');
+        sb.append(", body=").append(Arrays.toString(body));
+        sb.append(", correlationId='").append(correlationId).append('\'');
+        sb.append(", singleReplyExpected=").append(singleReplyExpected);
+        sb.append(", replyTo='").append(replyTo).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     public static Builder newBuilder() {
@@ -61,6 +81,7 @@ public class Request {
         private String contentType;
         private byte[] body;
         private String correlationId;
+        private boolean singleReply;
 
         public Builder withContentType(String contentType) {
             this.contentType = contentType;
@@ -77,8 +98,13 @@ public class Request {
             return this;
         }
 
+        public Builder withSingleReply(boolean singleReply) {
+            this.singleReply = singleReply;
+            return this;
+        }
+
         public Request build() {
-            return new Request(contentType, body, correlationId);
+            return new Request(contentType, body, singleReply, correlationId);
         }
 
     }

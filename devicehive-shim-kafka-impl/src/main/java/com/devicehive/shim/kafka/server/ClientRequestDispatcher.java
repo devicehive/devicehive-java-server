@@ -37,22 +37,17 @@ public class ClientRequestDispatcher {
 
         CompletableFuture.supplyAsync(() -> requestHandler.handle(request), requestExecutor)
                 .handleAsync((ok, ex) -> {
-                    Response response;
-                    if (ok != null) {
-                         String body = gson.toJson(ok);
-                         response = Response.newBuilder()
-                                .withContentType(request.getContentType())
-                                .withCorrelationId(request.getCorrelationId())
-                                .withBody(body.getBytes(Charset.forName("UTF-8")))
-                                .buildSuccess();
-                    } else {
+                    if (ex != null) {
                         //todo better exception handling here
-                        response = Response.newBuilder()
+                        Response response = Response.newBuilder()
                                 .withContentType(request.getContentType())
                                 .withErrorCode(500)
+                                .withLast(request.isSingleReplyExpected())
                                 .buildFailed();
+                        sendReply(replyTo, request.getCorrelationId(), response);
+                    } else {
+                        sendReply(replyTo, request.getCorrelationId(), ok);
                     }
-                    sendReply(replyTo, request.getCorrelationId(), response);
                     return null;
                 }, requestExecutor);
 

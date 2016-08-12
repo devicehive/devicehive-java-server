@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class KafkaRpcClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(KafkaRpcClient.class);
@@ -29,12 +29,10 @@ public class KafkaRpcClient implements RpcClient {
     }
 
     @Override
-    public CompletableFuture<Response> call(Request request) {
+    public void call(Request request, Consumer<Response> callback) {
         request.setReplyTo(replyToTopic);
         push(request);
-        CompletableFuture<Response> responseFuture = new CompletableFuture<>();
-        requestResponseMatcher.putRequest(request.getCorrelationId(), responseFuture);
-        return responseFuture;
+        requestResponseMatcher.addRequestCallack(request.getCorrelationId(), callback);
     }
 
     @Override

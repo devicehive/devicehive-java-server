@@ -4,28 +4,26 @@ import com.devicehive.shim.api.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class RequestResponseMatcher {
     private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
-    private final ConcurrentHashMap<String, CompletableFuture<Response>> correlationMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
 
-    void putRequest(String correlationId, CompletableFuture<Response> future) {
-        correlationMap.put(correlationId, future);
+    void addRequestCallack(String correlationId, Consumer<Response> callbackFunc) {
+        correlationMap.put(correlationId, callbackFunc);
     }
 
     void offerResponse(Response response) {
-        CompletableFuture<Response> future = correlationMap.get(response.getCorrelationId());
+        Consumer<Response> callback = correlationMap.get(response.getCorrelationId());
         try {
-            if (future != null && !future.isDone()) {
-                future.complete(response);
-            } else {
-                logger.warn("Unexpected response received {}", response);
-            }
+            callback.accept(response);
         } finally {
-            correlationMap.remove(response.getCorrelationId());
+            if (response.isLast()) {
+                correlationMap.remove(response.getCorrelationId());
+            }
         }
     }
 

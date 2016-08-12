@@ -46,7 +46,12 @@ public class KafkaRpcServerConfig {
 
     @Bean
     public RequestHandler listener() {
-        return request -> "Hello " + request.getCorrelationId();
+        return request -> Response.newBuilder()
+                .withBody("hello".getBytes())
+                .withLast(request.isSingleReplyExpected())
+                .withCorrelationId(request.getCorrelationId())
+                .withContentType("text/plain")
+                .buildSuccess();
     }
 
     @Bean

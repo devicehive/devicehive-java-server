@@ -4,10 +4,11 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface RpcClient {
 
-    CompletableFuture<Response> call(Request request);
+    void call(Request request, Consumer<Response> callback);
 
     void push(Request request);
 
