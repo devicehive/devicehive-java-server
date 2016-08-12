@@ -21,7 +21,12 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_${scala-binaries.version}</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <profiles>
