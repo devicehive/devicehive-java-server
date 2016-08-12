@@ -21,14 +21,11 @@ public class ClientRequestDispatcher {
     private RequestHandler requestHandler;
     private ExecutorService requestExecutor;
     private Producer<String, Response> responseProducer;
-    private Gson gson;
 
     public ClientRequestDispatcher(RequestHandler requestHandler, ExecutorService requestExecutor, Producer<String, Response> responseProducer) {
         this.requestHandler = requestHandler;
         this.requestExecutor = requestExecutor;
         this.responseProducer = responseProducer;
-
-        this.gson = new GsonBuilder().disableHtmlEscaping().create();
     }
 
     void onRequestReceived(Request request) {
