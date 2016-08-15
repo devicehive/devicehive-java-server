@@ -80,12 +80,24 @@ public class AccessKey implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private Set<AccessKeyPermission> permissions;
 
+    @Version
+    @Column(name = "entity_version")
+    private long entityVersion;
+
     public Set<AccessKeyPermission> getPermissions() {
         return permissions;
     }
 
     public void setPermissions(Set<AccessKeyPermission> permissions) {
         this.permissions = permissions;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 
     public Long getId() {
@@ -152,6 +164,7 @@ public class AccessKey implements HiveEntity {
                 permission.setAccessKey(result);
             }
             result.setPermissions(permissions);
+            result.setEntityVersion(accessKey.getEntityVersion());
         }
         return result;
     }
@@ -168,6 +181,7 @@ public class AccessKey implements HiveEntity {
             result.setType(accessKey.getType());
             Set<AccessKeyPermissionVO> permissions = AccessKeyPermission.converttoVO(accessKey.getPermissions());
             result.setPermissions(permissions);
+            result.setEntityVersion(accessKey.getEntityVersion());
             return result;
         } else {
             return null;

@@ -34,6 +34,8 @@ public class AccessKeyPermissionVO implements HiveEntity {
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper deviceGuids;
 
+    private long entityVersion;
+
     public Long getId() {
         return id;
     }
@@ -82,6 +84,13 @@ public class AccessKeyPermissionVO implements HiveEntity {
         this.deviceGuids = deviceGuids;
     }
 
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
+    }
     //// Some nasty helpers.
 
     public void setActionsArray(String... actions) {
