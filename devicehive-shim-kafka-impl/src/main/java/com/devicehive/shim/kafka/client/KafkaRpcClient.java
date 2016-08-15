@@ -29,14 +29,19 @@ public class KafkaRpcClient implements RpcClient {
     }
 
     @Override
+    public void start() {
+        responseListener.startWorkers();
+    }
+
+    @Override
     public void call(Request request, Consumer<Response> callback) {
-        request.setReplyTo(replyToTopic);
         push(request);
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
     }
 
     @Override
     public void push(Request request) {
+        request.setReplyTo(replyToTopic);
         requestProducer.send(new ProducerRecord<>(requestTopic, request.getCorrelationId(), request),
                 (recordMetadata, e) -> {
                     if (e != null) {

@@ -1,14 +1,13 @@
-package com.devicehive.shim.kafka.client.conf;
+package com.devicehive.shim.config.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
-import com.devicehive.shim.kafka.client.ResponseConsumerWorker;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import com.devicehive.shim.kafka.server.conf.KafkaRpcServerConfig;
+import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -23,12 +22,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class KafkaRpcClientConfig {
@@ -62,8 +59,9 @@ public class KafkaRpcClientConfig {
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher) {
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
-        ServerResponseListener listener = new ServerResponseListener(RESPONSE_TOPIC, responseMatcher, consumerProps, executor);
-        listener.startWorkers(responseConsumerThreads);
+        ServerResponseListener listener = new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
+                responseMatcher, consumerProps, executor);
+        listener.startWorkers();
         return listener;
     }
 

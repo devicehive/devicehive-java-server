@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
 
 public class ResponseConsumerWorker implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(ResponseConsumerWorker.class);
@@ -15,18 +16,21 @@ public class ResponseConsumerWorker implements Runnable {
     private String topic;
     private RequestResponseMatcher responseMatcher;
     private KafkaConsumer<String, Response> consumer;
+    private CountDownLatch startupLatch;
 
-    public ResponseConsumerWorker(String topic, RequestResponseMatcher responseMatcher, KafkaConsumer<String, Response> consumer) {
+    public ResponseConsumerWorker(String topic, RequestResponseMatcher responseMatcher,
+                                  KafkaConsumer<String, Response> consumer, CountDownLatch startupLatch) {
         this.topic = topic;
         this.responseMatcher = responseMatcher;
         this.consumer = consumer;
+        this.startupLatch = startupLatch;
     }
 
     @Override
     public void run() {
         try {
             consumer.subscribe(Collections.singletonList(topic));
-
+            startupLatch.countDown();
             while (!Thread.currentThread().isInterrupted()) {
                 ConsumerRecords<String, Response> records = consumer.poll(Long.MAX_VALUE);
                 records.forEach(record -> {

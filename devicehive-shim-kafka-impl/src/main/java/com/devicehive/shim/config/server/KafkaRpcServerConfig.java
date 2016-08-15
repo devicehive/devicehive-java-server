@@ -1,4 +1,4 @@
-package com.devicehive.shim.kafka.server.conf;
+package com.devicehive.shim.config.server;
 
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -42,16 +42,6 @@ public class KafkaRpcServerConfig {
     @Bean
     public Producer<String, Response> kafkaResponseProducer() {
         return new KafkaProducer<>(producerProps());
-    }
-
-    @Bean
-    public RequestHandler listener() {
-        return request -> Response.newBuilder()
-                .withBody("hello".getBytes())
-                .withLast(request.isSingleReplyExpected())
-                .withCorrelationId(request.getCorrelationId())
-                .withContentType("text/plain")
-                .buildSuccess();
     }
 
     @Bean

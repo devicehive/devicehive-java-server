@@ -51,8 +51,8 @@ public class ClientBuilder {
         RequestResponseMatcher matcher = new RequestResponseMatcher();
 
         ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
-        ServerResponseListener responseListener = new ServerResponseListener(replyTopic, matcher, consumerProps, consumerExecutor);
-        responseListener.startWorkers(consumerThreads);
+        ServerResponseListener responseListener = new ServerResponseListener(replyTopic, consumerThreads,
+                matcher, consumerProps, consumerExecutor);
 
         Producer<String, Request> requestProducer = new KafkaProducer<>(producerProps);
         return new KafkaRpcClient(requestTopic, replyTopic, requestProducer, matcher, responseListener);
