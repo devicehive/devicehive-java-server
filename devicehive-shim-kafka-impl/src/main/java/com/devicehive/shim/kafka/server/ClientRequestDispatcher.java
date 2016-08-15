@@ -34,18 +34,20 @@ public class ClientRequestDispatcher {
 
         CompletableFuture.supplyAsync(() -> requestHandler.handle(request), requestExecutor)
                 .handleAsync((ok, ex) -> {
+                    Response response;
                     if (ex != null) {
-                        //todo better exception handling here
-                        Response response = Response.newBuilder()
+                        String body = ex.getClass().getName() + ": " + ex.getMessage();
+                        response = Response.newBuilder()
                                 .withContentType(request.getContentType())
                                 .withErrorCode(500)
+                                .withBody(body.getBytes(Charset.forName("UTF-8")))
                                 .withLast(request.isSingleReplyExpected())
                                 .withCorrelationId(request.getCorrelationId())
                                 .buildFailed();
-                        sendReply(replyTo, response);
                     } else {
-                        sendReply(replyTo, ok);
+                        response = ok;
                     }
+                    sendReply(replyTo, response);
                     return null;
                 }, requestExecutor);
 
