@@ -6,4 +6,5 @@ public interface RpcServer {
 
     void shutdown();
 
+    MessageDispatcher getDispatcher();
 }

@@ -2,9 +2,8 @@ package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -15,20 +14,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class ClientRequestDispatcher {
-    private static final Logger logger = LoggerFactory.getLogger(ClientRequestDispatcher.class);
+public class KafkaMessageDispatcher implements MessageDispatcher {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaMessageDispatcher.class);
 
     private RequestHandler requestHandler;
     private ExecutorService requestExecutor;
     private Producer<String, Response> responseProducer;
 
-    public ClientRequestDispatcher(RequestHandler requestHandler, ExecutorService requestExecutor, Producer<String, Response> responseProducer) {
+    public KafkaMessageDispatcher(RequestHandler requestHandler, ExecutorService requestExecutor, Producer<String, Response> responseProducer) {
         this.requestHandler = requestHandler;
         this.requestExecutor = requestExecutor;
         this.responseProducer = responseProducer;
     }
 
-    void onRequestReceived(Request request) {
+    @Override
+    public void onReceive(Request request) {
         final String replyTo = request.getReplyTo();
         assert replyTo != null;
 
@@ -47,13 +47,14 @@ public class ClientRequestDispatcher {
                     } else {
                         response = ok;
                     }
-                    sendReply(replyTo, response);
+                    send(replyTo, response);
                     return null;
                 }, requestExecutor);
 
     }
 
-    private void sendReply(String replyTo, Response response) {
+    @Override
+    public void send(String replyTo, Response response) {
         responseProducer.send(new ProducerRecord<>(replyTo, response.getCorrelationId(), response), (recordMetadata, e) -> {
             if (e != null) {
                 logger.error("Send response failed", e);

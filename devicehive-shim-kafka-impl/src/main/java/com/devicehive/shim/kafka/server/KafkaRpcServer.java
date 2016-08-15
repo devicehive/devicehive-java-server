@@ -1,6 +1,7 @@
 package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RpcServer;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
@@ -20,16 +21,17 @@ public class KafkaRpcServer implements RpcServer {
     private int consumerThreads;
     private Properties consumerProps;
     private ExecutorService consumerExecutor;
-    private ClientRequestDispatcher requestDispatcher;
+    private KafkaMessageDispatcher messageDispatcher;
 
     private List<RequestConsumerWorker> consumerWorkers;
 
-    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps, ExecutorService consumerExecutor, ClientRequestDispatcher requestDispatcher) {
+    public KafkaRpcServer(String topic, int consumerThreads, Properties consumerProps,
+                          ExecutorService consumerExecutor, KafkaMessageDispatcher messageDispatcher) {
         this.topic = topic;
         this.consumerThreads = consumerThreads;
         this.consumerProps = consumerProps;
         this.consumerExecutor = consumerExecutor;
-        this.requestDispatcher = requestDispatcher;
+        this.messageDispatcher = messageDispatcher;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class KafkaRpcServer implements RpcServer {
         CountDownLatch startupLatch = new CountDownLatch(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
             KafkaConsumer<String, Request> consumer = new KafkaConsumer<>(consumerProps);
-            RequestConsumerWorker worker = new RequestConsumerWorker(topic, consumer, requestDispatcher, startupLatch);
+            RequestConsumerWorker worker = new RequestConsumerWorker(topic, consumer, messageDispatcher, startupLatch);
             consumerExecutor.submit(worker);
         }
 
@@ -51,8 +53,12 @@ public class KafkaRpcServer implements RpcServer {
 
     @Override
     public void shutdown() {
-        requestDispatcher.shutdown();
+        messageDispatcher.shutdown();
         consumerWorkers.forEach(RequestConsumerWorker::shutdown);
     }
 
+    @Override
+    public MessageDispatcher getDispatcher() {
+        return messageDispatcher;
+    }
 }

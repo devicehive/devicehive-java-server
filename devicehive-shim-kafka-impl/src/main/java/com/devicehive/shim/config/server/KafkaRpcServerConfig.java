@@ -1,11 +1,12 @@
 package com.devicehive.shim.config.server;
 
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import com.devicehive.shim.kafka.server.ClientRequestDispatcher;
+import com.devicehive.shim.kafka.server.KafkaMessageDispatcher;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -45,16 +46,16 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public ClientRequestDispatcher clientRequestHandler(RequestHandler requestHandler, Producer<String, Response> responseProducer) {
+    public KafkaMessageDispatcher clientRequestHandler(RequestHandler requestHandler, Producer<String, Response> responseProducer) {
         ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
-        return new ClientRequestDispatcher(requestHandler, workerExecutor, responseProducer);
+        return new KafkaMessageDispatcher(requestHandler, workerExecutor, responseProducer);
     }
 
     @Bean(destroyMethod = "shutdown")
-    public RpcServer rpcServer(ClientRequestDispatcher requestHandler) {
+    public RpcServer rpcServer(KafkaMessageDispatcher messageDispatcher) {
         Properties consumerProps = consumerProps();
         ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
-        RpcServer rpcServer = new KafkaRpcServer(REQUEST_TOPIC, consumerThreads, consumerProps, consumerExecutor, requestHandler);
+        RpcServer rpcServer = new KafkaRpcServer(REQUEST_TOPIC, consumerThreads, consumerProps, consumerExecutor, messageDispatcher);
         rpcServer.start();
         return rpcServer;
     }

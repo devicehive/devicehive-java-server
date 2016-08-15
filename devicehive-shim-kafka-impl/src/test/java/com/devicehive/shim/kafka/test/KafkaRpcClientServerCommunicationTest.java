@@ -18,10 +18,10 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.util.Properties;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -154,6 +154,62 @@ public class KafkaRpcClientServerCommunicationTest {
         assertTrue(response.isLast());
         assertTrue(response.isFailed());
         assertTrue(new String(response.getBody()).contains(RuntimeException.class.getName() + ": Something went wrong"));
+    }
+
+    @Test
+    public void shouldSendMultipleResponsesToClient() throws Exception {
+        RequestHandler handler = request -> Response.newBuilder()
+                .withCorrelationId(request.getCorrelationId())
+                .withBody("ResponseFromServer".getBytes())
+                .withLast(request.isSingleReplyExpected())
+                .buildSuccess();
+        handlerWrapper.setDelegate(handler);
+
+        Request request = Request.newBuilder()
+                .withCorrelationId(UUID.randomUUID().toString())
+                .withSingleReply(false)
+                .withBody("RequestResponseTest".getBytes())
+                .build();
+
+        CountDownLatch latch = new CountDownLatch(10);
+        List<Response> responses = new LinkedList<>();
+        Consumer<Response> func = response -> {
+            latch.countDown();
+            responses.add(response);
+        };
+
+        client.call(request, func);
+
+        Executor executor = Executors.newFixedThreadPool(2);
+        for (int i = 0; i < 9; i++) {
+            final int number = i;
+            executor.execute(() -> {
+                Response response = Response.newBuilder()
+                        .withCorrelationId(request.getCorrelationId())
+                        .withLast(false)
+                        .withBody((number + "-response").getBytes())
+                        .buildSuccess();
+                server.getDispatcher().send(RESPONSE_TOPIC, response);
+            });
+        }
+
+        latch.await(20, TimeUnit.SECONDS);
+        assertEquals(10, responses.size());
+
+        Set<String> correlationIds = responses.stream()
+                .map(Response::getCorrelationId).collect(Collectors.toSet());
+        assertEquals(1, correlationIds.size());
+        assertTrue(correlationIds.contains(request.getCorrelationId()));
+
+        Set<String> bodies = responses.stream()
+                .map(Response::getBody)
+                .map(String::new)
+                .collect(Collectors.toSet());
+        assertEquals(10, bodies.size());
+        assertTrue(bodies.contains("ResponseFromServer"));
+        for (int i = 0; i < 9; i++) {
+            assertTrue(bodies.contains(i + "-response"));
+        }
     }
 
 }

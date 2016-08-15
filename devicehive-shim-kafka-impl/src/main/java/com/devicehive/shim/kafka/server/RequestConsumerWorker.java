@@ -15,14 +15,14 @@ public class RequestConsumerWorker implements Runnable {
 
     private String topic;
     private KafkaConsumer<String, Request> consumer;
-    private ClientRequestDispatcher requestDispatcher;
+    private KafkaMessageDispatcher messageDispatcher;
     private CountDownLatch startupLatch;
 
     public RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer,
-                                 ClientRequestDispatcher requestDispatcher, CountDownLatch startupLatch) {
+                                 KafkaMessageDispatcher requestDispatcher, CountDownLatch startupLatch) {
         this.topic = topic;
         this.consumer = consumer;
-        this.requestDispatcher = requestDispatcher;
+        this.messageDispatcher = requestDispatcher;
         this.startupLatch = startupLatch;
     }
 
@@ -35,7 +35,7 @@ public class RequestConsumerWorker implements Runnable {
                 ConsumerRecords<String, Request> records = consumer.poll(Long.MAX_VALUE);
                 records.forEach(record -> {
                     logger.trace("Topic {}, partition {}, offset {}", record.topic(), record.partition(), record.offset());
-                    requestDispatcher.onRequestReceived(record.value());
+                    messageDispatcher.onReceive(record.value());
                 });
             }
 

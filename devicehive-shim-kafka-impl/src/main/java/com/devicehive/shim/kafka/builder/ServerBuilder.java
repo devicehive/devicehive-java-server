@@ -3,7 +3,7 @@ package com.devicehive.shim.kafka.builder;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
-import com.devicehive.shim.kafka.server.ClientRequestDispatcher;
+import com.devicehive.shim.kafka.server.KafkaMessageDispatcher;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -57,7 +57,7 @@ public class ServerBuilder {
     public RpcServer build() {
         ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
         Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps);
-        ClientRequestDispatcher requestDispatcher = new ClientRequestDispatcher(requestHandler, workerExecutor, responseProducer);
+        KafkaMessageDispatcher requestDispatcher = new KafkaMessageDispatcher(requestHandler, workerExecutor, responseProducer);
 
         ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
         return new KafkaRpcServer(topic, consumerThreads, consumerProps, consumerExecutor, requestDispatcher);
