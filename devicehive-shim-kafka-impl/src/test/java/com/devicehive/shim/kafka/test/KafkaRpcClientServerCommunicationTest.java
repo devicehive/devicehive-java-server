@@ -193,7 +193,7 @@ public class KafkaRpcClientServerCommunicationTest {
             });
         }
 
-        latch.await(20, TimeUnit.SECONDS);
+        latch.await();
         assertEquals(10, responses.size());
 
         Set<String> correlationIds = responses.stream()
