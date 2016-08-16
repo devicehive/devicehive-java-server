@@ -172,10 +172,10 @@ public class KafkaRpcClientServerCommunicationTest {
                 .build();
 
         CountDownLatch latch = new CountDownLatch(10);
-        List<Response> responses = new LinkedList<>();
+        List<Response> responses = Collections.synchronizedList(new LinkedList<>());
         Consumer<Response> func = response -> {
-            latch.countDown();
             responses.add(response);
+            latch.countDown();
         };
 
         client.call(request, func);
