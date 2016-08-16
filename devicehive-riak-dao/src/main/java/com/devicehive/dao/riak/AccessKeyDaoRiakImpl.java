@@ -9,6 +9,7 @@ import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.api.commands.mapreduce.filters.SetMemberFilter;
+import com.basho.riak.client.api.convert.ConverterFactory;
 import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
@@ -16,6 +17,7 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.application.RiakQuorum;
 import com.devicehive.configuration.Constants;
+import com.devicehive.dao.riak.converters.GsonConverter;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakAccessKey;
@@ -55,6 +57,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
         sortMap.put("expirationDate", "function(a,b){ return a.expirationDate %s b.expirationDate; }");
         sortMap.put("type", "function(a,b){ return a.type %s b.type; }");
         sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
+        ConverterFactory.getInstance().registerConverterForClass(RiakAccessKey.class, new GsonConverter<>(RiakAccessKey.class));
     }
 
 
