@@ -1,7 +1,6 @@
 package com.devicehive.shim.config.server;
 
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
@@ -18,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
@@ -25,19 +25,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
+@PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
 
     public static final String REQUEST_TOPIC = "request_topic";
 
-    public static final String SERVER_REQUEST_GROUP = "request-consumer-group";
-
     @Autowired
     private Environment env;
 
-    @Value("${request.consumer.threads:1}")
+    @Value("${server.request-consumer.group}")
+    private String requestConsumerGroup;
+
+    @Value("${server.request-consumer.threads:1}")
     private int consumerThreads;
 
-    @Value("${worker.threads:1}")
+    @Value("${server.worker.threads:1}")
     private int workerThreads;
 
     @Bean
@@ -73,7 +75,7 @@ public class KafkaRpcServerConfig {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG,  SERVER_REQUEST_GROUP);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG,  requestConsumerGroup);
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
     }

@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
@@ -28,15 +29,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Configuration
+@PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
-    private static final Logger logger = LoggerFactory.getLogger(KafkaRpcClientConfig.class);
 
     public static final String RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
 
     @Autowired
     private Environment env;
 
-    @Value("${response.consumer.threads:1}")
+    @Value("${client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
     @Bean
