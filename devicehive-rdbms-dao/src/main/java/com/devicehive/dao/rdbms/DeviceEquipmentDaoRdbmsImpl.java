@@ -16,7 +16,6 @@ import static java.util.Optional.of;
 /**
  * Created by Gleb on 07.07.2016.
  */
-@Profile({"rdbms"})
 @Repository
 public class DeviceEquipmentDaoRdbmsImpl extends RdbmsGenericDao implements DeviceEquipmentDao {
     @Override

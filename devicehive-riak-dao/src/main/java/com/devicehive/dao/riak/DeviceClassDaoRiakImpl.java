@@ -10,6 +10,7 @@ import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.riak.model.RiakDeviceClass;
 import com.devicehive.dao.riak.model.RiakDeviceClassEquipment;
@@ -17,7 +18,6 @@ import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -26,7 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Profile({"riak"})
 @Repository
 public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClassDao {
 

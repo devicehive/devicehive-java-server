@@ -7,16 +7,15 @@ import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.dao.riak.model.NetworkDevice;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
-@Profile({"riak"})
 @Repository
 public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
 

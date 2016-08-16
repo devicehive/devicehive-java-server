@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class OAuthClientDaoRdbmsImpl extends RdbmsGenericDao implements OAuthClientDao {
 

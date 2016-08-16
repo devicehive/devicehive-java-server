@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +

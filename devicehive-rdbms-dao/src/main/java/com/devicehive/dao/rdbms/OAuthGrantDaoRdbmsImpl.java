@@ -20,7 +20,6 @@ import static com.devicehive.dao.rdbms.CriteriaHelper.order;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class OAuthGrantDaoRdbmsImpl extends RdbmsGenericDao implements OAuthGrantDao {
 

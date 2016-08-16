@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class NetworkDaoTest extends AbstractResourceTest {
+public class NetworkDaoTest {
 
     @Autowired
     private NetworkDao networkDao;

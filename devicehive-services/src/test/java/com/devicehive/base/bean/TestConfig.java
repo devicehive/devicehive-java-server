@@ -16,7 +16,7 @@ import org.springframework.core.env.Environment;
 public class TestConfig {
     private static final Logger logger = LoggerFactory.getLogger(TestConfig.class);
 
-    @Value("${metadata.broker.list}")
+    @Value("${bootstrap.servers}")
     private String brokerList;
 
     @Autowired

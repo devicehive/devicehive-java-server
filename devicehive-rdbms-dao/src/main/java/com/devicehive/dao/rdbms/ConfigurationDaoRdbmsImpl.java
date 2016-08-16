@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Profile({"rdbms"})
 @Repository
 public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements ConfigurationDao {
 

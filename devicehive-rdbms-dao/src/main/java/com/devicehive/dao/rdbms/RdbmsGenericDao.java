@@ -12,7 +12,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import java.io.Serializable;
 import java.util.Optional;
 
-@Profile({"rdbms"})
 @Repository
 public class RdbmsGenericDao {
     public static final String CACHEABLE = "org.hibernate.cacheable";

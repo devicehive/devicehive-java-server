@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
-@Profile({"rdbms"})
 @Repository
 public class IdentityProviderDaoRdbmsImpl extends RdbmsGenericDao implements IdentityProviderDao {
     @Override

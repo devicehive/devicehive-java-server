@@ -1,9 +1,7 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
-import com.devicehive.application.DeviceHiveApplicationConfiguration;
 import com.devicehive.base.rule.EmbeddedKafkaRule;
-import com.devicehive.dao.riak.InitialDataLoader;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
@@ -37,11 +35,11 @@ import static org.junit.Assert.assertThat;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class, DeviceHiveApplicationConfiguration.class})
+@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @DirtiesContext
 @WebAppConfiguration
 @IntegrationTest
-@TestPropertySource(locations="classpath:application-test-configuration.properties")
+@TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
@@ -55,9 +53,6 @@ public abstract class AbstractResourceTest {
 
     @ClassRule
     public static EmbeddedKafkaRule kafkaRule = new EmbeddedKafkaRule();
-
-    @Autowired(required = false)
-    private InitialDataLoader initialDataLoader;
 
     @Value("${server.port}")
     protected Integer port;
@@ -76,9 +71,6 @@ public abstract class AbstractResourceTest {
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
         target = client.target(httpBaseUri).path("rest");
-        if (initialDataLoader != null) {
-            initialDataLoader.initialData();
-        }
     }
 
     @After

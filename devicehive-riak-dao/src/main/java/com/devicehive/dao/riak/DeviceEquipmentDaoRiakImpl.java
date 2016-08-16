@@ -6,20 +6,19 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.dao.riak.model.RiakDeviceEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-@Profile({"riak"})
 @Repository
 public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements DeviceEquipmentDao {
 

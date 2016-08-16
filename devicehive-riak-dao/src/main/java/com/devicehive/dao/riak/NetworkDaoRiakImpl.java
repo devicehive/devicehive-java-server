@@ -12,6 +12,7 @@ import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
@@ -23,7 +24,6 @@ import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Profile({"riak"})
 @Repository
 public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 

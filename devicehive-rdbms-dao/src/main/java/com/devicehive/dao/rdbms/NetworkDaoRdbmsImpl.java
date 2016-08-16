@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     @Override

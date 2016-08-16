@@ -6,6 +6,7 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.dao.riak.model.RiakConfiguration;
 import com.devicehive.exceptions.HivePersistenceLayerException;
@@ -13,13 +14,11 @@ import com.devicehive.vo.ConfigurationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
-@Profile({"riak"})
 @Repository
 public class ConfigurationDaoRiakImpl extends RiakGenericDao implements ConfigurationDao {
 

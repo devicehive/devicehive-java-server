@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyDao {
 
