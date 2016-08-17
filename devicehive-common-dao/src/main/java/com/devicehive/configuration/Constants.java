@@ -70,7 +70,7 @@ public class Constants {
     public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
     public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";
 
-    public static final String METADATA_BROKER_LIST = "metadata.broker.list";
+    public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
     public static final String NOTIFICATION_TOPIC_NAME = "device_notification";
     public static final String COMMAND_TOPIC_NAME = "device_command";
     public static final String COMMAND_UPDATE_TOPIC_NAME = "device_command_update";

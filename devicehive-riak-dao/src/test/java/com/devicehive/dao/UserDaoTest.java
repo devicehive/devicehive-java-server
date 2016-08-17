@@ -16,7 +16,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 
-public class UserDaoTest extends AbstractResourceTest {
+public class UserDaoTest {
 
     @Autowired
     private UserDao userDao;

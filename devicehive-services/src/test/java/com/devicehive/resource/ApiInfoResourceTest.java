@@ -65,7 +65,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
     public void should_return_cluster_config() throws Exception {
         ClusterConfigVO clusterConfig = performRequest("info/config/cluster", "GET", emptyMap(), emptyMap(), null, OK, ClusterConfigVO.class);
         assertThat(clusterConfig, notNullValue());
-        assertThat(clusterConfig.getMetadataBrokerList(), is(env.getProperty(Constants.METADATA_BROKER_LIST)));
+        assertThat(clusterConfig.getBootstrapServers(), is(env.getProperty(Constants.BOOTSTRAP_SERVERS)));
         assertThat(clusterConfig.getZookeeperConnect(), is(env.getProperty(Constants.ZOOKEEPER_CONNECT)));
         assertThat(clusterConfig.getThreadsCount(), is(1));
     }

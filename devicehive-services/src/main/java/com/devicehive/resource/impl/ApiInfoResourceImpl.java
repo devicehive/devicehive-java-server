@@ -110,7 +110,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     public Response getClusterConfig() {
         logger.debug("ClusterConfigVO requested");
         ClusterConfigVO clusterConfig = new ClusterConfigVO();
-        clusterConfig.setMetadataBrokerList(env.getProperty(Constants.METADATA_BROKER_LIST));
+        clusterConfig.setBootstrapServers(env.getProperty(Constants.BOOTSTRAP_SERVERS));
         clusterConfig.setZookeeperConnect(env.getProperty(Constants.ZOOKEEPER_CONNECT));
 
         final String threadCount = env.getProperty(Constants.THREADS_COUNT);

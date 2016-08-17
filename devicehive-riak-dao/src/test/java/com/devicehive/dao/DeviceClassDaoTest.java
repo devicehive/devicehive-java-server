@@ -13,7 +13,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class DeviceClassDaoTest extends AbstractResourceTest {
+public class DeviceClassDaoTest {
 
     @Autowired
     private DeviceClassDao deviceClassDao;

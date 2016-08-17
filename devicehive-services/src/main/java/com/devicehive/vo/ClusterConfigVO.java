@@ -13,8 +13,8 @@ public class ClusterConfigVO implements HiveEntity {
     private static final long serialVersionUID = -4731922300811943546L;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)
-    @SerializedName("metadata.broker.list")
-    private String metadataBrokerList;
+    @SerializedName("bootstrap.servers")
+    private String bootstrapServers;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)
     @SerializedName("zookeeper.connect")
@@ -24,12 +24,12 @@ public class ClusterConfigVO implements HiveEntity {
     @SerializedName("threads.count")
     private Integer threadsCount;
 
-    public String getMetadataBrokerList() {
-        return metadataBrokerList;
+    public String getBootstrapServers() {
+        return bootstrapServers;
     }
 
-    public void setMetadataBrokerList(String metadataBrokerList) {
-        this.metadataBrokerList = metadataBrokerList;
+    public void setBootstrapServers(String bootstrapServers) {
+        this.bootstrapServers = bootstrapServers;
     }
 
     public String getZookeeperConnect() {

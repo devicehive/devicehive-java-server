@@ -23,7 +23,6 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
 

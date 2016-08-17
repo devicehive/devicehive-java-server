@@ -69,7 +69,7 @@ Running Apache Kafka
 -----------------------
 Start Zookeeper and Apache Kafka brokers as explained at official documentation (`http://kafka.apache.org/documentation.html#quickstart`).
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
-You need to update zookeeper.connect (zookeeper's contactpoint) and metadata.broker.list (list of brokers) properties.
+You need to update zookeeper.connect (zookeeper's contactpoint) and bootstrap.servers (list of brokers) properties.
 
 Starting database
 ---------------------

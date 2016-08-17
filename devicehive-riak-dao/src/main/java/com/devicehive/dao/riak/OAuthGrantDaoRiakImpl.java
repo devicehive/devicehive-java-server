@@ -12,6 +12,7 @@ import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.OAuthClientDao;
@@ -28,7 +29,6 @@ import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Profile({"riak"})
 @Repository
 public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantDao {
 

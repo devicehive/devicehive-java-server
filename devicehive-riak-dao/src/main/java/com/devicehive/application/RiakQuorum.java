@@ -1,4 +1,4 @@
-package com.devicehive.dao.riak;
+package com.devicehive.application;
 
 import com.basho.riak.client.api.cap.Quorum;
 import com.basho.riak.client.api.commands.kv.FetchValue;
