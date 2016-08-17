@@ -12,4 +12,8 @@
     <artifactId>devicehive-common-dao</artifactId>
     <packaging>jar</packaging>
     <name>DeviceHive Common Dao Interfaces</name>
+
+    <properties>
+        <project.rootdir>${project.parent.basedir}</project.rootdir>
+    </properties>
 </project>
