@@ -3,6 +3,7 @@ package com.devicehive.application;
 import com.devicehive.service.MyServiceBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -10,8 +11,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.stereotype.Component;
 
-@Component
-@SpringApplicationConfiguration(classes = {DeviceHiveApplicationConfiguration.class})
+@SpringBootApplication
 @ComponentScan(value = "com.devicehive")
 public class DeviceHiveApplication extends SpringBootServletInitializer {
 
