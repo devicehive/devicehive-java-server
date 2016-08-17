@@ -114,7 +114,7 @@
         <profile>
             <id>booted-rdbms</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
                 <finalName>devicehive-rdbms-${project.version}-boot</finalName>
