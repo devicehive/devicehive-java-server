@@ -1,6 +1,5 @@
 <configuration debug="true">
 
-
     <property name="entry.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %X{usrinf} %logger{36} - %msg%n"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -33,15 +32,15 @@
         <appender-ref ref="STDOUT"/>
     </appender>
 
-    <logger name="com.devicehive.messages.kafka.AbstractConsumer" level="INFO">
+    <logger name="org.apache.zookeeper" level="WARN">
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <logger name="org.springframework.boot.actuate.audit.listener.AuditListener" level="WARN">
+    <logger name="org.apache.kafka" level="WARN">
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <logger name="kafka.utils" level="WARN">
+    <logger name="kafka" level="WARN">
         <appender-ref ref="ASYNC"/>
     </logger>
 
@@ -52,6 +51,5 @@
     <root level="WARN">
         <appender-ref ref="ASYNC"/>
     </root>
-
 
 </configuration>
