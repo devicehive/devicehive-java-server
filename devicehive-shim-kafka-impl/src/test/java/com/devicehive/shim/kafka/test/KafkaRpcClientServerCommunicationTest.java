@@ -1,5 +1,6 @@
 package com.devicehive.shim.kafka.test;
 
+import com.devicehive.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -7,7 +8,6 @@ import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.builder.ClientBuilder;
 import com.devicehive.shim.kafka.builder.ServerBuilder;
-import com.devicehive.shim.kafka.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.kafka.rule.RequestHandlerWrapper;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;

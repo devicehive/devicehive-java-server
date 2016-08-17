@@ -20,6 +20,10 @@
             <version>2.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
         </dependency>
@@ -38,29 +42,13 @@
             <artifactId>spring-boot-starter-undertow</artifactId>
             <version>${springboot.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+            <version>${springboot.version}</version>
+        </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>test-port-override</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
-                        <configuration>
-                            <argLine>
-                                -Dport=${server.test.port} -Dzk.port=${zk.test.port}
-                                -Dkafka.port=${kafka.test.port}
-                            </argLine>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
         <profile>
             <id>booted-rdbms</id>
             <activation>

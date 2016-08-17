@@ -1,4 +1,4 @@
-package com.devicehive.shim.kafka.rule;
+package com.devicehive.rule;
 
 import kafka.admin.AdminUtils;
 import kafka.server.KafkaConfig;
@@ -15,12 +15,13 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.rules.ExternalResource;
 
-import javax.net.ServerSocketFactory;
 import java.io.File;
-import java.net.ServerSocket;
+import java.util.Optional;
 import java.util.Properties;
 
 public class KafkaEmbeddedRule extends ExternalResource {
+
+    private static final int KAFKA_DEFAULT_PORT = 9092;
 
     private boolean controlledShutdown;
     private int partitions;
@@ -49,11 +50,12 @@ public class KafkaEmbeddedRule extends ExternalResource {
         this.zookeeperClient = new ZkClient(this.zkConnect, zkSessionTimeout, zkConnectionTimeout,
                 ZKStringSerializer$.MODULE$);
 
-        ServerSocket ss = ServerSocketFactory.getDefault().createServerSocket(0);
-        int randomPort = ss.getLocalPort();
-        ss.close();
+        int kafkaPort = Optional.ofNullable(System.getProperty("kafka.port"))
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .orElse(KAFKA_DEFAULT_PORT);
         Properties brokerConfigProperties = TestUtils.createBrokerConfig(0, this.zkConnect, this.controlledShutdown,
-                true, randomPort,
+                true, kafkaPort,
                 scala.Option.<SecurityProtocol>apply(null),
                 scala.Option.<File>apply(null),
                 scala.Option.<Properties>apply(null),

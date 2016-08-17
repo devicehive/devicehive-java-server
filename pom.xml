@@ -30,7 +30,7 @@
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
         <httpclient.version>4.3.5</httpclient.version>
         <zookeeper.version>3.4.6</zookeeper.version>
-        <zkclient.version>0.3</zkclient.version>
+        <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <hazelcast.version>3.5</hazelcast.version>
         <curator.version>2.8.0</curator.version>
@@ -76,6 +76,7 @@
         <module>devicehive-shim-kafka-impl</module>
         <module>devicehive-backend</module>
         <module>devicehive-services</module>
+        <module>devicehive-test-utils</module>
     </modules>
 
     <dependencies>
@@ -188,11 +189,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-            <version>${springboot.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
             <version>${springboot.version}</version>
         </dependency>
@@ -206,12 +202,6 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>${postgresql.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway-core.version}</version>
         </dependency>
 
         <dependency>
@@ -317,6 +307,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway-core.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
@@ -636,4 +631,27 @@
             </plugins>
         </pluginManagement>
     </build>
+    <profiles>
+        <profile>
+            <id>test-port-override</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <argLine>
+                                -Dport=${server.test.port} -Dzk.port=${zk.test.port}
+                                -Dkafka.port=${kafka.test.port}
+                            </argLine>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
