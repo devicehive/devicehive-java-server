@@ -3,10 +3,15 @@ package com.devicehive.shim.config.server;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.kafka.server.KafkaRpcServer;
+import com.devicehive.shim.kafka.server.RequestConsumer;
+import com.devicehive.shim.kafka.server.ServerEvent;
+import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import com.devicehive.shim.kafka.server.KafkaMessageDispatcher;
-import com.devicehive.shim.kafka.server.KafkaRpcServer;
+import com.lmax.disruptor.*;
+import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -14,6 +19,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,24 +50,67 @@ public class KafkaRpcServerConfig {
     @Value("${server.worker.threads:1}")
     private int workerThreads;
 
-    @Bean
+    @Value("${lmax.buffer-size:1024}")
+    private int bufferSize;
+
+    @Value("${server.disruptor.wait-strategy}")
+    private String waitStrategyType;
+
+    @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer() {
         return new KafkaProducer<>(producerProps());
     }
 
     @Bean
-    public KafkaMessageDispatcher clientRequestHandler(RequestHandler requestHandler, Producer<String, Response> responseProducer) {
-        ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
-        return new KafkaMessageDispatcher(requestHandler, workerExecutor, responseProducer);
+    public ExecutorService workerExecutor() {
+        return Executors.newFixedThreadPool(workerThreads);
     }
 
-    @Bean(destroyMethod = "shutdown")
-    public RpcServer rpcServer(KafkaMessageDispatcher messageDispatcher) {
-        Properties consumerProps = consumerProps();
-        ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
-        RpcServer rpcServer = new KafkaRpcServer(REQUEST_TOPIC, consumerThreads, consumerProps, consumerExecutor, messageDispatcher);
-        rpcServer.start();
-        return rpcServer;
+    @Bean
+    public WaitStrategy disruptorWaitStrategy() {
+        WaitStrategy strategy;
+        switch (waitStrategyType) {
+            case "sleeping":
+                strategy = new SleepingWaitStrategy();
+                break;
+            case "yielding":
+                strategy = new YieldingWaitStrategy();
+                break;
+            case "busy-spin":
+                strategy = new BusySpinWaitStrategy();
+            case "blocking":
+            default:
+                strategy = new BlockingWaitStrategy();
+        }
+        return strategy;
+    }
+
+    @Bean
+    public Disruptor<ServerEvent> disruptor(@Qualifier("workerExecutor") ExecutorService workerExecutor, WaitStrategy waitStrategy) {
+        ProducerType producerType = ProducerType.SINGLE;
+        if (consumerThreads > 1) {
+            producerType = ProducerType.MULTI;
+        }
+
+        return new Disruptor<>(ServerEvent::new, bufferSize,  workerExecutor, producerType, waitStrategy);
+    }
+
+    @Bean
+    public ServerEventHandler serverEventHandler(RequestHandler requestHandler,
+                                                 @Qualifier("server-producer") Producer<String, Response> responseProducer) {
+        return new ServerEventHandler(requestHandler, responseProducer);
+    }
+
+    @Bean
+    public RequestConsumer requestConsumer() {
+        return new RequestConsumer(REQUEST_TOPIC, consumerProps(), consumerThreads);
+    }
+
+    @Bean
+    public RpcServer rpcServer(Disruptor<ServerEvent> disruptor, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
+        RpcServer server = new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
+        server.start();
+        return server;
     }
 
     private Properties producerProps() {

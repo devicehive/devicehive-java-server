@@ -5,8 +5,6 @@ import com.devicehive.shim.api.Response;
 
 public interface MessageDispatcher {
 
-    void onReceive(Request request);
-
     void send(String to, Response response);
 
 }

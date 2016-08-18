@@ -3,8 +3,13 @@ package com.devicehive.shim.kafka.builder;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
-import com.devicehive.shim.kafka.server.KafkaMessageDispatcher;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
+import com.devicehive.shim.kafka.server.RequestConsumer;
+import com.devicehive.shim.kafka.server.ServerEvent;
+import com.devicehive.shim.kafka.server.ServerEventHandler;
+import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.dsl.ProducerType;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 
@@ -55,12 +60,18 @@ public class ServerBuilder {
     }
 
     public RpcServer build() {
+        ProducerType producerType = ProducerType.SINGLE;
+        if (consumerThreads > 1) {
+            producerType = ProducerType.MULTI;
+        }
         ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
-        Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps);
-        KafkaMessageDispatcher requestDispatcher = new KafkaMessageDispatcher(requestHandler, workerExecutor, responseProducer);
+        Disruptor<ServerEvent> disruptor = new Disruptor<>(ServerEvent::new, 1024, workerExecutor, producerType, new BlockingWaitStrategy());
 
-        ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
-        return new KafkaRpcServer(topic, consumerThreads, consumerProps, consumerExecutor, requestDispatcher);
+        Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps);
+        ServerEventHandler eventHandler = new ServerEventHandler(requestHandler, responseProducer);
+
+        RequestConsumer requestConsumer = new RequestConsumer(topic, consumerProps, consumerThreads);
+        return new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
     }
 
 }
