@@ -21,8 +21,8 @@ import java.util.*;
 
 
 @Repository
-public abstract class AbstractHazelcastEntityService {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractHazelcastEntityService.class);
+public class HazelcastRepository {
+    private static final Logger logger = LoggerFactory.getLogger(HazelcastRepository.class);
 
     public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
     public static final String COMMANDS_MAP = "COMMANDS-MAP";
@@ -32,9 +32,6 @@ public abstract class AbstractHazelcastEntityService {
 
     @Autowired
     protected HazelcastHelper hazelcastHelper;
-
-    @Autowired
-    protected MessageBus messageBus;
 
     @Autowired
     private DeviceService deviceService;
@@ -83,7 +80,6 @@ public abstract class AbstractHazelcastEntityService {
     protected  <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
         mapsHolder.get(tClass).set(hzEntity.getHazelcastKey(), hzEntity);
-        messageBus.publish(hzEntity);
     }
 
     @SuppressWarnings("unchecked")

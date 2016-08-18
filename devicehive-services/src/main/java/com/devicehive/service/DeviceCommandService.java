@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.time.TimestampService;
@@ -16,20 +17,28 @@ import java.util.Random;
 
 
 @Service
-public class DeviceCommandService extends AbstractHazelcastEntityService {
+public class DeviceCommandService {
+
     @Autowired
     private TimestampService timestampService;
+
     @Autowired
     private HiveValidator hiveValidator;
 
+    @Autowired
+    private HazelcastRepository hazelcastRepository;
+
+    @Autowired
+    private MessageBus messageBus;
+
     public DeviceCommand find(Long id, String guid) {
-        return find(id, guid, DeviceCommand.class);
+        return hazelcastRepository.find(id, guid, DeviceCommand.class);
     }
 
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
                                           Date timestamp, String status, Integer take,
                                           Boolean hasResponse, HivePrincipal principal) {
-        return find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
+        return hazelcastRepository.find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
     }
 
     public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -88,6 +97,7 @@ public class DeviceCommandService extends AbstractHazelcastEntityService {
     }
 
     public void store(DeviceCommand command) {
-        store(command, DeviceCommand.class);
+        hazelcastRepository.store(command, DeviceCommand.class);
+        messageBus.publish(command);
     }
 }

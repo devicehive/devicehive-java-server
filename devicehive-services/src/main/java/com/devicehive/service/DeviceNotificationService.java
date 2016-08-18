@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -14,29 +15,39 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
-public class DeviceNotificationService extends AbstractHazelcastEntityService {
+public class DeviceNotificationService {
+
     @Autowired
     private DeviceEquipmentService deviceEquipmentService;
+
     @Autowired
     private TimestampService timestampService;
+
     @Autowired
     private DeviceDao deviceDao;
 
+    @Autowired
+    private HazelcastRepository hazelcastRepository;
+
+    @Autowired
+    private MessageBus messageBus;
+
     public DeviceNotification find(Long id, String guid) {
-        return find(id, guid, DeviceNotification.class);
+        return hazelcastRepository.find(id, guid, DeviceNotification.class);
     }
 
     public Collection<DeviceNotification> find(Long id, String guid, Collection<String> devices,
                                                Collection<String> names,
                                                Date timestamp, Integer take, HivePrincipal principal) {
 
-        return find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
+        return hazelcastRepository.find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
-            store(currentNotification, DeviceNotification.class);
+            hazelcastRepository.store(currentNotification, DeviceNotification.class);
+            messageBus.publish(currentNotification);
         }
     }
 
@@ -44,7 +55,8 @@ public class DeviceNotificationService extends AbstractHazelcastEntityService {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
-        store(notification, DeviceNotification.class);
+        hazelcastRepository.store(notification, DeviceNotification.class);
+        messageBus.publish(notification);
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
