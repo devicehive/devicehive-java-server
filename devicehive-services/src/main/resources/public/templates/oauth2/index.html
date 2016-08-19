@@ -261,8 +261,8 @@ $(function () {
                         if (data.authCode) {
                             self.redirectBack("?code=" + data.authCode);
                         }
-                        else if (data.accessKey && data.accessKey.key) {
-                            self.redirectBack("?token_type=Bearer&access_token=" + data.accessKey.key);
+                        else if (data.accessKey && data.accessKey.partitionKey) {
+                            self.redirectBack("?token_type=Bearer&access_token=" + data.accessKey.partitionKey);
                         }
                     },
                     function (xhr) {
