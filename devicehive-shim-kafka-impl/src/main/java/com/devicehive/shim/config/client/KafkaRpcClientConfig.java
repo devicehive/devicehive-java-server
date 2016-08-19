@@ -2,20 +2,18 @@ package com.devicehive.shim.config.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +37,7 @@ public class KafkaRpcClientConfig {
     @Autowired
     private Environment env;
 
-    @Value("${client.response-consumer.threads:1}")
+    @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
     @Bean

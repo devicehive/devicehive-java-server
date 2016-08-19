@@ -26,19 +26,20 @@ public class DeviceCommandService {
     private HiveValidator hiveValidator;
 
     @Autowired
-    private HazelcastRepository hazelcastRepository;
+    private HazelcastService hazelcastService;
 
+    @Deprecated
     @Autowired
     private MessageBus messageBus;
 
     public DeviceCommand find(Long id, String guid) {
-        return hazelcastRepository.find(id, guid, DeviceCommand.class);
+        return hazelcastService.find(id, guid, DeviceCommand.class);
     }
 
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
                                           Date timestamp, String status, Integer take,
                                           Boolean hasResponse, HivePrincipal principal) {
-        return hazelcastRepository.find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
+        return hazelcastService.find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
     }
 
     public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -97,7 +98,7 @@ public class DeviceCommandService {
     }
 
     public void store(DeviceCommand command) {
-        hazelcastRepository.store(command, DeviceCommand.class);
+        hazelcastService.store(command, DeviceCommand.class);
         messageBus.publish(command);
     }
 }

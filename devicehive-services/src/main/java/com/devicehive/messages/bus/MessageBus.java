@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * Created by tmatvienko on 12/30/14.
  */
+@Deprecated
 @Component
 @Lazy(false)
 public class MessageBus {

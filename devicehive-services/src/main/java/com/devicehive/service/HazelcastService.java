@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
@@ -14,15 +13,14 @@ import com.hazelcast.query.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-
-@Repository
-public class HazelcastRepository {
-    private static final Logger logger = LoggerFactory.getLogger(HazelcastRepository.class);
+@Service
+public class HazelcastService {
+    private static final Logger logger = LoggerFactory.getLogger(HazelcastService.class);
 
     public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
     public static final String COMMANDS_MAP = "COMMANDS-MAP";
@@ -99,7 +97,7 @@ public class HazelcastRepository {
         if(devices != null && !devices.isEmpty() && principal != null){
             availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
         }else {
-            availableDevices = Collections.EMPTY_LIST;
+            availableDevices = Collections.emptyList();
         }
         return availableDevices;
     }
