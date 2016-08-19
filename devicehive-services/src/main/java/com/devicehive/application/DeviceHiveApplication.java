@@ -1,15 +1,19 @@
 package com.devicehive.application;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.swagger.jaxrs.config.BeanConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
@@ -58,5 +62,10 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
         beanConfig.setResourcePackage("com.devicehive.resource");
         beanConfig.setScan(true);
         return beanConfig;
+    }
+
+    @Bean
+    public Gson gson() {
+        return new GsonBuilder().disableHtmlEscaping().create();
     }
 }

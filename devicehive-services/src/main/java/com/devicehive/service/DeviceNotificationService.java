@@ -2,13 +2,15 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,27 +29,34 @@ public class DeviceNotificationService {
     private DeviceDao deviceDao;
 
     @Autowired
-    private HazelcastRepository hazelcastRepository;
+    private RpcClient rpcClient;
 
     @Autowired
-    private MessageBus messageBus;
+    private HazelcastService hazelcastService;
+
+    @Autowired
+    private Gson gson;
 
     public DeviceNotification find(Long id, String guid) {
-        return hazelcastRepository.find(id, guid, DeviceNotification.class);
+        return hazelcastService.find(id, guid, DeviceNotification.class);
     }
 
     public Collection<DeviceNotification> find(Long id, String guid, Collection<String> devices,
                                                Collection<String> names,
                                                Date timestamp, Integer take, HivePrincipal principal) {
 
-        return hazelcastRepository.find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
+        return hazelcastService.find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
         List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
         for (DeviceNotification currentNotification : proceedNotifications) {
-            hazelcastRepository.store(currentNotification, DeviceNotification.class);
-            messageBus.publish(currentNotification);
+            hazelcastService.store(currentNotification, DeviceNotification.class);
+            rpcClient.push(Request.newBuilder()
+                    .withAction(Request.Action.NOTIFICATION_INSERT)
+                    .withBody(gson.toJson(notification).getBytes())
+                    .withPartitionKey(device.getGuid())
+                    .build());
         }
     }
 
@@ -55,8 +64,12 @@ public class DeviceNotificationService {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
-        hazelcastRepository.store(notification, DeviceNotification.class);
-        messageBus.publish(notification);
+        hazelcastService.store(notification, DeviceNotification.class);
+        rpcClient.push(Request.newBuilder()
+                .withAction(Request.Action.NOTIFICATION_INSERT)
+                .withBody(gson.toJson(notification).getBytes())
+                .withPartitionKey(deviceGuid)
+                .build());
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
@@ -87,6 +100,7 @@ public class DeviceNotificationService {
         return notificationsToCreate;
 
     }
+
     private DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, DeviceVO device) {
         DeviceVO devicevo = deviceDao.findByUUID(device.getGuid());
         String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);

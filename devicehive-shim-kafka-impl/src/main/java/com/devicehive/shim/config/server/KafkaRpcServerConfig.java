@@ -41,19 +41,19 @@ public class KafkaRpcServerConfig {
     @Autowired
     private Environment env;
 
-    @Value("${server.request-consumer.group}")
+    @Value("${rpc.server.request-consumer.group}")
     private String requestConsumerGroup;
 
-    @Value("${server.request-consumer.threads:1}")
+    @Value("${rpc.server.request-consumer.threads:1}")
     private int consumerThreads;
 
-    @Value("${server.worker.threads:1}")
+    @Value("${rpc.server.worker.threads:1}")
     private int workerThreads;
 
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${server.disruptor.wait-strategy}")
+    @Value("${rpc.server.disruptor.wait-strategy}")
     private String waitStrategyType;
 
     @Bean(name = "server-producer")
