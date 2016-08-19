@@ -42,7 +42,7 @@ public class KafkaRpcClient implements RpcClient {
     @Override
     public void push(Request request) {
         request.setReplyTo(replyToTopic);
-        requestProducer.send(new ProducerRecord<>(requestTopic, request.getCorrelationId(), request),
+        requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request),
                 (recordMetadata, e) -> {
                     if (e != null) {
                         logger.error("Send request failed", e);
