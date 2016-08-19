@@ -3,7 +3,7 @@ CREATE TABLE network (
   id             BIGSERIAL    NOT NULL,
   name           VARCHAR(128) NOT NULL,
   description    VARCHAR(128) NULL,
-  key            VARCHAR(64)  NULL,
+  partitionKey            VARCHAR(64)  NULL,
   entity_version BIGINT       NOT NULL DEFAULT 0
 );
 
@@ -56,7 +56,7 @@ CREATE TABLE device (
   status          VARCHAR(128) NULL,
   network_id      BIGINT       NULL,
   device_class_id BIGINT       NOT NULL,
-  key             VARCHAR(64)  NOT NULL,
+  partitionKey             VARCHAR(64)  NOT NULL,
   data            TEXT         NULL,
   entity_version  BIGINT       NOT NULL DEFAULT 0
 );
@@ -129,6 +129,6 @@ INSERT INTO network
 
 -- 4. Default devices
 INSERT INTO device
-(guid, name, status, network_id, device_class_id, key)
+(guid, name, status, network_id, device_class_id, partitionKey)
   VALUES
   ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, '05F94BF509C8');
