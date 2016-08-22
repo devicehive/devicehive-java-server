@@ -33,6 +33,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
@@ -106,13 +107,14 @@ public class NotificationHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
         }
         HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
-        state.getNotificationSubscriptionsLock().lock();
         try {
+            state.getNotificationSubscriptionsLock().lock();
             logger.debug("notification/subscribe action. Session {}", session.getId());
             List<NotificationSubscription> nsList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
+            List<DeviceVO> actualDevices = Collections.emptyList();
             if (devices != null) {
-                List<DeviceVO> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 for (DeviceVO d : actualDevices) {
                     WebsocketHandlerCreator<DeviceNotification> notificationInsert = WebsocketHandlerCreator.createNotificationInsert(session);
                     NotificationSubscription notificationSubscription = new NotificationSubscription(principal, d.getGuid(), reqId, StringUtils.join(names, ","), notificationInsert);
@@ -131,14 +133,10 @@ public class NotificationHandlers extends WebsocketHandlers {
             state.getNotificationSubscriptions().add(reqId);
             subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
 
-            if (timestamp != null) {
-                Collection<DeviceNotification> notifications = notificationService.find(null, null,
-                        devices, names, timestamp, Constants.DEFAULT_TAKE, principal);
-                if (!notifications.isEmpty()) {
-                    for (DeviceNotification deviceNotification : notifications) {
-                        state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(deviceNotification, reqId));
-                    }
-                }
+            if (timestamp != null && !actualDevices.isEmpty()) {
+                Set<String> guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
+                notificationService.find(null, null, guids, names, timestamp, Constants.DEFAULT_TAKE)
+                        .forEach(n -> state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(n, reqId)));
             }
             return reqId;
         } finally {

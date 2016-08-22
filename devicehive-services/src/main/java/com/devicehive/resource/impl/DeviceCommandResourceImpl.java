@@ -102,9 +102,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))
-                ? deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal)
-                : new ArrayList<>();
+        final Set<String> availableDevices = StringUtils.isBlank(devices)
+                ? Collections.emptySet()
+                : deviceService.findByGuidWithPermissionsCheck(ParseUtil.getList(devices), principal).stream()
+                    .map(DeviceVO::getGuid)
+                    .collect(Collectors.toSet());
+
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
         CommandSubscriptionStorage storage = subscriptionManager.getCommandSubscriptionStorage();
@@ -123,7 +126,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         }
 
         if (timestamp != null && !availableDevices.isEmpty()) {
-            list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false, principal);
+            list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false);
         }
 
         if (!list.isEmpty()) {
@@ -187,9 +190,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        DeviceCommand command = commandService.find(Long.valueOf(commandId), device.getGuid());
+        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid());
 
-        if (command == null) {
+        if (!command.isPresent()) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
                     commandId, deviceGuid);
             Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
@@ -197,7 +200,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        if (!command.getDeviceGuid().equals(device.getGuid())) {
+        if (!command.get().getDeviceGuid().equals(device.getGuid())) {
             LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: Command with id = {} was not sent for device with guid = {}",
                     commandId, deviceGuid);
             Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
@@ -205,13 +208,13 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        if (!command.getIsUpdated()) {
+        if (!command.get().getIsUpdated()) {
             CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
             UUID reqId = UUID.randomUUID();
             CommandUpdateSubscription commandSubscription =
                     new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
 
-            if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<>(Runnables.doNothing(), null), timeout)) {
                 asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
             }
         }
@@ -233,8 +236,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
 
-        final Collection<DeviceCommand> commandList = commandService.find(Collections.singletonList(guid),
-                searchCommands, timestamp, status, 0, null, principal);
+        final Collection<DeviceCommand> commandList = Optional.ofNullable(deviceService.findByGuidWithPermissionsCheck(guid, principal))
+                .map(deviceVO -> commandService.find(Collections.singletonList(deviceVO.getGuid()), searchCommands, timestamp, status, 0, null))
+                .orElse(Collections.emptyList());
 
         final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
@@ -259,14 +263,14 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        DeviceCommand command = commandService.find(Long.valueOf(commandId), device.getGuid());
-        if (command == null) {
+        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid());
+        if (!command.isPresent()) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                     String.format(Messages.COMMAND_NOT_FOUND, commandId)));
         }
 
-        if (!command.getDeviceGuid().equals(guid)) {
+        if (!command.get().getDeviceGuid().equals(guid)) {
             LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
                     commandId, guid);
             return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
@@ -308,9 +312,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public Response update(String guid, Long commandId, DeviceCommandWrapper command) {
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        //TODO [rafa] unused local variable?
-        final UserVO authUser = principal.getUser() != null ? principal.getUser() :
-                (principal.getKey() != null ? principal.getKey().getUser() : null);
         LOGGER.debug("Device command update requested. command {}", command);
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
@@ -318,8 +319,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        DeviceCommand savedCommand = commandService.find(commandId, guid);
-        if (savedCommand == null) {
+        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid);
+        if (!savedCommand.isPresent()) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.COMMAND_NOT_FOUND, commandId)));

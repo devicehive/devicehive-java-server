@@ -28,7 +28,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         }
 
         assertEquals(NUMBER_OF_COMMANDS, deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, null, null).size());
+                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, null).size());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             }
         }
         assertEquals(withResponse, deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, true, null).size()
+                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, true).size()
                 );
     }
     @Test
@@ -64,7 +64,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             }
         }
         assertEquals(NUMBER_OF_COMMANDS - withResponse, deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, false, null).size()
+                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false).size()
                 );
     }
 
@@ -78,7 +78,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(NUMBER_OF_COMMANDS);
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, false, null);
+                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false);
         assertEquals(NUMBER_OF_COMMANDS, commands.size());
     }
 
@@ -90,23 +90,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         final int NUMBER_OF_COMMANDS = 20;
         sendNCommands(NUMBER_OF_COMMANDS);
 
-        final List<DeviceCommand> commands =  new ArrayList<DeviceCommand>(deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, false, null));
-
-        for (int i = 1; i < commands.size(); i++) {
-            final Date currentElem = commands.get(i).getTimestamp();
-            final Date previousElem = commands.get(i - 1).getTimestamp();
-            assertTrue(currentElem.before(previousElem));
-        }
-    }
-
-    @Test
-    public void _testIncreasingTimestamps() {
-        final int NUMBER_OF_COMMANDS = 20;
-        sendNCommands(NUMBER_OF_COMMANDS);
-
-        final List<DeviceCommand> commands =  new ArrayList<DeviceCommand>(deviceCommandService.find(
-                null, Collections.<String>emptyList(), null, DEFAULT_STATUS, 100, true, null));
+        final List<DeviceCommand> commands = new ArrayList<>(deviceCommandService.find(
+                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false));
 
         for (int i = 1; i < commands.size(); i++) {
             final Date currentElem = commands.get(i).getTimestamp();
@@ -131,12 +116,12 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(15);
 
         final Collection<DeviceCommand> commandsAll =  deviceCommandService.find(
-                null, Collections.<String>emptyList(), timeBeforeBatches, DEFAULT_STATUS, 100, false, null);
+                null, Collections.emptyList(), timeBeforeBatches, DEFAULT_STATUS, 100, false);
         assertEquals(25, commandsAll.size());
 
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.<String>emptyList(), timeBetweenBatches, DEFAULT_STATUS, 100, false, null);
+                null, Collections.emptyList(), timeBetweenBatches, DEFAULT_STATUS, 100, false);
         assertEquals(15, commands.size());
 
     }
@@ -149,7 +134,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(10);
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Arrays.asList("command2", "command3", "command4"), null, DEFAULT_STATUS, 100, false, null);
+                null, Arrays.asList("command2", "command3", "command4"), null, DEFAULT_STATUS, 100, false);
         assertEquals(3, commands.size());
     }
 

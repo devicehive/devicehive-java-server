@@ -94,10 +94,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
-        final DeviceNotification existingNotification = deviceNotificationService.find(null, device.getGuid());
+        final Optional<DeviceNotification> existingNotification = deviceNotificationService.find(null, device.getGuid());
 
-        assertNotNull(existingNotification);
-        assertEquals(device.getGuid(), existingNotification.getDeviceGuid());
+        assertTrue(existingNotification.isPresent());
+        assertEquals(device.getGuid(), existingNotification.get().getDeviceGuid());
 
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);

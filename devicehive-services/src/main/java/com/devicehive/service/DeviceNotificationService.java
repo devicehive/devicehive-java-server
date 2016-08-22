@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -37,15 +36,14 @@ public class DeviceNotificationService {
     @Autowired
     private Gson gson;
 
-    public DeviceNotification find(Long id, String guid) {
+    public Optional<DeviceNotification> find(Long id, String guid) {
         return hazelcastService.find(id, guid, DeviceNotification.class);
     }
 
     public Collection<DeviceNotification> find(Long id, String guid, Collection<String> devices,
                                                Collection<String> names,
-                                               Date timestamp, Integer take, HivePrincipal principal) {
-
-        return hazelcastService.find(id, guid, devices, names, timestamp, take, principal, DeviceNotification.class);
+                                               Date timestamp, Integer take) {
+        return hazelcastService.find(id, guid, devices, names, timestamp, take, DeviceNotification.class);
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {

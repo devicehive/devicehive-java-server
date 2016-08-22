@@ -36,6 +36,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -111,8 +112,9 @@ public class CommandHandlers extends WebsocketHandlers {
             logger.debug("command/subscribe action. Session {}", session.getId());
             List<CommandSubscription> csList = new ArrayList<>();
             UUID reqId = UUID.randomUUID();
+            List<DeviceVO> actualDevices = Collections.emptyList();
             if (devices != null) {
-                List<DeviceVO> actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+                actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
                 if (actualDevices.size() != devices.size()) {
                     throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
                 }
@@ -132,14 +134,10 @@ public class CommandHandlers extends WebsocketHandlers {
             state.getCommandSubscriptions().add(reqId);
             subscriptionManager.getCommandSubscriptionStorage().insertAll(csList);
 
-            if (timestamp != null) {
-                Collection<DeviceCommand> commands = commandService.find(devices, names, timestamp, null,
-                        Constants.DEFAULT_TAKE, false, principal);
-                if (!commands.isEmpty()) {
-                    for (DeviceCommand deviceCommand : commands) {
-                        state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(deviceCommand, reqId));
-                    }
-                }
+            if (timestamp != null && !actualDevices.isEmpty()) {
+                Set<String> guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
+                commandService.find(guids, names, timestamp, null, Constants.DEFAULT_TAKE, false)
+                        .forEach(c -> state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(c, reqId)));
             }
             return reqId;
         } finally {

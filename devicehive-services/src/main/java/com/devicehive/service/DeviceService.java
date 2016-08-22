@@ -6,7 +6,8 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.*;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -252,22 +252,13 @@ public class DeviceService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceVO findByGuidWithPermissionsCheck(String guid, HivePrincipal principal) {
-        List<DeviceVO> result = findByGuidWithPermissionsCheck(Arrays.asList(guid), principal);
+        List<DeviceVO> result = findByGuidWithPermissionsCheck(Collections.singletonList(guid), principal);
         return result.isEmpty() ? null : result.get(0);
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> findByGuidWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
         return getDeviceList(new ArrayList<>(guids), principal);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    @SuppressWarnings("unchecked")
-    public List<String> findGuidsWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
-        final List<DeviceVO> devices =  getDeviceList(new ArrayList<>(guids), principal);
-        return devices.stream()
-                .map(DeviceVO::getGuid)
-                .collect(Collectors.toList());
     }
 
     /**
@@ -295,7 +286,7 @@ public class DeviceService {
     @Transactional(readOnly = true)
     public DeviceVO getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
 
-        if (getAllowedDevicesCount(principal, Arrays.asList(deviceId)) == 0) {
+        if (getAllowedDevicesCount(principal, Collections.singletonList(deviceId)) == 0) {
             logger.error("Allowed device count is equal to 0");
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
@@ -313,7 +304,7 @@ public class DeviceService {
     //TODO: only migrated to genericDAO, need to migrate Device PK to guid and use directly GenericDAO#remove
     @Transactional
     public boolean deleteDevice(@NotNull String guid, HivePrincipal principal) {
-        List<DeviceVO> existing = getDeviceList(Arrays.asList(guid), principal);
+        List<DeviceVO> existing = getDeviceList(Collections.singletonList(guid), principal);
         return existing.isEmpty() || deviceDao.deleteByUUID(guid) != 0;
     }
 
@@ -348,14 +339,10 @@ public class DeviceService {
         if (filtered.getUser() != null) {
             return userService.hasAccessToDevice(filtered.getUser(), deviceGuid);
         }
-        if (filtered.getKey() != null) {
-            if (!userService.hasAccessToDevice(filtered.getKey().getUser(), deviceGuid)) {
-                return false;
-            }
-            return CheckPermissionsHelper.checkFilteredPermissions(filtered.getKey().getPermissions(),
-                    deviceDao.findByUUID(deviceGuid));
-        }
-        return false;
+        return filtered.getKey() != null
+                && userService.hasAccessToDevice(filtered.getKey().getUser(), deviceGuid)
+                && CheckPermissionsHelper.checkFilteredPermissions(
+                        filtered.getKey().getPermissions(), deviceDao.findByUUID(deviceGuid));
     }
 
     private List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
