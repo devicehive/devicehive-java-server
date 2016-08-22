@@ -98,7 +98,7 @@ public class DeviceCommandService {
         store(command);
     }
 
-    public void store(DeviceCommand command) {
+    private void store(DeviceCommand command) {
         hazelcastService.store(command, DeviceCommand.class);
         messageBus.publish(command);
     }
