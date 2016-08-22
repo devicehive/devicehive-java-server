@@ -5,7 +5,6 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.DeviceClassEquipment;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;

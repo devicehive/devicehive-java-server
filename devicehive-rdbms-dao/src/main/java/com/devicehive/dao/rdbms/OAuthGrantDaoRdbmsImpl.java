@@ -2,10 +2,8 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.OAuthGrantDao;
 import com.devicehive.model.OAuthGrant;
-import com.devicehive.model.User;
 import com.devicehive.vo.OAuthGrantVO;
 import com.devicehive.vo.UserVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;

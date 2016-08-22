@@ -3,7 +3,6 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.model.Configuration;
 import com.devicehive.vo.ConfigurationVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;

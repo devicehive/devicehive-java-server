@@ -3,7 +3,6 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.IdentityProviderDao;
 import com.devicehive.model.IdentityProvider;
 import com.devicehive.vo.IdentityProviderVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;

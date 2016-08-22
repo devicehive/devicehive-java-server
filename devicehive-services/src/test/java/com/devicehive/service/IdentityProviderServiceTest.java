@@ -7,7 +7,6 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.vo.IdentityProviderVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;

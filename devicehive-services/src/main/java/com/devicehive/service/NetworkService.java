@@ -11,7 +11,6 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;

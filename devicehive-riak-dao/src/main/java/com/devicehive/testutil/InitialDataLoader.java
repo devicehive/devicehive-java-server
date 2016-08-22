@@ -1,7 +1,6 @@
 package com.devicehive.testutil;
 
 import com.devicehive.dao.*;
-import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;

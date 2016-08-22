@@ -6,7 +6,6 @@ import com.devicehive.model.AccessKeyPermission;
 import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.AccessKeyVO;
 import com.devicehive.vo.UserVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;

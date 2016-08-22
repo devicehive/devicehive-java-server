@@ -3,7 +3,6 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.dao.OAuthClientDao;
 import com.devicehive.model.OAuthClient;
 import com.devicehive.vo.OAuthClientVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
