@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Random;
 
 
@@ -32,14 +32,14 @@ public class DeviceCommandService {
     @Autowired
     private MessageBus messageBus;
 
-    public DeviceCommand find(Long id, String guid) {
+    public Optional<DeviceCommand> find(Long id, String guid) {
         return hazelcastService.find(id, guid, DeviceCommand.class);
     }
 
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
                                           Date timestamp, String status, Integer take,
-                                          Boolean hasResponse, HivePrincipal principal) {
-        return hazelcastService.find(devices, names, timestamp, status, take, hasResponse, principal, DeviceCommand.class);
+                                          Boolean hasResponse) {
+        return hazelcastService.find(devices, names, timestamp, status, take, hasResponse, DeviceCommand.class);
     }
 
     public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -74,7 +74,8 @@ public class DeviceCommandService {
     }
 
     public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper){
-        DeviceCommand command = find(commandId, deviceGuid);
+        // TODO: [asuprun] handle case when command not found
+        DeviceCommand command = find(commandId, deviceGuid).get();
         command.setIsUpdated(true);
 
         if (commandWrapper.getCommand() != null) {

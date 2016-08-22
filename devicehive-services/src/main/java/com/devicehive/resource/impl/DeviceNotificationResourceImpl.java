@@ -72,8 +72,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         List<String> notificationNames = StringUtils.isNoneEmpty(notification) ? Collections.singletonList(notification) : null;
 
-        final Collection<DeviceNotification> notificationList = notificationService.find(null, null, Arrays.asList(device.getGuid()),
-                notificationNames, timestamp, take, principal);
+        final Collection<DeviceNotification> notificationList = Optional.ofNullable(deviceService.findByGuidWithPermissionsCheck(guid, principal))
+                .map(deviceVO -> notificationService.find(null, null, Collections.singletonList(device.getGuid()), notificationNames, timestamp, take))
+                .orElse(Collections.emptyList());
 
         final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
@@ -100,15 +101,15 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        DeviceNotification notification = notificationService.find(notificationId, guid);
+        Optional<DeviceNotification> notification = notificationService.find(notificationId, guid);
 
-        if (notification == null) {
+        if (!notification.isPresent()) {
             logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                     String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId)));
         }
 
-        if (!notification.getDeviceGuid().equals(guid)) {
+        if (!notification.get().getDeviceGuid().equals(guid)) {
             logger.warn("Device notification get failed. BAD REQUEST: Notification with id = {} was not sent " +
                     "for device with guid = {}", notificationId, guid);
             return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
@@ -145,14 +146,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         final String devices = StringUtils.isNoneBlank(deviceGuidsString) ? deviceGuidsString : null;
         final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
 
-        mes.submit(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    getOrWaitForNotifications(principal, devices, names, ts, timeout, asyncResponse, isMany);
-                } catch (Exception e) {
-                    asyncResponse.resume(e);
-                }
+        mes.submit(() -> {
+            try {
+                getOrWaitForNotifications(principal, devices, names, ts, timeout, asyncResponse, isMany);
+            } catch (Exception e) {
+                asyncResponse.resume(e);
             }
         });
     }
@@ -166,9 +164,12 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             submitEmptyResponse(asyncResponse);
         }
 
-        final List<String> availableDevices = (StringUtils.isNotEmpty(devices))
-                ? deviceService.findGuidsWithPermissionsCheck(ParseUtil.getList(devices), principal)
-                : new ArrayList<>();
+        final Set<String> availableGuids = (StringUtils.isBlank(devices))
+                ? Collections.emptySet()
+                : deviceService.findByGuidWithPermissionsCheck(ParseUtil.getList(devices), principal).stream()
+                    .map(DeviceVO::getGuid)
+                    .collect(Collectors.toSet());
+
         final List<String> notificationNames = ParseUtil.getList(names);
         Collection<DeviceNotification> list = new ArrayList<>();
         final UUID reqId = UUID.randomUUID();
@@ -176,8 +177,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         Set<NotificationSubscription> subscriptionSet = new HashSet<>();
         FutureTask<Void> simpleWaitTask = new FutureTask<>(Runnables.doNothing(), null);
 
-        if (!availableDevices.isEmpty()) {
-            subscriptionSet.addAll(availableDevices.stream().map(guid ->
+        if (!availableGuids.isEmpty()) {
+            subscriptionSet.addAll(availableGuids.stream().map(guid ->
                     getNotificationInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
                     .collect(Collectors.toList()));
         } else {
@@ -185,8 +186,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     asyncResponse, isMany, simpleWaitTask));
         }
 
-        if (timestamp != null && !availableDevices.isEmpty()) {
-            list = notificationService.find(null, null, availableDevices, notificationNames, timestamp, DEFAULT_TAKE, principal);
+        if (timestamp != null && !availableGuids.isEmpty()) {
+            list = notificationService.find(null, null, availableGuids, notificationNames, timestamp, DEFAULT_TAKE);
         }
 
         if (!list.isEmpty()) {
@@ -194,7 +195,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             logger.debug("Notifications poll result: {}", response.getEntity());
             asyncResponse.resume(response);
         } else {
-            if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<Void>(Runnables.doNothing(), null), timeout)) {
+            if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<>(Runnables.doNothing(), null), timeout)) {
                 submitEmptyResponse(asyncResponse);
             }
         }

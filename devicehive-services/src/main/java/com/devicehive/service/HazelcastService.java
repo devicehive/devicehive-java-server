@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
@@ -31,9 +30,6 @@ public class HazelcastService {
     @Autowired
     protected HazelcastHelper hazelcastHelper;
 
-    @Autowired
-    private DeviceService deviceService;
-
     private Map<Class, IMap<String, Object>> mapsHolder;
 
     @PostConstruct
@@ -49,39 +45,39 @@ public class HazelcastService {
     }
 
 
-    protected  <T extends HazelcastEntity> T find(Long id, String guid, Class<T> entityClass) {
+    protected <T extends HazelcastEntity> Optional<T> find(Long id, String guid, Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid);
-        final List<T> entities = new ArrayList<>(retrieve(filters, 1, entityClass));
-
-        return entities.isEmpty() ? null : entities.get(0);
+        return retrieve(filters, 1, entityClass).stream().findFirst();
     }
 
-    protected  <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
-                              Collection<String> names,
-                              Date timestamp, String status,
-                              Integer take, Boolean hasResponse,
-                              HivePrincipal principal, Class<T> entityClass) {
-        List<String> availableDevicesGUIDs = getAvailableDevices(devices, principal);
-        final Predicate filters = hazelcastHelper.prepareFilters(availableDevicesGUIDs, names, timestamp, status, hasResponse);
+    protected <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
+                                                             Collection<String> names,
+                                                             Date timestamp,
+                                                             String status,
+                                                             Integer take,
+                                                             Boolean hasResponse,
+                                                             Class<T> entityClass) {
+        final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, hasResponse);
         return retrieve(filters, take, entityClass);
     }
 
-    protected  <T extends HazelcastEntity> Collection<T> find(Long id, String guid, Collection<String> devices,
-                              Collection<String> names, Date timestamp, Integer take,
-                              HivePrincipal principal, Class<T> entityClass) {
-        List<String> availableDevicesGUIDs = getAvailableDevices(devices, principal);
-        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, availableDevicesGUIDs, names,
-                timestamp);
+    protected <T extends HazelcastEntity> Collection<T> find(Long id,
+                                                             String guid,
+                                                             Collection<String> devices,
+                                                             Collection<String> names,
+                                                             Date timestamp, Integer take,
+                                                             Class<T> entityClass) {
+        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names, timestamp);
         return retrieve(filters, take, entityClass);
     }
 
-    protected  <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
+    protected <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
         mapsHolder.get(tClass).set(hzEntity.getHazelcastKey(), hzEntity);
     }
 
     @SuppressWarnings("unchecked")
-    private  <T extends HazelcastEntity> Collection<T> retrieve(Predicate andPredicate, int pageSize, Class<T> tClass) {
+    private <T extends HazelcastEntity> Collection<T> retrieve(Predicate andPredicate, int pageSize, Class<T> tClass) {
         if (pageSize <= 0) {
             final Collection collection = mapsHolder.get(tClass).values(andPredicate);
             return ((Collection<T>) collection);
@@ -90,15 +86,5 @@ public class HazelcastService {
             final Collection collection = mapsHolder.get(tClass).values(pagingPredicate);
             return ((Collection<T>) collection);
         }
-    }
-
-    private List<String> getAvailableDevices(Collection<String> devices, HivePrincipal principal){
-        List<String> availableDevices;
-        if(devices != null && !devices.isEmpty() && principal != null){
-            availableDevices = deviceService.findGuidsWithPermissionsCheck(devices, principal);
-        }else {
-            availableDevices = Collections.emptyList();
-        }
-        return availableDevices;
     }
 }
