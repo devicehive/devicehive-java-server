@@ -46,7 +46,9 @@ public class GsonFactory {
                 .registerSubtype(CommandSearchResponse.class, Action.COMMAND_SEARCH_RESPONSE.name())
                 .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.name())
                 .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.name())
-                .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT.name());
+                .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT.name())
+                .registerSubtype(SubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.name())
+                .registerSubtype(SubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

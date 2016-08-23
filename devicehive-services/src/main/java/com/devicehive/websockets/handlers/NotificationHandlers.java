@@ -10,9 +10,11 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.rpc.SubscribeResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.shim.api.Response;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -68,11 +70,11 @@ public class NotificationHandlers extends WebsocketHandlers {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         devices = prepareActualList(devices, deviceId);
-        UUID subId = notificationSubscribeAction(session, devices, names, timestamp);
+        Response serverResponse = notificationService.submitDeviceSubscribeNotification(session, deviceId, devices, names);
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, subId, null);
+        response.addValue(SUBSCRIPTION_ID, ((SubscribeResponse) serverResponse.getBody()).getSubId(), null);
         return response;
     }
 
@@ -98,6 +100,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
+    @Deprecated
     private UUID notificationSubscribeAction(WebSocketSession session,
                                              Set<String> devices,
                                              Set<String> names,

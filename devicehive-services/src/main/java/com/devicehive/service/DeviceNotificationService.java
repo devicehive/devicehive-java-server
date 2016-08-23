@@ -6,6 +6,8 @@ import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.rpc.NotificationSearchResponse;
+import com.devicehive.model.rpc.Action;
+import com.devicehive.model.rpc.SubscribeRequest;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
@@ -13,20 +15,24 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 @Service
 public class DeviceNotificationService {
-
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
     @Autowired
@@ -93,6 +99,37 @@ public class DeviceNotificationService {
                 .withBody(new NotificationInsertRequest(notification))
                 .withPartitionKey(deviceGuid)
                 .build());
+    }
+
+    public Response submitDeviceSubscribeNotification(final WebSocketSession session,
+                                                      final String deviceGuid,
+                                                      final Set<String> devices,
+                                                      final Set<String> names) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        Consumer<Response> callback = response -> {
+            String resAction = response.getBody().getAction();
+            if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                future.complete(response);
+            } else {
+                // toDo: send specific response from BE
+                try {
+                    session.sendMessage(new TextMessage(response.getBody().toString()));
+                } catch (IOException e) {
+                    logger.warn("Unable to send message to WebSocket session", e);
+                }
+            }
+        };
+
+        SubscribeRequest submitBody = new SubscribeRequest(devices, names);
+
+        rpcClient.call(Request.newBuilder()
+                .withBody(submitBody)
+                .withPartitionKey(deviceGuid)
+                .withSingleReply(false)
+                .build(), callback);
+
+        return future.join();
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
