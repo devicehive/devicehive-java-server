@@ -2,22 +2,34 @@ package com.devicehive.service;
 
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.rpc.CommandSearchRequest;
+import com.devicehive.model.rpc.CommandSearchResponse;
+import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 
 @Service
 public class DeviceCommandService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
     @Autowired
     private TimestampService timestampService;
@@ -26,20 +38,60 @@ public class DeviceCommandService {
     private HiveValidator hiveValidator;
 
     @Autowired
-    private HazelcastService hazelcastService;
+    private RpcClient rpcClient;
+
+    @Autowired
+    private Gson gson;
 
     @Deprecated
     @Autowired
     private MessageBus messageBus;
 
+    @SuppressWarnings("unchecked")
     public Optional<DeviceCommand> find(Long id, String guid) {
-        return hazelcastService.find(id, guid, DeviceCommand.class);
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withCorrelationId(UUID.randomUUID().toString())
+                .withBody(new CommandSearchRequest() {{
+                    setId(id);
+                    setGuid(guid);
+                }})
+                .build(), future::complete);
+        try {
+            Response response = future.get(10, TimeUnit.SECONDS);
+            return ((CommandSearchResponse) response.getBody()).getCommands().stream().findFirst();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.warn("Unable to find command due to unexpected exception", e);
+        } catch (TimeoutException e) {
+            logger.warn("Command find was timed out (id={}, guid={})", id, guid, e);
+        }
+        return Optional.empty();
     }
 
+    @SuppressWarnings("unchecked")
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
-                                          Date timestamp, String status, Integer take,
-                                          Boolean hasResponse) {
-        return hazelcastService.find(devices, names, timestamp, status, take, hasResponse, DeviceCommand.class);
+                                          Date timestamp, String status, Integer take, Boolean hasResponse) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withCorrelationId(UUID.randomUUID().toString())
+                .withBody(new CommandSearchRequest() {{
+                    setDevices(new HashSet<>(devices));
+                    setDevices(new HashSet<>(names));
+                    setTimestamp(timestamp);
+                    setStatus(status);
+                    setTake(take);
+                    setHasResponse(hasResponse);
+                }})
+                .build(), future::complete);
+        try {
+            Response response = future.get(10, TimeUnit.SECONDS);
+            return ((CommandSearchResponse) response.getBody()).getCommands();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.warn("Unable to find command due to unexpected exception", e);
+        } catch (TimeoutException e) {
+            logger.warn("Commands find was timed out", e);
+        }
+        return Collections.emptyList();
     }
 
     public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -98,8 +150,8 @@ public class DeviceCommandService {
         store(command);
     }
 
-    private void store(DeviceCommand command) {
-        hazelcastService.store(command, DeviceCommand.class);
+    protected void store(DeviceCommand command) {
+//        hazelcastService.store(command, DeviceCommand.class); // FIXME: implement
         messageBus.publish(command);
     }
 }

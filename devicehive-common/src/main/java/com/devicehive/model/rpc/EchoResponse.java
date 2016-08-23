@@ -7,7 +7,7 @@ public class EchoResponse extends Body {
     private String response;
 
     public EchoResponse(String response) {
-        super("echo_response");
+        super(Action.ECHO_RESPONSE.name());
         this.response = response;
     }
 

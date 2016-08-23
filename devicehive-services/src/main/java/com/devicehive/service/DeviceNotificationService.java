@@ -3,20 +3,31 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.rpc.NotificationInsertRequest;
+import com.devicehive.model.rpc.NotificationSearchRequest;
+import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
-import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Service
 public class DeviceNotificationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
     @Autowired
     private DeviceEquipmentService deviceEquipmentService;
@@ -30,42 +41,56 @@ public class DeviceNotificationService {
     @Autowired
     private RpcClient rpcClient;
 
-    @Autowired
-    private HazelcastService hazelcastService;
-
-    @Autowired
-    private Gson gson;
-
     public Optional<DeviceNotification> find(Long id, String guid) {
-        return hazelcastService.find(id, guid, DeviceNotification.class);
+        return find(id, guid, null, null, null, null).stream().findFirst();
     }
 
-    public Collection<DeviceNotification> find(Long id, String guid, Collection<String> devices,
-                                               Collection<String> names,
+    @SuppressWarnings("unchecked")
+    public Collection<DeviceNotification> find(Long id, String guid,
+                                               Collection<String> devices, Collection<String> names,
                                                Date timestamp, Integer take) {
-        return hazelcastService.find(id, guid, devices, names, timestamp, take, DeviceNotification.class);
+        Request request = Request.newBuilder()
+                .withCorrelationId(UUID.randomUUID().toString())
+                .withBody(new NotificationSearchRequest() {{
+                    setId(id);
+                    setGuid(guid);
+                    setDevices(new HashSet<>(devices));
+                    setNames(new HashSet<>(names));
+                    setTimestamp(timestamp);
+                    setTake(take);
+                }})
+                .build();
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(request, future::complete);
+
+        try {
+            Response response = future.get(10, TimeUnit.SECONDS);
+            return ((NotificationSearchResponse) response.getBody()).getNotifications();
+        } catch (InterruptedException | ExecutionException e) {
+            logger.warn("Unable to find notification due to unexpected exception", e);
+        } catch (TimeoutException e) {
+            logger.warn("Notification find was timed out (id={}, guid={})", id, guid, e);
+        }
+        return Collections.emptyList();
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
-        List<DeviceNotification> proceedNotifications = processDeviceNotification(notification, device);
-        for (DeviceNotification currentNotification : proceedNotifications) {
-            hazelcastService.store(currentNotification, DeviceNotification.class);
+        processDeviceNotification(notification, device).forEach(n -> {
+//            hazelcastService.store(currentNotification, DeviceNotification.class); // FIXME
             rpcClient.push(Request.newBuilder()
-//                    .withAction(Request.Action.NOTIFICATION_INSERT)
-//                    .withBody(gson.toJson(notification).getBytes())
+                    .withBody(new NotificationInsertRequest(notification))
                     .withPartitionKey(device.getGuid())
                     .build());
-        }
+        });
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final String deviceGuid) {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
-        hazelcastService.store(notification, DeviceNotification.class);
+//        hazelcastService.store(notification, DeviceNotification.class); // FIXME
         rpcClient.push(Request.newBuilder()
-//                .withAction(Request.Action.NOTIFICATION_INSERT)
-//                .withBody(gson.toJson(notification).getBytes())
+                .withBody(new NotificationInsertRequest(notification))
                 .withPartitionKey(deviceGuid)
                 .build());
     }

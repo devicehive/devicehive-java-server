@@ -4,8 +4,7 @@ package com.devicehive.json;
 import com.devicehive.json.adapters.*;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
-import com.devicehive.model.rpc.EchoRequest;
-import com.devicehive.model.rpc.EchoResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Body;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,8 +40,13 @@ public class GsonFactory {
 
     private static GsonBuilder createGsonBuilder() {
         RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "action")
-                .registerSubtype(EchoRequest.class, "echo_request")
-                .registerSubtype(EchoResponse.class, "echo_response");
+                .registerSubtype(EchoRequest.class, Action.ECHO_REQUEST.name())
+                .registerSubtype(EchoResponse.class, Action.ECHO_RESPONSE.name())
+                .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.name())
+                .registerSubtype(CommandSearchResponse.class, Action.COMMAND_SEARCH_RESPONSE.name())
+                .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.name())
+                .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.name())
+                .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

@@ -2,7 +2,6 @@ package com.devicehive.shim.kafka.serializer;
 
 import com.devicehive.shim.api.Request;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.slf4j.Logger;

@@ -45,33 +45,33 @@ public class HazelcastService {
     }
 
 
-    protected <T extends HazelcastEntity> Optional<T> find(Long id, String guid, Class<T> entityClass) {
+    public <T extends HazelcastEntity> Optional<T> find(Long id, String guid, Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid);
         return retrieve(filters, 1, entityClass).stream().findFirst();
     }
 
-    protected <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
-                                                             Collection<String> names,
-                                                             Date timestamp,
-                                                             String status,
-                                                             Integer take,
-                                                             Boolean hasResponse,
-                                                             Class<T> entityClass) {
+    public <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
+                                                          Collection<String> names,
+                                                          Date timestamp,
+                                                          String status,
+                                                          Integer take,
+                                                          Boolean hasResponse,
+                                                          Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, hasResponse);
         return retrieve(filters, take, entityClass);
     }
 
-    protected <T extends HazelcastEntity> Collection<T> find(Long id,
-                                                             String guid,
-                                                             Collection<String> devices,
-                                                             Collection<String> names,
-                                                             Date timestamp, Integer take,
-                                                             Class<T> entityClass) {
+    public <T extends HazelcastEntity> Collection<T> find(Long id,
+                                                          String guid,
+                                                          Collection<String> devices,
+                                                          Collection<String> names,
+                                                          Date timestamp, Integer take,
+                                                          Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names, timestamp);
         return retrieve(filters, take, entityClass);
     }
 
-    protected <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
+    public <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
         mapsHolder.get(tClass).set(hzEntity.getHazelcastKey(), hzEntity);
     }

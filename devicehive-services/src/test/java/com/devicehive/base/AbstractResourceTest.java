@@ -5,7 +5,6 @@ import com.devicehive.base.rule.EmbeddedKafkaRule;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
-import com.devicehive.service.HazelcastService;
 import com.google.gson.Gson;
 import com.hazelcast.core.HazelcastInstance;
 import org.apache.commons.lang3.StringUtils;
@@ -75,8 +74,9 @@ public abstract class AbstractResourceTest {
 
     @After
     public void clearHZ() {
-        hzInstance.getMap(HazelcastService.COMMANDS_MAP).clear();
-        hzInstance.getMap(HazelcastService.NOTIFICATIONS_MAP).clear();
+        // FIXME
+//        hzInstance.getMap(HazelcastService.COMMANDS_MAP).clear();
+//        hzInstance.getMap(HazelcastService.NOTIFICATIONS_MAP).clear();
     }
 
     protected WebTarget target() {

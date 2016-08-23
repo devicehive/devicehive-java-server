@@ -6,7 +6,7 @@ public class EchoRequest extends Body {
     private String request;
 
     public EchoRequest(String request) {
-        super("echo_request");
+        super(Action.ECHO_REQUEST.name());
         this.request = request;
     }
 

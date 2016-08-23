@@ -1,13 +1,15 @@
 package com.devicehive.application;
 
+import com.devicehive.handler.EchoRequestHandler;
+import com.devicehive.handler.RequestDispatcher;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.model.rpc.EchoRequest;
-import com.devicehive.model.rpc.EchoResponse;
-import com.devicehive.shim.api.Response;
+import com.devicehive.model.rpc.Action;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
 
 @Configuration
 public class BackendConfig {
@@ -19,11 +21,8 @@ public class BackendConfig {
 
     @Bean
     public RequestHandler requestHandler() {
-        // FIXME: this handler was implemented just as a POC and must be removed later
-        return request -> Response.newBuilder()
-                .withBody(new EchoResponse(((EchoRequest) request.getBody()).getRequest())) // simple echo
-                .withCorrelationId(request.getCorrelationId())
-                .withLast(true)
-                .buildSuccess();
+        return new RequestDispatcher(new HashMap<Action, RequestHandler>() {{
+            put(Action.ECHO_REQUEST, new EchoRequestHandler());
+        }});
     }
 }
