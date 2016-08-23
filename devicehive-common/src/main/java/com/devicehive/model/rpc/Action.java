@@ -1,6 +1,8 @@
 package com.devicehive.model.rpc;
 
 public enum Action {
+    ERROR_RESPONSE,
+
     ECHO_REQUEST,
     ECHO_RESPONSE,
 

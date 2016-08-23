@@ -40,6 +40,7 @@ public class GsonFactory {
 
     private static GsonBuilder createGsonBuilder() {
         RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "action")
+                .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.name())
                 .registerSubtype(EchoRequest.class, Action.ECHO_REQUEST.name())
                 .registerSubtype(EchoResponse.class, Action.ECHO_RESPONSE.name())
                 .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.name())

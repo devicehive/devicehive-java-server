@@ -8,8 +8,6 @@ import com.lmax.disruptor.EventHandler;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
-import java.nio.charset.Charset;
-
 public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
 
     private RequestHandler requestHandler;

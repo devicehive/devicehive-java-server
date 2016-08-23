@@ -1,8 +1,6 @@
 package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
-import com.devicehive.shim.kafka.serializer.RequestSerializer;
-import com.google.gson.Gson;
 import com.lmax.disruptor.RingBuffer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
