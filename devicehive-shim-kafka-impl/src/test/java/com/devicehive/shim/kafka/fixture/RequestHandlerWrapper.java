@@ -1,4 +1,4 @@
-package com.devicehive.shim.kafka.rule;
+package com.devicehive.shim.kafka.fixture;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;

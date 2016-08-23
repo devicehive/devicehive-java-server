@@ -1,5 +1,6 @@
 package com.devicehive.shim.kafka.builder;
 
+import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
@@ -12,6 +13,9 @@ import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +29,10 @@ public class ServerBuilder {
     private int workerThreads;
 
     private Properties consumerProps;
+    private Deserializer<Request> consumerValueDeserializer;
+
     private Properties producerProps;
+    private Serializer<Response> producerValueSerializer;
 
     private RequestHandler requestHandler;
 
@@ -59,6 +66,16 @@ public class ServerBuilder {
         return this;
     }
 
+    public ServerBuilder withConsumerValueDeserializer(Deserializer<Request> deserializer) {
+        this.consumerValueDeserializer = deserializer;
+        return this;
+    }
+
+    public ServerBuilder withProducerValueSerializer(Serializer<Response> serializer) {
+        this.producerValueSerializer = serializer;
+        return this;
+    }
+
     public RpcServer build() {
         ProducerType producerType = ProducerType.SINGLE;
         if (consumerThreads > 1) {
@@ -67,10 +84,10 @@ public class ServerBuilder {
         ExecutorService workerExecutor = Executors.newFixedThreadPool(workerThreads);
         Disruptor<ServerEvent> disruptor = new Disruptor<>(ServerEvent::new, 1024, workerExecutor, producerType, new BlockingWaitStrategy());
 
-        Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps);
+        Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps, new StringSerializer(), producerValueSerializer);
         ServerEventHandler eventHandler = new ServerEventHandler(requestHandler, responseProducer);
 
-        RequestConsumer requestConsumer = new RequestConsumer(topic, consumerProps, consumerThreads);
+        RequestConsumer requestConsumer = new RequestConsumer(topic, consumerProps, consumerThreads, consumerValueDeserializer);
         return new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
     }
 

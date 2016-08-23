@@ -4,6 +4,10 @@ package com.devicehive.json;
 import com.devicehive.json.adapters.*;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
+import com.devicehive.model.rpc.EchoRequest;
+import com.devicehive.model.rpc.EchoResponse;
+import com.devicehive.shim.api.RequestBody;
+import com.devicehive.shim.api.ResponseBody;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -28,27 +32,34 @@ public class GsonFactory {
             return gson;
         }
         gson = createGsonBuilder()
-            .addDeserializationExclusionStrategy(new AnnotatedStrategy(policy))
-            .addSerializationExclusionStrategy(new AnnotatedStrategy(policy))
-            .create();
+                .addDeserializationExclusionStrategy(new AnnotatedStrategy(policy))
+                .addSerializationExclusionStrategy(new AnnotatedStrategy(policy))
+                .create();
         cache.put(policy, gson);
         return gson;
     }
 
 
     private static GsonBuilder createGsonBuilder() {
+        RuntimeTypeAdapterFactory<RequestBody> req = RuntimeTypeAdapterFactory.of(RequestBody.class, "action")
+                .registerSubtype(EchoRequest.class, "echo");
+        RuntimeTypeAdapterFactory<ResponseBody> res = RuntimeTypeAdapterFactory.of(ResponseBody.class, "action")
+                .registerSubtype(EchoResponse.class, "echo");
+
         return new GsonBuilder()
-            .disableHtmlEscaping()
-            .setPrettyPrinting()
-            .serializeNulls()
-            .registerTypeAdapterFactory(new OptionalAdapterFactory())
-            .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
-            .registerTypeAdapter(Date.class, new TimestampAdapter())
-            .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
-            .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
-            .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
-            .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
-            .registerTypeAdapter(AccessKeyType.class, new AccessKeyStatusAdapter());
+                .disableHtmlEscaping()
+                .setPrettyPrinting()
+                .serializeNulls()
+                .registerTypeAdapterFactory(new OptionalAdapterFactory())
+                .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
+                .registerTypeAdapter(Date.class, new TimestampAdapter())
+                .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
+                .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
+                .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
+                .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
+                .registerTypeAdapter(AccessKeyType.class, new AccessKeyStatusAdapter())
+                .registerTypeAdapterFactory(req)
+                .registerTypeAdapterFactory(res);
     }
 
 }

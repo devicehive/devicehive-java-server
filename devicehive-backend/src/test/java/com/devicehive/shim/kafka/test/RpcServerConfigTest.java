@@ -1,14 +1,22 @@
 package com.devicehive.shim.kafka.test;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.json.adapters.RuntimeTypeAdapterFactory;
+import com.devicehive.model.rpc.EchoRequest;
+import com.devicehive.model.rpc.EchoResponse;
 import com.devicehive.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.RequestBody;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.ResponseBody;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.builder.ClientBuilder;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.junit.AfterClass;
@@ -46,16 +54,15 @@ public class RpcServerConfigTest {
 
     private static RpcClient client;
 
+    private static Gson gson = GsonFactory.createGson();
+
     @BeforeClass
     public static void setUp() throws Exception {
-        Properties clientProducerProps = kafkaRule.getProducerProperties();
-        clientProducerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
-        Properties clientConsumerProps = kafkaRule.getConsumerProperties();
-        clientConsumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ResponseSerializer.class.getName());
-
         client = new ClientBuilder()
-                .withProducerProps(clientProducerProps)
-                .withConsumerProps(clientConsumerProps)
+                .withProducerProps(kafkaRule.getProducerProperties())
+                .withConsumerProps(kafkaRule.getConsumerProperties())
+                .withConsumerValueDeserializer(new ResponseSerializer(gson))
+                .withProducerValueSerializer(new RequestSerializer(gson))
                 .withReplyTopic(RESPONSE_TOPIC)
                 .withRequestTopic(REQUEST_TOPIC)
                 .withConsumerThreads(1)
@@ -73,18 +80,19 @@ public class RpcServerConfigTest {
     public void shouldSuccessfullyReplyToRequest() throws Exception {
         final String testBody = "RequestResponseTest" + System.currentTimeMillis();
         Request request = Request.newBuilder()
+                .withBody(new EchoRequest(testBody))
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
-                .withBody(testBody.getBytes())
                 .build();
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         client.call(request, future::complete);
 
+        @SuppressWarnings("unchecked")
         Response response = future.get(10, TimeUnit.SECONDS);
         assertNotNull(response);
         assertEquals(request.getCorrelationId(), response.getCorrelationId());
-        assertEquals(testBody, new String(response.getBody()));
+        assertEquals(testBody, ((EchoResponse) response.getBody()).getResponse());
         assertTrue(response.isLast());
         assertFalse(response.isFailed());
     }

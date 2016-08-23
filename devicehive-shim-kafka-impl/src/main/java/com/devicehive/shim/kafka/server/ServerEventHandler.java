@@ -31,9 +31,8 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
         } catch (Exception e) {
             String body = e.getClass().getName() + ": " + e.getMessage();
             response = Response.newBuilder()
-                    .withContentType(request.getContentType())
                     .withErrorCode(500)
-                    .withBody(body.getBytes(Charset.forName("UTF-8")))
+//                    .withBody(null)
                     .withLast(request.isSingleReplyExpected())
                     .withCorrelationId(request.getCorrelationId())
                     .buildFailed();

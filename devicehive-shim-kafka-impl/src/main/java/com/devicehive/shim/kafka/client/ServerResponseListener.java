@@ -1,7 +1,11 @@
 package com.devicehive.shim.kafka.client;
 
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.google.gson.Gson;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,23 +24,25 @@ public class ServerResponseListener {
     private RequestResponseMatcher requestResponseMatcher;
     private Properties consumerProps;
     private ExecutorService consumerExecutor;
+    private Deserializer<Response> deserializer;
 
     private List<ResponseConsumerWorker> workers;
 
     public ServerResponseListener(String topic, int consumerThreads, RequestResponseMatcher requestResponseMatcher,
-                                  Properties consumerProps, ExecutorService consumerExecutor) {
+                                  Properties consumerProps, ExecutorService consumerExecutor, Deserializer<Response> deserializer) {
         this.topic = topic;
         this.consumerThreads = consumerThreads;
         this.requestResponseMatcher = requestResponseMatcher;
         this.consumerProps = consumerProps;
         this.consumerExecutor = consumerExecutor;
+        this.deserializer = deserializer;
     }
 
     public void startWorkers() {
         CountDownLatch startupLatch = new CountDownLatch(consumerThreads);
         workers = new ArrayList<>(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
-            KafkaConsumer<String, Response> consumer = new KafkaConsumer<>(consumerProps);
+            KafkaConsumer<String, Response> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(), deserializer);
             ResponseConsumerWorker worker = new ResponseConsumerWorker(topic, requestResponseMatcher, consumer, startupLatch);
             consumerExecutor.submit(worker);
         }

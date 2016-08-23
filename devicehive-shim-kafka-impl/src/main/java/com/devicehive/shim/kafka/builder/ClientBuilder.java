@@ -1,12 +1,16 @@
 package com.devicehive.shim.kafka.builder;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +22,11 @@ public class ClientBuilder {
     private String replyTopic;
 
     private Properties producerProps;
+    private Serializer<Request> producerValueSerializer;
+
     private Properties consumerProps;
+    private Deserializer<Response> consumerValueDeserializer;
+
 
     private int consumerThreads;
 
@@ -47,14 +55,24 @@ public class ClientBuilder {
         return this;
     }
 
+    public ClientBuilder withProducerValueSerializer(Serializer<Request> serializer) {
+        this.producerValueSerializer = serializer;
+        return this;
+    }
+
+    public ClientBuilder withConsumerValueDeserializer(Deserializer<Response> deserializer) {
+        this.consumerValueDeserializer = deserializer;
+        return this;
+    }
+
     public RpcClient build() {
         RequestResponseMatcher matcher = new RequestResponseMatcher();
 
         ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
         ServerResponseListener responseListener = new ServerResponseListener(replyTopic, consumerThreads,
-                matcher, consumerProps, consumerExecutor);
+                matcher, consumerProps, consumerExecutor, consumerValueDeserializer);
 
-        Producer<String, Request> requestProducer = new KafkaProducer<>(producerProps);
+        Producer<String, Request> requestProducer = new KafkaProducer<>(producerProps, new StringSerializer(), producerValueSerializer);
         return new KafkaRpcClient(requestTopic, replyTopic, requestProducer, matcher, responseListener);
     }
 

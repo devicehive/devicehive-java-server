@@ -1,20 +1,17 @@
 package com.devicehive.shim.api;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Response {
 
-    private final String contentType;
-    private final byte[] body;
-    private final String correlationId;
-    private final boolean last;
+    private ResponseBody body;
+    private String correlationId;
+    private boolean last;
 
-    private final int errorCode;
-    private final boolean failed;
+    private int errorCode;
+    private boolean failed;
 
-    public Response(String contentType, byte[] body, String correlationId, boolean last, int errorCode, boolean failed) {
-        this.contentType = contentType;
+    public Response(ResponseBody body, String correlationId, boolean last, int errorCode, boolean failed) {
         this.body = body;
         this.correlationId = correlationId;
         this.last = last;
@@ -22,11 +19,7 @@ public class Response {
         this.failed = failed;
     }
 
-    public String getContentType() {
-        return contentType;
-    }
-
-    public byte[] getBody() {
+    public ResponseBody getBody() {
         return body;
     }
 
@@ -54,21 +47,19 @@ public class Response {
         return last == response.last &&
                 errorCode == response.errorCode &&
                 failed == response.failed &&
-                Objects.equals(contentType, response.contentType) &&
-                Arrays.equals(body, response.body) &&
+                Objects.equals(body, response.body) &&
                 Objects.equals(correlationId, response.correlationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contentType, body, correlationId, last, errorCode, failed);
+        return Objects.hash(body, correlationId, last, errorCode, failed);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Response{");
-        sb.append("contentType='").append(contentType).append('\'');
-        sb.append(", body=").append(Arrays.toString(body));
+        sb.append(", body=").append(body);
         sb.append(", correlationId='").append(correlationId).append('\'');
         sb.append(", last=").append(last);
         sb.append(", errorCode=").append(errorCode);
@@ -77,23 +68,17 @@ public class Response {
         return sb.toString();
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static <T extends ResponseBody> Builder<T> newBuilder() {
+        return new Builder<> ();
     }
 
-    public static class Builder {
-        private String contentType;
-        private byte[] body;
+    public static class Builder<T extends ResponseBody> {
+        private T body;
         private boolean last;
         private String correlationId;
         private int errorCode;
 
-        public Builder withContentType(String contentType) {
-            this.contentType = contentType;
-            return this;
-        }
-
-        public Builder withBody(byte[] body) {
+        public Builder withBody(T body) {
             this.body = body;
             return this;
         }
@@ -114,11 +99,11 @@ public class Response {
         }
 
         public Response buildFailed() {
-            return new Response(contentType, body, correlationId, last, errorCode, true);
+            return new Response(body, correlationId, last, errorCode, true);
         }
 
         public Response buildSuccess() {
-            return new Response(contentType, body, correlationId, last, errorCode, false);
+            return new Response(body, correlationId, last, errorCode, false);
         }
 
     }

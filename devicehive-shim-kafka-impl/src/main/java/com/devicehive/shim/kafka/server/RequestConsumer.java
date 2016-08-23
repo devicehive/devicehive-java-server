@@ -1,10 +1,14 @@
 package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.kafka.serializer.RequestSerializer;
+import com.google.gson.Gson;
 import com.lmax.disruptor.RingBuffer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.serialization.Deserializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,14 +26,16 @@ public class RequestConsumer {
     private String topic;
     private Properties consumerProps;
     private int consumerThreads;
+    private Deserializer<Request> deserializer;
 
     private ExecutorService consumerExecutor;
     private List<RequestConsumerWorker> workers;
 
-    public RequestConsumer(String topic, Properties consumerProps, int consumerThreads) {
+    public RequestConsumer(String topic, Properties consumerProps, int consumerThreads, Deserializer<Request> deserializer) {
         this.topic = topic;
         this.consumerProps = consumerProps;
         this.consumerThreads = consumerThreads;
+        this.deserializer = deserializer;
     }
 
     public void startConsumers(RingBuffer<ServerEvent> ringBuffer) {
@@ -38,7 +44,7 @@ public class RequestConsumer {
         workers = new ArrayList<>(consumerThreads);
         consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
-            KafkaConsumer<String, Request> consumer = new KafkaConsumer<>(consumerProps);
+            KafkaConsumer<String, Request> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(), deserializer);
             RequestConsumerWorker worker = new RequestConsumerWorker(this.topic, consumer, ringBuffer);
             consumerExecutor.submit(worker);
             workers.add(worker);

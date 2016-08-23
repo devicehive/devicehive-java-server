@@ -104,7 +104,6 @@ public class KafkaEmbeddedRule extends ExternalResource {
     public Properties getProducerProperties() {
         Properties producerProps = new Properties();
         producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerAddress());
-        producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProps.put(ProducerConfig.ACKS_CONFIG, "all");
         return producerProps;
     }
@@ -112,7 +111,6 @@ public class KafkaEmbeddedRule extends ExternalResource {
     public Properties getConsumerProperties() {
         Properties consumerProps = new Properties();
         consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, getBrokerAddress());
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG,  "request-group");
         consumerProps.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
         return consumerProps;

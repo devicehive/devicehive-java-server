@@ -51,8 +51,8 @@ public class DeviceNotificationService {
         for (DeviceNotification currentNotification : proceedNotifications) {
             hazelcastService.store(currentNotification, DeviceNotification.class);
             rpcClient.push(Request.newBuilder()
-                    .withAction(Request.Action.NOTIFICATION_INSERT)
-                    .withBody(gson.toJson(notification).getBytes())
+//                    .withAction(Request.Action.NOTIFICATION_INSERT)
+//                    .withBody(gson.toJson(notification).getBytes())
                     .withPartitionKey(device.getGuid())
                     .build());
         }
@@ -64,8 +64,8 @@ public class DeviceNotificationService {
         notification.setDeviceGuid(deviceGuid);
         hazelcastService.store(notification, DeviceNotification.class);
         rpcClient.push(Request.newBuilder()
-                .withAction(Request.Action.NOTIFICATION_INSERT)
-                .withBody(gson.toJson(notification).getBytes())
+//                .withAction(Request.Action.NOTIFICATION_INSERT)
+//                .withBody(gson.toJson(notification).getBytes())
                 .withPartitionKey(deviceGuid)
                 .build());
     }

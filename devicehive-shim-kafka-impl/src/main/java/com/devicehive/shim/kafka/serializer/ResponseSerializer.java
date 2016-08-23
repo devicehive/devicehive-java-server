@@ -16,10 +16,12 @@ public class ResponseSerializer implements Serializer<Response>, Deserializer<Re
 
     private Gson gson;
 
-    @Override
-    public void configure(Map<String, ?> map, boolean b) {
-        gson = new GsonBuilder().disableHtmlEscaping().create();
+    public ResponseSerializer(Gson gson) {
+        this.gson = gson;
     }
+
+    @Override
+    public void configure(Map<String, ?> map, boolean b) { }
 
     @Override
     public Response deserialize(String s, byte[] bytes) {

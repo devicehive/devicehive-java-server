@@ -2,40 +2,29 @@ package com.devicehive.shim.api;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.Objects;
 
 public class Request {
 
-    private final String contentType;
-    private final byte[] body;
-    private final String correlationId;
-    private final Action action;
-    private final String partitionKey;
+    private RequestBody body;
+    private String correlationId;
+    private String partitionKey;
 
-    private final boolean singleReplyExpected;
+    private boolean singleReplyExpected;
 
     private String replyTo;
 
-    private Request(String contentType,
-                    byte[] body,
+    private Request(RequestBody body,
                     boolean singleReplyExpected,
                     String correlationId,
-                    Action action,
                     String partitionKey) {
-        this.contentType = contentType;
         this.body = body;
         this.singleReplyExpected = singleReplyExpected;
         this.correlationId = correlationId;
-        this.action = action;
         this.partitionKey = partitionKey;
     }
 
-    public String getContentType() {
-        return contentType;
-    }
-
-    public byte[] getBody() {
+    public RequestBody getBody() {
         return body;
     }
 
@@ -55,10 +44,6 @@ public class Request {
         return singleReplyExpected;
     }
 
-    public Action getAction() {
-        return action;
-    }
-
     public String getPartitionKey() {
         return partitionKey;
     }
@@ -69,26 +54,22 @@ public class Request {
         if (!(o instanceof Request)) return false;
         Request request = (Request) o;
         return singleReplyExpected == request.singleReplyExpected &&
-                Objects.equals(contentType, request.contentType) &&
-                Arrays.equals(body, request.body) &&
+                Objects.equals(body, request.body) &&
                 Objects.equals(correlationId, request.correlationId) &&
-                Objects.equals(action, request.action) &&
                 Objects.equals(partitionKey, request.partitionKey) &&
                 Objects.equals(replyTo, request.replyTo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contentType, body, correlationId, singleReplyExpected, replyTo, action);
+        return Objects.hash(body, correlationId, singleReplyExpected, replyTo);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Request{");
-        sb.append("contentType='").append(contentType).append('\'');
-        sb.append(", body=").append(Arrays.toString(body));
+        sb.append(", body=").append(body);
         sb.append(", correlationId='").append(correlationId).append('\'');
-        sb.append(", action='").append(action.toString()).append('\'');
         sb.append(", singleReplyExpected=").append(singleReplyExpected);
         sb.append(", partitionKey=").append(partitionKey);
         sb.append(", replyTo='").append(replyTo).append('\'');
@@ -96,24 +77,17 @@ public class Request {
         return sb.toString();
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static <T extends RequestBody> Builder<T> newBuilder() {
+        return new Builder<>();
     }
 
-    public static class Builder {
-        private String contentType;
-        private byte[] body;
+    public static class Builder<T extends RequestBody> {
+        private T body;
         private String correlationId;
         private boolean singleReply;
-        private Action action;
         private String partitionKey;
 
-        public Builder withContentType(String contentType) {
-            this.contentType = contentType;
-            return this;
-        }
-
-        public Builder withBody(byte[] body) {
+        public Builder withBody(T body) {
             this.body = body;
             return this;
         }
@@ -128,11 +102,6 @@ public class Request {
             return this;
         }
 
-        public Builder withAction(Action action) {
-            this.action = action;
-            return this;
-        }
-
         public Builder withPartitionKey(String key) {
             this.partitionKey = key;
             return this;
@@ -140,11 +109,9 @@ public class Request {
 
         public Request build() {
             return new Request(
-                    contentType,
                     body, singleReply,
                     correlationId,
-                    action,
-                    StringUtils.isBlank(partitionKey) // partitionKey is mandatory, set value to correlationId if it's blank
+                    StringUtils.isBlank(partitionKey) // partitionKey is optional, set value to correlationId if it's blank
                             ? correlationId
                             : partitionKey
             );
@@ -152,9 +119,4 @@ public class Request {
 
     }
 
-    public enum Action {
-        NOTIFICATION_INSERT,
-        NOTIFICATION_SUBSCRIBE,
-        NOTIFICATION_UNSUBSCRIBE
-    }
 }

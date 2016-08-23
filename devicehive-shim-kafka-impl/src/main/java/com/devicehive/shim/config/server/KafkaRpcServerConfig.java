@@ -9,6 +9,7 @@ import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.google.gson.Gson;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
@@ -57,8 +58,8 @@ public class KafkaRpcServerConfig {
     private String waitStrategyType;
 
     @Bean(name = "server-producer")
-    public Producer<String, Response> kafkaResponseProducer() {
-        return new KafkaProducer<>(producerProps());
+    public Producer<String, Response> kafkaResponseProducer(Gson gson) {
+        return new KafkaProducer<>(producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
@@ -102,8 +103,8 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public RequestConsumer requestConsumer() {
-        return new RequestConsumer(REQUEST_TOPIC, consumerProps(), consumerThreads);
+    public RequestConsumer requestConsumer(Gson gson) {
+        return new RequestConsumer(REQUEST_TOPIC, consumerProps(), consumerThreads, new RequestSerializer(gson));
     }
 
     @Bean
@@ -116,16 +117,12 @@ public class KafkaRpcServerConfig {
     private Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ResponseSerializer.class.getName());
         return props;
     }
 
     private Properties consumerProps() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
         props.put(ConsumerConfig.GROUP_ID_CONFIG,  requestConsumerGroup);
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;

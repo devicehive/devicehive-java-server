@@ -16,10 +16,12 @@ public class RequestSerializer implements Serializer<Request>, Deserializer<Requ
 
     private Gson gson;
 
-    @Override
-    public void configure(Map<String, ?> map, boolean b) {
-        gson = new GsonBuilder().disableHtmlEscaping().create();
+    public RequestSerializer(Gson gson) {
+        this.gson = gson;
     }
+
+    @Override
+    public void configure(Map<String, ?> map, boolean b) { }
 
     @Override
     public Request deserialize(String s, byte[] bytes) {

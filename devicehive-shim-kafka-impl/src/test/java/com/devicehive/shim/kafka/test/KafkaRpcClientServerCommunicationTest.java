@@ -1,18 +1,23 @@
 package com.devicehive.shim.kafka.test;
 
+import com.devicehive.json.adapters.RuntimeTypeAdapterFactory;
 import com.devicehive.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.RequestBody;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.ResponseBody;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.builder.ClientBuilder;
 import com.devicehive.shim.kafka.builder.ServerBuilder;
-import com.devicehive.shim.kafka.rule.RequestHandlerWrapper;
+import com.devicehive.shim.kafka.fixture.RequestHandlerWrapper;
+import com.devicehive.shim.kafka.fixture.TestRequestBody;
+import com.devicehive.shim.kafka.fixture.TestResponseBody;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -38,21 +43,24 @@ public class KafkaRpcClientServerCommunicationTest {
 
     private static RequestHandlerWrapper handlerWrapper = new RequestHandlerWrapper();
 
+    private static Gson gson;
+
     @BeforeClass
     public static void setUp() throws Exception {
-        Properties serverConsumerProps = kafkaRule.getConsumerProperties();
-        serverConsumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
-        Properties serverProducerProps = kafkaRule.getProducerProperties();
-        serverProducerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ResponseSerializer.class.getName());
-
-        Properties clientProducerProps = kafkaRule.getProducerProperties();
-        clientProducerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
-        Properties clientConsumerProps = kafkaRule.getConsumerProperties();
-        clientConsumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ResponseSerializer.class.getName());
+        RuntimeTypeAdapterFactory<RequestBody> requestFactory = RuntimeTypeAdapterFactory.of(RequestBody.class, "action")
+                .registerSubtype(TestRequestBody.class, "test_request");
+        RuntimeTypeAdapterFactory<ResponseBody> responseFactory = RuntimeTypeAdapterFactory.of(ResponseBody.class, "action")
+                .registerSubtype(TestResponseBody.class, "test_response");
+        gson = new GsonBuilder()
+                .registerTypeAdapterFactory(requestFactory)
+                .registerTypeAdapterFactory(responseFactory)
+                .create();
 
         server = new ServerBuilder()
-                .withConsumerProps(serverConsumerProps)
-                .withProducerProps(serverProducerProps)
+                .withConsumerProps(kafkaRule.getConsumerProperties())
+                .withProducerProps(kafkaRule.getProducerProperties())
+                .withConsumerValueDeserializer(new RequestSerializer(gson))
+                .withProducerValueSerializer(new ResponseSerializer(gson))
                 .withConsumerThreads(1)
                 .withWorkerThreads(1)
                 .withRequestHandler(handlerWrapper)
@@ -61,8 +69,10 @@ public class KafkaRpcClientServerCommunicationTest {
         server.start();
 
         client = new ClientBuilder()
-                .withProducerProps(clientProducerProps)
-                .withConsumerProps(clientConsumerProps)
+                .withProducerProps(kafkaRule.getProducerProperties())
+                .withConsumerProps(kafkaRule.getConsumerProperties())
+                .withProducerValueSerializer(new RequestSerializer(gson))
+                .withConsumerValueDeserializer(new ResponseSerializer(gson))
                 .withReplyTopic(RESPONSE_TOPIC)
                 .withRequestTopic(REQUEST_TOPIC)
                 .withConsumerThreads(1)
@@ -87,17 +97,17 @@ public class KafkaRpcClientServerCommunicationTest {
         RequestHandler handler = request -> {
             future.complete(request);
             return Response.newBuilder()
+                    .withBody(new TestResponseBody("Response"))
                     .withCorrelationId(request.getCorrelationId())
-                    .withBody("Response".getBytes())
                     .withLast(true)
                     .buildSuccess();
         };
         handlerWrapper.setDelegate(handler);
 
         Request request = Request.newBuilder()
+                .withBody(new TestRequestBody("RequestResponseTest"))
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
-                .withBody("RequestResponseTest".getBytes())
                 .build();
 
         client.push(request);
@@ -109,16 +119,16 @@ public class KafkaRpcClientServerCommunicationTest {
     @Test
     public void shouldSuccessfullyReplyToRequest() throws Exception {
         RequestHandler handler = request -> Response.newBuilder()
+                .withBody(new TestResponseBody("ResponseFromServer"))
                 .withCorrelationId(request.getCorrelationId())
-                .withBody("ResponseFromServer".getBytes())
                 .withLast(true)
                 .buildSuccess();
         handlerWrapper.setDelegate(handler);
 
         Request request = Request.newBuilder()
+                .withBody(new TestRequestBody("RequestResponseTest"))
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
-                .withBody("RequestResponseTest".getBytes())
                 .build();
 
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -127,7 +137,8 @@ public class KafkaRpcClientServerCommunicationTest {
         Response response = future.get(10, TimeUnit.SECONDS);
         assertNotNull(response);
         assertEquals(request.getCorrelationId(), response.getCorrelationId());
-        assertEquals("ResponseFromServer", new String(response.getBody()));
+        assertTrue(response.getBody() instanceof TestResponseBody);
+        assertEquals("ResponseFromServer", ((TestResponseBody) response.getBody()).getResponseBody());
         assertTrue(response.isLast());
         assertFalse(response.isFailed());
     }
@@ -140,9 +151,9 @@ public class KafkaRpcClientServerCommunicationTest {
         handlerWrapper.setDelegate(handler);
 
         Request request = Request.newBuilder()
+                .withBody(new TestRequestBody("RequestResponseTest"))
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
-                .withBody("RequestResponseTest".getBytes())
                 .build();
 
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -153,22 +164,22 @@ public class KafkaRpcClientServerCommunicationTest {
         assertEquals(request.getCorrelationId(), response.getCorrelationId());
         assertTrue(response.isLast());
         assertTrue(response.isFailed());
-        assertTrue(new String(response.getBody()).contains(RuntimeException.class.getName() + ": Something went wrong"));
+        assertNull(response.getBody());
     }
 
     @Test
     public void shouldSendMultipleResponsesToClient() throws Exception {
         RequestHandler handler = request -> Response.newBuilder()
+                .withBody(new TestResponseBody("ResponseFromServer"))
                 .withCorrelationId(request.getCorrelationId())
-                .withBody("ResponseFromServer".getBytes())
                 .withLast(request.isSingleReplyExpected())
                 .buildSuccess();
         handlerWrapper.setDelegate(handler);
 
         Request request = Request.newBuilder()
+                .withBody(new TestRequestBody("RequestResponseTest"))
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(false)
-                .withBody("RequestResponseTest".getBytes())
                 .build();
 
         CountDownLatch latch = new CountDownLatch(10);
@@ -185,9 +196,9 @@ public class KafkaRpcClientServerCommunicationTest {
             final int number = i;
             executor.execute(() -> {
                 Response response = Response.newBuilder()
+                        .withBody(new TestResponseBody(number + "-response"))
                         .withCorrelationId(request.getCorrelationId())
                         .withLast(false)
-                        .withBody((number + "-response").getBytes())
                         .buildSuccess();
                 server.getDispatcher().send(RESPONSE_TOPIC, response);
             });
@@ -203,7 +214,8 @@ public class KafkaRpcClientServerCommunicationTest {
 
         Set<String> bodies = responses.stream()
                 .map(Response::getBody)
-                .map(String::new)
+                .map(responseBody -> (TestResponseBody) responseBody)
+                .map(TestResponseBody::getResponseBody)
                 .collect(Collectors.toSet());
         assertEquals(10, bodies.size());
         assertTrue(bodies.contains("ResponseFromServer"));

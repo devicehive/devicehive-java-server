@@ -8,6 +8,7 @@ import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.google.gson.Gson;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -46,8 +47,8 @@ public class KafkaRpcClientConfig {
     }
 
     @Bean
-    public Producer<String, Request> kafkaRequestProducer() {
-        return new KafkaProducer<>(producerProps());
+    public Producer<String, Request> kafkaRequestProducer(Gson gson) {
+        return new KafkaProducer<>(producerProps(), new StringSerializer(), new RequestSerializer(gson));
     }
 
     @Bean(destroyMethod = "shutdown")
@@ -57,11 +58,11 @@ public class KafkaRpcClientConfig {
     }
 
     @Bean
-    public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher) {
+    public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
         ServerResponseListener listener = new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
-                responseMatcher, consumerProps, executor);
+                responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
         listener.startWorkers();
         return listener;
     }
@@ -69,16 +70,12 @@ public class KafkaRpcClientConfig {
     private Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestSerializer.class.getName());
         return props;
     }
 
     private Properties consumerProps() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ResponseSerializer.class.getName());
         props.put(ConsumerConfig.GROUP_ID_CONFIG,  "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
