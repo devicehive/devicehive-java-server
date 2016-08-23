@@ -1,8 +1,8 @@
 package com.devicehive.shim.kafka.fixture;
 
-import com.devicehive.shim.api.RequestBody;
+import com.devicehive.shim.api.Body;
 
-public class TestRequestBody extends RequestBody {
+public class TestRequestBody extends Body {
 
     private String body;
 

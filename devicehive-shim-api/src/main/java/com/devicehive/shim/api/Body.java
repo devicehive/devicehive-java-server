@@ -2,11 +2,11 @@ package com.devicehive.shim.api;
 
 import java.util.Objects;
 
-public abstract class ResponseBody {
+public abstract class Body {
 
     protected String action;
 
-    protected ResponseBody(String action) {
+    protected Body(String action) {
         this.action = action;
     }
 
@@ -21,9 +21,9 @@ public abstract class ResponseBody {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ResponseBody)) return false;
-        ResponseBody that = (ResponseBody) o;
-        return Objects.equals(action, that.action);
+        if (!(o instanceof Body)) return false;
+        Body body = (Body) o;
+        return Objects.equals(action, body.action);
     }
 
     @Override
@@ -33,9 +33,10 @@ public abstract class ResponseBody {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ResponseBody{");
+        final StringBuilder sb = new StringBuilder("Body{");
         sb.append("action='").append(action).append('\'');
         sb.append('}');
         return sb.toString();
     }
+
 }

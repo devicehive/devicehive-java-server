@@ -6,7 +6,7 @@ import java.util.Objects;
 
 public class Request {
 
-    private RequestBody body;
+    private Body body;
     private String correlationId;
     private String partitionKey;
 
@@ -14,7 +14,7 @@ public class Request {
 
     private String replyTo;
 
-    private Request(RequestBody body,
+    private Request(Body body,
                     boolean singleReplyExpected,
                     String correlationId,
                     String partitionKey) {
@@ -24,7 +24,7 @@ public class Request {
         this.partitionKey = partitionKey;
     }
 
-    public RequestBody getBody() {
+    public Body getBody() {
         return body;
     }
 
@@ -77,11 +77,11 @@ public class Request {
         return sb.toString();
     }
 
-    public static <T extends RequestBody> Builder<T> newBuilder() {
+    public static <T extends Body> Builder<T> newBuilder() {
         return new Builder<>();
     }
 
-    public static class Builder<T extends RequestBody> {
+    public static class Builder<T extends Body> {
         private T body;
         private String correlationId;
         private boolean singleReply;

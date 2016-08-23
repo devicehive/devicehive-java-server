@@ -6,8 +6,7 @@ import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
 import com.devicehive.model.rpc.EchoRequest;
 import com.devicehive.model.rpc.EchoResponse;
-import com.devicehive.shim.api.RequestBody;
-import com.devicehive.shim.api.ResponseBody;
+import com.devicehive.shim.api.Body;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -41,10 +40,9 @@ public class GsonFactory {
 
 
     private static GsonBuilder createGsonBuilder() {
-        RuntimeTypeAdapterFactory<RequestBody> req = RuntimeTypeAdapterFactory.of(RequestBody.class, "action")
-                .registerSubtype(EchoRequest.class, "echo");
-        RuntimeTypeAdapterFactory<ResponseBody> res = RuntimeTypeAdapterFactory.of(ResponseBody.class, "action")
-                .registerSubtype(EchoResponse.class, "echo");
+        RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "action")
+                .registerSubtype(EchoRequest.class, "echo_request")
+                .registerSubtype(EchoResponse.class, "echo_response");
 
         return new GsonBuilder()
                 .disableHtmlEscaping()
@@ -58,8 +56,7 @@ public class GsonFactory {
                 .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
                 .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
                 .registerTypeAdapter(AccessKeyType.class, new AccessKeyStatusAdapter())
-                .registerTypeAdapterFactory(req)
-                .registerTypeAdapterFactory(res);
+                .registerTypeAdapterFactory(req);
     }
 
 }

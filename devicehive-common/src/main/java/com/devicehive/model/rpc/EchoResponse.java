@@ -1,13 +1,13 @@
 package com.devicehive.model.rpc;
 
-import com.devicehive.shim.api.ResponseBody;
+import com.devicehive.shim.api.Body;
 
-public class EchoResponse extends ResponseBody {
+public class EchoResponse extends Body {
 
     private String response;
 
     public EchoResponse(String response) {
-        super("echo");
+        super("echo_response");
         this.response = response;
     }
 

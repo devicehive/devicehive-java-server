@@ -1,10 +1,8 @@
 package com.devicehive.application;
 
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.adapters.RuntimeTypeAdapterFactory;
 import com.devicehive.model.rpc.EchoRequest;
 import com.devicehive.model.rpc.EchoResponse;
-import com.devicehive.shim.api.RequestBody;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.google.gson.Gson;

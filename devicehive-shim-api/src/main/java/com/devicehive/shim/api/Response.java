@@ -4,14 +4,14 @@ import java.util.Objects;
 
 public class Response {
 
-    private ResponseBody body;
+    private Body body;
     private String correlationId;
     private boolean last;
 
     private int errorCode;
     private boolean failed;
 
-    public Response(ResponseBody body, String correlationId, boolean last, int errorCode, boolean failed) {
+    public Response(Body body, String correlationId, boolean last, int errorCode, boolean failed) {
         this.body = body;
         this.correlationId = correlationId;
         this.last = last;
@@ -19,7 +19,7 @@ public class Response {
         this.failed = failed;
     }
 
-    public ResponseBody getBody() {
+    public Body getBody() {
         return body;
     }
 
@@ -68,11 +68,11 @@ public class Response {
         return sb.toString();
     }
 
-    public static <T extends ResponseBody> Builder<T> newBuilder() {
+    public static <T extends Body> Builder<T> newBuilder() {
         return new Builder<> ();
     }
 
-    public static class Builder<T extends ResponseBody> {
+    public static class Builder<T extends Body> {
         private T body;
         private boolean last;
         private String correlationId;

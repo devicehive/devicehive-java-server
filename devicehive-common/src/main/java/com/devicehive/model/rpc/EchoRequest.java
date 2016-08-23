@@ -1,12 +1,12 @@
 package com.devicehive.model.rpc;
 
-import com.devicehive.shim.api.RequestBody;
+import com.devicehive.shim.api.Body;
 
-public class EchoRequest extends RequestBody {
+public class EchoRequest extends Body {
     private String request;
 
     public EchoRequest(String request) {
-        super("echo");
+        super("echo_request");
         this.request = request;
     }
 
