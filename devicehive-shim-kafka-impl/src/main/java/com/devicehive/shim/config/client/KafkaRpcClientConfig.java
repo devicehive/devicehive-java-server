@@ -17,12 +17,19 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +40,25 @@ import java.util.concurrent.Executors;
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
-    public static final String RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
+    public static String RESPONSE_TOPIC;
+
+    static {
+        try {
+            NetworkInterface ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
+            String prefix = Optional.ofNullable(ni)
+                    .map(n -> {
+                        try {
+                            return n.getHardwareAddress();
+                        } catch (SocketException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            RESPONSE_TOPIC = "response_topic_" + prefix;
+        } catch (SocketException | UnknownHostException e) {
+            RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
+        }
+    }
 
     @Autowired
     private Environment env;
