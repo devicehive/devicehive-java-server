@@ -1,6 +1,6 @@
 package com.devicehive.application.hazelcast;
 
-import com.devicehive.util.ApplicationContextHolder;
+import com.devicehive.ApplicationContextHolder;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.hibernate.HazelcastCacheRegionFactory;
 import org.hibernate.cache.CacheException;

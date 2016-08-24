@@ -2,7 +2,7 @@ package com.devicehive.messages.handler;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.util.ApplicationContextHolder;
+import com.devicehive.ApplicationContextHolder;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.util.AsyncMessageSupplier;

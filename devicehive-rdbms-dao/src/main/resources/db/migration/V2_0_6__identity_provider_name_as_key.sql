@@ -12,8 +12,8 @@ create table identity_provider (
   token_endpoint varchar(128)
 );
 
--- add primary partitionKey
-alter table identity_provider add constraint identity_provider_pk primary partitionKey (name);
+-- add primary key
+alter table identity_provider add constraint identity_provider_pk primary key (name);
 
 -- copy values back into the provider table
 insert into identity_provider (name, api_endpoint, verification_endpoint, token_endpoint)

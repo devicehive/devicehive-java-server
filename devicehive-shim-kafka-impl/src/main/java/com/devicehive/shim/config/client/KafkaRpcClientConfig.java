@@ -13,15 +13,10 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import java.net.InetAddress;
@@ -37,6 +32,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @Profile("rpc-client")
+@ComponentScan("com.devicehive.shim.api.kafka")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
@@ -101,7 +97,7 @@ public class KafkaRpcClientConfig {
     private Properties consumerProps() {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ConsumerConfig.GROUP_ID_CONFIG,  "response-group-" + UUID.randomUUID().toString());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
     }

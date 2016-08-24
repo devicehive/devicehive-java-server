@@ -53,7 +53,7 @@ public interface DeviceNotificationResource {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
             response = DeviceNotification.class)
-    Response query(
+    void query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
@@ -82,7 +82,9 @@ public interface DeviceNotificationResource {
             Integer skip,
             @ApiParam(name = "gridInterval", value = "Grid interval")
             @QueryParam("gridInterval")
-            Integer gridInterval);
+            Integer gridInterval,
+            @Suspended
+            AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive RESTful
@@ -106,13 +108,14 @@ public interface DeviceNotificationResource {
                     response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device or notification not found")
     })
-    Response get(
+    void get(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
             @ApiParam(name = "id", value = "Notification id", required = true)
             @PathParam("id")
-            Long notificationId);
+            Long notificationId,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive

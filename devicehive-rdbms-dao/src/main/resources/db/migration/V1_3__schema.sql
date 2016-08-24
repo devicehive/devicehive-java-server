@@ -4,7 +4,7 @@ ALTER TABLE device
 CREATE TABLE access_key (
     id BIGSERIAL NOT NULL,
     label VARCHAR(64) NOT NULL,
-    partitionKey VARCHAR(48) NOT NULL,
+    key VARCHAR(48) NOT NULL,
     expiration_date TIMESTAMP WITH TIME ZONE,
     user_id BIGINT NOT NULL,
     entity_version BIGINT NOT NULL DEFAULT 0
@@ -12,8 +12,8 @@ CREATE TABLE access_key (
 ALTER TABLE access_key ADD CONSTRAINT access_key_pk PRIMARY KEY (id);
 ALTER TABLE access_key ADD CONSTRAINT access_key_user_fk FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE
 CASCADE;
-ALTER TABLE access_key ADD CONSTRAINT access_key_key_unique UNIQUE (partitionKey);
-CREATE UNIQUE INDEX access_key_key_idx ON access_key (partitionKey);
+ALTER TABLE access_key ADD CONSTRAINT access_key_key_unique UNIQUE (key);
+CREATE UNIQUE INDEX access_key_key_idx ON access_key (key);
 
 CREATE TABLE access_key_permission (
   id BIGSERIAL NOT NULL,
@@ -161,7 +161,7 @@ idd text;
 BEGIN
 FOR r IN first_index..last_index LOOP
 select to_char(r, '09999999') into idd;
-     INSERT INTO device (guid, name, status, network_id, device_class_id, partitionKey) VALUES (
+     INSERT INTO device (guid, name, status, network_id, device_class_id, key) VALUES (
 replace('aaaaaaaa-aaaa-0000-0-000000a' || idd, ' ', ''), 'Kafka device', 'Offline', 1, 1, 'TK_' || idd || '_A' );
 END LOOP;
 RETURN;
@@ -169,7 +169,7 @@ END
 $BODY$
 LANGUAGE plpgsql;
 
-INSERT INTO access_key (label, partitionKey, expiration_date, user_id) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
+INSERT INTO access_key (label, key, expiration_date, user_id) VALUES ('Access Key for dhadmin', '1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=', null, 1);
 INSERT INTO access_key_permission (access_key_id) VALUES (1);
 
 ALTER TABLE device ADD COLUMN blocked BOOLEAN;

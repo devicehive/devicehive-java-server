@@ -48,6 +48,7 @@ public class KafkaRpcClient implements RpcClient {
                         logger.error("Send request failed", e);
                     }
                     logger.debug("Request {} sent successfully", request.getCorrelationId());
+                    //TODO [rafa] in case sending fails - we need to notify the caller using the callback passed.
                 });
     }
 

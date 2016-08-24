@@ -5,6 +5,7 @@ import com.devicehive.shim.api.Body;
 import java.util.Date;
 import java.util.Set;
 
+//TODO [rafa] That object to be split into two different objects. The first would contain id+guid, the second the rest of the fields.
 public class NotificationSearchRequest extends Body {
 
     private Long id;

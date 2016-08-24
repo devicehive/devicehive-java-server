@@ -1,4 +1,4 @@
-package com.devicehive.util;
+package com.devicehive;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

@@ -9,8 +9,8 @@ create table configuration (
   entity_version bigint       not null default 0
 );
 
--- add primary partitionKey
-alter table configuration add constraint configuration_pk primary partitionKey (name);
+-- add primary key
+alter table configuration add constraint configuration_pk primary key (name);
 
 -- copy values back into the provider table
 insert into configuration (name, value, entity_version)

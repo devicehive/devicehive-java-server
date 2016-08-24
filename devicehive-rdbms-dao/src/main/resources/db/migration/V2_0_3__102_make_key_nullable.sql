@@ -1,1 +1,1 @@
-alter table device alter column partitionKey drop not null;
+alter table device alter column key drop not null;

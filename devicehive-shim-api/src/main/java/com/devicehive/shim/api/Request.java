@@ -87,22 +87,22 @@ public class Request {
         private boolean singleReply;
         private String partitionKey;
 
-        public Builder withBody(T body) {
+        public Builder<T> withBody(T body) {
             this.body = body;
             return this;
         }
 
-        public Builder withCorrelationId(String correlationId) {
+        public Builder<T> withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
         }
 
-        public Builder withSingleReply(boolean singleReply) {
+        public Builder<T> withSingleReply(boolean singleReply) {
             this.singleReply = singleReply;
             return this;
         }
 
-        public Builder withPartitionKey(String key) {
+        public Builder<T> withPartitionKey(String key) {
             this.partitionKey = key;
             return this;
         }

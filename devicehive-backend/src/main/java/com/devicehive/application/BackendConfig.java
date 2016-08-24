@@ -1,6 +1,7 @@
 package com.devicehive.application;
 
 import com.devicehive.handler.EchoRequestHandler;
+import com.devicehive.handler.notification.NotificationSearchHandler;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.model.rpc.Action;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -36,6 +37,7 @@ public class BackendConfig {
     public Map<Action, RequestHandler> requestHandlerMap() {
         return new HashMap<Action, RequestHandler>() {{
             put(Action.ECHO_REQUEST, new EchoRequestHandler());
+            put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
         }};
     }
 }
