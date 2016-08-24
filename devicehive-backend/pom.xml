@@ -17,7 +17,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
-            <version>${springboot.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
@@ -33,10 +32,6 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-client</artifactId>
         </dependency>
 
         <dependency>
