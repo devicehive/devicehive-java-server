@@ -5,7 +5,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
-import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -38,9 +37,6 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService executorService;
 
-    @Autowired
-    private AsyncMessageSupplier asyncMessageSupplier;
-
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         logger.debug("Opening session id {} ", session.getId());
@@ -59,16 +55,21 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
         CompletableFuture.supplyAsync(() -> executor.execute(request, session), executorService)
                 .handleAsync((ok, ex) -> {
+                    String response;
                     if (ok != null) {
-                        try {
-                            session.sendMessage(new TextMessage(ok.toString()));
-                        } catch (IOException e) {
-                            //TODO: improve exception handling
-                            logger.error("Unexpected exception", e);
-                            throw new RuntimeException(e);
-                        }
+                        response = ok.toString();
                     } else {
-                        logger.error("Exception handled {}", ex);
+                        logger.error("Unexpected exception occured during handling websocket message: {}", ex);
+                        response = JsonMessageBuilder
+                                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
+                                    .build().toString();
+                    }
+
+                    try {
+                        session.sendMessage(new TextMessage(response));
+                    } catch (IOException e) {
+                        logger.error("Exception handled during sending websocket message: {}", e);
+                        throw new RuntimeException(e);
                     }
                     return null;
                 }, executorService);
