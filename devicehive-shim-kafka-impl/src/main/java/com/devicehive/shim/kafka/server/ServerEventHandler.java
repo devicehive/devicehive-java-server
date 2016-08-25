@@ -7,8 +7,14 @@ import com.devicehive.shim.api.server.RequestHandler;
 import com.lmax.disruptor.EventHandler;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Optional;
 
 public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
+
+    private static final Logger logger = LoggerFactory.getLogger(ServerEventHandler.class);
 
     private RequestHandler requestHandler;
     private Producer<String, Response> responseProducer;
@@ -25,12 +31,14 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
 
         Response response;
         try {
-            response = requestHandler.handle(request);
+            response = Optional.ofNullable(requestHandler.handle(request))
+                    .orElseThrow(() -> new NullPointerException("Response must not be null"));
         } catch (Exception e) {
-            String body = e.getClass().getName() + ": " + e.getMessage();
+            logger.error("Unexpected exception occurred during request handling (action='{}', handler='{}')",
+                    request.getBody().getAction(), requestHandler.getClass().getCanonicalName(), e);
+
             response = Response.newBuilder()
                     .withErrorCode(500)
-//                    .withBody(null)
                     .withLast(request.isSingleReplyExpected())
                     .withCorrelationId(request.getCorrelationId())
                     .buildFailed();
