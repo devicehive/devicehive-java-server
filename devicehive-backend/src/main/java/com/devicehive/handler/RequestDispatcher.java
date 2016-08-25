@@ -30,21 +30,16 @@ public class RequestDispatcher implements RequestHandler {
     @Override
     @SuppressWarnings("unchecked")
     public Response handle(Request request) {
-        Action action = Action.valueOf(request.getBody().getAction());
-        RequestHandler handler = handlerMap.get(action);
-        if (handler == null) {
-            logger.error("Action '{}' is not supported", action);
-            return Response.newBuilder()
-                    .withErrorCode(HttpStatus.NOT_IMPLEMENTED.value())
-                    .withBody(new ErrorResponse("Action is not supported"))
-                    .withLast(true)
-                    .buildFailed();
-        }
-
-        return Optional.ofNullable(handler.handle(request)).orElseThrow(() -> {
-            logger.error("The NULL was returned as a response value for '{}' action by request handler '{}'",
-                    action, handler.getClass().getCanonicalName());
-            return new NullPointerException("Response cannot be null");
-        });
+        final Action action = Action.valueOf(request.getBody().getAction());
+        return Optional.ofNullable(handlerMap.get(action))
+                .map(handler -> handler.handle(request))
+                .orElseGet(() -> {
+                    logger.error("Unable to handle request. Action '{}' is not supported", action);
+                    return Response.newBuilder()
+                            .withErrorCode(HttpStatus.NOT_IMPLEMENTED.value())
+                            .withBody(new ErrorResponse("Action" + action + "is not supported"))
+                            .withLast(true)
+                            .buildFailed();
+                });
     }
 }
