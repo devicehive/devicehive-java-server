@@ -82,7 +82,6 @@ public class DeviceNotificationService {
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
         processDeviceNotification(notification, device).forEach(n -> {
-//            hazelcastService.store(currentNotification, DeviceNotification.class); // FIXME
             rpcClient.push(Request.newBuilder()
                     .withBody(new NotificationInsertRequest(notification))
                     .withPartitionKey(device.getGuid())
@@ -94,7 +93,6 @@ public class DeviceNotificationService {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
-//        hazelcastService.store(notification, DeviceNotification.class); // FIXME
         rpcClient.push(Request.newBuilder()
                 .withBody(new NotificationInsertRequest(notification))
                 .withPartitionKey(deviceGuid)

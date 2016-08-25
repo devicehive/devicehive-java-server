@@ -71,9 +71,9 @@ public class HazelcastService {
         return retrieve(filters, take, entityClass);
     }
 
-    public <T extends HazelcastEntity> void store(final T hzEntity, final Class<T> tClass) {
+    public <T extends HazelcastEntity> void store(final T hzEntity) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
-        mapsHolder.get(tClass).set(hzEntity.getHazelcastKey(), hzEntity);
+        mapsHolder.get(hzEntity.getClass()).set(hzEntity.getHazelcastKey(), hzEntity);
     }
 
     @SuppressWarnings("unchecked")

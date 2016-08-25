@@ -11,8 +11,6 @@ import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.protocol.SecurityProtocol;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;

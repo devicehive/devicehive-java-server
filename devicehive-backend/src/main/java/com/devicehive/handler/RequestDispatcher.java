@@ -31,15 +31,17 @@ public class RequestDispatcher implements RequestHandler {
     @SuppressWarnings("unchecked")
     public Response handle(Request request) {
         final Action action = Action.valueOf(request.getBody().getAction());
-        return Optional.ofNullable(handlerMap.get(action))
-                .map(handler -> handler.handle(request))
-                .orElseGet(() -> {
-                    logger.error("Unable to handle request. Action '{}' is not supported", action);
-                    return Response.newBuilder()
-                            .withErrorCode(HttpStatus.NOT_IMPLEMENTED.value())
-                            .withBody(new ErrorResponse("Action" + action + "is not supported"))
-                            .withLast(true)
-                            .buildFailed();
-                });
+        try {
+            return Optional.ofNullable(handlerMap.get(action))
+                    .map(handler -> handler.handle(request))
+                    .orElseThrow(() -> new RuntimeException("Action '" + action + "' is not supported."));
+        } catch (Exception e) {
+            logger.error("Unable to handle request.", e);
+            return Response.newBuilder()
+                    .withErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .withBody(new ErrorResponse(e))
+                    .withLast(true)
+                    .buildFailed();
+        }
     }
 }

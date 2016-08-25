@@ -84,7 +84,7 @@ public class Request {
     public static class Builder<T extends Body> {
         private T body;
         private String correlationId;
-        private boolean singleReply;
+        private boolean singleReply = true;
         private String partitionKey;
 
         public Builder<T> withBody(T body) {

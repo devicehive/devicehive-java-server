@@ -40,9 +40,10 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
             response = Response.newBuilder()
                     .withErrorCode(500)
                     .withLast(request.isSingleReplyExpected())
-                    .withCorrelationId(request.getCorrelationId())
                     .buildFailed();
         }
+        // set correlationId explicitly to prevent missing it in request
+        response.setCorrelationId(request.getCorrelationId());
         send(replyTo, response);
     }
 

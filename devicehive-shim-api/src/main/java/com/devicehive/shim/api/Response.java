@@ -2,6 +2,7 @@ package com.devicehive.shim.api;
 
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public class Response {
 
     private Body body;
@@ -11,7 +12,7 @@ public class Response {
     private int errorCode;
     private boolean failed;
 
-    public Response(Body body, String correlationId, boolean last, int errorCode, boolean failed) {
+    private Response(Body body, String correlationId, boolean last, int errorCode, boolean failed) {
         this.body = body;
         this.correlationId = correlationId;
         this.last = last;
@@ -37,6 +38,10 @@ public class Response {
 
     public boolean isFailed() {
         return failed;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     @Override
