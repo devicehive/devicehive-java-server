@@ -7,10 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class HazelcastConfiguration2 {
+public class HazelcastConfiguration {
 
-//    @Bean(name = "hazelcast2")
-//    public HazelcastInstance hazelcastInstance() {
-//        return Hazelcast.newHazelcastInstance(new XmlConfigBuilder().build());
-//    }
+    @Bean
+    public HazelcastInstance hazelcast() {
+        return Hazelcast.newHazelcastInstance(new XmlConfigBuilder().build());
+    }
 }
