@@ -1,9 +1,8 @@
-package com.devicehive.shim.api.kafka;
+package com.devicehive.service;
 
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.DeviceNotificationService;
 import com.devicehive.shim.api.client.RpcClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -14,12 +13,11 @@ import java.util.function.Consumer;
 
 @Lazy
 @Component
-public class DeviceNotificationServiceImpl implements DeviceNotificationService {
+public class DeviceNotificationServiceImpl {
 
     @Autowired
     private RpcClient rpcClient;
 
-    @Override
     public void find(Long notificationId, String deviceGuid, Consumer<Response> callback) {
         NotificationSearchRequest requestBody = new NotificationSearchRequest() {{
             setId(notificationId);
@@ -34,10 +32,10 @@ public class DeviceNotificationServiceImpl implements DeviceNotificationService 
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withBody(requestBody)
                 .build();
+
         rpcClient.call(request, callback);
     }
 
-    @Override
     public void find(Collection<String> deviceGuids, Collection<String> notificationNames, Date fromTimestamp, Integer take, Consumer<Response> callback) {
         //TODO should be several requests here with completable stage and post processing in the callback to call client's callback function.
         //TODO lacks of partition key - should be device id

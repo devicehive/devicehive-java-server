@@ -61,7 +61,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     private ExecutorService mes;
 
     @Autowired
-    private com.devicehive.shim.api.client.DeviceNotificationService devNotificationService;
+    private com.devicehive.service.DeviceNotificationServiceImpl devNotificationService;
 
     /**
      * {@inheritDoc}
