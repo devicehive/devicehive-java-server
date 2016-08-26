@@ -6,10 +6,10 @@ import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.*;
 
-public class SubscribeResponse extends Body {
+public class NotificationSubscribeResponse extends Body {
     private String subId;
 
-    public SubscribeResponse(String subId) {
+    public NotificationSubscribeResponse(String subId) {
         super(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name());
         this.subId = subId;
     }
@@ -25,10 +25,10 @@ public class SubscribeResponse extends Body {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof SubscribeResponse)) return false;
+        if (!(o instanceof NotificationSubscribeResponse)) return false;
         if (!super.equals(o)) return false;
 
-        SubscribeResponse that = (SubscribeResponse) o;
+        NotificationSubscribeResponse that = (NotificationSubscribeResponse) o;
 
         return subId != null ? subId.equals(that.subId) : that.subId == null;
 

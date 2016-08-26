@@ -6,15 +6,15 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.messages.handler.ClientHandler;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.messages.subscriptions.NotificationSubscription;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.rpc.SubscribeResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.shim.api.Response;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -66,15 +67,21 @@ public class NotificationHandlers extends WebsocketHandlers {
                                                           @WsParam(DEVICE_GUIDS) Set<String> devices,
                                                           @WsParam(NAMES) Set<String> names,
                                                           @WsParam(DEVICE_GUID) String deviceId,
-                                                          WebSocketSession session) throws IOException {
+                                                          WebSocketSession session) throws Exception {
+        Assert.notEmpty(devices);
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session);
+                devices, deviceId, timestamp, names, session.getId());
+
+        ClientHandler clientHandler = new WebSocketClientHandler(session, asyncMessageDeliverer);
+
         devices = prepareActualList(devices, deviceId);
-        Response serverResponse = notificationService.submitDeviceSubscribeNotification(session, deviceId, devices, names);
+        String subscriptionId = notificationService.submitDeviceSubscribeNotification(devices, names, clientHandler);
+
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session);
+                devices, deviceId, timestamp, names, session.getId());
+
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, ((SubscribeResponse) serverResponse.getBody()).getSubId(), null);
+        response.addValue(SUBSCRIPTION_ID, subscriptionId, null);
         return response;
     }
 
@@ -139,7 +146,7 @@ public class NotificationHandlers extends WebsocketHandlers {
             if (timestamp != null && !actualDevices.isEmpty()) {
                 Set<String> guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
                 notificationService.find(null, null, guids, names, timestamp, Constants.DEFAULT_TAKE)
-                        .forEach(n -> state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(n, reqId)));
+                        .forEach(n -> state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(n, reqId.toString())));
             }
             return reqId;
         } finally {

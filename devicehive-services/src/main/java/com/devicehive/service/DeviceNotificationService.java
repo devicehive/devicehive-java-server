@@ -1,13 +1,16 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.messages.handler.ClientHandler;
+import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.SubscribeRequest;
+import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
@@ -15,7 +18,7 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
-import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,11 +28,9 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class DeviceNotificationService {
@@ -99,35 +100,37 @@ public class DeviceNotificationService {
                 .build());
     }
 
-    public Response submitDeviceSubscribeNotification(final WebSocketSession session,
-                                                      final String deviceGuid,
-                                                      final Set<String> devices,
-                                                      final Set<String> names) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
-
-        Consumer<Response> callback = response -> {
-            String resAction = response.getBody().getAction();
-            if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
-                future.complete(response);
-            } else {
-                // toDo: send specific response from BE
-                try {
-                    session.sendMessage(new TextMessage(response.getBody().toString()));
-                } catch (IOException e) {
-                    logger.warn("Unable to send message to WebSocket session", e);
+    public String submitDeviceSubscribeNotification(final Set<String> devices,
+                                                    final Set<String> names,
+                                                    final ClientHandler clientHandler) throws InterruptedException {
+        String subscriptionId = UUID.randomUUID().toString();
+        Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
+                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names))
+                .collect(Collectors.toSet());
+        CountDownLatch responseLatch = new CountDownLatch(subscribeRequests.size());
+        for (NotificationSubscribeRequest subscribeRequest : subscribeRequests) {
+            Consumer<Response> callback = response -> {
+                String resAction = response.getBody().getAction();
+                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                    responseLatch.countDown();
+                } else if (resAction.equals(Action.NOTIFICATION.name())) {
+                    NotificationEvent event = (NotificationEvent) response.getBody();
+                    JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(event.getNotification(), subscriptionId);
+                    clientHandler.sendMessage(json);
+                } else {
+                    logger.warn("Unknown action received from backend {}", resAction);
                 }
-            }
-        };
-
-        SubscribeRequest submitBody = new SubscribeRequest(devices, names);
-
-        rpcClient.call(Request.newBuilder()
-                .withBody(submitBody)
-                .withPartitionKey(deviceGuid)
-                .withSingleReply(false)
-                .build(), callback);
-
-        return future.join();
+            };
+            Request request = Request.newBuilder()
+                    .withBody(subscribeRequest)
+                    .withPartitionKey(subscribeRequest.getDevice())
+                    .withCorrelationId(UUID.randomUUID().toString())
+                    .withSingleReply(false)
+                    .build();
+            rpcClient.call(request, callback);
+        }
+        responseLatch.await();
+        return subscriptionId;
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {

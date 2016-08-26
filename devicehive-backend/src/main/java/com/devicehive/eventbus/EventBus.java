@@ -38,7 +38,7 @@ public class EventBus {
                 .forEach(subscriber -> {
                     Response response = Response.newBuilder()
                             .withBody(event)
-                            .withCorrelationId(subscriber.getId())
+                            .withCorrelationId(subscriber.getCorrelationId())
                             .withLast(false)
                             .buildSuccess();
                     dispatcher.send(subscriber.getReplyTo(), response);

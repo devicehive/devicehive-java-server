@@ -40,12 +40,20 @@ public class Request {
         return correlationId;
     }
 
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
     public boolean isSingleReplyExpected() {
         return singleReplyExpected;
     }
 
     public String getPartitionKey() {
         return partitionKey;
+    }
+
+    public void setPartitionKey(String partitionKey) {
+        this.partitionKey = partitionKey;
     }
 
     @Override

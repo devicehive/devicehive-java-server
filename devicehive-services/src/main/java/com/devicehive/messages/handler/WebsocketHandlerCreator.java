@@ -14,6 +14,7 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 
+@Deprecated
 public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
     private static final Logger logger = LoggerFactory.getLogger(WebsocketHandlerCreator.class);
 
@@ -54,7 +55,7 @@ public abstract class WebsocketHandlerCreator<T> implements HandlerCreator<T> {
                                                                    .getNotificationSubscriptionsLock()) {
             @Override
             protected JsonObject createJsonObject(DeviceNotification message, UUID subId) {
-                return ServerResponsesFactory.createNotificationInsertMessage(message, subId);
+                return ServerResponsesFactory.createNotificationInsertMessage(message, subId.toString());
             }
         };
     }

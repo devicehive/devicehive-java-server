@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.FutureTask;
 
+@Deprecated
 public abstract class RestHandlerCreator<T> implements HandlerCreator<T> {
     private static final Logger logger = LoggerFactory.getLogger(RestHandlerCreator.class);
 

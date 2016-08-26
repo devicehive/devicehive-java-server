@@ -19,14 +19,14 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
 
-    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, UUID subId) {
+    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, String subId) {
         JsonElement deviceNotificationJson =
             GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDeviceGuid());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
-        resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
+        resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultMessage;
     }
 

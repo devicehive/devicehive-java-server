@@ -4,20 +4,26 @@ import java.util.Objects;
 
 public class Subscriber {
 
-    private String replyTo;
     private String id;
+    private String replyTo;
+    private String correlationId;
 
-    public Subscriber(String replyTo, String id) {
-        this.replyTo = replyTo;
+    public Subscriber(String id, String replyTo, String correlationId) {
         this.id = id;
+        this.replyTo = replyTo;
+        this.correlationId = correlationId;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getReplyTo() {
         return replyTo;
     }
 
-    public String getId() {
-        return id;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     @Override
@@ -25,20 +31,22 @@ public class Subscriber {
         if (this == o) return true;
         if (!(o instanceof Subscriber)) return false;
         Subscriber that = (Subscriber) o;
-        return Objects.equals(replyTo, that.replyTo) &&
-                Objects.equals(id, that.id);
+        return Objects.equals(id, that.id) &&
+                Objects.equals(replyTo, that.replyTo) &&
+                Objects.equals(correlationId, that.correlationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(replyTo, id);
+        return Objects.hash(id, replyTo, correlationId);
     }
 
     @Override
     public String toString() {
         return "Subscriber{" +
-                "replyTo='" + replyTo + '\'' +
-                ", id='" + id + '\'' +
+                "id='" + id + '\'' +
+                ", replyTo='" + replyTo + '\'' +
+                ", correlationId='" + correlationId + '\'' +
                 '}';
     }
 }
