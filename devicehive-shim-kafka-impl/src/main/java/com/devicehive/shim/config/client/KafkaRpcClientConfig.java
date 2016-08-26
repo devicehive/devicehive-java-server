@@ -75,17 +75,17 @@ public class KafkaRpcClientConfig {
     @Bean(destroyMethod = "shutdown")
     public RpcClient rpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
                                ServerResponseListener responseListener) {
-        return new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
+        KafkaRpcClient client = new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
+        client.start();
+        return client;
     }
 
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
-        ServerResponseListener listener = new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
+        return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
-        listener.startWorkers();
-        return listener;
     }
 
     private Properties producerProps() {

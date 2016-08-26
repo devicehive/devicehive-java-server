@@ -66,7 +66,9 @@ public class KafkaEmbeddedRule extends ExternalResource {
         ZkUtils zkUtils = new ZkUtils(this.zookeeperClient, null, false);
         Properties properties = new Properties();
         for (String topic : this.topics) {
-            AdminUtils.createTopic(zkUtils, topic, partitions, 1, properties, null);
+            if (!AdminUtils.topicExists(zkUtils, topic)) {
+                AdminUtils.createTopic(zkUtils, topic, partitions, 1, properties, null);
+            }
         }
     }
 
