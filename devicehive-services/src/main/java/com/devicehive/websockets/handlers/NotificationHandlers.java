@@ -107,55 +107,6 @@ public class NotificationHandlers extends WebsocketHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
-    @Deprecated
-    private UUID notificationSubscribeAction(WebSocketSession session,
-                                             Set<String> devices,
-                                             Set<String> names,
-                                             Date timestamp) throws IOException {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (names != null && (names.isEmpty() || (names.size() == 1 && names.contains(null)))) {
-            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
-        }
-        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
-        try {
-            state.getNotificationSubscriptionsLock().lock();
-            logger.debug("notification/subscribe action. Session {}", session.getId());
-            List<NotificationSubscription> nsList = new ArrayList<>();
-            UUID reqId = UUID.randomUUID();
-            List<DeviceVO> actualDevices = Collections.emptyList();
-            if (devices != null) {
-                actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
-                for (DeviceVO d : actualDevices) {
-                    WebsocketHandlerCreator<DeviceNotification> notificationInsert = WebsocketHandlerCreator.createNotificationInsert(session);
-                    NotificationSubscription notificationSubscription = new NotificationSubscription(principal, d.getGuid(), reqId, StringUtils.join(names, ","), notificationInsert);
-                    nsList.add(notificationSubscription);
-                }
-            } else {
-                NotificationSubscription forAll =
-                    new NotificationSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, StringUtils.join(names, ","),
-                                                 WebsocketHandlerCreator.createNotificationInsert(session));
-                nsList.add(forAll);
-            }
-            subscriptionSessionMap.put(reqId, session);
-            if (names == null) {
-                state.addOldFormatNotificationSubscription(devices, reqId);
-            }
-            state.getNotificationSubscriptions().add(reqId);
-            subscriptionManager.getNotificationSubscriptionStorage().insertAll(nsList);
-
-            if (timestamp != null && !actualDevices.isEmpty()) {
-                Set<String> guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
-                notificationService.find(null, null, guids, names, timestamp, Constants.DEFAULT_TAKE)
-                        .forEach(n -> state.getQueue().add(ServerResponsesFactory.createNotificationInsertMessage(n, reqId.toString())));
-            }
-            return reqId;
-        } finally {
-            state.getNotificationSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
-            asyncMessageDeliverer.deliverMessages(session);
-        }
-    }
-
     /**
      * Implementation of the <a href="http://www.devicehive.com/restful#WsReference/Client/notificationunsubscribe">
      * WebSocket API: Client: notification/unsubscribe</a> Unsubscribes from device notifications.

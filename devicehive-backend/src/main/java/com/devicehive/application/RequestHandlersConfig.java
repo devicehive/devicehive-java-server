@@ -15,7 +15,9 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 @Configuration
 @ComponentScan("com.devicehive.handler")
@@ -38,5 +40,10 @@ public class RequestHandlersConfig {
             put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
             put(Action.COMMAND_SEARCH_REQUEST, new CommandSearchHandler());
         }};
+    }
+
+    @Bean
+    public ResourceBundle resourceBundle() {
+        return ResourceBundle.getBundle("messages", Locale.getDefault());
     }
 }

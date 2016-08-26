@@ -12,23 +12,32 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
 public class NotificationSubscribeRequestHandler implements RequestHandler {
 
-    private static final int LIMIT = 100;
+    public static final int LIMIT = 100;
 
-    @Autowired
     private EventBus eventBus;
+    private HazelcastService hazelcastService;
 
     @Autowired
-    private HazelcastService hazelcastService;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
+    }
 
     @Override
     public Response handle(Request request) {
         NotificationSubscribeRequest body = (NotificationSubscribeRequest) request.getBody();
+        validate(body);
 
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
@@ -53,6 +62,12 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
                 .withLast(false)
                 .withCorrelationId(request.getCorrelationId())
                 .buildSuccess();
+    }
+
+    private void validate(NotificationSubscribeRequest request) {
+        Assert.notNull(request, "Request body is null");
+        Assert.notNull(request.getDevice(), "Device guid is null");
+        Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 
     private Collection<DeviceNotification> findNotifications(String device, Collection<String> names, Date timestamp) {
