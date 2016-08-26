@@ -79,7 +79,7 @@ public class Response {
 
     public static class Builder<T extends Body> {
         private T body;
-        private boolean last;
+        private boolean last = true;
         private String correlationId;
         private int errorCode;
 
