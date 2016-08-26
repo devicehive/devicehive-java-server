@@ -1,6 +1,6 @@
 package com.devicehive.shim.kafka.test;
 
-import com.devicehive.AbstractSpringTest;
+import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.rpc.EchoRequest;
 import com.devicehive.model.rpc.EchoResponse;
 import com.devicehive.shim.api.Request;

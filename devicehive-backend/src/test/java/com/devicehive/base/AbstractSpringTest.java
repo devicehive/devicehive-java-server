@@ -1,4 +1,4 @@
-package com.devicehive;
+package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.rule.KafkaEmbeddedRule;

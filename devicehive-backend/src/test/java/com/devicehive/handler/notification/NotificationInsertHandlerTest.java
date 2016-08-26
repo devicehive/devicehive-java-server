@@ -1,16 +1,14 @@
 package com.devicehive.handler.notification;
 
-import com.devicehive.AbstractSpringTest;
+import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.rule.KafkaEmbeddedRule;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,9 +19,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import static com.devicehive.shim.config.client.KafkaRpcClientConfig.RESPONSE_TOPIC;
-import static com.devicehive.shim.config.server.KafkaRpcServerConfig.REQUEST_TOPIC;
 
 public class NotificationInsertHandlerTest extends AbstractSpringTest {
 

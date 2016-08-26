@@ -6,11 +6,7 @@ import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.model.rpc.NotificationSearchRequest;
-import com.devicehive.model.rpc.NotificationSearchResponse;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
@@ -102,16 +98,20 @@ public class DeviceNotificationService {
 
     public String submitDeviceSubscribeNotification(final Set<String> devices,
                                                     final Set<String> names,
+                                                    final Date timestamp,
                                                     final ClientHandler clientHandler) throws InterruptedException {
         String subscriptionId = UUID.randomUUID().toString();
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
-                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names))
+                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
                 .collect(Collectors.toSet());
         CountDownLatch responseLatch = new CountDownLatch(subscribeRequests.size());
+        Set<DeviceNotification> notifications = new HashSet<>();
         for (NotificationSubscribeRequest subscribeRequest : subscribeRequests) {
             Consumer<Response> callback = response -> {
                 String resAction = response.getBody().getAction();
                 if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                    NotificationSubscribeResponse subscribeResponse = (NotificationSubscribeResponse) response.getBody();
+                    notifications.addAll(subscribeResponse.getNotifications());
                     responseLatch.countDown();
                 } else if (resAction.equals(Action.NOTIFICATION.name())) {
                     NotificationEvent event = (NotificationEvent) response.getBody();
@@ -130,6 +130,9 @@ public class DeviceNotificationService {
             rpcClient.call(request, callback);
         }
         responseLatch.await();
+        if (!notifications.isEmpty()) {
+            //todo send existent notifications to device AFTER subscription response
+        }
         return subscriptionId;
     }
 

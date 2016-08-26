@@ -75,7 +75,7 @@ public class NotificationHandlers extends WebsocketHandlers {
         ClientHandler clientHandler = new WebSocketClientHandler(session, asyncMessageDeliverer);
 
         devices = prepareActualList(devices, deviceId);
-        String subscriptionId = notificationService.submitDeviceSubscribeNotification(devices, names, clientHandler);
+        String subscriptionId = notificationService.submitDeviceSubscribeNotification(devices, names, timestamp, clientHandler);
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
