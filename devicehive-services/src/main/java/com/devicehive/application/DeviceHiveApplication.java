@@ -1,5 +1,6 @@
 package com.devicehive.application;
 
+import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -66,6 +67,6 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
 
     @Bean
     public Gson gson() {
-        return new GsonBuilder().disableHtmlEscaping().create();
+        return GsonFactory.createGson();
     }
 }

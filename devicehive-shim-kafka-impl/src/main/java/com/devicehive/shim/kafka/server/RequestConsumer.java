@@ -85,6 +85,8 @@ public class RequestConsumer {
                 }
             } catch (WakeupException e) {
                 logger.warn("Response Consumer thread is shutting down");
+            } catch (Exception e) {
+                logger.error("Unexpected exception in server response consumer", e);
             } finally {
                 consumer.close();
             }

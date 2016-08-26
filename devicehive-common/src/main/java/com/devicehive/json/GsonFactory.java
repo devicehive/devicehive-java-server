@@ -4,6 +4,8 @@ package com.devicehive.json;
 import com.devicehive.json.adapters.*;
 import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
+import com.devicehive.model.eventbus.events.CommandEvent;
+import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Body;
 import com.google.gson.Gson;
@@ -49,11 +51,12 @@ public class GsonFactory {
                 .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.name())
                 .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT.name())
                 .registerSubtype(NotificationSubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.name())
-                .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name());
+                .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())
+                .registerSubtype(NotificationEvent.class, Action.NOTIFICATION.name())
+                .registerSubtype(CommandEvent.class, Action.COMMAND.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()
-                .setPrettyPrinting()
                 .serializeNulls()
                 .registerTypeAdapterFactory(new OptionalAdapterFactory())
                 .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
