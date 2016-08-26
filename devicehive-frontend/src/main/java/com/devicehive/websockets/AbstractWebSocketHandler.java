@@ -3,7 +3,6 @@ package com.devicehive.websockets;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.google.gson.JsonObject;
@@ -29,8 +28,9 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private SessionMonitor sessionMonitor;
-    @Autowired
-    private SubscriptionManager subscriptionManager;
+
+    //TODO Add RPC Subscription Manager or something
+
     @Autowired
     private WebSocketExecutor executor;
     @Autowired
@@ -86,12 +86,10 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.debug("Closing session id {}, close status is {} ", session.getId(), status);
         HiveWebSocketSessionState state = HiveWebSocketSessionState.get(session);
-        for (String subId : state.getCommandSubscriptions()) {
-            subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(subId);
-        }
-        for (String subId : state.getNotificationSubscriptions()) {
-            subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(subId);
-        }
+        //TODO Add RPC Command Subscription clear
+
+        //TODO Add RPC Notification Subscription clear
+
         logger.debug("Session {} is closed", session.getId());
     }
 

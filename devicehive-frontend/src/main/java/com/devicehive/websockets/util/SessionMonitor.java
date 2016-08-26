@@ -1,9 +1,6 @@
 package com.devicehive.websockets.util;
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
-import com.devicehive.messages.subscriptions.CommandSubscription;
-import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebSocketSessionState;
 import org.slf4j.Logger;
@@ -17,7 +14,6 @@ import org.springframework.web.socket.WebSocketSession;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,8 +22,8 @@ public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
-    @Autowired
-    private SubscriptionManager subscriptionManager;
+    //TODO Add RPC Subscription Manager or Something
+
     @Autowired
     private AsyncMessageSupplier asyncMessageSupplier;
 
@@ -50,15 +46,7 @@ public class SessionMonitor {
             //TODO: Replace with RPC call
 //            deviceActivityService.update(deviceGuid);
         }
-        Set<String> commandSubscriptions = HiveWebSocketSessionState.get(session).getCommandSubscriptions();
-        for (String subId : commandSubscriptions) {
-            for (CommandSubscription subscription : subscriptionManager.getCommandSubscriptionStorage().get(subId)) {
-                if (!Constants.NULL_SUBSTITUTE.equals(subscription.getDeviceGuid())) {
-                    //TODO: Replace with RPC call
-                    //deviceActivityService.update(subscription.getDeviceGuid());
-                }
-            }
-        }
+       //TODO Add with RPC Command Subscription
     }
 
     @Scheduled(cron = "0/30 * * * * *")
