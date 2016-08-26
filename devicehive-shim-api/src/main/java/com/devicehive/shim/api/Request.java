@@ -3,6 +3,7 @@ package com.devicehive.shim.api;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class Request {
 
@@ -40,20 +41,12 @@ public class Request {
         return correlationId;
     }
 
-    public void setCorrelationId(String correlationId) {
-        this.correlationId = correlationId;
-    }
-
     public boolean isSingleReplyExpected() {
         return singleReplyExpected;
     }
 
     public String getPartitionKey() {
         return partitionKey;
-    }
-
-    public void setPartitionKey(String partitionKey) {
-        this.partitionKey = partitionKey;
     }
 
     @Override
@@ -91,7 +84,7 @@ public class Request {
 
     public static class Builder<T extends Body> {
         private T body;
-        private String correlationId;
+        private String correlationId = UUID.randomUUID().toString();
         private boolean singleReply = true;
         private String partitionKey;
 

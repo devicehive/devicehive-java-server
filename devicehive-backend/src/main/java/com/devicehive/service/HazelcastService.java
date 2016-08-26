@@ -30,16 +30,16 @@ public class HazelcastService {
     @Autowired
     protected HazelcastHelper hazelcastHelper;
 
-    private Map<Class, IMap<String, Object>> mapsHolder;
+    private Map<Class, IMap<String, HazelcastEntity>> mapsHolder = new HashMap<>(2);
 
     @PostConstruct
     protected void init() {
-        final IMap<String, Object> notificationsMap = hazelcastInstance.getMap("NOTIFICATIONS-MAP");
+        final IMap<String, HazelcastEntity> notificationsMap = hazelcastInstance.getMap(NOTIFICATIONS_MAP);
         notificationsMap.addIndex("timestamp", true);
-        final IMap<String, Object> commandsMap = hazelcastInstance.getMap("COMMANDS-MAP");
+
+        final IMap<String, HazelcastEntity> commandsMap = hazelcastInstance.getMap(COMMANDS_MAP);
         commandsMap.addIndex("timestamp", true);
 
-        mapsHolder = new HashMap<>(2);
         mapsHolder.put(DeviceNotification.class, notificationsMap);
         mapsHolder.put(DeviceCommand.class, commandsMap);
     }
@@ -47,7 +47,7 @@ public class HazelcastService {
 
     public <T extends HazelcastEntity> Optional<T> find(Long id, String guid, Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid);
-        return retrieve(filters, 1, entityClass).stream().findFirst();
+        return find(filters, 1, entityClass).stream().findFirst();
     }
 
     public <T extends HazelcastEntity> Collection<T> find(Collection<String> devices,
@@ -58,7 +58,7 @@ public class HazelcastService {
                                                           Boolean hasResponse,
                                                           Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(devices, names, timestamp, status, hasResponse);
-        return retrieve(filters, take, entityClass);
+        return find(filters, take, entityClass);
     }
 
     public <T extends HazelcastEntity> Collection<T> find(Long id,
@@ -68,7 +68,7 @@ public class HazelcastService {
                                                           Date timestamp, Integer take,
                                                           Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names, timestamp);
-        return retrieve(filters, take, entityClass);
+        return find(filters, take, entityClass);
     }
 
     public <T extends HazelcastEntity> void store(final T hzEntity) {
@@ -77,14 +77,10 @@ public class HazelcastService {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends HazelcastEntity> Collection<T> retrieve(Predicate andPredicate, int pageSize, Class<T> tClass) {
-        if (pageSize <= 0) {
-            final Collection collection = mapsHolder.get(tClass).values(andPredicate);
-            return ((Collection<T>) collection);
-        } else {
-            final PagingPredicate pagingPredicate = new PagingPredicate(andPredicate, new HazelcastEntityComparator(), pageSize);
-            final Collection collection = mapsHolder.get(tClass).values(pagingPredicate);
-            return ((Collection<T>) collection);
-        }
+    private <T extends HazelcastEntity> Collection<T> find(Predicate predicate, int pageSize, Class<T> tClass) {
+        final Predicate pagingPredicate = (pageSize > 0)
+                ? new PagingPredicate(predicate, new HazelcastEntityComparator(), pageSize)
+                : predicate;
+        return (Collection<T>) mapsHolder.get(tClass).values(pagingPredicate);
     }
 }

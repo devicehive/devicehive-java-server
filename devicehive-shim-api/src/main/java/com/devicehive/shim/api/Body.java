@@ -14,10 +14,6 @@ public abstract class Body {
         return action;
     }
 
-    public void setAction(String action) {
-        this.action = action;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -2,7 +2,6 @@ package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.messages.handler.ClientHandler;
-import com.devicehive.messages.handler.WebsocketHandlerCreator;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.events.NotificationEvent;
@@ -19,10 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -52,16 +48,17 @@ public class DeviceNotificationService {
     public Collection<DeviceNotification> find(Long id, String guid,
                                                Collection<String> devices, Collection<String> names,
                                                Date timestamp, Integer take) {
+        NotificationSearchRequest notificationSearchRequest = new NotificationSearchRequest();
+        notificationSearchRequest.setId(id);
+        notificationSearchRequest.setGuid(guid);
+        notificationSearchRequest.setGuids(new HashSet<>(devices));
+        notificationSearchRequest.setNames(new HashSet<>(names));
+        notificationSearchRequest.setTimestamp(timestamp);
+        notificationSearchRequest.setTake(take);
+
         Request request = Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(new NotificationSearchRequest() {{
-                    setId(id);
-                    setGuid(guid);
-                    setDevices(new HashSet<>(devices));
-                    setNames(new HashSet<>(names));
-                    setTimestamp(timestamp);
-                    setTake(take);
-                }})
+                .withBody(notificationSearchRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(request, future::complete);

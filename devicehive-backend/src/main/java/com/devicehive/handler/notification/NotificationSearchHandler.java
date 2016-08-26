@@ -8,10 +8,11 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.List;
 
 public class NotificationSearchHandler implements RequestHandler {
 
@@ -22,46 +23,37 @@ public class NotificationSearchHandler implements RequestHandler {
     public Response handle(Request request) {
         NotificationSearchRequest searchRequest = (NotificationSearchRequest) request.getBody();
 
-        Response serviceResult;
+        NotificationSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getGuid())
+                ? searchSingleNotificationByDeviceAndId(searchRequest.getId(), searchRequest.getGuid())
+                : searchMultipleNotifications(searchRequest);
 
-        if (searchRequest.getId() != null) {
-            serviceResult = searchSingleNotificationByDeviceAndId(request, searchRequest);
-        } else {
-            serviceResult = searchMultipleNotifications(request, searchRequest);
-        }
-
-        return serviceResult;
+        return Response.newBuilder()
+                .withBody(payload)
+                .buildSuccess();
     }
 
-    private Response searchMultipleNotifications(Request request, NotificationSearchRequest searchRequest) {
-        Response serviceResult;//TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
-        Collection<DeviceNotification> deviceNotifications = storageService.find(searchRequest.getDevices(), searchRequest.getNames(), searchRequest.getTimestamp(),
-                searchRequest.getStatus(), searchRequest.getTake(), searchRequest.getHasResponse(), DeviceNotification.class);
-        NotificationSearchResponse payload = new NotificationSearchResponse();
-        payload.setNotifications(new ArrayList<>());
-        payload.getNotifications().addAll(deviceNotifications);
-        serviceResult = Response.newBuilder()
-                .withBody(payload)
-                .withCorrelationId(request.getCorrelationId())
-                .withLast(true)
-                .buildSuccess();
-        return serviceResult;
+    private NotificationSearchResponse searchMultipleNotifications(NotificationSearchRequest searchRequest) {
+        //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
+        final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
+        final Collection<DeviceNotification> notifications = storageService.find(
+                searchRequest.getGuids(),
+                searchRequest.getNames(),
+                searchRequest.getTimestamp(),
+                searchRequest.getStatus(),
+                searchRequest.getTake(),
+                searchRequest.getHasResponse(),
+                DeviceNotification.class);
+
+        notificationSearchResponse.setNotifications((List<DeviceNotification>) notifications);
+        return notificationSearchResponse;
     }
 
-    private Response searchSingleNotificationByDeviceAndId(Request request, NotificationSearchRequest searchRequest) {
-        Response serviceResult;
-        Optional<DeviceNotification> deviceNotification = storageService.find(searchRequest.getId(), searchRequest.getGuid(), DeviceNotification.class);
-
-        NotificationSearchResponse payload = new NotificationSearchResponse();
-        payload.setNotifications(new ArrayList<>());
-        if (deviceNotification != null && deviceNotification.isPresent()) {
-            payload.getNotifications().add(deviceNotification.get());
-        }
-        serviceResult = Response.newBuilder()
-                .withBody(payload)
-                .withCorrelationId(request.getCorrelationId())
-                .withLast(true)
-                .buildSuccess();
-        return serviceResult;
+    private NotificationSearchResponse searchSingleNotificationByDeviceAndId(long id, String guid) {
+        final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
+        final List<DeviceNotification> notifications = storageService.find(id, guid, DeviceNotification.class)
+                .map(Collections::singletonList)
+                .orElse(Collections.emptyList());
+        notificationSearchResponse.setNotifications(notifications);
+        return notificationSearchResponse;
     }
 }

@@ -4,7 +4,6 @@ import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
-import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
@@ -13,7 +12,6 @@ import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
-import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,22 +38,19 @@ public class DeviceCommandService {
     @Autowired
     private RpcClient rpcClient;
 
-    @Autowired
-    private Gson gson;
-
     @Deprecated
     @Autowired
     private MessageBus messageBus;
 
     @SuppressWarnings("unchecked")
     public Optional<DeviceCommand> find(Long id, String guid) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
+        CompletableFuture<Response> future = new CompletableFuture<>(); // FIXME: remove CompletableFuture in favor of using callback
+        CommandSearchRequest searchRequest = new CommandSearchRequest();
+        searchRequest.setId(id);
+        searchRequest.setGuid(guid);
         rpcClient.call(Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(new CommandSearchRequest() {{
-                    setId(id);
-                    setGuid(guid);
-                }})
+                .withBody(searchRequest)
                 .build(), future::complete);
         try {
             Response response = future.get(10, TimeUnit.SECONDS);
@@ -71,17 +66,18 @@ public class DeviceCommandService {
     @SuppressWarnings("unchecked")
     public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
                                           Date timestamp, String status, Integer take, Boolean hasResponse) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
+        CompletableFuture<Response> future = new CompletableFuture<>(); // FIXME: remove CompletableFuture in favor of using callback
+        CommandSearchRequest searchRequest = new CommandSearchRequest();
+        searchRequest.setDevices(new HashSet<>(devices));
+        searchRequest.setNames(new HashSet<>(names));
+        searchRequest.setTimestamp(timestamp);
+        searchRequest.setStatus(status);
+        searchRequest.setTake(take);
+        searchRequest.setHasResponse(hasResponse);
+
         rpcClient.call(Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(new CommandSearchRequest() {{
-                    setDevices(new HashSet<>(devices));
-                    setDevices(new HashSet<>(names));
-                    setTimestamp(timestamp);
-                    setStatus(status);
-                    setTake(take);
-                    setHasResponse(hasResponse);
-                }})
+                .withBody(searchRequest)
                 .build(), future::complete);
         try {
             Response response = future.get(10, TimeUnit.SECONDS);
@@ -101,7 +97,7 @@ public class DeviceCommandService {
         command.setIsUpdated(false);
         command.setTimestamp(timestampService.getTimestamp());
 
-        if(user != null){
+        if (user != null) {
             command.setUserId(user.getId());
         }
         if (commandWrapper.getCommand() != null) {
@@ -125,7 +121,7 @@ public class DeviceCommandService {
         return command;
     }
 
-    public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper){
+    public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
         // TODO: [asuprun] handle case when command not found
         DeviceCommand command = find(commandId, deviceGuid).get();
         command.setIsUpdated(true);

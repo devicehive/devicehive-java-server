@@ -22,7 +22,7 @@ public class DeviceNotificationServiceImpl {
         NotificationSearchRequest requestBody = new NotificationSearchRequest() {{
             setId(notificationId);
             setGuid(deviceGuid);
-            setDevices(Collections.EMPTY_SET);
+            setGuids(Collections.EMPTY_SET);
             setNames(Collections.EMPTY_SET);
             setTimestamp(null);
             setTake(1);
@@ -39,14 +39,15 @@ public class DeviceNotificationServiceImpl {
     public void find(Collection<String> deviceGuids, Collection<String> notificationNames, Date fromTimestamp, Integer take, Consumer<Response> callback) {
         //TODO should be several requests here with completable stage and post processing in the callback to call client's callback function.
         //TODO lacks of partition key - should be device id
+        NotificationSearchRequest searchRequest = new NotificationSearchRequest();
+        searchRequest.setGuids(new HashSet<>(deviceGuids));
+        searchRequest.setNames(new HashSet<>(notificationNames));
+        searchRequest.setTimestamp(fromTimestamp);
+        searchRequest.setTake(take);
+
         Request request = Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(new NotificationSearchRequest() {{
-                    setDevices(new HashSet<>(deviceGuids));
-                    setNames(new HashSet<>(notificationNames));
-                    setTimestamp(fromTimestamp);
-                    setTake(take);
-                }})
+                .withBody(searchRequest)
                 .build();
         rpcClient.call(request, callback);
     }

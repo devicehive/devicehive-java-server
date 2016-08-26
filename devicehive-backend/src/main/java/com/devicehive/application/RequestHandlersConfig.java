@@ -2,6 +2,7 @@ package com.devicehive.application;
 
 import com.devicehive.handler.EchoRequestHandler;
 import com.devicehive.handler.NotificationSubscribeRequestHandler;
+import com.devicehive.handler.command.CommandSearchHandler;
 import com.devicehive.handler.notification.NotificationInsertHandler;
 import com.devicehive.handler.notification.NotificationSearchHandler;
 import com.devicehive.model.rpc.Action;
@@ -35,6 +36,7 @@ public class RequestHandlersConfig {
             put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
             put(Action.NOTIFICATION_INSERT, new NotificationInsertHandler());
             put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
+            put(Action.COMMAND_SEARCH_REQUEST, new CommandSearchHandler());
         }};
     }
 }

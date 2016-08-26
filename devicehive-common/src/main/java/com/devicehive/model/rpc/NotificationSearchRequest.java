@@ -10,7 +10,7 @@ public class NotificationSearchRequest extends Body {
 
     private Long id;
     private String guid;
-    private Set<String> devices;
+    private Set<String> guids;
     private Set<String> names;
     private Date timestamp;
     private String status;
@@ -37,12 +37,12 @@ public class NotificationSearchRequest extends Body {
         this.guid = guid;
     }
 
-    public Set<String> getDevices() {
-        return devices;
+    public Set<String> getGuids() {
+        return guids;
     }
 
-    public void setDevices(Set<String> devices) {
-        this.devices = devices;
+    public void setGuids(Set<String> guids) {
+        this.guids = guids;
     }
 
     public Set<String> getNames() {
