@@ -42,8 +42,4 @@ public class RequestHandlersConfig {
         }};
     }
 
-    @Bean
-    public ResourceBundle resourceBundle() {
-        return ResourceBundle.getBundle("messages", Locale.getDefault());
-    }
 }
