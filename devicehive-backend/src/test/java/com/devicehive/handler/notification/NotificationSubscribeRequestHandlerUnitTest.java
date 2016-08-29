@@ -1,7 +1,6 @@
 package com.devicehive.handler.notification;
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.handler.NotificationSubscribeRequestHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;

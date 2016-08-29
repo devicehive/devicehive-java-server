@@ -1,4 +1,4 @@
-package com.devicehive.handler.command;
+package com.devicehive.handler.notification;
 
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceNotification;

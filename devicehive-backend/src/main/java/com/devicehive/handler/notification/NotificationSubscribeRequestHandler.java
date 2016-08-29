@@ -1,4 +1,4 @@
-package com.devicehive.handler;
+package com.devicehive.handler.notification;
 
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceNotification;

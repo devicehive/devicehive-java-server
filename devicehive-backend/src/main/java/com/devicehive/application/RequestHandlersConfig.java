@@ -2,7 +2,7 @@ package com.devicehive.application;
 
 import com.devicehive.handler.EchoRequestHandler;
 import com.devicehive.handler.command.CommandInsertHandler;
-import com.devicehive.handler.NotificationSubscribeRequestHandler;
+import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.handler.command.CommandSearchHandler;
 import com.devicehive.handler.notification.NotificationInsertHandler;
 import com.devicehive.handler.notification.NotificationSearchHandler;
@@ -16,9 +16,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 @Configuration
 @ComponentScan("com.devicehive.handler")
