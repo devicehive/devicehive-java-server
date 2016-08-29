@@ -23,11 +23,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-
 @Service
 public class DeviceCommandService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeviceCommandService.class);
 
     @Autowired
     private TimestampService timestampService;
@@ -116,17 +115,19 @@ public class DeviceCommandService {
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandInsertRequest(command))
                 .build(), new ResponseConsumer(future));
-
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
     public CompletableFuture<Void> update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
         return find(commandId, deviceGuid)
-                .thenApply(opt -> opt.orElseThrow(() -> new NoSuchElementException("Command not found")))
+                .thenApply(opt -> opt.orElse(null)) //todo would be preferable to use .thenApply(opt -> opt.orElseThrow(() -> new NoSuchElementException("Command not found"))), but does not build on some machines
                 .thenAccept(cmd -> doUpdate(cmd, commandWrapper));
     }
 
     private CompletableFuture<Void> doUpdate(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+        if (cmd == null) {
+            throw new NoSuchElementException("Command not found");
+        }
         cmd.setIsUpdated(true);
 
         if (commandWrapper.getCommand() != null) {
