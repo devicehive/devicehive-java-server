@@ -133,7 +133,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         }
 
         if (timestamp != null && !availableDevices.isEmpty()) {
-            list = commandService.find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false);
+            list = commandService
+                    .find(availableDevices, commandNames, timestamp, null, Constants.DEFAULT_TAKE, false)
+                    .join();
         }
 
         if (!list.isEmpty()) {
@@ -197,7 +199,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid());
+        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid()).join();
 
         if (!command.isPresent()) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
@@ -244,7 +246,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
 
         final Collection<DeviceCommand> commandList = Optional.ofNullable(deviceService.findByGuidWithPermissionsCheck(guid, principal))
-                .map(deviceVO -> commandService.find(Collections.singletonList(deviceVO.getGuid()), searchCommands, timestamp, status, 0, null))
+                .map(deviceVO -> commandService.find(Collections.singletonList(deviceVO.getGuid()), searchCommands, timestamp, status, 0, null).join())
                 .orElse(Collections.emptyList());
 
         final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
@@ -270,7 +272,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
 
-        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid());
+        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid()).join();
         if (!command.isPresent()) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -337,7 +339,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid);
+        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
         if (!savedCommand.isPresent()) {
             LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

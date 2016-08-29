@@ -11,7 +11,6 @@ import com.devicehive.messages.subscriptions.NotificationSubscriptionStorage;
 import com.devicehive.messages.subscriptions.SubscriptionManager;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -52,23 +51,24 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
     @Autowired
     private DeviceNotificationService notificationService;
+
     @Autowired
     private SubscriptionManager subscriptionManager;
+
     @Autowired
     private DeviceService deviceService;
+
     @Autowired
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
-
-    @Autowired
-    private com.devicehive.service.DeviceNotificationServiceImpl devNotificationService;
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void query(String guid, String startTs, String endTs, String notification, String sortField,
-                      String sortOrderSt, Integer take, Integer skip, Integer gridInterval, @Suspended final AsyncResponse asyncResponse) {
+                      String sortOrderSt, Integer take, Integer skip, Integer gridInterval,
+                      @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device notification query requested for device {}", guid);
         Date timestamp = TimestampQueryParamParser.parse(startTs);
 
@@ -81,24 +81,21 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             asyncResponse.resume(response);
         } else {
             List<String> notificationNames = StringUtils.isNoneEmpty(notification) ? Collections.singletonList(notification) : null;
-            devNotificationService.find(Collections.singletonList(guid), notificationNames, timestamp, take, response -> {
-                if (response.isFailed()) {
-                    //TODO [rafa] change error message here
-                    logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", -1l, guid);
-                    ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1l));
-                    Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                    asyncResponse.resume(jaxResponse);
-                } else {
-                    NotificationSearchResponse notificationsFound = (NotificationSearchResponse) response.getBody();
-                    final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
-                    final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
+            notificationService.find(Collections.singletonList(guid), notificationNames, timestamp, take)
+                    .thenApply(notifications -> {
+                        final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
+                        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
 
-                    ArrayList<DeviceNotification> deviceCommands = new ArrayList<>(notificationsFound.getNotifications());
-                    final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort.orderAndLimit(deviceCommands, comparator, reverse, skip, take);
-                    Response jaxResponse = ResponseFactory.response(Response.Status.OK, sortedDeviceNotifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                    asyncResponse.resume(jaxResponse);
-                }
-            });
+                        final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort.orderAndLimit(notifications, comparator, reverse, skip, take);
+                        return ResponseFactory.response(Response.Status.OK, sortedDeviceNotifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                    })
+                    .exceptionally(e -> {
+                        //TODO [rafa] change error message here
+                        logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", -1l, guid);
+                        ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1l));
+                        return ResponseFactory.response(NOT_FOUND, errorCode);
+                    })
+                    .thenAccept(asyncResponse::resume);
         }
     }
 
@@ -118,27 +115,23 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            devNotificationService.find(notificationId, guid, response -> {
-                if (response.isFailed()) {
-                    logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
-                    ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
-                    Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                    asyncResponse.resume(jaxResponse);
-                } else {
-                    NotificationSearchResponse notificationsFound = (NotificationSearchResponse) response.getBody();
-                    if (notificationsFound.getNotifications() == null || notificationsFound.getNotifications().isEmpty()) {
+            notificationService.find(notificationId, guid)
+                    .thenApply(notification -> notification
+                            .map(n -> {
+                                logger.debug("Device notification proceed successfully");
+                                return ResponseFactory.response(Response.Status.OK, n, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                            }).orElseGet(() -> {
+                                logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
+                                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
+                                return ResponseFactory.response(NOT_FOUND, errorCode);
+                            }))
+                    .exceptionally(e -> {
+                        //TODO: change error message here
                         logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
                         ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
-                        Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                        asyncResponse.resume(jaxResponse);
-                    } else {
-                        logger.debug("Device notification proceed successfully");
-                        DeviceNotification notification = notificationsFound.getNotifications().get(0);
-                        Response jaxResponse = ResponseFactory.response(Response.Status.OK, notification, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                        asyncResponse.resume(jaxResponse);
-                    }
-                }
-            });
+                        return ResponseFactory.response(NOT_FOUND, errorCode);
+                    })
+                    .thenAccept(asyncResponse::resume);
         }
     }
 
@@ -208,7 +201,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         }
 
         if (timestamp != null && !availableGuids.isEmpty()) {
-            list = notificationService.find(null, null, availableGuids, notificationNames, timestamp, DEFAULT_TAKE);
+            list = notificationService.find(availableGuids, notificationNames, timestamp, DEFAULT_TAKE).join();
         }
 
         if (!list.isEmpty()) {

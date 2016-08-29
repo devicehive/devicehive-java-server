@@ -36,7 +36,7 @@ public class NotificationSearchHandler implements RequestHandler {
         //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
         final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
         final Collection<DeviceNotification> notifications = storageService.find(
-                searchRequest.getGuids(),
+                Collections.singleton(searchRequest.getGuid()),
                 searchRequest.getNames(),
                 searchRequest.getTimestamp(),
                 searchRequest.getStatus(),

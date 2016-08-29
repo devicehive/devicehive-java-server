@@ -124,7 +124,7 @@ public class CommandHandlers extends WebsocketHandlers {
                 }
             } else {
                 CommandSubscription forAll = new CommandSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, namesStr,
-                                            WebsocketHandlerCreator.createCommandInsert(session));
+                        WebsocketHandlerCreator.createCommandInsert(session));
                 csList.add(forAll);
             }
             subscriptionSessionMap.put(reqId, session);
@@ -136,7 +136,7 @@ public class CommandHandlers extends WebsocketHandlers {
 
             if (timestamp != null && !actualDevices.isEmpty()) {
                 Set<String> guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
-                commandService.find(guids, names, timestamp, null, Constants.DEFAULT_TAKE, false)
+                commandService.find(guids, names, timestamp, null, Constants.DEFAULT_TAKE, false).join()
                         .forEach(c -> state.getQueue().add(ServerResponsesFactory.createCommandInsertMessage(c, reqId)));
             }
             return reqId;
@@ -214,7 +214,7 @@ public class CommandHandlers extends WebsocketHandlers {
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                   @WsParam(COMMAND) @JsonPolicyApply(COMMAND_FROM_CLIENT)
-                                                  DeviceCommandWrapper deviceCommand,
+                                                          DeviceCommandWrapper deviceCommand,
                                                   WebSocketSession session) throws IOException {
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
         if (deviceGuid == null) {
@@ -242,7 +242,7 @@ public class CommandHandlers extends WebsocketHandlers {
                                                   @WsParam(COMMAND_ID) Long id,
                                                   @WsParam(COMMAND)
                                                   @JsonPolicyApply(COMMAND_UPDATE_FROM_DEVICE)
-                                                  DeviceCommandWrapper commandUpdate,
+                                                          DeviceCommandWrapper commandUpdate,
                                                   WebSocketSession session) {
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

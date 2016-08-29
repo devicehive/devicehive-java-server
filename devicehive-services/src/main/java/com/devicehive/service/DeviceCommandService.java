@@ -19,9 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -43,51 +41,50 @@ public class DeviceCommandService {
     private MessageBus messageBus;
 
     @SuppressWarnings("unchecked")
-    public Optional<DeviceCommand> find(Long id, String guid) {
-        CompletableFuture<Response> future = new CompletableFuture<>(); // FIXME: remove CompletableFuture in favor of using callback
+    public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
         searchRequest.setGuid(guid);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withBody(searchRequest)
-                .build(), future::complete);
-        try {
-            Response response = future.get(10, TimeUnit.SECONDS);
-            return ((CommandSearchResponse) response.getBody()).getCommands().stream().findFirst();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.warn("Unable to find command due to unexpected exception", e);
-        } catch (TimeoutException e) {
-            logger.warn("Command find was timed out (id={}, guid={})", id, guid, e);
-        }
-        return Optional.empty();
+                .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+        return future.thenApply(r -> ((CommandSearchResponse) r.getBody()).getCommands().stream().findFirst());
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<DeviceCommand> find(Collection<String> devices, Collection<String> names,
-                                          Date timestamp, String status, Integer take, Boolean hasResponse) {
-        CompletableFuture<Response> future = new CompletableFuture<>(); // FIXME: remove CompletableFuture in favor of using callback
-        CommandSearchRequest searchRequest = new CommandSearchRequest();
-        searchRequest.setDevices(new HashSet<>(devices));
-        searchRequest.setNames(new HashSet<>(names));
-        searchRequest.setTimestamp(timestamp);
-        searchRequest.setStatus(status);
-        searchRequest.setTake(take);
-        searchRequest.setHasResponse(hasResponse);
+    public CompletableFuture<List<DeviceCommand>> find(Collection<String> guids, Collection<String> names,
+                                                       Date timestamp, String status, Integer take, Boolean hasResponse) {
+        List<CompletableFuture<Response>> futures = guids.stream()
+                .map(guid -> {
+                    CommandSearchRequest searchRequest = new CommandSearchRequest();
+                    searchRequest.setGuid(guid);
+                    searchRequest.setNames(new HashSet<>(names));
+                    searchRequest.setTimestamp(timestamp);
+                    searchRequest.setStatus(status);
+                    searchRequest.setTake(take);
+                    searchRequest.setHasResponse(hasResponse);
+                    return searchRequest;
+                })
+                .map(searchRequest -> {
+                    CompletableFuture<Response> future = new CompletableFuture<>();
+                    rpcClient.call(Request.newBuilder()
+                            .withBody(searchRequest)
+                            .withPartitionKey(searchRequest.getGuid())
+                            .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                    return future;
+                })
+                .collect(Collectors.toList());
 
-        rpcClient.call(Request.newBuilder()
-                .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(searchRequest)
-                .build(), future::complete);
-        try {
-            Response response = future.get(10, TimeUnit.SECONDS);
-            return ((CommandSearchResponse) response.getBody()).getCommands();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.warn("Unable to find command due to unexpected exception", e);
-        } catch (TimeoutException e) {
-            logger.warn("Commands find was timed out", e);
-        }
-        return Collections.emptyList();
+        // List<CompletableFuture<Response>> => CompletableFuture<List<DeviceCommand>>
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)                                  // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
+                        .map(r -> ((CommandSearchResponse) r.getBody()).getCommands()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceCommand>>>
+                        .flatMap(Collection::stream)                                   // CompletableFuture<List<List<DeviceCommand>>> => CompletableFuture<List<DeviceCommand>>
+                        .collect(Collectors.toList()));
     }
 
     public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -123,7 +120,7 @@ public class DeviceCommandService {
 
     public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
         // TODO: [asuprun] handle case when command not found
-        DeviceCommand command = find(commandId, deviceGuid).get();
+        DeviceCommand command = find(commandId, deviceGuid).join().get();
         command.setIsUpdated(true);
 
         if (commandWrapper.getCommand() != null) {

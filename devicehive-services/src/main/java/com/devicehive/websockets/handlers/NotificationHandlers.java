@@ -36,6 +36,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
@@ -113,7 +114,7 @@ public class NotificationHandlers extends WebsocketHandlers {
      *
      * @param session Current session
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
-     *         {object} } </code>
+     * {object} } </code>
      */
     @Action(value = "notification/unsubscribe")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
@@ -162,7 +163,7 @@ public class NotificationHandlers extends WebsocketHandlers {
     public WebSocketResponse processNotificationInsert(@WsParam(DEVICE_GUID) String deviceGuid,
                                                        @WsParam(NOTIFICATION)
                                                        @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-                                                       DeviceNotificationWrapper notificationSubmit,
+                                                               DeviceNotificationWrapper notificationSubmit,
                                                        WebSocketSession session) {
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

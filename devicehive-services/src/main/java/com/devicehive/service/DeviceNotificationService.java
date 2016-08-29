@@ -20,7 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -40,38 +41,48 @@ public class DeviceNotificationService {
     @Autowired
     private RpcClient rpcClient;
 
-    public Optional<DeviceNotification> find(Long id, String guid) {
-        return find(id, guid, null, null, null, null).stream().findFirst();
+    public CompletableFuture<Optional<DeviceNotification>> find(Long id, String guid) {
+        NotificationSearchRequest searchRequest = new NotificationSearchRequest();
+        searchRequest.setId(id);
+        searchRequest.setGuid(guid);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(searchRequest)
+                .withPartitionKey(searchRequest.getGuid())
+                .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+        return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<DeviceNotification> find(Long id, String guid,
-                                               Collection<String> devices, Collection<String> names,
-                                               Date timestamp, Integer take) {
-        NotificationSearchRequest notificationSearchRequest = new NotificationSearchRequest();
-        notificationSearchRequest.setId(id);
-        notificationSearchRequest.setGuid(guid);
-        notificationSearchRequest.setGuids(new HashSet<>(devices));
-        notificationSearchRequest.setNames(new HashSet<>(names));
-        notificationSearchRequest.setTimestamp(timestamp);
-        notificationSearchRequest.setTake(take);
+    public CompletableFuture<List<DeviceNotification>> find(Collection<String> guids, Collection<String> names,
+                                                 Date timestamp, Integer take) {
+        List<CompletableFuture<Response>> futures = guids.stream()
+                .map(guid -> {
+                    NotificationSearchRequest searchRequest = new NotificationSearchRequest();
+                    searchRequest.setGuid(guid);
+                    searchRequest.setNames(new HashSet<>(names));
+                    searchRequest.setTimestamp(timestamp);
+                    searchRequest.setTake(take);
+                    return searchRequest;
+                })
+                .map(searchRequest -> {
+                    CompletableFuture<Response> future = new CompletableFuture<>();
+                    rpcClient.call(Request.newBuilder()
+                            .withBody(searchRequest)
+                            .withPartitionKey(searchRequest.getGuid())
+                            .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                    return future;
+                })
+                .collect(Collectors.toList());
 
-        Request request = Request.newBuilder()
-                .withCorrelationId(UUID.randomUUID().toString())
-                .withBody(notificationSearchRequest)
-                .build();
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        rpcClient.call(request, future::complete);
-
-        try {
-            Response response = future.get(10, TimeUnit.SECONDS);
-            return ((NotificationSearchResponse) response.getBody()).getNotifications();
-        } catch (InterruptedException | ExecutionException e) {
-            logger.warn("Unable to find notification due to unexpected exception", e);
-        } catch (TimeoutException e) {
-            logger.warn("Notification find was timed out (id={}, guid={})", id, guid, e);
-        }
-        return Collections.emptyList();
+        // List<CompletableFuture<Response>> => CompletableFuture<List<DeviceNotification>>
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)                                            // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
+                        .map(r -> ((NotificationSearchResponse) r.getBody()).getNotifications()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceNotification>>>
+                        .flatMap(Collection::stream)                                             // CompletableFuture<List<List<DeviceNotification>>> => CompletableFuture<List<DeviceNotification>>
+                        .collect(Collectors.toList()));
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {

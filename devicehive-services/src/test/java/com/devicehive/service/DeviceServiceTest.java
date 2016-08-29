@@ -23,6 +23,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
@@ -94,7 +95,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
-        final Optional<DeviceNotification> existingNotification = deviceNotificationService.find(null, device.getGuid());
+        final Optional<DeviceNotification> existingNotification =
+                deviceNotificationService.find(null, device.getGuid()).join();
 
         assertTrue(existingNotification.isPresent());
         assertEquals(device.getGuid(), existingNotification.get().getDeviceGuid());
@@ -571,7 +573,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
-             deviceService.deviceSave(deviceUpdate,emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
 
         final HivePrincipal principal = new HivePrincipal();
 
