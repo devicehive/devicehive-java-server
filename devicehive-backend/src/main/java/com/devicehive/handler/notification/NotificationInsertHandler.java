@@ -26,8 +26,6 @@ public class NotificationInsertHandler implements RequestHandler {
         NotificationEvent notificationEvent = new NotificationEvent(notification);
         eventBus.publish(notificationEvent);
 
-        return Response.newBuilder()
-                .withLast(true)
-                .buildSuccess();
+        return Response.newBuilder().buildSuccess();
     }
 }

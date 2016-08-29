@@ -2,9 +2,11 @@ package com.devicehive.service;
 
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.rpc.CommandInsertRequest;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -50,11 +52,10 @@ public class DeviceCommandService {
         rpcClient.call(Request.newBuilder()
                 .withCorrelationId(UUID.randomUUID().toString())
                 .withBody(searchRequest)
-                .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((CommandSearchResponse) r.getBody()).getCommands().stream().findFirst());
     }
 
-    @SuppressWarnings("unchecked")
     public CompletableFuture<List<DeviceCommand>> find(Collection<String> guids, Collection<String> names,
                                                        Date timestamp, String status, Integer take, Boolean hasResponse) {
         List<CompletableFuture<Response>> futures = guids.stream()
@@ -73,7 +74,7 @@ public class DeviceCommandService {
                     rpcClient.call(Request.newBuilder()
                             .withBody(searchRequest)
                             .withPartitionKey(searchRequest.getGuid())
-                            .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                            .build(), new ResponseConsumer(future));
                     return future;
                 })
                 .collect(Collectors.toList());
@@ -118,29 +119,38 @@ public class DeviceCommandService {
         return command;
     }
 
-    public void update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
-        // TODO: [asuprun] handle case when command not found
-        DeviceCommand command = find(commandId, deviceGuid).join().get();
-        command.setIsUpdated(true);
+    public CompletableFuture<Void> update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
+        return find(commandId, deviceGuid)
+                .thenApply(opt -> opt.orElseThrow(() -> new NoSuchElementException("Command not found")))
+                .thenAccept(cmd -> doUpdate(cmd, commandWrapper));
+    }
+
+    private CompletableFuture<Void> doUpdate(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+        cmd.setIsUpdated(true);
 
         if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().orElse(null));
+            cmd.setCommand(commandWrapper.getCommand().orElse(null));
         }
         if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().orElse(null));
+            cmd.setParameters(commandWrapper.getParameters().orElse(null));
         }
         if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().orElse(null));
+            cmd.setLifetime(commandWrapper.getLifetime().orElse(null));
         }
         if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().orElse(null));
+            cmd.setStatus(commandWrapper.getStatus().orElse(null));
         }
         if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().orElse(null));
+            cmd.setResult(commandWrapper.getResult().orElse(null));
         }
 
-        hiveValidator.validate(command);
-        store(command);
+        hiveValidator.validate(cmd);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new CommandInsertRequest(cmd))
+                .build(), new ResponseConsumer(future));
+        return future.thenApply(response -> null);
     }
 
     protected void store(DeviceCommand command) {

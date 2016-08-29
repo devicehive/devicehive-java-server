@@ -7,6 +7,7 @@ import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -50,7 +51,7 @@ public class DeviceNotificationService {
         rpcClient.call(Request.newBuilder()
                 .withBody(searchRequest)
                 .withPartitionKey(searchRequest.getGuid())
-                .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
     }
 
@@ -71,7 +72,7 @@ public class DeviceNotificationService {
                     rpcClient.call(Request.newBuilder()
                             .withBody(searchRequest)
                             .withPartitionKey(searchRequest.getGuid())
-                            .build(), future::complete); // TODO: complete future conditionally according to com.devicehive.shim.api.Response.isFailed()
+                            .build(), new ResponseConsumer(future));
                     return future;
                 })
                 .collect(Collectors.toList());

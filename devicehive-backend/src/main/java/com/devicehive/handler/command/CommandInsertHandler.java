@@ -21,18 +21,15 @@ public class CommandInsertHandler implements RequestHandler {
 
     @Override
     public Response handle(Request request) {
-        CommandInsertRequest commandInsertRequest = (CommandInsertRequest) request.getBody();
-        DeviceCommand deviceCommand = commandInsertRequest.getDeviceCommand();
+        DeviceCommand deviceCommand = ((CommandInsertRequest) request.getBody()).getDeviceCommand();
         hazelcastService.store(deviceCommand);
 
         CommandEvent commandEvent = new CommandEvent(deviceCommand);
         eventBus.publish(commandEvent);
 
-        CommandInsertResponse payload = new CommandInsertResponse(commandInsertRequest.getDeviceCommand());
+        CommandInsertResponse payload = new CommandInsertResponse(deviceCommand);
         return Response.newBuilder()
                 .withBody(payload)
-                .withCorrelationId(request.getCorrelationId())
-                .withLast(true)
                 .buildSuccess();
     }
 }

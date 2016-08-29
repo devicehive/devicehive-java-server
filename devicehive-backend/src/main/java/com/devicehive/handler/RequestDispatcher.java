@@ -39,7 +39,7 @@ public class RequestDispatcher implements RequestHandler {
             logger.error("Unable to handle request.", e);
             return Response.newBuilder()
                     .withErrorCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                    .withBody(new ErrorResponse(e))
+                    .withBody(new ErrorResponse(e.getMessage()))
                     .withLast(true)
                     .buildFailed();
         }
