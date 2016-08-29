@@ -1,5 +1,8 @@
 package com.devicehive.handler.command;
 
+import com.devicehive.eventbus.EventBus;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.rpc.CommandInsertRequest;
 import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.service.HazelcastService;
@@ -11,13 +14,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class CommandInsertHandler implements RequestHandler {
 
     @Autowired
-    private HazelcastService storageService;
+    private HazelcastService hazelcastService;
+
+    @Autowired
+    private EventBus eventBus;
 
     @Override
     public Response handle(Request request) {
         CommandInsertRequest commandInsertRequest = (CommandInsertRequest) request.getBody();
+        DeviceCommand deviceCommand = commandInsertRequest.getDeviceCommand();
+        hazelcastService.store(deviceCommand);
 
-        storageService.store(commandInsertRequest.getDeviceCommand());
+        CommandEvent commandEvent = new CommandEvent(deviceCommand);
+        eventBus.publish(commandEvent);
 
         CommandInsertResponse payload = new CommandInsertResponse(commandInsertRequest.getDeviceCommand());
         return Response.newBuilder()
