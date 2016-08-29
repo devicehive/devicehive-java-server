@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CommandInsertHandler implements RequestHandler {
 
-    @Autowired
     private HazelcastService hazelcastService;
-
-    @Autowired
     private EventBus eventBus;
 
     @Override
@@ -31,5 +28,15 @@ public class CommandInsertHandler implements RequestHandler {
         return Response.newBuilder()
                 .withBody(payload)
                 .buildSuccess();
+    }
+
+    @Autowired
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
     }
 }
