@@ -3,6 +3,8 @@ package com.devicehive.websockets.util;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebSocketSessionState;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +24,12 @@ public class SessionMonitor {
 
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
+    public static final JsonElement PING_JSON_MSG = new JsonArray();
+
     //TODO Add RPC Subscription Manager or Something
 
     @Autowired
-    private AsyncMessageSupplier asyncMessageSupplier;
+    private WSMessageSupplier wsMessageSupplier;
 
     private ConcurrentMap<String, WebSocketSession> sessionMap;
 
@@ -54,8 +58,7 @@ public class SessionMonitor {
         for (WebSocketSession session : sessionMap.values()) {
             if (session.isOpen()) {
                 logger.debug("Pinging session {}", session.getId());
-                HiveWebSocketSessionState.get(session).getQueue().offer(AsyncMessageSupplier.PING_JSON_MSG);
-                asyncMessageSupplier.deliverMessages(session);
+                wsMessageSupplier.deliver(PING_JSON_MSG, session);
             } else {
                 logger.debug("Session {} is closed.", session.getId());
                 sessionMap.remove(session.getId());

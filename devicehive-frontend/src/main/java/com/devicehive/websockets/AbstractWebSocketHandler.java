@@ -4,6 +4,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.util.SessionMonitor;
+import com.devicehive.websockets.util.WSMessageSupplier;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -24,7 +25,9 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private SessionMonitor sessionMonitor;
     @Autowired
-    private WSMessageProducer wsMessageProducer;
+    private WSMessageSupplier wsMessageSupplier;
+    @Autowired
+    private WebSocketResponseBuilder webSocketResponseBuilder;
 
     //TODO Add RPC Subscription Manager or something
 
@@ -42,9 +45,10 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        logger.info("Session id {} ", session.getId());
+        logger.debug("Session id {} ", session.getId());
         JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-        wsMessageProducer.onData(request, session);
+        JsonObject response = webSocketResponseBuilder.buildResponse(request, session);
+        wsMessageSupplier.deliver(response, session);
     }
 
     @Override

@@ -1,25 +1,24 @@
-package com.devicehive.websockets;
+package com.devicehive.websockets.util;
 
 import com.devicehive.websockets.events.WSMessageEvent;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.lmax.disruptor.RingBuffer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 @Component
-public class WSMessageProducer {
+public class WSMessageSupplier {
 
     @Autowired
     private RingBuffer<WSMessageEvent> ringBuffer;
 
-    public void onData(JsonObject request, WebSocketSession session)
-    {
+    public void deliver(JsonElement message, WebSocketSession session) {
         long sequence = ringBuffer.next();
         try
         {
             WSMessageEvent event = ringBuffer.get(sequence);
-            event.setRequest(request);
+            event.setMessage(message);
             event.setSession(session);
         }
         finally
@@ -27,5 +26,4 @@ public class WSMessageProducer {
             ringBuffer.publish(sequence);
         }
     }
-
 }
