@@ -13,10 +13,6 @@
     <packaging>jar</packaging>
     <name>DeviceHive Shim Kafka Implementation</name>
 
-    <properties>
-        <lmax-disruptor.version>3.3.5</lmax-disruptor.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>
@@ -31,7 +27,6 @@
         <dependency>
             <groupId>com.lmax</groupId>
             <artifactId>disruptor</artifactId>
-            <version>${lmax-disruptor.version}</version>
         </dependency>
 
         <dependency>

@@ -1,6 +1,5 @@
 package com.devicehive.websockets;
 
-import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -11,7 +10,6 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
@@ -19,23 +17,16 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(AbstractWebSocketHandler.class);
 
     @Autowired
     private SessionMonitor sessionMonitor;
+    @Autowired
+    private WSMessageProducer wsMessageProducer;
 
     //TODO Add RPC Subscription Manager or something
-
-    @Autowired
-    private WebSocketExecutor executor;
-    @Autowired
-    @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
-    private ExecutorService executorService;
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -53,27 +44,7 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         logger.info("Session id {} ", session.getId());
         JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-        CompletableFuture.supplyAsync(() -> executor.execute(request, session), executorService)
-                .handleAsync((ok, ex) -> {
-                    String response;
-                    if (ok != null) {
-                        response = ok.toString();
-                    } else {
-                        logger.error("Unexpected exception occured during handling websocket message: {}", ex);
-                        response = JsonMessageBuilder
-                                    .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
-                                    .build().toString();
-                    }
-
-                    try {
-                        session.sendMessage(new TextMessage(response));
-                    } catch (IOException e) {
-                        logger.error("Exception handled during sending websocket message: {}", e);
-                        throw new RuntimeException(e);
-                    }
-                    return null;
-                }, executorService);
-        logger.debug("Request is parsed correctly");
+        wsMessageProducer.onData(request, session);
     }
 
     @Override
