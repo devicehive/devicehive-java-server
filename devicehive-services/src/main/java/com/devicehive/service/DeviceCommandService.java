@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.CommandInsertRequest;
 import com.devicehive.model.rpc.CommandInsertResponse;
@@ -38,10 +37,6 @@ public class DeviceCommandService {
 
     @Autowired
     private RpcClient rpcClient;
-
-    @Deprecated
-    @Autowired
-    private MessageBus messageBus;
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
@@ -157,10 +152,5 @@ public class DeviceCommandService {
                 .withBody(new CommandInsertRequest(cmd))
                 .build(), new ResponseConsumer(future));
         return future.thenApply(response -> null);
-    }
-
-    protected void store(DeviceCommand command) {
-//        hazelcastService.store(command, DeviceCommand.class); // FIXME: implement
-        messageBus.publish(command);
     }
 }
