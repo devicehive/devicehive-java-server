@@ -10,6 +10,8 @@ import com.devicehive.messages.handler.RestHandlerCreator;
 import com.devicehive.messages.subscriptions.*;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.rpc.CommandInsertRequest;
+import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -17,6 +19,7 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.resource.util.SimpleWaiter;
 import com.devicehive.service.DeviceCommandService;
+import com.devicehive.service.DeviceCommandServiceImpl;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ParseUtil;
 import com.devicehive.vo.DeviceVO;
@@ -32,6 +35,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +61,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     @Autowired
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
+
+    @Autowired
+    private DeviceCommandServiceImpl deviceCommandService;
 
     /**
      * {@inheritDoc}
@@ -285,7 +292,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insert(String guid, DeviceCommandWrapper deviceCommand) {
+    public void insert(String guid, DeviceCommandWrapper deviceCommand, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
@@ -293,16 +300,27 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (device == null) {
             LOGGER.warn("Device command insert failed. No device with guid = {} found", guid);
-            return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
+            Response response = ResponseFactory.response(NOT_FOUND, errorCode);
+            asyncResponse.resume(response);
+        } else {
+            DeviceCommand command = deviceCommandService.createCommand(deviceCommand, device.getGuid(), authUser.getId());
+            deviceCommandService.insert(command, response -> {
+                if (response.isFailed()) {
+                    LOGGER.warn("Device command insert failed for device with guid = {}.", guid);
+                    ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1l));
+                    Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                    asyncResponse.resume(jaxResponse);
+                } else {
+                    LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
+                            deviceCommand.getCommand());
+                    CommandInsertResponse commandInsertResponse = (CommandInsertResponse) response.getBody();
+                    DeviceCommand createdCommand = commandInsertResponse.getDeviceCommand();
+                    Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, createdCommand, Policy.COMMAND_TO_CLIENT);
+                    asyncResponse.resume(jaxResponse);
+                }
+            });
         }
-
-        final DeviceCommand command = commandService.insert(deviceCommand, device, authUser);
-
-        LOGGER.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", guid,
-                deviceCommand.getCommand());
-        return ResponseFactory.response(CREATED, command, Policy.COMMAND_TO_CLIENT);
     }
 
     /**

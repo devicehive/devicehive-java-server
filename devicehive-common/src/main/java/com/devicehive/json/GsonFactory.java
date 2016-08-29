@@ -45,6 +45,8 @@ public class GsonFactory {
                 .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.name())
                 .registerSubtype(EchoRequest.class, Action.ECHO_REQUEST.name())
                 .registerSubtype(EchoResponse.class, Action.ECHO_RESPONSE.name())
+                .registerSubtype(CommandInsertRequest.class, Action.COMMAND_INSERT_REQUEST.name())
+                .registerSubtype(CommandInsertResponse.class, Action.COMMAND_INSERT_RESPONSE.name())
                 .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.name())
                 .registerSubtype(CommandSearchResponse.class, Action.COMMAND_SEARCH_RESPONSE.name())
                 .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.name())

@@ -201,13 +201,15 @@ public interface DeviceCommandResource {
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device not found")
     })
-    Response insert(
+    void insert(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
             @ApiParam(value = "Command body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_FROM_CLIENT)
-            DeviceCommandWrapper deviceCommand);
+            DeviceCommandWrapper deviceCommand,
+            @Suspended
+            final AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/update">DeviceHive RESTful
