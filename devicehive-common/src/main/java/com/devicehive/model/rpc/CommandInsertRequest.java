@@ -15,8 +15,4 @@ public class CommandInsertRequest extends Body {
     public DeviceCommand getDeviceCommand() {
         return deviceCommand;
     }
-
-    public void setDeviceCommand(DeviceCommand deviceCommand) {
-        this.deviceCommand = deviceCommand;
-    }
 }

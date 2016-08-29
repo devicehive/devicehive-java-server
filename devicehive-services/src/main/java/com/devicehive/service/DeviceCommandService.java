@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.messages.bus.MessageBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.CommandInsertRequest;
+import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -88,7 +89,7 @@ public class DeviceCommandService {
                         .collect(Collectors.toList()));
     }
 
-    public DeviceCommand insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
+    public CompletableFuture<DeviceCommand> insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceGuid(device.getGuid());
@@ -115,8 +116,13 @@ public class DeviceCommandService {
         }
 
         hiveValidator.validate(command);
-        store(command);
-        return command;
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new CommandInsertRequest(command))
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
     public CompletableFuture<Void> update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {

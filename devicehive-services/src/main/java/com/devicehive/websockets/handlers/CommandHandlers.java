@@ -147,7 +147,7 @@ public class CommandHandlers extends WebsocketHandlers {
         }
     }
 
-    private void commandUpdateSubscribeAction(WebSocketSession session, Long commandId) throws IOException {
+    private void commandUpdateSubscribeAction(WebSocketSession session, Long commandId) {
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
@@ -229,10 +229,18 @@ public class CommandHandlers extends WebsocketHandlers {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final UserVO user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
-        final DeviceCommand command = commandService.insert(deviceCommand, device, user);
-        commandUpdateSubscribeAction(session, command.getId());
+
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(COMMAND, new InsertCommand(command.getId(), command.getTimestamp(), command.getUserId()), COMMAND_TO_CLIENT);
+        commandService.insert(deviceCommand, device, user)
+                .thenApply(cmd -> {
+                    commandUpdateSubscribeAction(session, cmd.getId());
+                    response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.warn("Unable to insert notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
         return response;
     }
 
