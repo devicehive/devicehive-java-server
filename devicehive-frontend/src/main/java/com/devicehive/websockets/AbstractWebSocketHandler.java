@@ -38,8 +38,8 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         session.setBinaryMessageSizeLimit(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
         session.setTextMessageSizeLimit(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
 
-        HiveWebSocketSessionState state = new HiveWebSocketSessionState();
-        session.getAttributes().put(HiveWebSocketSessionState.KEY, state);
+        //HiveWebSocketSessionState state = new HiveWebSocketSessionState();
+        //session.getAttributes().put(HiveWebSocketSessionState.KEY, state);
         sessionMonitor.registerSession(session);
     }
 
@@ -60,7 +60,7 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.debug("Closing session id {}, close status is {} ", session.getId(), status);
-        HiveWebSocketSessionState state = HiveWebSocketSessionState.get(session);
+        //HiveWebSocketSessionState state = HiveWebSocketSessionState.get(session);
         //TODO Add RPC Command Subscription clear
 
         //TODO Add RPC Notification Subscription clear

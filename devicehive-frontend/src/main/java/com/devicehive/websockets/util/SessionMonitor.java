@@ -1,8 +1,5 @@
 package com.devicehive.websockets.util;
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.websockets.HiveWebSocketSessionState;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import org.slf4j.Logger;
@@ -43,13 +40,13 @@ public class SessionMonitor {
     }
 
     public void updateDeviceSession(WebSocketSession session) {
-        HivePrincipal hivePrincipal = HiveWebSocketSessionState.get(session).getHivePrincipal();
-        DeviceVO authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
-        if (authorizedDevice != null) {
-            String deviceGuid = authorizedDevice.getGuid();
+//        HivePrincipal hivePrincipal = HiveWebSocketSessionState.get(session).getHivePrincipal();
+//        DeviceVO authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
+//        if (authorizedDevice != null) {
+//            String deviceGuid = authorizedDevice.getGuid();
             //TODO: Replace with RPC call
 //            deviceActivityService.update(deviceGuid);
-        }
+//        }
        //TODO Add with RPC Command Subscription
     }
 
