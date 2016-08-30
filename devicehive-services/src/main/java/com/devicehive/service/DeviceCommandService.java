@@ -47,9 +47,6 @@ public class DeviceCommandService {
     @Autowired
     private RpcClient rpcClient;
 
-    @Autowired
-    private DeviceService deviceService;
-
     @SuppressWarnings("unchecked")
     public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
@@ -110,59 +107,6 @@ public class DeviceCommandService {
         return find(commandId, deviceGuid)
                 .thenApply(opt -> opt.orElse(null)) //todo would be preferable to use .thenApply(opt -> opt.orElseThrow(() -> new NoSuchElementException("Command not found"))), but does not build on some machines
                 .thenAccept(cmd -> doUpdate(cmd, commandWrapper));
-    }
-
-    public UUID submitCommandSubscribe(final Set<String> devices,
-                                       final Set<String> names,
-                                       final Date timestamp,
-                                       final ClientHandler clientHandler) throws InterruptedException {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (names != null && names.isEmpty()) {
-            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
-        }
-
-        List<DeviceVO> actualDevices;
-        if (devices != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
-            if (actualDevices.size() != devices.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
-            }
-        }
-
-        UUID subscriptionId = UUID.randomUUID();
-        Set<CommandSubscribeRequest> subscribeRequests = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId.toString(), device, names, timestamp))
-                .collect(Collectors.toSet());
-
-        CountDownLatch responseLatch = new CountDownLatch(subscribeRequests.size());
-        Set<DeviceCommand> commands = new HashSet<>();
-        for (CommandSubscribeRequest subscribeRequest : subscribeRequests) {
-            Consumer<Response> callback = response -> {
-                String resAction = response.getBody().getAction();
-                if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
-                    CommandSubscribeResponse subscribeResponse = (CommandSubscribeResponse) response.getBody();
-                    commands.addAll(subscribeResponse.getCommands());
-                    responseLatch.countDown();
-                } else if (resAction.equals(Action.COMMAND.name())) {
-                    CommandEvent event = (CommandEvent) response.getBody();
-                    JsonObject json = ServerResponsesFactory.createCommandInsertMessage(event.getCommand(), subscriptionId);
-                    clientHandler.sendMessage(json);
-                } else {
-                    logger.warn("Unknown action received from backend {}", resAction);
-                }
-            };
-
-            Request request = Request.newBuilder()
-                    .withBody(subscribeRequest)
-                    .withPartitionKey(subscribeRequest.getDevice())
-                    .withCorrelationId(UUID.randomUUID().toString())
-                    .withSingleReply(false)
-                    .build();
-            rpcClient.call(request, callback);
-        }
-
-        responseLatch.await();
-        return subscriptionId;
     }
 
     private CompletableFuture<Void> doUpdate(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
