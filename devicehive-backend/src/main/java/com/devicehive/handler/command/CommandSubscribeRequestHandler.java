@@ -23,6 +23,7 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
     @Autowired
     private EventBus eventBus;
+
     @Autowired
     private HazelcastService hazelcastService;
 
@@ -35,11 +36,11 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
         Set<Subscription> subscriptions = new HashSet<>();
         if (CollectionUtils.isEmpty(body.getNames())) {
-            Subscription subscription = new Subscription(Action.COMMAND.name(), body.getDevice());
+            Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice());
             subscriptions.add(subscription);
         } else {
             for (String name : body.getNames()) {
-                Subscription subscription = new Subscription(Action.COMMAND.name(), body.getDevice(), name);
+                Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }
@@ -63,11 +64,8 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
     }
 
     private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp) {
-        Collection<DeviceCommand> notifications = Collections.emptyList();
-        if (timestamp != null) {
-            notifications =
-                    hazelcastService.find(null, null, Collections.singleton(device), names, timestamp, LIMIT, DeviceCommand.class);
-        }
-        return notifications;
+        return Optional.ofNullable(timestamp)
+                .map(t -> hazelcastService.find(null, null, Collections.singleton(device), names, t, LIMIT, DeviceCommand.class))
+                .orElse(Collections.emptyList());
     }
 }

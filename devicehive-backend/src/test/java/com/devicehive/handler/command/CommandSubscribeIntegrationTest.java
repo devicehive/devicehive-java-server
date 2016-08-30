@@ -142,7 +142,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         public void accept(Response response) {
             if (response.getBody().getAction().equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
                 subscribeFuture.complete((CommandSubscribeResponse) response.getBody());
-            } else if (response.getBody().getAction().equals(Action.COMMAND.name())) {
+            } else if (response.getBody().getAction().equals(Action.COMMAND_EVENT.name())) {
                 commands.add((CommandEvent) response.getBody());
             } else {
                 throw new IllegalArgumentException("Unexpected response " + response);

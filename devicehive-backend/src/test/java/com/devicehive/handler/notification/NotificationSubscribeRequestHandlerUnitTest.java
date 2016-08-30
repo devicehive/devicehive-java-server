@@ -70,7 +70,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         assertEquals(subscriber.getReplyTo(), request.getReplyTo());
 
         Subscription subscription = subscriptionCaptor.getValue();
-        assertEquals(subscription.getType(), Action.NOTIFICATION.name());
+        assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         assertEquals(subscription.getGuid(), device);
         assertNull(subscription.getName());
 
@@ -107,7 +107,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
             assertEquals(subscription.getGuid(), device);
-            assertEquals(subscription.getType(), Action.NOTIFICATION.name());
+            assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
         assertThat(notificationNames, hasSize(3));
@@ -147,7 +147,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
             assertEquals(subscription.getGuid(), device);
-            assertEquals(subscription.getType(), Action.NOTIFICATION.name());
+            assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
         assertThat(notificationNames, hasSize(3));

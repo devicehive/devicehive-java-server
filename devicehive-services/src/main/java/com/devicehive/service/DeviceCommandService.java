@@ -1,8 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.ClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
@@ -21,7 +18,6 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,9 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 @Service
 public class DeviceCommandService {
@@ -130,7 +123,7 @@ public class DeviceCommandService {
                     CommandSubscribeResponse subscribeResponse = (CommandSubscribeResponse) response.getBody();
                     commands.addAll(subscribeResponse.getCommands());
                     responseLatch.countDown();
-                } else if (resAction.equals(Action.COMMAND.name())) {
+                } else if (resAction.equals(Action.COMMAND_EVENT.name())) {
                     CommandEvent event = (CommandEvent) response.getBody();
                     JsonObject json = ServerResponsesFactory.createCommandInsertMessage(event.getCommand(), subscriptionId);
                     clientHandler.sendMessage(json);
@@ -180,7 +173,7 @@ public class DeviceCommandService {
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
-                .withBody(new CommandInsertRequest(cmd))
+                .withBody(new CommandUpdateRequest(cmd))
                 .build(), new ResponseConsumer(future));
         return future.thenApply(response -> null);
     }

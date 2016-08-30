@@ -13,7 +13,7 @@ public class NotificationEvent extends Event {
     private DeviceNotification notification;
 
     public NotificationEvent(DeviceNotification notification) {
-        super(Action.NOTIFICATION.name());
+        super(Action.NOTIFICATION_EVENT.name());
         this.notification = notification;
     }
 
@@ -28,9 +28,9 @@ public class NotificationEvent extends Event {
     @Override
     public Collection<Subscription> getApplicableSubscriptions() {
         Subscription deviceOnly =
-                new Subscription(Action.NOTIFICATION.name(), notification.getDeviceGuid());
+                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceGuid());
         Subscription deviceWithName =
-                new Subscription(Action.NOTIFICATION.name(), notification.getDeviceGuid(), notification.getNotification());
+                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceGuid(), notification.getNotification());
         return Arrays.asList(deviceOnly, deviceWithName);
     }
 

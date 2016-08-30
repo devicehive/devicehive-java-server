@@ -122,7 +122,7 @@ public class DeviceNotificationService {
                     NotificationSubscribeResponse subscribeResponse = (NotificationSubscribeResponse) response.getBody();
                     notifications.addAll(subscribeResponse.getNotifications());
                     responseLatch.countDown();
-                } else if (resAction.equals(Action.NOTIFICATION.name())) {
+                } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
                     NotificationEvent event = (NotificationEvent) response.getBody();
                     JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(event.getNotification(), subscriptionId);
                     clientHandler.sendMessage(json);

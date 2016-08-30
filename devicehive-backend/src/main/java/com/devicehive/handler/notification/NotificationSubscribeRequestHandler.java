@@ -43,11 +43,11 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
 
         Set<Subscription> subscriptions = new HashSet<>();
         if (CollectionUtils.isEmpty(body.getNames())) {
-            Subscription subscription = new Subscription(Action.NOTIFICATION.name(), body.getDevice());
+            Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice());
             subscriptions.add(subscription);
         } else {
             for (String name : body.getNames()) {
-                Subscription subscription = new Subscription(Action.NOTIFICATION.name(), body.getDevice(), name);
+                Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }

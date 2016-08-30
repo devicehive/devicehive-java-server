@@ -8,7 +8,7 @@ public class NotificationInsertRequest extends Body {
     private DeviceNotification deviceNotification;
 
     public NotificationInsertRequest(DeviceNotification deviceNotification) {
-        super(Action.NOTIFICATION_INSERT.name());
+        super(Action.NOTIFICATION_INSERT_REQUEST.name());
         this.deviceNotification = deviceNotification;
     }
 

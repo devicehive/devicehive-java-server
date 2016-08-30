@@ -142,7 +142,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         public void accept(Response response) {
             if (response.getBody().getAction().equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
                 subscribeFuture.complete((NotificationSubscribeResponse) response.getBody());
-            } else if (response.getBody().getAction().equals(Action.NOTIFICATION.name())) {
+            } else if (response.getBody().getAction().equals(Action.NOTIFICATION_EVENT.name())) {
                 notifications.add((NotificationEvent) response.getBody());
             } else {
                 throw new IllegalArgumentException("Unexpected response " + response);

@@ -41,7 +41,7 @@ public class EventBusTest {
         String subscriberTopic = "reply_topic";
 
         Subscriber subscriber = new Subscriber(UUID.randomUUID().toString(), subscriberTopic, "correlation_id");
-        Subscription subscription = new Subscription(Action.NOTIFICATION.name(), deviceGuid);
+        Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid);
         eventBus.subscribe(subscriber, subscription);
 
         DeviceNotification notification = new DeviceNotification();
@@ -74,19 +74,19 @@ public class EventBusTest {
         String deviceGuid = UUID.randomUUID().toString();
 
         Subscriber subscriber1 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription1 = new Subscription(Action.NOTIFICATION.name(), deviceGuid);
+        Subscription subscription1 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid);
         eventBus.subscribe(subscriber1, subscription1);
 
         Subscriber subscriber2 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription2 = new Subscription(Action.NOTIFICATION.name(), deviceGuid, "temperature");
+        Subscription subscription2 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid, "temperature");
         eventBus.subscribe(subscriber2, subscription2);
 
         Subscriber subscriber3 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription3 = new Subscription(Action.NOTIFICATION.name(), deviceGuid, "vibration");
+        Subscription subscription3 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid, "vibration");
         eventBus.subscribe(subscriber3, subscription3);
 
         Subscriber subscriber4 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription4 = new Subscription(Action.COMMAND.name(), deviceGuid, "go_offline");
+        Subscription subscription4 = new Subscription(Action.COMMAND_EVENT.name(), deviceGuid, "go_offline");
         eventBus.subscribe(subscriber4, subscription4);
 
         DeviceNotification notification = new DeviceNotification();
@@ -129,16 +129,16 @@ public class EventBusTest {
 
         //subscriber1 subscribes to deviceGuid1 temperature notifications
         Subscriber subscriber1 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription1 = new Subscription(Action.NOTIFICATION.name(), deviceGuid1, "temperature");
+        Subscription subscription1 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid1, "temperature");
         eventBus.subscribe(subscriber1, subscription1);
 
         //subscriber1 subscribes to deviceGuid2 temperature notifications
-        Subscription subscription2 = new Subscription(Action.NOTIFICATION.name(), deviceGuid2, "temperature");
+        Subscription subscription2 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid2, "temperature");
         eventBus.subscribe(subscriber1, subscription2);
 
         //subscriber2 subscribes to deviceGuid2 temperature notifications
         Subscriber subscriber2 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
-        Subscription subscription3 = new Subscription(Action.NOTIFICATION.name(), deviceGuid2, "temperature");
+        Subscription subscription3 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceGuid2, "temperature");
         eventBus.subscribe(subscriber2, subscription3);
 
         //submit notification for deviceGuid1
