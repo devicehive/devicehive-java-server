@@ -1,12 +1,18 @@
-package com.devicehive.base;
+package com.devicehive;
 
 import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.IntegrationTest;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -18,7 +24,7 @@ import static com.devicehive.shim.config.server.KafkaRpcServerConfig.REQUEST_TOP
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@IntegrationTest
+@WebIntegrationTest
 @SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringTest {
@@ -26,8 +32,19 @@ public abstract class AbstractSpringTest {
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
 
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    protected RequestHandler requestHandler;
+
+    protected ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
     @Before
     public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+
         // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
         TimeUnit.SECONDS.sleep(10);
     }

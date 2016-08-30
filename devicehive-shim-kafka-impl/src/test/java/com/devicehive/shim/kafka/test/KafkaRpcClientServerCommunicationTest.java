@@ -1,7 +1,7 @@
 package com.devicehive.shim.kafka.test;
 
 import com.devicehive.json.adapters.RuntimeTypeAdapterFactory;
-import com.devicehive.rule.KafkaEmbeddedRule;
+import com.devicehive.test.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;

@@ -14,6 +14,15 @@ public abstract class Body {
         return action;
     }
 
+    /**
+     * Method aimed to simplify casting constructions to concrete body implementations
+     * @param clazz class to cast to
+     * @return original body object casted to concrete implementation class
+     */
+    public <T extends Body> T cast(Class<T> clazz) {
+        return clazz.cast(this);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

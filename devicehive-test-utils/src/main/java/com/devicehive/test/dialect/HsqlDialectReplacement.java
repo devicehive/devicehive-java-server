@@ -1,4 +1,4 @@
-package com.devicehive.dialect;
+package com.devicehive.test.dialect;
 
 import org.hibernate.dialect.HSQLDialect;
 

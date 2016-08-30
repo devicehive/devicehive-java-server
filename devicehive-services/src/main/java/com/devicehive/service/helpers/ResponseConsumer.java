@@ -18,7 +18,9 @@ public class ResponseConsumer implements Consumer<Response> {
     @Override
     public void accept(Response response) {
         if (response.isFailed()) {
-            String message = ((ErrorResponse) response.getBody()).getMessage();
+            String message = response.getBody() != null
+                    ? response.getBody().cast(ErrorResponse.class).getMessage()
+                    : "Unexpected error occurred.";
             future.completeExceptionally(new BackendException(message, response.getErrorCode()));
         } else {
             future.complete(response);
