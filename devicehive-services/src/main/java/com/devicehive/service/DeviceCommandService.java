@@ -97,32 +97,7 @@ public class DeviceCommandService {
     }
 
     public CompletableFuture<DeviceCommand> insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
-        DeviceCommand command = new DeviceCommand();
-        command.setId(Math.abs(new Random().nextInt()));
-        command.setDeviceGuid(device.getGuid());
-        command.setIsUpdated(false);
-        command.setTimestamp(timestampService.getTimestamp());
-
-        if (user != null) {
-            command.setUserId(user.getId());
-        }
-        if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().orElseGet(null));
-        }
-        if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().orElse(null));
-        }
-        if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().orElse(null));
-        }
-        if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().orElse(null));
-        }
-        if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().orElse(null));
-        }
-
-        hiveValidator.validate(command);
+        DeviceCommand command = convertWrapperToCommand(commandWrapper, device, user);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
@@ -219,5 +194,35 @@ public class DeviceCommandService {
                 .withBody(new CommandInsertRequest(cmd))
                 .build(), new ResponseConsumer(future));
         return future.thenApply(response -> null);
+    }
+
+    private DeviceCommand convertWrapperToCommand(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
+        DeviceCommand command = new DeviceCommand();
+        command.setId(Math.abs(new Random().nextInt()));
+        command.setDeviceGuid(device.getGuid());
+        command.setIsUpdated(false);
+        command.setTimestamp(timestampService.getTimestamp());
+
+        if (user != null) {
+            command.setUserId(user.getId());
+        }
+        if (commandWrapper.getCommand() != null) {
+            command.setCommand(commandWrapper.getCommand().orElseGet(null));
+        }
+        if (commandWrapper.getParameters() != null) {
+            command.setParameters(commandWrapper.getParameters().orElse(null));
+        }
+        if (commandWrapper.getLifetime() != null) {
+            command.setLifetime(commandWrapper.getLifetime().orElse(null));
+        }
+        if (commandWrapper.getStatus() != null) {
+            command.setStatus(commandWrapper.getStatus().orElse(null));
+        }
+        if (commandWrapper.getResult() != null) {
+            command.setResult(commandWrapper.getResult().orElse(null));
+        }
+
+        hiveValidator.validate(command);
+        return command;
     }
 }
