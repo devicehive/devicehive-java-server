@@ -1,4 +1,4 @@
-package com.devicehive.rule;
+package com.devicehive.test.rule;
 
 import kafka.admin.AdminUtils;
 import kafka.server.KafkaConfig;
