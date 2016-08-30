@@ -64,6 +64,20 @@ public class CommandHandlers extends WebsocketHandlers {
                 devices, deviceId, timestamp, names, session);
 
         devices = prepareActualList(devices, deviceId);
+
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (names != null && names.isEmpty()) {
+            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
+        }
+
+        List<DeviceVO> actualDevices;
+        if (devices != null) {
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
+            if (actualDevices.size() != devices.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
+            }
+        }
+
         ClientHandler clientHandler = new WebSocketClientHandler(session, asyncMessageDeliverer);
         UUID subId = commandService.submitCommandSubscribe(devices, names, timestamp, clientHandler);
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",

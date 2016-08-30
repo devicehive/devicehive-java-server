@@ -116,19 +116,6 @@ public class DeviceCommandService {
                                        final Set<String> names,
                                        final Date timestamp,
                                        final ClientHandler clientHandler) throws InterruptedException {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (names != null && names.isEmpty()) {
-            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
-        }
-
-        List<DeviceVO> actualDevices;
-        if (devices != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
-            if (actualDevices.size() != devices.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
-            }
-        }
-
         UUID subscriptionId = UUID.randomUUID();
         Set<CommandSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new CommandSubscribeRequest(subscriptionId.toString(), device, names, timestamp))
@@ -160,8 +147,10 @@ public class DeviceCommandService {
                     .build();
             rpcClient.call(request, callback);
         }
-
         responseLatch.await();
+        if (!commands.isEmpty()) {
+            //todo send existing commands to device after subscription response
+        }
         return subscriptionId;
     }
 
