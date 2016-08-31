@@ -1,5 +1,7 @@
 package com.devicehive.application;
 
+import com.devicehive.json.GsonFactory;
+import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -54,5 +56,10 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Bean(name = MESSAGE_EXECUTOR)
     public ExecutorService messageExecutorService(@Value("${app.executor.size:1}") Integer executorSize) {
         return Executors.newFixedThreadPool(executorSize);
+    }
+
+    @Bean
+    public Gson gson() {
+        return GsonFactory.createGson();
     }
 }

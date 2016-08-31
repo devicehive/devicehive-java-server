@@ -1,26 +1,79 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.GsonFactory;
+import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.DeviceService;
+import com.devicehive.vo.DeviceClassEquipmentVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+
 @Component
 public class DeviceHandlers {
-
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private Gson gson;
+
 
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY')")
     public WebSocketResponse processDeviceGet(JsonObject request) {
-        return new WebSocketResponse();
+        String deviceId = request.get(Constants.DEVICE_ID).getAsString();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        DeviceVO toResponse;
+        if(deviceId != null){
+            toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+        }else{
+            toResponse = principal.getDevice();
+        }
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+        return response;
     }
 
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceSave(JsonObject request,
                                                WebSocketSession session) {
+        String deviceId = request.get(Constants.DEVICE_ID).getAsString();
+        DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
+
+        logger.debug("device/save process started for session {}", session.getId());
+        if (deviceId == null) {
+            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
+        }
+        device.setGuid(Optional.ofNullable(deviceId));
+        Set<DeviceClassEquipmentVO> equipmentSet = gson.fromJson(
+                request.get(Constants.EQUIPMENT),
+                new TypeToken<HashSet<DeviceClassEquipmentVO>>() {
+                }.getType());
+        if (equipmentSet != null) {
+            equipmentSet.remove(null);
+        }
+        deviceService.deviceSaveAndNotify(device, equipmentSet, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }
 }
