@@ -1,5 +1,6 @@
-package com.devicehive.configuration;
+package com.devicehive.service.configuration;
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.vo.ConfigurationVO;
 import org.slf4j.Logger;

@@ -1,7 +1,7 @@
 package com.devicehive.resource.impl;
 
 
-import com.devicehive.configuration.ConfigurationService;
+import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.resource.ApiInfoResource;

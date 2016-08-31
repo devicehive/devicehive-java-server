@@ -1,7 +1,7 @@
 package com.devicehive.resource.impl;
 
 
-import com.devicehive.configuration.ConfigurationService;
+import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.resource.ConfigurationResource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
