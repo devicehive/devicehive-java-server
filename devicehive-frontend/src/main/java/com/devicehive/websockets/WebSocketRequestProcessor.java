@@ -28,7 +28,7 @@ public class WebSocketRequestProcessor {
     @Autowired
     private DeviceHandlers deviceHandlers;
 
-    public WebSocketResponse process(JsonObject request, WebSocketSession session) {
+    public WebSocketResponse process(JsonObject request, WebSocketSession session) throws InterruptedException {
         WebSocketResponse response;
         WebsocketAction action = getAction(request);
         switch (action) {
