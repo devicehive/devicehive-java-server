@@ -19,9 +19,9 @@ public class CommandUpdateEvent extends Event {
 
     @Override
     public Collection<Subscription> getApplicableSubscriptions() {
-        Subscription device = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), command.getDeviceGuid());
+        Subscription device = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), command.getId().toString());
         Subscription deviceWithName = new Subscription(
-                Action.COMMAND_UPDATE_EVENT.name(), command.getDeviceGuid(), command.getCommand());
+                Action.COMMAND_UPDATE_EVENT.name(), command.getId().toString(), command.getCommand());
         return Arrays.asList(device, deviceWithName);
     }
 
