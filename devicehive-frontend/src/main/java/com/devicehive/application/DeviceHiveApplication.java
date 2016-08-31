@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
@@ -20,7 +22,8 @@ import java.util.concurrent.Executors;
 
 @Component
 @ComponentScan(value = "com.devicehive", excludeFilters = {@ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.springframework.transaction.*")})
-@EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class, HibernateJpaAutoConfiguration.class})
+@EnableScheduling
+@EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
 
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";

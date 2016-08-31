@@ -17,8 +17,7 @@ public class JerseyConfig extends ResourceConfig {
     public static final String REST_PATH = "/rest";
 
     public JerseyConfig() {
-//        packages("com.devicehive.resource");
-//        packages("com.devicehive.resource.converters", "com.devicehive.resource.exceptions", "com.devicehive.resource.filter");
+        packages("com.devicehive.resource.converters", "com.devicehive.resource.exceptions", "com.devicehive.resource.filter");
 
         /**
          * Concrete Resource classes should be registered manually (not through {@link ResourceConfig#packages(String...)} resource scan)

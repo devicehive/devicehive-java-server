@@ -42,6 +42,7 @@ public interface ApiInfoResource {
                     message = "Returns configured identity providers",
                     response = ApiConfigVO.class)
     })
+    @Deprecated
     Response getOauth2Config();
 
     @GET

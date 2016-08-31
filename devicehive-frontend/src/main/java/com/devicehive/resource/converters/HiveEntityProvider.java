@@ -2,6 +2,8 @@ package com.devicehive.resource.converters;
 
 import com.devicehive.model.HiveEntity;
 
-//@Provider
+import javax.ws.rs.ext.Provider;
+
+@Provider
 public class HiveEntityProvider extends JsonPolicyProvider<HiveEntity> {
 }

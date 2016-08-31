@@ -21,10 +21,8 @@ import java.nio.charset.Charset;
 
 import static com.devicehive.configuration.Constants.UTF8;
 
-
 @Provider
 public class JsonRawProvider implements MessageBodyWriter<JsonObject>, MessageBodyReader<JsonObject> {
-
 
     @Override
     public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
