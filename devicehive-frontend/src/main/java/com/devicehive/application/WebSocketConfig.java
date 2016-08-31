@@ -26,9 +26,6 @@ import java.util.concurrent.Executors;
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Autowired
-    private EventHandler eventHandler;
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry
@@ -57,16 +54,4 @@ public class WebSocketConfig implements WebSocketConfigurer {
         return container;
     }
 
-    @Bean
-    public RingBuffer<WSMessageEvent> ringBuffer(@Value("${disruptor.consumer.threads}") int consumerThreads,
-                                                 @Value("${disruptor.producer.threads}") int producerThreads) {
-
-        ProducerType producerType = producerThreads > 1 ? ProducerType.MULTI : ProducerType.SINGLE;
-        Disruptor<WSMessageEvent> disruptor = new Disruptor<>(WSMessageEvent::new, 1024,
-                Executors.newFixedThreadPool(consumerThreads), producerType, new BlockingWaitStrategy());
-        disruptor.handleEventsWith(eventHandler);
-        disruptor.start();
-
-        return disruptor.getRingBuffer();
-    }
 }

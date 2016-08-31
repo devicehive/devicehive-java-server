@@ -12,7 +12,6 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
-import com.devicehive.websockets.util.WSMessageSupplier;
 import com.devicehive.websockets.websockets.InsertNotification;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -45,9 +44,6 @@ public class NotificationHandlers {
     private DeviceService deviceService;
 
     @Autowired
-    private WSMessageSupplier messageSupplier;
-
-    @Autowired
     private DeviceNotificationService notificationService;
 
     @Autowired
@@ -66,7 +62,7 @@ public class NotificationHandlers {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
 
-        ClientHandler clientHandler = new WebSocketClientHandler(session, messageSupplier);
+        ClientHandler clientHandler = new WebSocketClientHandler(session);
 
         devices = prepareActualList(devices, deviceId);
         Pair<String, Set<DeviceNotification>> result
