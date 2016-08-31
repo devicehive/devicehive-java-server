@@ -43,7 +43,6 @@ public class NotificationInsertHandlerTest extends AbstractSpringTest {
 
         final CompletableFuture<Response> future = new CompletableFuture<>();
         client.call(Request.newBuilder()
-                .withCorrelationId(corelationId)
                 .withBody(new NotificationInsertRequest(originalNotification))
                 .withPartitionKey(originalNotification.getDeviceGuid())
                 .build(), future::complete);

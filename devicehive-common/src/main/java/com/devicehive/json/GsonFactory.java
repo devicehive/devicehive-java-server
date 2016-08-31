@@ -43,9 +43,11 @@ public class GsonFactory {
 
     private static GsonBuilder createGsonBuilder() {
         RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "action")
-                .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.name())
                 .registerSubtype(EchoRequest.class, Action.ECHO_REQUEST.name())
                 .registerSubtype(EchoResponse.class, Action.ECHO_RESPONSE.name())
+
+                .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.name())
+
                 .registerSubtype(CommandInsertRequest.class, Action.COMMAND_INSERT_REQUEST.name())
                 .registerSubtype(CommandInsertResponse.class, Action.COMMAND_INSERT_RESPONSE.name())
                 .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.name())
@@ -54,11 +56,15 @@ public class GsonFactory {
                 .registerSubtype(CommandSubscribeResponse.class, Action.COMMAND_SUBSCRIBE_RESPONSE.name())
                 .registerSubtype(CommandUnsubscribeRequest.class, Action.COMMAND_UNSUBSCRIBE_REQUEST.name())
                 .registerSubtype(CommandUnsubscribeResponse.class, Action.COMMAND_UNSUBSCRIBE_RESPONSE.name())
+                .registerSubtype(CommandUpdateSubscribeRequest.class, Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.name())
+                .registerSubtype(CommandUpdateSubscribeResponse.class, Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())
+
                 .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.name())
                 .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.name())
                 .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT_REQUEST.name())
                 .registerSubtype(NotificationSubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.name())
                 .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())
+
                 .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.name())
                 .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.name())
                 .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name());

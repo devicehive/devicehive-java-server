@@ -1,4 +1,4 @@
-package com.devicehive.websockets.websockets;
+package com.devicehive.model.websockets;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import org.apache.commons.lang3.ObjectUtils;
@@ -6,8 +6,10 @@ import org.apache.commons.lang3.ObjectUtils;
 import java.util.Date;
 
 public class InsertNotification {
+
     @JsonPolicyDef({JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT, JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE})
     private Long id;
+
     @JsonPolicyDef({JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT, JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE})
     private Date timestamp;
 
@@ -29,6 +31,6 @@ public class InsertNotification {
     }
 
     public void setTimestamp(Date timestamp) {
-        this.timestamp = (Date)ObjectUtils.cloneIfPossible(timestamp);
+        this.timestamp = ObjectUtils.cloneIfPossible(timestamp);
     }
 }

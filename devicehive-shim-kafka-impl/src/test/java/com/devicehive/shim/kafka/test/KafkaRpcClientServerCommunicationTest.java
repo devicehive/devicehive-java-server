@@ -104,7 +104,6 @@ public class KafkaRpcClientServerCommunicationTest {
 
         Request request = Request.newBuilder()
                 .withBody(new TestRequestBody("RequestResponseTest"))
-                .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
                 .build();
 
@@ -125,7 +124,6 @@ public class KafkaRpcClientServerCommunicationTest {
 
         Request request = Request.newBuilder()
                 .withBody(new TestRequestBody("RequestResponseTest"))
-                .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
                 .build();
 
@@ -150,7 +148,6 @@ public class KafkaRpcClientServerCommunicationTest {
 
         Request request = Request.newBuilder()
                 .withBody(new TestRequestBody("RequestResponseTest"))
-                .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
                 .build();
 
@@ -176,7 +173,6 @@ public class KafkaRpcClientServerCommunicationTest {
 
         Request request = Request.newBuilder()
                 .withBody(new TestRequestBody("RequestResponseTest"))
-                .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(false)
                 .build();
 

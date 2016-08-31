@@ -9,7 +9,6 @@ import com.devicehive.shim.api.client.RpcClient;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +24,6 @@ public class RpcServerConfigTest extends AbstractSpringTest {
         final String testBody = "RequestResponseTest" + System.currentTimeMillis();
         Request request = Request.newBuilder()
                 .withBody(new EchoRequest(testBody))
-                .withCorrelationId(UUID.randomUUID().toString())
                 .withSingleReply(true)
                 .build();
 

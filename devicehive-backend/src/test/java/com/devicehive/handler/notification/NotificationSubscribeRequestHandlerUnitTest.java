@@ -54,7 +54,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
                 new NotificationSubscribeRequest(subscriptionId, device, null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();
@@ -86,7 +85,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
                 new NotificationSubscribeRequest(subscriptionId, device, names, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();
@@ -126,7 +124,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
                 new NotificationSubscribeRequest(subscriptionId, device, names, timestamp);
         Request request = Request.newBuilder()
                 .withBody(sr)
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();
@@ -163,7 +160,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         ex.expectMessage("Request body is null");
 
         Request request = Request.newBuilder()
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();
@@ -179,7 +175,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
                 new NotificationSubscribeRequest(null, randomUUID().toString(), null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();
@@ -195,7 +190,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
                 new NotificationSubscribeRequest(randomUUID().toString(), null, null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
-                .withCorrelationId(randomUUID().toString())
                 .withPartitionKey(randomUUID().toString())
                 .withSingleReply(false)
                 .build();

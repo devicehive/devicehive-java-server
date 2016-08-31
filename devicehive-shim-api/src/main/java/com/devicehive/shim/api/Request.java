@@ -93,11 +93,6 @@ public class Request {
             return this;
         }
 
-        public Builder<T> withCorrelationId(String correlationId) {
-            this.correlationId = correlationId;
-            return this;
-        }
-
         public Builder<T> withSingleReply(boolean singleReply) {
             this.singleReply = singleReply;
             return this;

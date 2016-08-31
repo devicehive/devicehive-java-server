@@ -3,7 +3,7 @@ package com.devicehive.handler.command;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
-import com.devicehive.model.rpc.CommandInsertRequest;
+import com.devicehive.model.rpc.CommandUpdateRequest;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -20,7 +20,7 @@ public class CommandUpdateRequestHandler implements RequestHandler {
 
     @Override
     public Response handle(Request request) {
-        final DeviceCommand command = request.getBody().cast(CommandInsertRequest.class).getDeviceCommand();
+        final DeviceCommand command = request.getBody().cast(CommandUpdateRequest.class).getDeviceCommand();
         hazelcastService.store(command);
 
         eventBus.publish(new CommandUpdateEvent(command));
