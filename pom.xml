@@ -78,7 +78,6 @@
         <module>devicehive-shim-kafka-impl</module>
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
-        <module>devicehive-services</module>
         <module>devicehive-test-utils</module>
     </modules>
 

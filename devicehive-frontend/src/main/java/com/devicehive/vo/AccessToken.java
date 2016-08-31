@@ -1,10 +1,11 @@
 package com.devicehive.vo;
 
 
-import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
-public class AccessToken implements HiveEntity {
+import java.io.Serializable;
+
+public class AccessToken implements Serializable {
 
     private static final long serialVersionUID = 663053837130392591L;
 

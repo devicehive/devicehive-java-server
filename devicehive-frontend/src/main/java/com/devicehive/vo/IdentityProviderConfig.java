@@ -1,8 +1,8 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.HiveEntity;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_CONFIG;
@@ -10,7 +10,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_CO
 /**
  * Created by tmatvienko on 12/2/14.
  */
-public class IdentityProviderConfig implements HiveEntity {
+public class IdentityProviderConfig implements Serializable {
 
     private static final long serialVersionUID = -2274848199115698341L;
 

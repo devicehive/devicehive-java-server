@@ -1,12 +1,13 @@
 package com.devicehive.vo;
 
-import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 
 /**
  * Created by tmatvienko on 1/13/15.
  */
-public class AccessKeyRequestVO implements HiveEntity {
+public class AccessKeyRequestVO implements Serializable {
     private static final long serialVersionUID = -3876398635939615946L;
 
     private String providerName;

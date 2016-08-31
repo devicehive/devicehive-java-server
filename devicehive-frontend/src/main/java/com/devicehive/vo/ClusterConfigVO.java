@@ -1,15 +1,16 @@
 package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+
+import java.io.Serializable;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_CLUSTER_CONFIG;
 
 /**
  * Created by tatyana on 2/9/15.
  */
-public class ClusterConfigVO implements HiveEntity {
+public class ClusterConfigVO implements Serializable {
     private static final long serialVersionUID = -4731922300811943546L;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)

@@ -1,7 +1,7 @@
 package com.devicehive.resource;
 
-import com.devicehive.model.ApiInfoVO;
 import com.devicehive.vo.ApiConfigVO;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

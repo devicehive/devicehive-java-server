@@ -1,7 +1,7 @@
 package com.devicehive.websockets.handlers;
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.model.ApiInfoVO;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
