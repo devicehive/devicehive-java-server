@@ -47,21 +47,6 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_return_OAUTH_config() throws Exception {
-        ApiConfigVO apiConfig = performRequest("info/config/auth", "GET", emptyMap(), emptyMap(), null, OK, ApiConfigVO.class);
-        assertThat(apiConfig, notNullValue());
-        assertThat(apiConfig.getProviderConfigs(), notNullValue());
-        assertThat(apiConfig.getProviderConfigs().size(), is(4));
-        assertThat(apiConfig.getProviderConfigs(),
-                hasItems(
-                        new IdentityProviderConfig("google", "google_id"),
-                        new IdentityProviderConfig("facebook", "facebook_id"),
-                        new IdentityProviderConfig("github", "github_id"),
-                        new IdentityProviderConfig("password", "")));
-        assertThat(apiConfig.getSessionTimeout(), is(1200L));
-    }
-
-    @Test
     public void should_return_cluster_config() throws Exception {
         ClusterConfigVO clusterConfig = performRequest("info/config/cluster", "GET", emptyMap(), emptyMap(), null, OK, ClusterConfigVO.class);
         assertThat(clusterConfig, notNullValue());

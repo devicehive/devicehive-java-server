@@ -20,6 +20,22 @@
             <version>2.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-common-dao</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-shim-api</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-test-utils</artifactId>
+            <version>2.1.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -91,5 +107,51 @@
             </plugin>
         </plugins>
     </build>
-
+    <profiles>
+        <profile>
+            <id>booted-rdbms</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <finalName>devicehive-rdbms-${project.version}-boot</finalName>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-rdbms-dao</artifactId>
+                    <version>2.1.0-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>booted-riak</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <finalName>devicehive-riak-${project.version}-boot</finalName>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-riak-dao</artifactId>
+                    <version>2.1.0-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>shim-kafka</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-shim-kafka-impl</artifactId>
+                    <version>2.1.0-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

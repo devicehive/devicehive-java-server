@@ -5,12 +5,9 @@ import com.devicehive.json.GsonFactory;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
 import com.google.gson.Gson;
-import com.hazelcast.core.HazelcastInstance;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -45,9 +42,6 @@ public abstract class AbstractResourceTest {
 
     public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
 
-    @Autowired
-    private HazelcastInstance hzInstance;
-
     @Value("${server.port}")
     protected Integer port;
 
@@ -65,13 +59,6 @@ public abstract class AbstractResourceTest {
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
         target = client.target(httpBaseUri).path("rest");
-    }
-
-    @After
-    public void clearHZ() {
-        // FIXME
-//        hzInstance.getMap(HazelcastService.COMMANDS_MAP).clear();
-//        hzInstance.getMap(HazelcastService.NOTIFICATIONS_MAP).clear();
     }
 
     protected WebTarget target() {

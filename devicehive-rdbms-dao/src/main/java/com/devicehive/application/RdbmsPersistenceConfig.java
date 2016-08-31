@@ -34,7 +34,7 @@ public class RdbmsPersistenceConfig {
 
     @Bean
     @Autowired
-    @DependsOn(value = {"hazelcast", "simpleApplicationContextHolder"})
+    @DependsOn(value = {"simpleApplicationContextHolder"})
     public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
         final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setDataSource(dataSource);
