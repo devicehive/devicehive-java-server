@@ -24,7 +24,6 @@ public class JerseyConfig extends ResourceConfig {
          * This is described in issue <a href="https://java.net/jira/browse/JERSEY-2591">JERSEY-2591</a>
          */
         registerClasses(AccessKeyResourceImpl.class,
-                ApiInfoResourceImpl.class,
                 AuthAccessKeyResourceImpl.class,
                 ConfigurationResourceImpl.class,
                 DeviceClassResourceImpl.class,
