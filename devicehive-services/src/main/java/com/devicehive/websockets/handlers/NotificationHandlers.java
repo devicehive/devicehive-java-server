@@ -25,6 +25,7 @@ import com.devicehive.websockets.handlers.annotations.WsParam;
 import com.devicehive.websockets.util.AsyncMessageSupplier;
 import com.devicehive.websockets.util.SubscriptionSessionMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,13 +77,14 @@ public class NotificationHandlers extends WebsocketHandlers {
         ClientHandler clientHandler = new WebSocketClientHandler(session, asyncMessageDeliverer);
 
         devices = prepareActualList(devices, deviceId);
-        String subscriptionId = notificationService.submitDeviceSubscribeNotification(devices, names, timestamp, clientHandler);
+        Pair<String, Set<DeviceNotification>> result
+                = notificationService.submitDeviceSubscribeNotification(devices, names, timestamp, clientHandler);
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, subscriptionId, null);
+        response.addValue(SUBSCRIPTION_ID, result.getKey(), null);
         return response;
     }
 

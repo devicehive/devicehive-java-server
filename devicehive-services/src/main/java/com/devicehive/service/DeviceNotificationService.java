@@ -15,6 +15,7 @@ import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,10 +106,10 @@ public class DeviceNotificationService {
                 .build());
     }
 
-    public String submitDeviceSubscribeNotification(final Set<String> devices,
-                                                    final Set<String> names,
-                                                    final Date timestamp,
-                                                    final ClientHandler clientHandler) throws InterruptedException {
+    public Pair<String, Set<DeviceNotification>> submitDeviceSubscribeNotification(final Set<String> devices,
+                                                  final Set<String> names,
+                                                  final Date timestamp,
+                                                  final ClientHandler clientHandler) throws InterruptedException {
         String subscriptionId = UUID.randomUUID().toString();
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
@@ -139,10 +140,7 @@ public class DeviceNotificationService {
             rpcClient.call(request, callback);
         }
         responseLatch.await();
-        if (!notifications.isEmpty()) {
-            //todo send existent notifications to device AFTER subscription response
-        }
-        return subscriptionId;
+        return Pair.of(subscriptionId, notifications);
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
