@@ -159,7 +159,7 @@ public interface DeviceNotificationResource {
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout")
             long timeout,
-            @Suspended AsyncResponse asyncResponse);
+            @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
     @Path("/notification/poll")
@@ -192,7 +192,7 @@ public interface DeviceNotificationResource {
             @ApiParam(name = "timestamp", value = "Timestamp to start from")
             @QueryParam("timestamp")
             String timestamp,
-            @Suspended AsyncResponse asyncResponse);
+            @Suspended AsyncResponse asyncResponse) throws Exception;
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive

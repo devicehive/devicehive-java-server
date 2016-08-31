@@ -7,9 +7,14 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.ClientHandler;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.events.NotificationEvent;
+import com.devicehive.model.rpc.Action;
+import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.shim.api.Response;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.devicehive.websockets.websockets.InsertNotification;
@@ -24,15 +29,20 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 
 import static com.devicehive.configuration.Constants.NOTIFICATION;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
+import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
@@ -62,17 +72,38 @@ public class NotificationHandlers {
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
 
-        ClientHandler clientHandler = new WebSocketClientHandler(session);
-
         devices = prepareActualList(devices, deviceId);
-        Pair<String, Set<DeviceNotification>> result
-                = notificationService.submitDeviceSubscribeNotification(devices, names, timestamp, clientHandler);
+
+        String subscriptionId = UUID.randomUUID().toString();
+
+        CountDownLatch subscriptionLatch = new CountDownLatch(devices.size());
+        Set<DeviceNotification> notifications = new HashSet<>();
+        Consumer<Response> callback = response -> {
+            String resAction = response.getBody().getAction();
+            if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                NotificationSubscribeResponse subscribeResponse = response.getBody().cast(NotificationSubscribeResponse.class);
+                notifications.addAll(subscribeResponse.getNotifications());
+                subscriptionLatch.countDown();
+            } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                NotificationEvent event = response.getBody().cast(NotificationEvent.class);
+                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(event.getNotification(), subscriptionId);
+                sendMessage(json, session);
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
+
+        notificationService.submitDeviceSubscribeNotification(subscriptionId, devices, names, timestamp, callback);
+
+        subscriptionLatch.await();
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
 
+        //TODO send notifications
+
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, result.getKey(), null);
+        response.addValue(SUBSCRIPTION_ID, subscriptionId, null);
         return response;
     }
 

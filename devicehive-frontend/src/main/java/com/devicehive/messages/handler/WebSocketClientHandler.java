@@ -8,18 +8,10 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 
-public class WebSocketClientHandler implements ClientHandler {
+public class WebSocketClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClientHandler.class);
 
-    private WebSocketSession session;
-
-
-    public WebSocketClientHandler(WebSocketSession session) {
-        this.session = session;
-    }
-
-    @Override
-    public void sendMessage(JsonObject json) {
+    public static void sendMessage(JsonObject json, WebSocketSession session) {
         if (!session.isOpen()) {
             return;
         }

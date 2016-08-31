@@ -1,11 +1,12 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDao;
-import com.devicehive.messages.handler.ClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.*;
+import com.devicehive.model.rpc.NotificationInsertRequest;
+import com.devicehive.model.rpc.NotificationSearchRequest;
+import com.devicehive.model.rpc.NotificationSearchResponse;
+import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
@@ -14,8 +15,6 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
-import com.google.gson.JsonObject;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -58,7 +56,7 @@ public class DeviceNotificationService {
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<DeviceNotification>> find(Collection<String> guids, Collection<String> names,
-                                                 Date timestamp, Integer take) {
+                                                            Date timestamp, Integer take) {
         List<CompletableFuture<Response>> futures = guids.stream()
                 .map(guid -> {
                     NotificationSearchRequest searchRequest = new NotificationSearchRequest();
@@ -106,41 +104,22 @@ public class DeviceNotificationService {
                 .build());
     }
 
-    public Pair<String, Set<DeviceNotification>> submitDeviceSubscribeNotification(final Set<String> devices,
-                                                  final Set<String> names,
-                                                  final Date timestamp,
-                                                  final ClientHandler clientHandler) throws InterruptedException {
-        String subscriptionId = UUID.randomUUID().toString();
+    public void submitDeviceSubscribeNotification(final String subscriptionId,
+                                                    final Set<String> devices,
+                                                    final Set<String> names,
+                                                    final Date timestamp,
+                                                    final Consumer<Response> callback) throws InterruptedException {
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
                 .collect(Collectors.toSet());
-        CountDownLatch responseLatch = new CountDownLatch(subscribeRequests.size());
-        Set<DeviceNotification> notifications = new HashSet<>();
         for (NotificationSubscribeRequest subscribeRequest : subscribeRequests) {
-            Consumer<Response> callback = response -> {
-                String resAction = response.getBody().getAction();
-                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
-                    NotificationSubscribeResponse subscribeResponse = (NotificationSubscribeResponse) response.getBody();
-                    notifications.addAll(subscribeResponse.getNotifications());
-                    responseLatch.countDown();
-                } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
-                    NotificationEvent event = (NotificationEvent) response.getBody();
-                    JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(event.getNotification(), subscriptionId);
-                    clientHandler.sendMessage(json);
-                } else {
-                    logger.warn("Unknown action received from backend {}", resAction);
-                }
-            };
             Request request = Request.newBuilder()
                     .withBody(subscribeRequest)
                     .withPartitionKey(subscribeRequest.getDevice())
-                    .withCorrelationId(UUID.randomUUID().toString())
                     .withSingleReply(false)
                     .build();
             rpcClient.call(request, callback);
         }
-        responseLatch.await();
-        return Pair.of(subscriptionId, notifications);
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
