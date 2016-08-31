@@ -147,6 +147,15 @@ public class DeviceCommandService {
         return subscriptionId;
     }
 
+    public void submitCommandUnsubscribe(String subId, Set<String> deviceGuids) {
+        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceGuids);
+        Request request = Request.newBuilder()
+                .withBody(unsubscribeRequest)
+                .withCorrelationId(UUID.randomUUID().toString())
+                .build();
+        rpcClient.push(request);
+    }
+
     private CompletableFuture<Void> doUpdate(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");

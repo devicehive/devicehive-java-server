@@ -31,9 +31,7 @@ public class Subscriber {
         if (this == o) return true;
         if (!(o instanceof Subscriber)) return false;
         Subscriber that = (Subscriber) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(replyTo, that.replyTo) &&
-                Objects.equals(correlationId, that.correlationId);
+        return Objects.equals(id, that.id);
     }
 
     @Override

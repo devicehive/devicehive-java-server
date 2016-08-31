@@ -47,8 +47,8 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
         subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
 
-        Collection<DeviceCommand> notifications = findCommands(body.getDevice(), body.getNames(), body.getTimestamp());
-        CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), notifications);
+        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp());
+        CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
         return Response.newBuilder()
                 .withBody(subscribeResponse)

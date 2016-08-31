@@ -3,10 +3,8 @@ package com.devicehive.handler.command;
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.CommandInsertRequest;
-import com.devicehive.model.rpc.CommandSubscribeRequest;
-import com.devicehive.model.rpc.CommandSubscribeResponse;
+import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -128,9 +126,61 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         assertThat(c5.commands, is(empty()));
     }
 
+    @Test
+    public void shouldUnsubscribeFromCommands() throws Exception {
+        String device1 = randomUUID().toString();
+
+        String subscriber1 = randomUUID().toString();
+        String subscriber2 = randomUUID().toString();
+
+        CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, null, null);
+        Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
+        TestCallback c1 = new TestCallback();
+        client.call(r1, c1);
+
+        CommandSubscribeRequest sr2 = new CommandSubscribeRequest(subscriber2, device1, null, null);
+        Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
+        TestCallback c2 = new TestCallback();
+        client.call(r2, c2);
+
+        Stream.of(c1.subscribeFuture, c2.subscribeFuture).forEach(CompletableFuture::join);
+
+        DeviceCommand command = new DeviceCommand();
+        command.setId(0);
+        command.setCommand("increase_temperature");
+        command.setDeviceGuid(device1);
+        CommandInsertRequest event = new CommandInsertRequest(command);
+        CompletableFuture<Response> f1 = new CompletableFuture<>();
+        client.call(Request.newBuilder().withBody(event).build(), f1::complete);
+
+        f1.join();
+
+        assertThat(c1.commands, hasSize(1));
+        assertThat(c2.commands, hasSize(1));
+
+        CommandUnsubscribeRequest ur = new CommandUnsubscribeRequest(sr1.getSubscriptionId(), null);
+        Request r3 = Request.newBuilder().withBody(ur).withSingleReply(false).build();
+        client.call(r3, c1);
+
+        c1.subscribeFuture.join();
+
+        DeviceCommand command2 = new DeviceCommand();
+        command2.setId(1);
+        command2.setCommand("increase_temperature");
+        command2.setDeviceGuid(device1);
+        CommandInsertRequest event2 = new CommandInsertRequest(command2);
+        CompletableFuture<Response> f2 = new CompletableFuture<>();
+        client.call(Request.newBuilder().withBody(event2).build(), f2::complete);
+
+        f2.join();
+
+        assertThat(c1.commands, hasSize(1));
+        assertThat(c2.commands, hasSize(2));
+    }
+
     public static class TestCallback implements Consumer<Response> {
 
-        private CompletableFuture<CommandSubscribeResponse> subscribeFuture;
+        private CompletableFuture<Body> subscribeFuture;
         private Set<CommandEvent> commands;
 
         public TestCallback() {
@@ -140,8 +190,9 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
 
         @Override
         public void accept(Response response) {
-            if (response.getBody().getAction().equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
-                subscribeFuture.complete((CommandSubscribeResponse) response.getBody());
+            if (response.getBody().getAction().equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())
+                    || response.getBody().getAction().equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name())) {
+                subscribeFuture.complete(response.getBody());
             } else if (response.getBody().getAction().equals(Action.COMMAND_EVENT.name())) {
                 commands.add((CommandEvent) response.getBody());
             } else {

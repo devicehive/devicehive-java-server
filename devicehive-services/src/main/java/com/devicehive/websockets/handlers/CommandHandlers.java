@@ -132,43 +132,26 @@ public class CommandHandlers extends WebsocketHandlers {
 
     @Action("command/unsubscribe")
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandUnsubscribe(WebSocketSession session,
-                                                       @WsParam(SUBSCRIPTION_ID) UUID subId,
-                                                       @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
-        logger.debug("command/unsubscribe action. Session {} ", session.getId());
-        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
-        state.getCommandSubscriptionsLock().lock();
-        try {
-            Set<UUID> subscriptions = new HashSet<>();
-            if (subId == null) {
-                if (deviceGuids == null) {
-                    Set<String> subForAll = new HashSet<String>() {
-                        {
-                            add(Constants.NULL_SUBSTITUTE);
-                        }
+    public WebSocketResponse processCommandUnsubscribe(@WsParam(SUBSCRIPTION_ID) UUID subId,
+                                                       @WsParam(DEVICE_GUIDS) Set<String> deviceGuids,
+                                                       WebSocketSession session) {
+        logger.info("command/unsubscribe action. Session {} ", session.getId());
 
-                        private static final long serialVersionUID = 8001668138178383978L;
-                    };
-                    subscriptions.addAll(state.removeOldFormatCommandSubscription(subForAll));
-                } else {
-                    subscriptions.addAll(state.removeOldFormatCommandSubscription(deviceGuids));
+        if (subId == null && deviceGuids == null) {
+            Set<String> subForAll = new HashSet<String>() {
+                {
+                    add(Constants.NULL_SUBSTITUTE);
                 }
-            } else {
-                subscriptions.add(subId);
-            }
-            for (UUID toUnsubscribe : subscriptions) {
-                if (state.getCommandSubscriptions().contains(toUnsubscribe)) {
-                    state.getCommandSubscriptions().remove(toUnsubscribe);
-                    subscriptionSessionMap.remove(toUnsubscribe);
-                    subscriptionManager.getCommandSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
-                }
-            }
-        } finally {
-            state.getCommandSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
-            asyncMessageDeliverer.deliverMessages(session);
+
+                private static final long serialVersionUID = 8001668138178383978L;
+            };
+            commandService.submitCommandUnsubscribe(null, subForAll);
+        } else if (subId != null) {
+            commandService.submitCommandUnsubscribe(subId.toString(), deviceGuids);
+        } else {
+            commandService.submitCommandUnsubscribe(null, deviceGuids);
         }
-        logger.debug("command/unsubscribe completed for session {}", session.getId());
+
         return new WebSocketResponse();
     }
 
