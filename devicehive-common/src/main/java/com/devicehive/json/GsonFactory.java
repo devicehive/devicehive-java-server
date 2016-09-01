@@ -59,6 +59,8 @@ public class GsonFactory {
                 .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT_REQUEST.name())
                 .registerSubtype(NotificationSubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.name())
                 .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())
+                .registerSubtype(NotificationUnsubscribeRequest.class, Action.NOTIFICATION_UNSUBSCRIBE_REQUEST.name())
+                .registerSubtype(NotificationUnsubscribeResponse.class, Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name())
                 .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.name())
                 .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.name())
                 .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name());

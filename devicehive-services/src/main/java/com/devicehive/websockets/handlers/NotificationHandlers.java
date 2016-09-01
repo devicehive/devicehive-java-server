@@ -120,41 +120,23 @@ public class NotificationHandlers extends WebsocketHandlers {
      */
     @Action(value = "notification/unsubscribe")
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationUnsubscribe(WebSocketSession session,
-                                                            @WsParam(SUBSCRIPTION_ID) UUID subId,
-                                                            @WsParam(DEVICE_GUIDS) Set<String> deviceGuids) {
+    public WebSocketResponse processNotificationUnsubscribe(@WsParam(SUBSCRIPTION_ID) UUID subId,
+                                                            @WsParam(DEVICE_GUIDS) Set<String> deviceGuids,
+                                                            WebSocketSession session) {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
-        HiveWebsocketSessionState state = HiveWebsocketSessionState.get(session);
-        state.getNotificationSubscriptionsLock().lock();
-        try {
-            Set<UUID> subscriptions = new HashSet<>();
-            if (subId == null) {
-                if (deviceGuids == null) {
-                    Set<String> subForAll = new HashSet<String>() {
-                        {
-                            add(Constants.NULL_SUBSTITUTE);
-                        }
+        if (subId == null && deviceGuids == null) {
+            Set<String> subForAll = new HashSet<String>() {
+                {
+                    add(Constants.NULL_SUBSTITUTE);
+                }
 
-                        private static final long serialVersionUID = 2484204746448211456L;
-                    };
-                    subscriptions.addAll(state.removeOldFormatNotificationSubscription(subForAll));
-                } else {
-                    subscriptions.addAll(state.removeOldFormatNotificationSubscription(deviceGuids));
-                }
-            } else {
-                subscriptions.add(subId);
-            }
-            for (UUID toUnsubscribe : subscriptions) {
-                if (state.getNotificationSubscriptions().contains(toUnsubscribe)) {
-                    state.getNotificationSubscriptions().remove(toUnsubscribe);
-                    subscriptionSessionMap.remove(toUnsubscribe);
-                    subscriptionManager.getNotificationSubscriptionStorage().removeBySubscriptionId(toUnsubscribe);
-                }
-            }
-        } finally {
-            state.getNotificationSubscriptionsLock().unlock();
-            logger.debug("deliver messages process for session" + session.getId());
-            messageSupplier.deliverMessages(session);
+                private static final long serialVersionUID = 8001668138178383978L;
+            };
+            notificationService.submitNotificationUnsubscribe(null, subForAll);
+        } else if (subId != null) {
+            notificationService.submitNotificationUnsubscribe(subId.toString(), deviceGuids);
+        } else {
+            notificationService.submitNotificationUnsubscribe(null, deviceGuids);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
         return new WebSocketResponse();

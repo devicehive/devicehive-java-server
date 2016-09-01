@@ -135,7 +135,7 @@ public class CommandHandlers extends WebsocketHandlers {
     public WebSocketResponse processCommandUnsubscribe(@WsParam(SUBSCRIPTION_ID) UUID subId,
                                                        @WsParam(DEVICE_GUIDS) Set<String> deviceGuids,
                                                        WebSocketSession session) {
-        logger.info("command/unsubscribe action. Session {} ", session.getId());
+        logger.debug("command/unsubscribe action. Session {} ", session.getId());
 
         if (subId == null && deviceGuids == null) {
             Set<String> subForAll = new HashSet<String>() {

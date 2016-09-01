@@ -3,10 +3,8 @@ package com.devicehive.handler.notification;
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeResponse;
+import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -128,9 +126,61 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         assertThat(c5.notifications, is(empty()));
     }
 
+    @Test
+    public void shouldUnsubscribeFromNotifications() throws Exception {
+        String device1 = randomUUID().toString();
+
+        String subscriber1 = randomUUID().toString();
+        String subscriber2 = randomUUID().toString();
+
+        NotificationSubscribeRequest sr1 = new NotificationSubscribeRequest(subscriber1, device1, null, null);
+        Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
+        TestCallback c1 = new TestCallback();
+        client.call(r1, c1);
+
+        NotificationSubscribeRequest sr2 = new NotificationSubscribeRequest(subscriber2, device1, null, null);
+        Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
+        TestCallback c2 = new TestCallback();
+        client.call(r2, c2);
+
+        Stream.of(c1.subscribeFuture, c2.subscribeFuture).forEach(CompletableFuture::join);
+
+        DeviceNotification notification = new DeviceNotification();
+        notification.setId(0);
+        notification.setNotification("temperature");
+        notification.setDeviceGuid(device1);
+        NotificationInsertRequest event = new NotificationInsertRequest(notification);
+        CompletableFuture<Response> f1 = new CompletableFuture<>();
+        client.call(Request.newBuilder().withBody(event).build(), f1::complete);
+
+        f1.join();
+
+        assertThat(c1.notifications, hasSize(1));
+        assertThat(c2.notifications, hasSize(1));
+
+        NotificationUnsubscribeRequest ur = new NotificationUnsubscribeRequest(sr1.getSubscriptionId(), null);
+        Request r3 = Request.newBuilder().withBody(ur).withSingleReply(false).build();
+        client.call(r3, c1);
+
+        c1.subscribeFuture.join();
+
+        DeviceNotification notification2 = new DeviceNotification();
+        notification2.setId(1);
+        notification2.setNotification("temperature");
+        notification2.setDeviceGuid(device1);
+        NotificationInsertRequest event2 = new NotificationInsertRequest(notification2);
+        CompletableFuture<Response> f2 = new CompletableFuture<>();
+        client.call(Request.newBuilder().withBody(event2).build(), f2::complete);
+
+        f2.join();
+
+        assertThat(c1.notifications, hasSize(1));
+        assertThat(c2.notifications, hasSize(2));
+    }
+
     public static class TestCallback implements Consumer<Response> {
 
-        private CompletableFuture<NotificationSubscribeResponse> subscribeFuture;
+        private CompletableFuture<Body> subscribeFuture;
         private Set<NotificationEvent> notifications;
 
         public TestCallback() {
@@ -140,8 +190,9 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
 
         @Override
         public void accept(Response response) {
-            if (response.getBody().getAction().equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
-                subscribeFuture.complete((NotificationSubscribeResponse) response.getBody());
+            if (response.getBody().getAction().equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())
+                    || response.getBody().getAction().equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name())) {
+                subscribeFuture.complete(response.getBody());
             } else if (response.getBody().getAction().equals(Action.NOTIFICATION_EVENT.name())) {
                 notifications.add((NotificationEvent) response.getBody());
             } else {
