@@ -5,10 +5,6 @@ import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +14,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
+import javax.validation.Validator;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -56,6 +54,11 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     @Bean(name = MESSAGE_EXECUTOR)
     public ExecutorService messageExecutorService(@Value("${app.executor.size:1}") Integer executorSize) {
         return Executors.newFixedThreadPool(executorSize);
+    }
+
+    @Bean
+    public Validator localValidator() {
+        return new LocalValidatorFactoryBean();
     }
 
     @Bean
