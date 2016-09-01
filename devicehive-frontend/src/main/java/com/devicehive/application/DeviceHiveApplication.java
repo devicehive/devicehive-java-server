@@ -5,12 +5,9 @@ import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -25,7 +22,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Component
-@ComponentScan(value = "com.devicehive", excludeFilters = {@ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.springframework.transaction.*")})
+@ComponentScan(value = "com.devicehive", excludeFilters = {
+    @ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.springframework.transaction.*")
+})
+@ServletComponentScan("com.devicehive.application.filter")
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
@@ -43,7 +43,9 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
 
     @Bean
     @Lazy(false)
-    public BeanConfig swaggerConfig(@Value("${server.context-path}") String contextPath, @Value("${build.version}") String buildVersion) {
+    public BeanConfig swaggerConfig(@Value("${server.context-path}") String contextPath,
+                                    @Value("${build.version}") String buildVersion) {
+
         String basePath = contextPath.equals("/") ? JerseyConfig.REST_PATH : contextPath + JerseyConfig.REST_PATH;
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setTitle("Device Hive REST API");
