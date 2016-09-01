@@ -49,7 +49,7 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
         beanConfig.setTitle("Device Hive REST API");
         beanConfig.setVersion(buildVersion);
         beanConfig.setBasePath(basePath);
-        beanConfig.setResourcePackage("com.devicehive.controller");
+        beanConfig.setResourcePackage("com.devicehive.resource");
         beanConfig.setScan(true);
         return beanConfig;
     }
