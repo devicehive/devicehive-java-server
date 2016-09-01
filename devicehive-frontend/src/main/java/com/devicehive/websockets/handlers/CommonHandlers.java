@@ -51,10 +51,25 @@ public class CommonHandlers {
 
     @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
-        String login = request.get("login").getAsString();
-        String password = request.get("password").getAsString();
-        String key = request.get("accessKey").getAsString();
-        String deviceId = request.get("deviceId").getAsString();
+        String login = null;
+        if (request.get("login") != null) {
+            login = request.get("login").getAsString();
+        }
+
+        String password = null;
+        if (request.get("password") != null) {
+            password = request.get("password").getAsString();
+        }
+
+        String key = null;
+        if (request.get("accessKey") != null) {
+            key = request.get("accessKey").getAsString();
+        }
+
+        String deviceId = null;
+        if (request.get("deviceId") != null) {
+            deviceId = request.get("deviceId").getAsString();
+        }
 
         logger.debug("authenticate action for {} ", login);
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();

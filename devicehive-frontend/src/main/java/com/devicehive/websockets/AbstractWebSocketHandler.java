@@ -2,6 +2,8 @@ package com.devicehive.websockets;
 
 import com.devicehive.json.GsonFactory;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
+import com.devicehive.websockets.handlers.CommandHandlers;
+import com.devicehive.websockets.handlers.NotificationHandlers;
 import com.devicehive.websockets.util.SessionMonitor;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -17,6 +19,7 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(AbstractWebSocketHandler.class);
@@ -35,6 +38,10 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         logger.debug("Opening session id {} ", session.getId());
 
         session = new ConcurrentWebSocketSessionDecorator(session, sendTimeLimit, sendBufferSizeLimit);
+        HiveWebsocketSessionState state = new HiveWebsocketSessionState();
+        session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
+
+
         sessionMonitor.registerSession(session);
     }
 
