@@ -33,7 +33,7 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
     public static void main(String... args) {
-        SpringApplication.run(DeviceHiveApplication.class);
+        SpringApplication.run(DeviceHiveApplication.class, args);
     }
 
     @Override

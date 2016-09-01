@@ -18,6 +18,7 @@ import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -63,13 +64,15 @@ public class NotificationHandlers {
         Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
         Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_GUIDS), new TypeToken<Set<String>>() {}.getType());
         Set<String> names = gson.fromJson(request.get(Constants.NAMES), new TypeToken<Set<String>>() {}.getType());
-        String deviceId = request.get(Constants.DEVICE_GUID).getAsString();
+        String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
 
-        Assert.notEmpty(devices);
         logger.debug("notification/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
 
         devices = prepareActualList(devices, deviceId);
+        Assert.notEmpty(devices);
 
         String subscriptionId = UUID.randomUUID().toString();
         Consumer<DeviceNotification> callback = notification -> {
