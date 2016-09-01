@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -28,17 +29,18 @@ import java.util.concurrent.Executors;
 @ServletComponentScan("com.devicehive.application.filter")
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
-public class DeviceHiveApplication extends SpringBootServletInitializer {
+public class DeviceHiveApplication {
 
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
     public static void main(String... args) {
-        SpringApplication.run(DeviceHiveApplication.class, args);
-    }
+        ConfigurableApplicationContext context = new SpringApplicationBuilder()
+                .sources(DeviceHiveApplication.class)
+                .web(true)
+                .run(args);
 
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(DeviceHiveApplication.class);
+        DeviceHiveApplication app = context.getBean(DeviceHiveApplication.class);
+        context.registerShutdownHook();
     }
 
     @Bean
