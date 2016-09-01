@@ -45,6 +45,7 @@ public class ServerResponseListener {
             KafkaConsumer<String, Response> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(), deserializer);
             ResponseConsumerWorker worker = new ResponseConsumerWorker(topic, requestResponseMatcher, consumer, startupLatch);
             consumerExecutor.submit(worker);
+            workers.add(worker);
         }
         try {
             startupLatch.await(5000, TimeUnit.MILLISECONDS);

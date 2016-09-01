@@ -106,8 +106,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final Set<String> availableDevices = StringUtils.isBlank(devices)
                 ? Collections.emptySet()
                 : deviceService.findByGuidWithPermissionsCheck(ParseUtil.getList(devices), principal).stream()
-                    .map(DeviceVO::getGuid)
-                    .collect(Collectors.toSet());
+                .map(DeviceVO::getGuid)
+                .collect(Collectors.toSet());
 
         final List<String> commandNames = ParseUtil.getList(names);
         Collection<DeviceCommand> list = new ArrayList<>();
@@ -228,28 +228,31 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     }
 
     @Override
-    public Response query(String guid, String startTs, String endTs, String command, String status, String sortField,
-                          String sortOrderSt, Integer take, Integer skip, Integer gridInterval) {
+    public void query(String guid, String startTs, String endTs, String command, String status, String sortField,
+                      String sortOrderSt, Integer take, Integer skip, Integer gridInterval, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command query requested for device {}", guid);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Date timestamp = TimestampQueryParamParser.parse(startTs);
 
-        deviceService.getDeviceWithNetworkAndDeviceClass(guid, principal);
+        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        if (device == null) {
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
+            Response response = ResponseFactory.response(NOT_FOUND, errorCode);
+            asyncResponse.resume(response);
+        } else {
+            List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
+            commandService.find(Collections.singletonList(guid), searchCommands, timestamp, status, 0, null)
+                    .thenApply(commands -> {
+                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
+                        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
 
-        List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
-
-        final Collection<DeviceCommand> commandList = Optional.ofNullable(deviceService.findByGuidWithPermissionsCheck(guid, principal))
-                .map(deviceVO -> commandService.find(Collections.singletonList(deviceVO.getGuid()), searchCommands, timestamp, status, 0, null).join())
-                .orElse(Collections.emptyList());
-
-        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
-        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-
-        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(commandList),
-                comparator, reverse, skip, take);
-        LOGGER.debug("Device command query request proceed successfully for device {}", guid);
-        return ResponseFactory.response(Response.Status.OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
+                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(commands),
+                                comparator, reverse, skip, take);
+                        return ResponseFactory.response(OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
+                    })
+                    .thenAccept(asyncResponse::resume);
+        }
     }
 
     /**
@@ -327,16 +330,16 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         if (device == null) {
             LOGGER.warn("Device command update failed. No device with guid = {} found", guid);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
-        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
-        if (!savedCommand.isPresent()) {
-            LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.COMMAND_NOT_FOUND, commandId)));
-        }
+//        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
+//        if (!savedCommand.isPresent()) {
+//            LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
+//            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+//                            String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+//        }
 
-        commandService.update(commandId, device.getGuid(), command);
+        commandService.update(commandId, guid, command);
         LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
 
         return ResponseFactory.response(NO_CONTENT);
@@ -347,7 +350,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     }
 
     private CommandSubscription getInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
-                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){
+                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask) {
         return new CommandSubscription(principal, guid, reqId, names, RestHandlerCreator.createCommandInsert(asyncResponse, isMany, waitTask));
     }
 
