@@ -9,13 +9,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.util.CollectionUtils;
 
 import javax.ws.rs.client.*;
@@ -31,8 +30,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @DirtiesContext
-@WebAppConfiguration
-@IntegrationTest
+@WebIntegrationTest
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest {
     public static final String ADMIN_LOGIN = "test_admin";
