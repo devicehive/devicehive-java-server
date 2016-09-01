@@ -1,12 +1,9 @@
 package com.devicehive.websockets;
 
-import com.devicehive.AbstractFrontendSpringTest;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.JsonFixture;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
