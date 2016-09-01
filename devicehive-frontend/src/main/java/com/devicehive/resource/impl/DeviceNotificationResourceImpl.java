@@ -2,15 +2,14 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.messages.handler.AsyncResponseClientHandler;
-import com.devicehive.messages.handler.ClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.Action;
+import com.devicehive.model.rpc.CommandSearchResponse;
+import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
@@ -20,13 +19,8 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.util.ParseUtil;
-import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
-import com.google.common.util.concurrent.Runnables;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,17 +29,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -161,16 +154,13 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                       final AsyncResponse asyncResponse,
                       final boolean isMany) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         final Date ts = TimestampQueryParamParser.parse(timestamp);
-        final String devices = StringUtils.isNoneBlank(deviceGuidsString) ? deviceGuidsString : null;
-        final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
 
         if (timeout < 0) {
             submitEmptyResponse(asyncResponse);
         }
 
-        Set<String> availableDevices = Optional.ofNullable(StringUtils.split(devices, ','))
+        Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
                 .map(Arrays::asList)
                 .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
                 .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
@@ -182,26 +172,27 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 .orElse(Collections.emptySet());
 
         String subscriptionId = UUID.randomUUID().toString();
-        Consumer<com.devicehive.shim.api.Response> callback = response -> {
-            String resAction = response.getBody().getAction();
-            if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
-                NotificationSubscribeResponse subscribeResponse = response.getBody().cast(NotificationSubscribeResponse.class);
-                Collection<DeviceNotification> list = subscribeResponse.getNotifications();
-                if (!list.isEmpty() && !asyncResponse.isDone()) {
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-                }
-            } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
-                NotificationEvent event = response.getBody().cast(NotificationEvent.class);
-                if (!asyncResponse.isDone()) {
-                    asyncResponse.resume(ResponseFactory.response(Response.Status.OK, event.getNotification(), JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-                }
-            } else {
-                logger.warn("Unknown action received from backend {}", resAction);
+        Consumer<DeviceNotification> callback = notification -> {
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(
+                        ResponseFactory.response(Response.Status.OK, notification, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
             }
         };
+        CompletableFuture<Collection<DeviceNotification>> future =
+                notificationService.sendSubscribeRequest(subscriptionId, availableDevices, notifications, ts, callback);
+        future.thenAccept(collection -> {
+            if (!collection.isEmpty() && !asyncResponse.isDone()) {
+                asyncResponse.resume(
+                        ResponseFactory.response(Response.Status.OK, collection, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+            }
+        });
 
-        notificationService.submitDeviceSubscribeNotification(subscriptionId, availableDevices, notifications, ts, callback);
-
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                //todo unsubscribe
+            }
+        });
     }
 
 //    private void getOrWaitForNotifications(final HivePrincipal principal, final String devices,

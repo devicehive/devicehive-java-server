@@ -7,6 +7,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.Action;
+import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -28,12 +29,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.NOTIFICATION;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
@@ -71,32 +71,21 @@ public class NotificationHandlers {
         devices = prepareActualList(devices, deviceId);
 
         String subscriptionId = UUID.randomUUID().toString();
-
-        CountDownLatch subscriptionLatch = new CountDownLatch(devices.size());
-        Set<DeviceNotification> notifications = new HashSet<>();
-        Consumer<Response> callback = response -> {
-            String resAction = response.getBody().getAction();
-            if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
-                NotificationSubscribeResponse subscribeResponse = response.getBody().cast(NotificationSubscribeResponse.class);
-                notifications.addAll(subscribeResponse.getNotifications());
-                subscriptionLatch.countDown();
-            } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
-                NotificationEvent event = response.getBody().cast(NotificationEvent.class);
-                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(event.getNotification(), subscriptionId);
-                sendMessage(json, session);
-            } else {
-                logger.warn("Unknown action received from backend {}", resAction);
-            }
+        Consumer<DeviceNotification> callback = notification -> {
+            JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
+            sendMessage(json, session);
         };
-
-        notificationService.submitDeviceSubscribeNotification(subscriptionId, devices, names, timestamp, callback);
-
-        subscriptionLatch.await();
+        CompletableFuture<Collection<DeviceNotification>> future =
+                notificationService.sendSubscribeRequest(subscriptionId, devices, names, timestamp, callback);
+        future.thenAccept(collection -> {
+            for (DeviceNotification notification : collection) {
+                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
+                sendMessage(json, session);
+            }
+        });
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
-
-        //TODO send notifications
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, subscriptionId, null);

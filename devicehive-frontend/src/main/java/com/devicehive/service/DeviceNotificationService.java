@@ -3,10 +3,8 @@ package com.devicehive.service;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.model.rpc.NotificationSearchRequest;
-import com.devicehive.model.rpc.NotificationSearchResponse;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
+import com.devicehive.model.eventbus.events.NotificationEvent;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
@@ -104,22 +102,41 @@ public class DeviceNotificationService {
                 .build());
     }
 
-    public void submitDeviceSubscribeNotification(final String subscriptionId,
-                                                    final Set<String> devices,
-                                                    final Set<String> names,
-                                                    final Date timestamp,
-                                                    final Consumer<Response> callback) throws InterruptedException {
+    public CompletableFuture<Collection<DeviceNotification>> sendSubscribeRequest(String subscriptionId,
+                                                                                  Set<String> devices,
+                                                                                  Set<String> names,
+                                                                                  Date timestamp,
+                                                                                  Consumer<DeviceNotification> callback) {
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
                 .collect(Collectors.toSet());
-        for (NotificationSubscribeRequest subscribeRequest : subscribeRequests) {
+        Collection<CompletableFuture<Collection<DeviceNotification>>> futures = new ArrayList<>();
+        for (NotificationSubscribeRequest sr : subscribeRequests) {
+            CompletableFuture<Collection<DeviceNotification>> future = new CompletableFuture<>();
+            Consumer<Response> responseConsumer = response -> {
+                String resAction = response.getBody().getAction();
+                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                    NotificationSubscribeResponse r = response.getBody().cast(NotificationSubscribeResponse.class);
+                    future.complete(r.getNotifications());
+                } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                    NotificationEvent event = response.getBody().cast(NotificationEvent.class);
+                    callback.accept(event.getNotification());
+                } else {
+                    logger.warn("Unknown action received from backend {}", resAction);
+                }
+            };
             Request request = Request.newBuilder()
-                    .withBody(subscribeRequest)
-                    .withPartitionKey(subscribeRequest.getDevice())
+                    .withBody(sr)
+                    .withPartitionKey(sr.getDevice())
                     .withSingleReply(false)
                     .build();
-            rpcClient.call(request, callback);
+            rpcClient.call(request, responseConsumer);
         }
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()));
     }
 
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
