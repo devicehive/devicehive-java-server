@@ -83,6 +83,12 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${springboot.version}</version>
+                <configuration>
+                    <classifier>boot</classifier>
+                    <layout>ZIP</layout>
+                    <addResources>false</addResources>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -97,7 +103,6 @@
                         <version>${springloaded.version}</version>
                     </dependency>
                 </dependencies>
-                <version>${springboot.version}</version>
             </plugin>
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
