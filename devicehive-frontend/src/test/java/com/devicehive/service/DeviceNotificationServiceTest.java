@@ -1,6 +1,6 @@
 package com.devicehive.service;
 
-import com.devicehive.AbstractSpringTest;
+import com.devicehive.AbstractFrontendSpringTest;
 import com.devicehive.model.rpc.Action;
 import com.devicehive.model.rpc.ErrorResponse;
 import com.devicehive.model.rpc.NotificationSearchRequest;
@@ -18,7 +18,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DeviceNotificationServiceTest extends AbstractSpringTest {
+public class DeviceNotificationServiceTest extends AbstractFrontendSpringTest {
 
     @Autowired
     private DeviceNotificationService notificationService;

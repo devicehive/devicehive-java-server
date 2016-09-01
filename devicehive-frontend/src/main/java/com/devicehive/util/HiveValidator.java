@@ -26,7 +26,7 @@ public class HiveValidator {
      * @throws HiveException if there is any constraint violations.
      */
     public <T> void validate(T object) {
-        Set<ConstraintViolation<?>> violations = new HashSet<ConstraintViolation<?>>(validator.validate(object));
+        Set<ConstraintViolation<?>> violations = new HashSet<>(validator.validate(object));
         if (!violations.isEmpty()) {
             String response = buildMessage(violations);
             throw new HiveException(response, BAD_REQUEST.getStatusCode());

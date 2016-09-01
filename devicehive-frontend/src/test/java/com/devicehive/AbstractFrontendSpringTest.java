@@ -27,7 +27,7 @@ import static com.devicehive.shim.config.server.KafkaRpcServerConfig.REQUEST_TOP
 @WebIntegrationTest
 @SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
-public abstract class AbstractSpringTest {
+public abstract class AbstractFrontendSpringTest {
 
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
