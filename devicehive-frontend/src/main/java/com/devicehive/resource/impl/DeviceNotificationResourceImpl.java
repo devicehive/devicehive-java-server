@@ -191,56 +191,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                //todo unsubscribe
+                notificationService.submitNotificationUnsubscribe(subscriptionId, null);
             }
         });
     }
-
-//    private void getOrWaitForNotifications(final HivePrincipal principal, final String devices,
-//                                           final String names, final Date timestamp, long timeout,
-//                                           final AsyncResponse asyncResponse, final boolean isMany) {
-//        logger.debug("Device notification pollMany requested for : {}, {}, {}.  Timeout = {}", devices, names, timestamp, timeout);
-//
-//        if (timeout < 0) {
-//            submitEmptyResponse(asyncResponse);
-//        }
-//
-//        final Set<String> availableGuids = (StringUtils.isBlank(devices))
-//                ? Collections.emptySet()
-//                : deviceService.findByGuidWithPermissionsCheck(ParseUtil.getList(devices), principal).stream()
-//                .map(DeviceVO::getGuid)
-//                .collect(Collectors.toSet());
-//
-//        final List<String> notificationNames = ParseUtil.getList(names);
-//        Collection<DeviceNotification> list = new ArrayList<>();
-//        final UUID reqId = UUID.randomUUID();
-//        NotificationSubscriptionStorage storage = subscriptionManager.getNotificationSubscriptionStorage();
-//        Set<NotificationSubscription> subscriptionSet = new HashSet<>();
-//        FutureTask<Void> simpleWaitTask = new FutureTask<>(Runnables.doNothing(), null);
-//
-//        if (!availableGuids.isEmpty()) {
-//            subscriptionSet.addAll(availableGuids.stream().map(guid ->
-//                    getNotificationInsertSubscription(principal, guid, reqId, names, asyncResponse, isMany, simpleWaitTask))
-//                    .collect(Collectors.toList()));
-//        } else {
-//            subscriptionSet.add(getNotificationInsertSubscription(principal, Constants.NULL_SUBSTITUTE, reqId, names,
-//                    asyncResponse, isMany, simpleWaitTask));
-//        }
-//
-//        if (timestamp != null && !availableGuids.isEmpty()) {
-//            list = notificationService.find(availableGuids, notificationNames, timestamp, DEFAULT_TAKE).join();
-//        }
-//
-//        if (!list.isEmpty()) {
-//            Response response = ResponseFactory.response(Response.Status.OK, list, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-//            logger.debug("Notifications poll result: {}", response.getEntity());
-//            asyncResponse.resume(response);
-//        } else {
-//            if (!SimpleWaiter.subscribeAndWait(storage, subscriptionSet, new FutureTask<>(Runnables.doNothing(), null), timeout)) {
-//                submitEmptyResponse(asyncResponse);
-//            }
-//        }
-//    }
 
     /**
      * {@inheritDoc}
@@ -279,9 +233,4 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
     }
 
-//    private NotificationSubscription getNotificationInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
-//                                                                       AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask) {
-//        return new NotificationSubscription(principal, guid, reqId, names,
-//                RestHandlerCreator.createNotificationInsert(asyncResponse, isMany, waitTask));
-//    }
 }
