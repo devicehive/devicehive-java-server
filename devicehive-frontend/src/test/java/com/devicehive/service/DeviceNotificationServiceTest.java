@@ -11,6 +11,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -25,7 +28,7 @@ public class DeviceNotificationServiceTest extends AbstractFrontendSpringTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testFindWithErrorResponse() {
+    public void testFindWithErrorResponse() throws InterruptedException, ExecutionException, TimeoutException {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String expectedErrorMessage = "EXPECTED ERROR MESSAGE";
@@ -45,7 +48,7 @@ public class DeviceNotificationServiceTest extends AbstractFrontendSpringTest {
                     assertEquals(expectedErrorMessage, ex.getCause().getMessage());
                     assertEquals(errorCode, ((BackendException) ex.getCause()).getErrorCode());
                     return null;
-                }).join();
+                }).get(2, TimeUnit.SECONDS); // TODO: use org.junit.Test.timeout()
 
         verify(requestHandler).handle(argument.capture());
         assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
