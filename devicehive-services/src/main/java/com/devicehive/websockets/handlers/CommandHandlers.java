@@ -219,7 +219,8 @@ public class CommandHandlers extends WebsocketHandlers {
         if (commandUpdate == null || device == null) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        commandService.update(id, guid, commandUpdate);
+        //TODO: Replace with find()
+//        commandService.update(id, guid, commandUpdate);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                 guid, id);

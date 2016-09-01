@@ -322,27 +322,29 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public Response update(String guid, Long commandId, DeviceCommandWrapper command) {
+    public void update(String guid, Long commandId, DeviceCommandWrapper command, @Suspended final AsyncResponse asyncResponse) {
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         LOGGER.debug("Device command update requested. command {}", command);
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             LOGGER.warn("Device command update failed. No device with guid = {} found", guid);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
+            Response response = ResponseFactory.response(NOT_FOUND, errorCode);
+            asyncResponse.resume(response);
+        } else {
+            Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
+            if (!savedCommand.isPresent()) {
+                LOGGER.warn("Device command update failed. No command with id = {} found for device with guid = {}", commandId, guid);
+                Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                            String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+                asyncResponse.resume(response);
+            } else {
+                LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
+                commandService.update(commandId, guid, command);
+                asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
+            }
         }
-//        Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
-//        if (!savedCommand.isPresent()) {
-//            LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
-//            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-//                            String.format(Messages.COMMAND_NOT_FOUND, commandId)));
-//        }
-
-        commandService.update(commandId, guid, command);
-        LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
-
-        return ResponseFactory.response(NO_CONTENT);
     }
 
     private void submitEmptyResponse(final AsyncResponse asyncResponse) {
@@ -350,7 +352,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     }
 
     private CommandSubscription getInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
-                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask) {
+                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){
         return new CommandSubscription(principal, guid, reqId, names, RestHandlerCreator.createCommandInsert(asyncResponse, isMany, waitTask));
     }
 

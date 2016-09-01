@@ -40,9 +40,6 @@ public class DeviceCommandService {
     @Autowired
     private RpcClient rpcClient;
 
-    @Autowired
-    private DeviceService deviceService;
-
     @SuppressWarnings("unchecked")
     public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();

@@ -235,7 +235,7 @@ public interface DeviceCommandResource {
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
-    Response update(
+    void update(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
@@ -244,5 +244,7 @@ public interface DeviceCommandResource {
             Long commandId,
             @ApiParam(value = "Command body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
-            DeviceCommandWrapper command);
+            DeviceCommandWrapper command,
+            @Suspended
+            final AsyncResponse asyncResponse);
 }
