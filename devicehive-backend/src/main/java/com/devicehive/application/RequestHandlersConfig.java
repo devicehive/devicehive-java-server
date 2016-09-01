@@ -6,6 +6,7 @@ import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.handler.command.CommandUnsubscribeRequestHandler;
 import com.devicehive.handler.notification.NotificationInsertHandler;
 import com.devicehive.handler.notification.NotificationSearchHandler;
+import com.devicehive.handler.notification.NotificationUnsubscribeRequestHandler;
 import com.devicehive.model.rpc.Action;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,7 @@ public class RequestHandlersConfig {
             put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
             put(Action.NOTIFICATION_INSERT_REQUEST, new NotificationInsertHandler());
             put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
+            put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, new NotificationUnsubscribeRequestHandler());
             put(Action.COMMAND_INSERT_REQUEST, new CommandInsertHandler());
             put(Action.COMMAND_SEARCH_REQUEST, new CommandSearchHandler());
             put(Action.COMMAND_SUBSCRIBE_REQUEST, new CommandSubscribeRequestHandler());

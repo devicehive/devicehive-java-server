@@ -140,6 +140,14 @@ public class DeviceNotificationService {
                         .collect(Collectors.toList()));
     }
 
+    public void submitNotificationUnsubscribe(String subId, Set<String> deviceGuids) {
+        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceGuids);
+        Request request = Request.newBuilder()
+                .withBody(unsubscribeRequest)
+                .build();
+        rpcClient.push(request);
+    }
+
     public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
         DeviceNotification message = new DeviceNotification();
         message.setId(Math.abs(new Random().nextInt()));

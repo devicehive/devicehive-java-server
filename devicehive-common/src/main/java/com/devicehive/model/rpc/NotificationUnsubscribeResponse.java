@@ -5,13 +5,13 @@ import com.devicehive.shim.api.Body;
 import java.util.Objects;
 import java.util.Set;
 
-public class CommandUnsubscribeResponse extends Body {
+public class NotificationUnsubscribeResponse extends Body {
 
     private String subscriptionId;
     private Set<String> deviceGuids;
 
-    public CommandUnsubscribeResponse(String subscriptionId, Set<String> deviceGuids) {
-        super(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name());
+    public NotificationUnsubscribeResponse(String subscriptionId, Set<String> deviceGuids) {
+        super(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name());
         this.subscriptionId = subscriptionId;
         this.deviceGuids = deviceGuids;
     }
@@ -35,9 +35,9 @@ public class CommandUnsubscribeResponse extends Body {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CommandUnsubscribeResponse)) return false;
+        if (!(o instanceof NotificationUnsubscribeResponse)) return false;
         if (!super.equals(o)) return false;
-        CommandUnsubscribeResponse that = (CommandUnsubscribeResponse) o;
+        NotificationUnsubscribeResponse that = (NotificationUnsubscribeResponse) o;
         return Objects.equals(subscriptionId, that.subscriptionId)
                 && Objects.equals(deviceGuids, that.deviceGuids);
 
@@ -50,9 +50,10 @@ public class CommandUnsubscribeResponse extends Body {
 
     @Override
     public String toString() {
-        return "CommandUnsubscribeResponse{" +
+        return "NotificationUnsubscribeResponse{" +
                 "subscriptionId='" + subscriptionId + '\'' +
                 ", deviceGuids=" + deviceGuids +
                 '}';
     }
+
 }

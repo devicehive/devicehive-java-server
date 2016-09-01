@@ -35,6 +35,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
 import static com.devicehive.configuration.Constants.NOTIFICATION;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -114,9 +115,35 @@ public class NotificationHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
+    /**
+     * Implementation of the <a href="http://www.devicehive.com/restful#WsReference/Client/notificationunsubscribe">
+     * WebSocket API: Client: notification/unsubscribe</a> Unsubscribes from device notifications.
+     *
+     * @param session Current session
+     * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
+     * {object} } </code>
+     */
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
+        UUID subId = UUID.fromString(request.get(SUBSCRIPTION_ID).getAsString());
+        Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), new TypeToken<Set<String>>() {}.getType());
+        logger.debug("notification/unsubscribe action. Session {} ", session.getId());
+        if (subId == null && deviceGuids == null) {
+            Set<String> subForAll = new HashSet<String>() {
+                {
+                    add(Constants.NULL_SUBSTITUTE);
+                }
+
+                private static final long serialVersionUID = 8001668138178383978L;
+            };
+            notificationService.submitNotificationUnsubscribe(null, subForAll);
+        } else if (subId != null) {
+            notificationService.submitNotificationUnsubscribe(subId.toString(), deviceGuids);
+        } else {
+            notificationService.submitNotificationUnsubscribe(null, deviceGuids);
+        }
+        logger.debug("notification/unsubscribe completed for session {}", session.getId());
         return new WebSocketResponse();
     }
 

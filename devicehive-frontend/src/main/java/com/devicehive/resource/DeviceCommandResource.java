@@ -121,7 +121,7 @@ public interface DeviceCommandResource {
             notes = "Gets list of commands that has been received in specified time range.",
             response = DeviceCommand.class,
             responseContainer = "List")
-    Response query(
+    void query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
@@ -153,7 +153,8 @@ public interface DeviceCommandResource {
             Integer skip,
             @ApiParam(name = "gridInterval", value = "Grid interval")
             @QueryParam("gridInterval")
-            Integer gridInterval);
+            Integer gridInterval,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Response contains following output: <p/> <code> { "id":    1 "timestamp":     "1970-01-01 00:00:00.0" "userId": 1
@@ -234,7 +235,7 @@ public interface DeviceCommandResource {
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
-    Response update(
+    void update(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
@@ -243,5 +244,7 @@ public interface DeviceCommandResource {
             Long commandId,
             @ApiParam(value = "Command body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
-            DeviceCommandWrapper command);
+            DeviceCommandWrapper command,
+            @Suspended
+            final AsyncResponse asyncResponse);
 }

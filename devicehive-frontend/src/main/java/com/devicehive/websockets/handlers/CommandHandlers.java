@@ -92,7 +92,7 @@ public class CommandHandlers {
         final String subscriptionId = request.get(SUBSCRIPTION_ID).getAsString();
         final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), setType);
 
-        logger.info("command/unsubscribe action. Session {} ", session.getId());
+        logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (subscriptionId == null && guids == null) {
             Set<String> subForAll = new HashSet<String>() {
                 {

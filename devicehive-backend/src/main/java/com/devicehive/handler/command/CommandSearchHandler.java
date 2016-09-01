@@ -10,6 +10,7 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,7 @@ public class CommandSearchHandler implements RequestHandler {
                 searchRequest.getHasResponse(),
                 DeviceCommand.class);
 
-        commandSearchResponse.setCommands((List<DeviceCommand>) commands);
+        commandSearchResponse.setCommands(new ArrayList<>(commands));
         return commandSearchResponse;
     }
 }

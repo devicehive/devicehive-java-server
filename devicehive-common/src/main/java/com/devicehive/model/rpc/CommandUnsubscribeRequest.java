@@ -2,7 +2,6 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.shim.api.Body;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 
