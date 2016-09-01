@@ -173,13 +173,14 @@ public interface DeviceCommandResource {
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
-    Response get(
+    void get(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
-            String commandId);
+            String commandId,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * <b>Creates new device command.</b> <p/> <i>Example request:</i> <code> { "command":   "command name",

@@ -255,32 +255,37 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public Response get(String guid, String commandId) {
+    public void get(String guid, String commandId, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command get requested. deviceId = {}, commandId = {}", guid, commandId);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            Response response = ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            asyncResponse.resume(response);
         }
 
-        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid()).join();
-        if (!command.isPresent()) {
-            LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    String.format(Messages.COMMAND_NOT_FOUND, commandId)));
-        }
+        commandService.find(Long.valueOf(commandId), device.getGuid())
+                .thenApply(command -> {
+                    if (!command.isPresent()) {
+                        LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
+                        return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+                    }
 
-        if (!command.get().getDeviceGuid().equals(guid)) {
-            LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
-                    commandId, guid);
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    String.format(Messages.COMMAND_NOT_FOUND, commandId)));
-        }
+                    if (!command.get().getDeviceGuid().equals(guid)) {
+                        LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with guid = {}",
+                                commandId, guid);
+                        return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                                String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+                    }
 
-        LOGGER.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, commandId);
-        return ResponseFactory.response(OK, command, Policy.COMMAND_TO_DEVICE);
+                    LOGGER.debug("Device command get proceed successfully deviceId = {} commandId = {}", guid, commandId);
+                    return ResponseFactory.response(OK, command.get(), Policy.COMMAND_TO_DEVICE);
+                })
+                .thenAccept(asyncResponse::resume);
     }
 
     /**
@@ -333,7 +338,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             if (!savedCommand.isPresent()) {
                 LOGGER.warn("Device command update failed. No command with id = {} found for device with guid = {}", commandId, guid);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                            String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+                        String.format(Messages.COMMAND_NOT_FOUND, commandId)));
                 asyncResponse.resume(response);
             } else {
                 LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
