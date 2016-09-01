@@ -1,8 +1,7 @@
 package com.devicehive.application;
 
 import com.devicehive.application.filter.ContentTypeFilter;
-import com.devicehive.resource.impl.ApiInfoResourceImpl;
-import com.devicehive.resource.impl.ConfigurationResourceImpl;
+import com.devicehive.resource.impl.*;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
@@ -24,7 +23,20 @@ public class JerseyConfig extends ResourceConfig {
          * in order to allow to use {@link javax.ws.rs.Path} annotation on interfaces, not implementations.
          * This is described in issue <a href="https://java.net/jira/browse/JERSEY-2591">JERSEY-2591</a>
          */
-        registerClasses(ApiInfoResourceImpl.class, ConfigurationResourceImpl.class);
+        registerClasses(ApiInfoResourceImpl.class,
+                AccessKeyResourceImpl.class,
+                ConfigurationResourceImpl.class,
+                AuthAccessKeyResourceImpl.class,
+                DeviceClassResourceImpl.class,
+                DeviceCommandResourceImpl.class,
+                DeviceNotificationResourceImpl.class,
+                DeviceResourceImpl.class,
+                EquipmentResourceImpl.class,
+                NetworkResourceImpl.class,
+                OAuthClientResourceImpl.class,
+                OAuthGrantResourceImpl.class,
+                OAuthTokenResourceImpl.class,
+                UserResourceImpl.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 
