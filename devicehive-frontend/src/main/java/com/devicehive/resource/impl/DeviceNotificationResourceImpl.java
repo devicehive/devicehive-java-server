@@ -6,11 +6,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.CommandSearchResponse;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -35,6 +30,7 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -139,26 +135,26 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      */
     @Override
     public void poll(final String deviceGuid, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
+        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse);
     }
 
     @Override
     public void pollMany(long timeout, String deviceGuidsString, final String namesString, final String timestamp, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
+        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse);
     }
 
     private void poll(final long timeout,
                       final String deviceGuidsString,
                       final String namesString,
                       final String timestamp,
-                      final AsyncResponse asyncResponse,
-                      final boolean isMany) throws InterruptedException {
+                      final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Date ts = TimestampQueryParamParser.parse(timestamp);
 
         if (timeout < 0) {
             submitEmptyResponse(asyncResponse);
         }
+        asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
         Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
                 .map(Arrays::asList)
@@ -185,6 +181,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 asyncResponse.resume(
                         ResponseFactory.response(Response.Status.OK, collection, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
             }
+        }).exceptionally(throwable -> {
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(throwable);
+            }
+            return null;
         });
 
         asyncResponse.register(new CompletionCallback() {

@@ -125,6 +125,7 @@ public class DeviceNotificationService {
                     logger.warn("Unknown action received from backend {}", resAction);
                 }
             };
+            futures.add(future);
             Request request = Request.newBuilder()
                     .withBody(sr)
                     .withPartitionKey(sr.getDevice())
