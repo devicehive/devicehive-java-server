@@ -39,7 +39,7 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
                 response = handleClientRequest(request);
                 break;
             case ping:
-                logger.info("Ping request received");
+                logger.info("Ping request received from {}", replyTo);
                 response = Response.newBuilder().buildSuccess();
                 break;
             default:
