@@ -58,7 +58,10 @@ public class DeviceCommandService {
                 .map(guid -> {
                     CommandSearchRequest searchRequest = new CommandSearchRequest();
                     searchRequest.setGuid(guid);
-                    searchRequest.setNames(new HashSet<>(names));
+                    if (names != null) {
+                        searchRequest.setNames(new HashSet<>(names));
+                    }
+                    searchRequest.setTimestamp(timestamp);
                     searchRequest.setTimestampStart(timestampSt);
                     searchRequest.setTimestampEnd(timestampEnd);
                     searchRequest.setStatus(status);

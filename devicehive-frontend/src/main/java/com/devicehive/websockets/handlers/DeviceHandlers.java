@@ -11,6 +11,7 @@ import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
@@ -41,7 +42,9 @@ public class DeviceHandlers {
 
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY')")
     public WebSocketResponse processDeviceGet(JsonObject request) {
-        String deviceId = request.get(Constants.DEVICE_ID).getAsString();
+        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         DeviceVO toResponse;
         if(deviceId != null){

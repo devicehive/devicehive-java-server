@@ -149,6 +149,9 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
 
     private UserVO getUser(String userId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal.getUser() == null && principal.getKey() == null) {
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
+        }
         UserVO currentUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
 
         Long id;
