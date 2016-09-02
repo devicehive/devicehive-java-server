@@ -1,6 +1,7 @@
 package com.devicehive.shim.kafka.client;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import org.apache.kafka.clients.producer.Producer;
@@ -10,6 +11,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 public class KafkaRpcClient implements RpcClient {
@@ -33,6 +38,7 @@ public class KafkaRpcClient implements RpcClient {
     @Override
     public void start() {
         responseListener.startWorkers();
+        pingServer();
     }
 
     @Override
@@ -63,4 +69,43 @@ public class KafkaRpcClient implements RpcClient {
         requestProducer.close();
         responseListener.shutdown();
     }
+
+    private void pingServer() {
+        Request request = Request.newBuilder().build();
+        request.setReplyTo(replyToTopic);
+        request.setType(RequestType.ping);
+        boolean connected = false;
+        int attempts = 10;
+        for (int i = 0; i < attempts; i++) {
+            logger.info("Ping RpcServer attempt {}", i);
+
+            CompletableFuture<Response> pingFuture = new CompletableFuture<>();
+
+            requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
+            requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
+
+            Response response = null;
+            try {
+                response = pingFuture.get(1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("Exception occured while trying to ping RpcServer ", e);
+            } catch (TimeoutException e) {
+                logger.warn("RpcServer didn't respond to ping request");
+                continue;
+            } finally {
+                requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
+            }
+            if (response != null && !response.isFailed()) {
+                connected = true;
+                break;
+            }
+        }
+        if (connected) {
+            logger.info("Successfully connected to RpcServer");
+        } else {
+            logger.error("Unable to reach out RpcServer in {} attempts", attempts);
+            throw new RuntimeException("RpcServer is not reachable");
+        }
+    }
+
 }

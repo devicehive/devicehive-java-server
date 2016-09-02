@@ -50,6 +50,7 @@ public class RequestConsumer {
         }
         try {
             latch.await();
+            logger.info("RpcServer request consumers started");
         } catch (InterruptedException e) {
             logger.error("Error while waiting for consumers", e);
         }

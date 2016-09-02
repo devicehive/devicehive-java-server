@@ -17,6 +17,10 @@ public class RequestResponseMatcher {
         correlationMap.put(correlationId, callback);
     }
 
+    void removeRequestCallback(String correlationId) {
+        correlationMap.remove(correlationId);
+    }
+
     void offerResponse(Response response) {
         Consumer<Response> callback = correlationMap.get(response.getCorrelationId());
         if (callback != null) {

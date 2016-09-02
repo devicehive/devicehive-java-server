@@ -2,6 +2,7 @@ package com.devicehive.shim.config.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
@@ -72,8 +73,23 @@ public class KafkaRpcClientConfig {
         return new KafkaProducer<>(producerProps(), new StringSerializer(), new RequestSerializer(gson));
     }
 
+    @Profile("!test")
     @Bean(destroyMethod = "shutdown")
     public RpcClient rpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
+                               ServerResponseListener responseListener) {
+        KafkaRpcClient client = new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
+        client.start();
+        return client;
+    }
+
+    /**
+     * RpcClient for tests. It is required to make sure RpcServer is initialized before RpcClient (using @DependsOn("rpcServer")),
+     * otherwise RpcClient won't be able to ping server
+     */
+    @Profile("test")
+    @DependsOn("rpcServer")
+    @Bean(destroyMethod = "shutdown")
+    public RpcClient testRpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
                                ServerResponseListener responseListener) {
         KafkaRpcClient client = new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
         client.start();

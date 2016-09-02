@@ -5,15 +5,21 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Objects;
 import java.util.UUID;
 
+import static com.devicehive.shim.api.RequestType.clientRequest;
+
 public class Request {
 
     private Body body;
+
     private String correlationId;
+
     private String partitionKey;
 
     private boolean singleReplyExpected;
 
     private String replyTo;
+
+    private String type;
 
     private Request(Body body,
                     boolean singleReplyExpected,
@@ -23,6 +29,7 @@ public class Request {
         this.singleReplyExpected = singleReplyExpected;
         this.correlationId = correlationId;
         this.partitionKey = partitionKey;
+        this.type = clientRequest.name();
     }
 
     public Body getBody() {
@@ -47,6 +54,14 @@ public class Request {
 
     public String getPartitionKey() {
         return partitionKey;
+    }
+
+    public void setType(RequestType type) {
+        this.type = type.name();
+    }
+
+    public RequestType getType() {
+        return RequestType.valueOf(type);
     }
 
     @Override

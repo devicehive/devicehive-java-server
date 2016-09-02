@@ -1,6 +1,7 @@
 package com.devicehive.shim.kafka.server;
 
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -12,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
+import static com.devicehive.shim.api.RequestType.clientRequest;
 
+public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
     private static final Logger logger = LoggerFactory.getLogger(ServerEventHandler.class);
 
     private RequestHandler requestHandler;
@@ -30,6 +32,31 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
         final String replyTo = request.getReplyTo();
 
         Response response;
+
+        switch (request.getType()) {
+            case clientRequest:
+                logger.debug("Client request received {}", request);
+                response = handleClientRequest(request);
+                break;
+            case ping:
+                logger.info("Ping request received");
+                response = Response.newBuilder().buildSuccess();
+                break;
+            default:
+                logger.warn("Unknown type of request received {} from client with topic {}, correlationId = {}",
+                        request.getType(), replyTo, request.getCorrelationId());
+                response = Response.newBuilder()
+                        .withErrorCode(404)
+                        .buildFailed();
+        }
+
+        // set correlationId explicitly to prevent missing it in request
+        response.setCorrelationId(request.getCorrelationId());
+        send(replyTo, response);
+    }
+
+    private Response handleClientRequest(Request request) {
+        Response response;
         try {
             response = Optional.ofNullable(requestHandler.handle(request))
                     .orElseThrow(() -> new NullPointerException("Response must not be null"));
@@ -42,9 +69,7 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
                     .withLast(request.isSingleReplyExpected())
                     .buildFailed();
         }
-        // set correlationId explicitly to prevent missing it in request
-        response.setCorrelationId(request.getCorrelationId());
-        send(replyTo, response);
+        return response;
     }
 
     @Override

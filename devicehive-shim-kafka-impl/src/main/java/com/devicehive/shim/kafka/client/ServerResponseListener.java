@@ -49,6 +49,7 @@ public class ServerResponseListener {
         }
         try {
             latch.await();
+            logger.info("RpcClient response consumers started");
         } catch (InterruptedException e) {
             logger.error("Error while waiting for client consumers to subscribe", e);
         }
