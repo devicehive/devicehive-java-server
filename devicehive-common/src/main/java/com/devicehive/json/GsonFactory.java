@@ -70,7 +70,8 @@ public class GsonFactory {
 
                 .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.name())
                 .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.name())
-                .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name());
+                .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name())
+                .registerSubtype(CommandUpdateRequest.class, Action.COMMAND_UPDATE_REQUEST.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

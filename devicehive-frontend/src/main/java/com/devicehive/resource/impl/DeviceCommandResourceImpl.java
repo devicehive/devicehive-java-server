@@ -3,7 +3,6 @@ package com.devicehive.resource.impl;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -14,10 +13,8 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.util.ParseUtil;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
-import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +29,6 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.FutureTask;
-import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -342,15 +337,15 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 asyncResponse.resume(response);
             } else {
                 LOGGER.debug("Device command update proceed successfully deviceId = {} commandId = {}", guid, commandId);
-                commandService.update(commandId, guid, command);
+                commandService.update(savedCommand.get(), command);
                 asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
             }
         }
     }
 
-    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
-    }
+//    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
+//        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
+//    }
 
 //    private CommandSubscription getInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
 //                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){

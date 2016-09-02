@@ -96,10 +96,8 @@ public class DeviceCommandService {
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
-    public CompletableFuture<Void> update(Long commandId, String deviceGuid, DeviceCommandWrapper commandWrapper) {
-        return find(commandId, deviceGuid)
-                .thenApply(opt -> opt.orElse(null)) //todo would be preferable to use .thenApply(opt -> opt.orElseThrow(() -> new NoSuchElementException("Command not found"))), but does not build on some machines
-                .thenAccept(cmd -> doUpdate(cmd, commandWrapper));
+    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+        return doUpdate(cmd, commandWrapper);
     }
 
     public String submitCommandSubscribe(final Set<String> devices,

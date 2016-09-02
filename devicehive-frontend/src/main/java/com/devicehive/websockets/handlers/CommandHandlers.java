@@ -5,6 +5,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.DeviceCommandService;
@@ -24,10 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.lang.reflect.Type;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
@@ -168,13 +166,18 @@ public class CommandHandlers {
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
         //TODO [rafa] unused local variable?
-        final UserVO user = principal.getUser() != null ? principal.getUser() :
-                (principal.getKey() != null ? principal.getKey().getUser() : null);
+//        final UserVO user = principal.getUser() != null ? principal.getUser() :
+//                (principal.getKey() != null ? principal.getKey().getUser() : null);
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
-        if (commandUpdate == null || device == null) {
+        if (device == null) {
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, id), SC_NOT_FOUND);
+        }
+
+        Optional<DeviceCommand> savedCommand = commandService.find(id, guid).join();
+        if (!savedCommand.isPresent()) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        commandService.update(id, guid, commandUpdate);
+        commandService.update(savedCommand.get(), commandUpdate);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                 guid, id);
