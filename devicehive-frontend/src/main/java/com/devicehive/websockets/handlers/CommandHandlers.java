@@ -58,9 +58,11 @@ public class CommandHandlers {
             throws InterruptedException {
 
         final Date timestamp = gson.fromJson(request.getAsJsonObject(TIMESTAMP), Date.class);
-        final String deviceId = request.get(DEVICE_GUID).getAsString();
-        final Set<String> names = gson.fromJson(request.getAsJsonObject(NAMES), JsonTypes.STRING_SET_TYPE);
-        Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
+        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
+        final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
+        Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 guids, deviceId, timestamp, names, session);

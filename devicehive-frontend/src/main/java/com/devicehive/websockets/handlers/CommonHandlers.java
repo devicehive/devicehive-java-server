@@ -11,6 +11,7 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Date;
+import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
@@ -61,10 +63,9 @@ public class CommonHandlers {
             password = request.get("password").getAsString();
         }
 
-        String key = null;
-        if (request.get("accessKey") != null) {
-            key = request.get("accessKey").getAsString();
-        }
+        final String key = Optional.ofNullable(request.get("accessKey"))
+                .map(JsonElement::getAsString)
+                .orElse(null);
 
         String deviceId = null;
         if (request.get("deviceId") != null) {

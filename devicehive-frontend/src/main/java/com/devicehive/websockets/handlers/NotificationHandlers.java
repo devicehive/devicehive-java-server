@@ -160,7 +160,9 @@ public class NotificationHandlers {
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
-        String deviceGuid = request.get(Constants.DEVICE_GUID).getAsString();
+        final String deviceGuid = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
         DeviceNotificationWrapper notificationSubmit = gson.fromJson(request.get(Constants.NOTIFICATION), DeviceNotificationWrapper.class);
 
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
