@@ -53,16 +53,15 @@ public class DeviceCommandService {
     }
 
     public CompletableFuture<List<DeviceCommand>> find(Collection<String> guids, Collection<String> names,
-                                                       Date timestamp, String status, Integer take, Boolean hasResponse) {
+                                                       Date timestampSt, Date timestampEnd, String status) {
         List<CompletableFuture<Response>> futures = guids.stream()
                 .map(guid -> {
                     CommandSearchRequest searchRequest = new CommandSearchRequest();
                     searchRequest.setGuid(guid);
                     searchRequest.setNames(new HashSet<>(names));
-                    searchRequest.setTimestamp(timestamp);
+                    searchRequest.setTimestampStart(timestampSt);
+                    searchRequest.setTimestampEnd(timestampEnd);
                     searchRequest.setStatus(status);
-                    searchRequest.setTake(take);
-                    searchRequest.setHasResponse(hasResponse);
                     return searchRequest;
                 })
                 .map(searchRequest -> {

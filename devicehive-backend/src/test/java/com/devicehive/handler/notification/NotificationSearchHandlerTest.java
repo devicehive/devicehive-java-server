@@ -9,7 +9,6 @@ import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -19,6 +18,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class NotificationSearchHandlerTest extends AbstractSpringTest {
 
@@ -59,7 +61,7 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
 
         Response response = future.get(10, TimeUnit.SECONDS);
         NotificationSearchResponse responseBody = (NotificationSearchResponse) response.getBody();
-        Assert.assertTrue(responseBody.getNotifications().isEmpty());
+        assertTrue(responseBody.getNotifications().isEmpty());
     }
 
     @Test
@@ -77,8 +79,26 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
 
         Response response = future.get(10, TimeUnit.SECONDS);
         NotificationSearchResponse responseBody = (NotificationSearchResponse) response.getBody();
-        Assert.assertEquals(1, responseBody.getNotifications().size());
-        Assert.assertEquals(notifications.get(0), responseBody.getNotifications().get(0));
+        assertEquals(1, responseBody.getNotifications().size());
+        assertEquals(notifications.get(0), responseBody.getNotifications().get(0));
+    }
+
+    @Test
+    public void shouldHandleNotificationInsertAndQueryByDeviceGuidAndNotificationName() throws Exception {
+        NotificationSearchRequest searchRequest = new NotificationSearchRequest();
+        searchRequest.setGuid(notifications.get(0).getDeviceGuid());
+        searchRequest.setNames(Collections.singleton(notifications.get(0).getNotification()));
+
+        Request request = Request.newBuilder()
+                .withBody(searchRequest)
+                .build();
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        client.call(request, future::complete);
+
+        Response response = future.get(10, TimeUnit.SECONDS);
+        NotificationSearchResponse responseBody = (NotificationSearchResponse) response.getBody();
+        assertEquals(1, responseBody.getNotifications().size());
+        assertEquals(notifications.get(0), responseBody.getNotifications().get(0));
     }
 
     private DeviceNotification createNotification(long id, String guid) {
@@ -86,7 +106,7 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
         notification.setId(id);
         notification.setTimestamp(Date.from(Instant.now()));
         notification.setDeviceGuid(guid);
-        notification.setNotification("SOME TEST DATA");
+        notification.setNotification("SOME TEST DATA_" + id);
         notification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
         return notification;
     }

@@ -61,14 +61,14 @@ public class DeviceNotificationService {
 
     @SuppressWarnings("unchecked")
     public CompletableFuture<List<DeviceNotification>> find(Collection<String> guids, Collection<String> names,
-                                                            Date timestamp, Integer take) {
+                                                            Date timestampSt, Date timestampEnd) {
         List<CompletableFuture<Response>> futures = guids.stream()
                 .map(guid -> {
                     NotificationSearchRequest searchRequest = new NotificationSearchRequest();
                     searchRequest.setGuid(guid);
                     searchRequest.setNames(new HashSet<>(names));
-                    searchRequest.setTimestamp(timestamp);
-                    searchRequest.setTake(take);
+                    searchRequest.setTimestampStart(timestampSt);
+                    searchRequest.setTimestampEnd(timestampEnd);
                     return searchRequest;
                 })
                 .map(searchRequest -> {

@@ -9,12 +9,10 @@ public class CommandSearchRequest extends Body {
 
     private Long id;
     private String guid;
-    private Set<String> devices;
     private Set<String> names;
-    private Date timestamp;
+    private Date timestampStart;
+    private Date timestampEnd;
     private String status;
-    private Integer take;
-    private Boolean hasResponse;
 
     public CommandSearchRequest() {
         super(Action.COMMAND_SEARCH_REQUEST.name());
@@ -36,14 +34,6 @@ public class CommandSearchRequest extends Body {
         this.guid = guid;
     }
 
-    public Set<String> getDevices() {
-        return devices;
-    }
-
-    public void setDevices(Set<String> devices) {
-        this.devices = devices;
-    }
-
     public Set<String> getNames() {
         return names;
     }
@@ -52,12 +42,20 @@ public class CommandSearchRequest extends Body {
         this.names = names;
     }
 
-    public Date getTimestamp() {
-        return timestamp;
+    public Date getTimestampStart() {
+        return timestampStart;
     }
 
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setTimestampStart(Date timestampStart) {
+        this.timestampStart = timestampStart;
+    }
+
+    public Date getTimestampEnd() {
+        return timestampEnd;
+    }
+
+    public void setTimestampEnd(Date timestampEnd) {
+        this.timestampEnd = timestampEnd;
     }
 
     public String getStatus() {
@@ -68,19 +66,4 @@ public class CommandSearchRequest extends Body {
         this.status = status;
     }
 
-    public Integer getTake() {
-        return take;
-    }
-
-    public void setTake(Integer take) {
-        this.take = take;
-    }
-
-    public Boolean getHasResponse() {
-        return hasResponse;
-    }
-
-    public void setHasResponse(Boolean hasResponse) {
-        this.hasResponse = hasResponse;
-    }
 }

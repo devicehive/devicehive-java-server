@@ -28,7 +28,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         }
 
         assertEquals(NUMBER_OF_COMMANDS, deviceCommandService.find(
-                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, null).join().size());
+                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size());
     }
 
     @Test
@@ -46,7 +46,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             }
         }
         assertEquals(withResponse, deviceCommandService.find(
-                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, true).join().size()
+                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size()
                 );
     }
     @Test
@@ -64,7 +64,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
             }
         }
         assertEquals(NUMBER_OF_COMMANDS - withResponse, deviceCommandService.find(
-                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false).join().size()
+                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size()
                 );
     }
 
@@ -78,7 +78,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(NUMBER_OF_COMMANDS);
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false).join();
+                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join();
         assertEquals(NUMBER_OF_COMMANDS, commands.size());
     }
 
@@ -91,7 +91,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(NUMBER_OF_COMMANDS);
 
         final List<DeviceCommand> commands = new ArrayList<>(deviceCommandService.find(
-                null, Collections.emptyList(), null, DEFAULT_STATUS, 100, false).join());
+                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join());
 
         for (int i = 1; i < commands.size(); i++) {
             final Date currentElem = commands.get(i).getTimestamp();
@@ -116,12 +116,12 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(15);
 
         final Collection<DeviceCommand> commandsAll =  deviceCommandService.find(
-                null, Collections.emptyList(), timeBeforeBatches, DEFAULT_STATUS, 100, false).join();
+                null, Collections.emptyList(), timeBeforeBatches, null, DEFAULT_STATUS).join();
         assertEquals(25, commandsAll.size());
 
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.emptyList(), timeBetweenBatches, DEFAULT_STATUS, 100, false).join();
+                null, Collections.emptyList(), timeBetweenBatches, null, DEFAULT_STATUS).join();
         assertEquals(15, commands.size());
 
     }
@@ -134,7 +134,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         sendNCommands(10);
 
         final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Arrays.asList("command2", "command3", "command4"), null, DEFAULT_STATUS, 100, false).join();
+                null, Arrays.asList("command2", "command3", "command4"), null, null, DEFAULT_STATUS).join();
         assertEquals(3, commands.size());
     }
 

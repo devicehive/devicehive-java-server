@@ -17,8 +17,12 @@ import java.util.List;
 
 public class CommandSearchHandler implements RequestHandler {
 
-    @Autowired
     private HazelcastService hazelcastService;
+
+    @Autowired
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
+    }
 
     @Override
     public Response handle(Request request) {
@@ -46,12 +50,11 @@ public class CommandSearchHandler implements RequestHandler {
     private CommandSearchResponse searchMultipleCommands(CommandSearchRequest searchRequest) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
         final Collection<DeviceCommand> commands = hazelcastService.find(
-                searchRequest.getDevices(),
+                searchRequest.getGuid(),
                 searchRequest.getNames(),
-                searchRequest.getTimestamp(),
+                searchRequest.getTimestampStart(),
+                searchRequest.getTimestampEnd(),
                 searchRequest.getStatus(),
-                searchRequest.getTake(),
-                searchRequest.getHasResponse(),
                 DeviceCommand.class);
 
         commandSearchResponse.setCommands(new ArrayList<>(commands));

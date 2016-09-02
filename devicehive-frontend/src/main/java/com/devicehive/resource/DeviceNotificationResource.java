@@ -79,9 +79,6 @@ public interface DeviceNotificationResource {
             @ApiParam(name = "skip", value = "Skip param")
             @QueryParam("skip")
             Integer skip,
-            @ApiParam(name = "gridInterval", value = "Grid interval")
-            @QueryParam("gridInterval")
-            Integer gridInterval,
             @Suspended
             AsyncResponse asyncResponse);
 

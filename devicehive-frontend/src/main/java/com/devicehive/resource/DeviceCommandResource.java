@@ -150,9 +150,6 @@ public interface DeviceCommandResource {
             @ApiParam(name = "skip", value = "Skip param")
             @QueryParam("skip")
             Integer skip,
-            @ApiParam(name = "gridInterval", value = "Grid interval")
-            @QueryParam("gridInterval")
-            Integer gridInterval,
             @Suspended final AsyncResponse asyncResponse);
 
     /**

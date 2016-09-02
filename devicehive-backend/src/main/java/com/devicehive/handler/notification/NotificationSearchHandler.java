@@ -10,6 +10,7 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -36,15 +37,13 @@ public class NotificationSearchHandler implements RequestHandler {
         //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
         final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
         final Collection<DeviceNotification> notifications = storageService.find(
-                Collections.singleton(searchRequest.getGuid()),
+                searchRequest.getGuid(),
                 searchRequest.getNames(),
-                searchRequest.getTimestamp(),
-                searchRequest.getStatus(),
-                searchRequest.getTake(),
-                searchRequest.getHasResponse(),
+                searchRequest.getTimestampStart(),
+                searchRequest.getTimestampEnd(),
                 DeviceNotification.class);
 
-        notificationSearchResponse.setNotifications((List<DeviceNotification>) notifications);
+        notificationSearchResponse.setNotifications(new ArrayList<>(notifications));
         return notificationSearchResponse;
     }
 

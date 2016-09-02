@@ -266,11 +266,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     @Override
     public void query(String guid, String startTs, String endTs, String command, String status, String sortField,
-                      String sortOrderSt, Integer take, Integer skip, Integer gridInterval, @Suspended final AsyncResponse asyncResponse) {
+                      String sortOrderSt, Integer take, Integer skip,  @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command query requested for device {}", guid);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Date timestamp = TimestampQueryParamParser.parse(startTs);
+        final Date timestampSt = TimestampQueryParamParser.parse(startTs);
+        final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
@@ -278,8 +279,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : null;
-            commandService.find(Collections.singletonList(guid), searchCommands, timestamp, status, 0, null)
+            List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+            commandService.find(Collections.singletonList(guid), searchCommands, timestampSt, timestampEnd, status)
                     .thenApply(commands -> {
                         final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
