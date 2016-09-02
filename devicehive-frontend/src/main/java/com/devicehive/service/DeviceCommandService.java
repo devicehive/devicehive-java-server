@@ -61,7 +61,6 @@ public class DeviceCommandService {
                     if (names != null) {
                         searchRequest.setNames(new HashSet<>(names));
                     }
-                    searchRequest.setTimestamp(timestamp);
                     searchRequest.setTimestampStart(timestampSt);
                     searchRequest.setTimestampEnd(timestampEnd);
                     searchRequest.setStatus(status);
