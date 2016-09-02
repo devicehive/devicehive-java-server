@@ -1,6 +1,5 @@
 package com.devicehive.application;
 
-import com.devicehive.handler.EchoRequestHandler;
 import com.devicehive.handler.command.*;
 import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.handler.command.CommandUnsubscribeRequestHandler;
@@ -34,7 +33,6 @@ public class RequestHandlersConfig {
     @Bean
     public Map<Action, RequestHandler> requestHandlerMap() {
         return new HashMap<Action, RequestHandler>() {{
-            put(Action.ECHO_REQUEST, new EchoRequestHandler());
             put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
             put(Action.NOTIFICATION_INSERT_REQUEST, new NotificationInsertHandler());
             put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
