@@ -1,4 +1,4 @@
-package com.devicehive;
+package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.shim.api.Request;
@@ -27,24 +27,13 @@ import static com.devicehive.shim.config.server.KafkaRpcServerConfig.REQUEST_TOP
 @WebIntegrationTest
 @SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
-public abstract class AbstractFrontendSpringTest {
+public abstract class AbstractSpringKafkaTest {
 
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
 
-    @Autowired
-    private RequestDispatcherProxy requestDispatcherProxy;
-
-    @Mock
-    protected RequestHandler requestHandler;
-
-    protected ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
-
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-        requestDispatcherProxy.setRequestHandler(requestHandler);
-
         // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
         TimeUnit.SECONDS.sleep(10);
     }

@@ -1,13 +1,19 @@
 package com.devicehive.service;
 
-import com.devicehive.AbstractFrontendSpringTest;
+import com.devicehive.base.AbstractSpringKafkaTest;
+import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.model.rpc.Action;
 import com.devicehive.model.rpc.ErrorResponse;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.service.exception.BackendException;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
@@ -21,10 +27,24 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DeviceNotificationServiceTest extends AbstractFrontendSpringTest {
+public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
 
     @Autowired
     private DeviceNotificationService notificationService;
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
 
     @Test
     @SuppressWarnings("unchecked")

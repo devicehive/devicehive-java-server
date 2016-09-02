@@ -1,4 +1,4 @@
-package com.devicehive;
+package com.devicehive.base;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
