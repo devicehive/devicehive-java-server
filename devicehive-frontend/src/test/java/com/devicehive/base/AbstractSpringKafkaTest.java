@@ -1,23 +1,14 @@
 package com.devicehive.base;
 
 import com.devicehive.application.DeviceHiveApplication;
-import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.util.concurrent.TimeUnit;
 
 import static com.devicehive.shim.config.client.KafkaRpcClientConfig.RESPONSE_TOPIC;
 import static com.devicehive.shim.config.server.KafkaRpcServerConfig.REQUEST_TOPIC;
@@ -32,9 +23,4 @@ public abstract class AbstractSpringKafkaTest {
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
 
-    @Before
-    public void setUp() throws Exception {
-        // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
-        TimeUnit.SECONDS.sleep(10);
-    }
 }

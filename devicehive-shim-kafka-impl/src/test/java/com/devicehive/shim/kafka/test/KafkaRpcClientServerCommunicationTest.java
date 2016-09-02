@@ -76,7 +76,6 @@ public class KafkaRpcClientServerCommunicationTest {
                 .withConsumerThreads(1)
                 .build();
         client.start();
-        TimeUnit.SECONDS.sleep(10);
     }
 
     @AfterClass

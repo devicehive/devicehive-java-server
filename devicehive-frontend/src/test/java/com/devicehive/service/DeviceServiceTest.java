@@ -4,19 +4,32 @@ import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.AbstractSpringKafkaTest;
+import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -24,30 +37,57 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 
-public class DeviceServiceTest extends AbstractResourceTest {
+public class DeviceServiceTest extends AbstractSpringKafkaTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
+
     @Autowired
     private DeviceService deviceService;
-    @Autowired
-    private DeviceNotificationService deviceNotificationService;
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private NetworkService networkService;
+
     @Autowired
     private DeviceClassService deviceClassService;
+
     @Autowired
     private AccessKeyService accessKeyService;
 
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
     private final Set<DeviceClassEquipmentVO> emptyEquipmentSet = Collections.<DeviceClassEquipmentVO>emptySet();
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        Mockito.reset(requestHandler);
+        Mockito.when(requestHandler.handle(Mockito.any(Request.class)))
+                .thenAnswer(new Answer<Response>() {
+                    @Override
+                    public Response answer(InvocationOnMock invocation) throws Throwable {
+                        Request request = (Request) invocation.getArguments()[0];
+                        return Response.newBuilder()
+                                .withCorrelationId(request.getCorrelationId())
+                                .buildSuccess();
+                    }
+                });
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
 
     /**
      * Test to check that device was successfully saved, notification send and retrieved back
@@ -95,16 +135,22 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
-        final Optional<DeviceNotification> existingNotification =
-                deviceNotificationService.find(null, device.getGuid()).join();
-
-        assertTrue(existingNotification.isPresent());
-        assertEquals(device.getGuid(), existingNotification.get().getDeviceGuid());
-
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
         assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        Mockito.verify(requestHandler).handle(requestCaptor.capture());
+        Request request = requestCaptor.getValue();
+        assertNotNull(request.getBody());
+        assertTrue(request.getBody() instanceof NotificationInsertRequest);
+        NotificationInsertRequest insertRequest = (NotificationInsertRequest) request.getBody();
+        assertNotNull(insertRequest.getDeviceNotification());
+        assertNotNull(insertRequest.getDeviceNotification().getId());
+        assertNotNull(insertRequest.getDeviceNotification().getTimestamp());
+        assertEquals(insertRequest.getDeviceNotification().getDeviceGuid(), existingDevice.getGuid());
+        assertEquals(insertRequest.getDeviceNotification().getNotification(), SpecialNotifications.DEVICE_ADD);
     }
 
     /**
@@ -172,7 +218,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
      * using Key role.
      */
     @Test
-    public void should_save_and_notify_role_key() throws UnknownHostException {
+    public void should_save_and_notify_role_key() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
@@ -197,10 +243,24 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
         assertNotNull(existingDevice);
+        assertEquals(existingDevice.getGuid(), deviceUpdate.getGuid().get());
+        assertEquals(existingDevice.getName(), deviceUpdate.getName().get());
+
+        ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
+        Mockito.verify(requestHandler).handle(requestCaptor.capture());
+
+        Request request = requestCaptor.getValue();
+        assertNotNull(request.getBody());
+        assertTrue(request.getBody() instanceof NotificationInsertRequest);
+        NotificationInsertRequest insertRequest = (NotificationInsertRequest) request.getBody();
+        assertNotNull(insertRequest.getDeviceNotification());
+        assertNotNull(insertRequest.getDeviceNotification().getId());
+        assertNotNull(insertRequest.getDeviceNotification().getTimestamp());
+        assertEquals(insertRequest.getDeviceNotification().getDeviceGuid(), existingDevice.getGuid());
+        assertEquals(insertRequest.getDeviceNotification().getNotification(), SpecialNotifications.DEVICE_ADD);
     }
 
     /**

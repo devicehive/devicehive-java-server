@@ -20,15 +20,12 @@ public class RequestResponseMatcher {
     void offerResponse(Response response) {
         Consumer<Response> callback = correlationMap.get(response.getCorrelationId());
         if (callback != null) {
-            executionPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        callback.accept(response);
-                    } finally {
-                        if (response.isLast()) {
-                            correlationMap.remove(response.getCorrelationId());
-                        }
+            executionPool.execute(() -> {
+                try {
+                    callback.accept(response);
+                } finally {
+                    if (response.isLast()) {
+                        correlationMap.remove(response.getCorrelationId());
                     }
                 }
             });

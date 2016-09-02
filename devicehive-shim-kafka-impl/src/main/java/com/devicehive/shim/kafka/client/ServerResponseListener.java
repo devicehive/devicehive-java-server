@@ -39,16 +39,16 @@ public class ServerResponseListener {
     }
 
     public void startWorkers() {
-        CountDownLatch startupLatch = new CountDownLatch(consumerThreads);
+        CountDownLatch latch = new CountDownLatch(consumerThreads);
         workers = new ArrayList<>(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
             KafkaConsumer<String, Response> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(), deserializer);
-            ResponseConsumerWorker worker = new ResponseConsumerWorker(topic, requestResponseMatcher, consumer, startupLatch);
+            ResponseConsumerWorker worker = new ResponseConsumerWorker(topic, requestResponseMatcher, consumer, latch);
             consumerExecutor.submit(worker);
             workers.add(worker);
         }
         try {
-            startupLatch.await(5000, TimeUnit.MILLISECONDS);
+            latch.await();
         } catch (InterruptedException e) {
             logger.error("Error while waiting for client consumers to subscribe", e);
         }

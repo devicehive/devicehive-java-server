@@ -4,16 +4,16 @@ import com.devicehive.shim.api.Request;
 import com.lmax.disruptor.RingBuffer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -41,11 +41,17 @@ public class RequestConsumer {
 
         workers = new ArrayList<>(consumerThreads);
         consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
+        CountDownLatch latch = new CountDownLatch(consumerThreads);
         for (int i = 0; i < consumerThreads; i++) {
             KafkaConsumer<String, Request> consumer = new KafkaConsumer<>(consumerProps, new StringDeserializer(), deserializer);
-            RequestConsumerWorker worker = new RequestConsumerWorker(this.topic, consumer, ringBuffer);
+            RequestConsumerWorker worker = new RequestConsumerWorker(this.topic, consumer, ringBuffer, latch);
             consumerExecutor.submit(worker);
             workers.add(worker);
+        }
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            logger.error("Error while waiting for consumers", e);
         }
     }
 
@@ -64,17 +70,25 @@ public class RequestConsumer {
         private String topic;
         private KafkaConsumer<String, Request> consumer;
         private RingBuffer<ServerEvent> ringBuffer;
+        private CountDownLatch latch;
 
-        RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer, RingBuffer<ServerEvent> ringBuffer) {
+        RequestConsumerWorker(String topic, KafkaConsumer<String, Request> consumer,
+                              RingBuffer<ServerEvent> ringBuffer, CountDownLatch latch) {
             this.topic = topic;
             this.consumer = consumer;
             this.ringBuffer = ringBuffer;
+            this.latch = latch;
         }
 
         @Override
         public void run() {
             try {
-                consumer.subscribe(Collections.singleton(topic));
+                consumer.subscribe(Collections.singleton(topic), new NoOpConsumerRebalanceListener() {
+                    @Override
+                    public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
+                        latch.countDown();
+                    }
+                });
 
                 while (!Thread.currentThread().isInterrupted()) {
                     ConsumerRecords<String, Request> records = consumer.poll(Long.MAX_VALUE);
@@ -84,7 +98,7 @@ public class RequestConsumer {
                     });
                 }
             } catch (WakeupException e) {
-                logger.warn("Response Consumer thread is shutting down");
+                logger.warn("Request Consumer thread is shutting down");
             } catch (Exception e) {
                 logger.error("Unexpected exception in server response consumer", e);
             } finally {
