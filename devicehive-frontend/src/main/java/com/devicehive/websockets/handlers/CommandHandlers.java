@@ -25,7 +25,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
@@ -35,6 +40,8 @@ import static javax.servlet.http.HttpServletResponse.*;
 public class CommandHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandHandlers.class);
+
+    public static final String SUBSCSRIPTION_SET_NAME = "commandSubscriptions";
 
     @Autowired
     private Gson gson;
@@ -53,9 +60,9 @@ public class CommandHandlers {
             throws InterruptedException {
 
         final Date timestamp = gson.fromJson(request.getAsJsonObject(TIMESTAMP), Date.class);
-        final String deviceId = request.get(DEVICE_GUID).getAsString();
-        final Set<String> names = gson.fromJson(request.getAsJsonObject(NAMES), setType);
-        Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), setType);
+        final String deviceId = gson.fromJson(request.getAsJsonPrimitive(DEVICE_GUID), String.class);
+        final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), setType);
+        Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), setType);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 guids, deviceId, timestamp, names, session);
@@ -79,6 +86,11 @@ public class CommandHandlers {
                 json -> WebSocketClientHandler.sendMessage(json, session));
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 guids, deviceId, timestamp, names, session);
+
+        ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME))
+                .add(subId);
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, subId, null);
@@ -105,6 +117,11 @@ public class CommandHandlers {
         } else {
             commandService.submitCommandUnsubscribe(null, guids);
         }
+
+        ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME))
+                .remove(subscriptionId);
 
         return new WebSocketResponse();
     }

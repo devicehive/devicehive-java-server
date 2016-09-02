@@ -32,6 +32,7 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -47,6 +48,8 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 @Component
 public class NotificationHandlers {
     private static final Logger logger = LoggerFactory.getLogger(NotificationHandlers.class);
+
+    public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
 
     @Autowired
     private DeviceService deviceService;
@@ -90,6 +93,11 @@ public class NotificationHandlers {
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
+
+        ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME))
+                .add(subscriptionId);
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, subscriptionId, null);
@@ -147,6 +155,11 @@ public class NotificationHandlers {
             notificationService.submitNotificationUnsubscribe(null, deviceGuids);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
+
+        ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME))
+                .remove(subId);
         return new WebSocketResponse();
     }
 

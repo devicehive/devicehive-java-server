@@ -1,6 +1,8 @@
 package com.devicehive.websockets;
 
 import com.devicehive.json.GsonFactory;
+import com.devicehive.service.DeviceCommandService;
+import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.CommandHandlers;
 import com.devicehive.websockets.handlers.NotificationHandlers;
@@ -30,6 +32,12 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private WebSocketResponseBuilder webSocketResponseBuilder;
 
+    @Autowired
+    private DeviceCommandService commandService;
+
+    @Autowired
+    private DeviceNotificationService notificationService;
+
     private int sendTimeLimit = 10 * 1000;
     private int sendBufferSizeLimit = 512 * 1024;
 
@@ -41,6 +49,8 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
 
+        session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
+        session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
 
         sessionMonitor.registerSession(session);
     }
@@ -63,6 +73,19 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         logger.debug("Connection closed: session id {}, close status is {} ", session.getId(), status);
+
+        CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
+                session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
+        for (String s : commandSubscriptions) {
+            commandService.submitCommandUnsubscribe(s, null);
+        }
+
+        CopyOnWriteArraySet<String> notificationSubscriptions = (CopyOnWriteArraySet)
+                session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
+        for (String s : notificationSubscriptions) {
+            notificationService.submitNotificationUnsubscribe(s, null);
+        }
+
         sessionMonitor.removeSession(session.getId());
     }
 
