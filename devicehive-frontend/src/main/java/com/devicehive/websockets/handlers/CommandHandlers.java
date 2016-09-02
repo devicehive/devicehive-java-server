@@ -95,10 +95,9 @@ public class CommandHandlers {
 
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
-        final String subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
-                .map(JsonElement::getAsString)
-                .orElse(null);
-        final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), setType);
+        final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
+                .map(JsonElement::getAsString);
+        final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (!subscriptionId.isPresent() && guids == null) {
