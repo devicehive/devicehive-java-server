@@ -93,10 +93,6 @@ public class DeviceCommandService {
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
-    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
-        return doUpdate(cmd, commandWrapper);
-    }
-
     public Pair<String, CompletableFuture<List<DeviceCommand>>> submitCommandSubscribe(
             final Set<String> devices,
             final Set<String> names,
@@ -155,7 +151,7 @@ public class DeviceCommandService {
         });
     }
 
-    private CompletableFuture<Void> doUpdate(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");
         }
