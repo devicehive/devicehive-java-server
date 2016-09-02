@@ -1,15 +1,23 @@
 package com.devicehive.handler.notification;
 
 import com.devicehive.base.AbstractSpringTest;
+import com.devicehive.eventbus.EventBus;
+import com.devicehive.handler.command.CommandInsertHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.eventbus.events.CommandEvent;
+import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.NotificationInsertRequest;
+import com.devicehive.model.rpc.NotificationInsertResponse;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -20,17 +28,31 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class NotificationInsertHandlerTest extends AbstractSpringTest {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
 
-    @Autowired
-    private RpcClient client;
+public class NotificationInsertHandlerTest extends AbstractSpringTest {
 
     @Autowired
     private HazelcastService hazelcastService;
 
+    private NotificationInsertHandler handler;
+
+    private EventBus eventBus;
+
+    @Before
+    public void setUp() throws Exception {
+        eventBus = Mockito.mock(EventBus.class);
+
+        handler = new NotificationInsertHandler();
+        handler.setEventBus(eventBus);
+        handler.setHazelcastService(hazelcastService);
+    }
+
     @Test
     public void testInsertNotification() throws ExecutionException, InterruptedException, TimeoutException {
-        final String corelationId = UUID.randomUUID().toString();
         final String guid = UUID.randomUUID().toString();
         final long id = System.nanoTime();
 
@@ -40,17 +62,26 @@ public class NotificationInsertHandlerTest extends AbstractSpringTest {
         originalNotification.setDeviceGuid(guid);
         originalNotification.setNotification("SOME TEST DATA");
         originalNotification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
+        NotificationInsertRequest nir = new NotificationInsertRequest(originalNotification);
+        Response response = handler.handle(
+                Request.newBuilder()
+                        .withBody(nir)
+                        .build()
+        );
 
-        final CompletableFuture<Response> future = new CompletableFuture<>();
-        client.call(Request.newBuilder()
-                .withBody(new NotificationInsertRequest(originalNotification))
-                .withPartitionKey(originalNotification.getDeviceGuid())
-                .build(), future::complete);
-
-        Response response = future.get(10, TimeUnit.SECONDS);
-        Assert.assertEquals(corelationId, response.getCorrelationId());
-        Assert.assertTrue(hazelcastService.find(id, guid, DeviceNotification.class)
+        assertTrue(hazelcastService.find(id, guid, DeviceNotification.class)
                 .filter(notification -> notification.equals(originalNotification))
                 .isPresent());
+
+        ArgumentCaptor<NotificationEvent> eventCaptor = ArgumentCaptor.forClass(NotificationEvent.class);
+        verify(eventBus).publish(eventCaptor.capture());
+        NotificationEvent event = eventCaptor.getValue();
+        assertEquals(event.getNotification(), originalNotification);
+
+        assertNotNull(response);
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody() instanceof NotificationInsertResponse);
+        NotificationInsertResponse body = (NotificationInsertResponse) response.getBody();
+        assertEquals(body.getDeviceNotification(), originalNotification);
     }
 }

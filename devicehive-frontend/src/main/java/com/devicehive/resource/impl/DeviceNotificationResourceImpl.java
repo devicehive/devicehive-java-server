@@ -15,6 +15,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.vo.DeviceVO;
+import com.sun.org.apache.bcel.internal.generic.LLOAD;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -200,32 +201,46 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public Response insert(String guid, DeviceNotificationWrapper notificationSubmit) {
+    public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
+
+        if (notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
                     Messages.INVALID_REQUEST_PARAMETERS);
-            return ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
+            Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
+            asyncResponse.resume(response);
         }
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+            Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                     String.format(Messages.DEVICE_NOT_FOUND, guid)));
+            asyncResponse.resume(response);
+        } else {
+            if (device.getNetwork() == null) {
+                logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
+                Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
+                        String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
+                asyncResponse.resume(response);
+            } else {
+                DeviceNotification notification = notificationService.insert(notificationSubmit, device).join();
+                if (notification != null) {
+                    logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}", guid,
+                            notification.getNotification());
+                    Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, notification, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
+                    asyncResponse.resume(jaxResponse);
+                } else {
+                    // FIX ERROR
+                    logger.warn("Device notification insert failed for device with guid = {}.", guid);
+                    ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
+                    Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                    asyncResponse.resume(jaxResponse);
+                }
+            }
         }
-        if (device.getNetwork() == null) {
-            logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
-            return ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
-                    String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
-        }
-        DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
-        notificationService.submitDeviceNotification(message, device);
-
-        logger.debug("DeviceNotification insertAll proceed successfully");
-        return ResponseFactory.response(CREATED, message, NOTIFICATION_TO_DEVICE);
     }
 
     private void submitEmptyResponse(final AsyncResponse asyncResponse) {

@@ -220,11 +220,12 @@ public interface DeviceNotificationResource {
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 403, message = "If device is not connected to network")
     })
-    Response insert(
+    void insert(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
             String guid,
             @ApiParam(value = "Notification body", required = true, defaultValue = "{}")
             @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
-            DeviceNotificationWrapper notificationSubmit);
+            DeviceNotificationWrapper notificationSubmit,
+            @Suspended final AsyncResponse asyncResponse);
 }

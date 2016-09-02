@@ -92,6 +92,17 @@ public class DeviceNotificationService {
         });
     }
 
+    public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper commandWrapper, DeviceVO device) {
+        DeviceNotification notification = convertToMessage(commandWrapper, device);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new NotificationInsertRequest(notification))
+                .withPartitionKey(device.getGuid())
+                .build(), new ResponseConsumer(future));
+        return future.thenApply(r -> ((NotificationInsertResponse) r.getBody()).getDeviceNotification());
+    }
+
     public void submitDeviceNotification(final DeviceNotification notification, final String deviceGuid) {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));

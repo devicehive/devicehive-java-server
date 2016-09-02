@@ -3,7 +3,9 @@ package com.devicehive.handler.notification;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.events.NotificationEvent;
+import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
+import com.devicehive.model.rpc.NotificationInsertResponse;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -12,11 +14,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class NotificationInsertHandler implements RequestHandler {
 
-    @Autowired
     private HazelcastService hazelcastService;
 
-    @Autowired
     private EventBus eventBus;
+
+    @Autowired
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
+    }
 
     @Override
     public Response handle(Request request) {
@@ -26,6 +36,9 @@ public class NotificationInsertHandler implements RequestHandler {
         NotificationEvent notificationEvent = new NotificationEvent(notification);
         eventBus.publish(notificationEvent);
 
-        return Response.newBuilder().buildSuccess();
+        NotificationInsertResponse payload = new NotificationInsertResponse(notification);
+        return Response.newBuilder()
+                .withBody(payload)
+                .buildSuccess();
     }
 }
