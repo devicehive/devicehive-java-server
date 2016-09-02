@@ -86,7 +86,7 @@ public class KafkaRpcClient implements RpcClient {
 
             Response response = null;
             try {
-                response = pingFuture.get(1000, TimeUnit.MILLISECONDS);
+                response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException | ExecutionException e) {
                 logger.error("Exception occured while trying to ping RpcServer ", e);
             } catch (TimeoutException e) {
