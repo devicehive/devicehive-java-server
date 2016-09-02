@@ -4,36 +4,37 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.lang.reflect.Type;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.function.BiConsumer;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Component
@@ -52,58 +53,54 @@ public class CommandHandlers {
     @Autowired
     private DeviceCommandService commandService;
 
-    private final Type setType = new TypeToken<HashSet<String>>() {
-    }.getType();
-
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
 
         final Date timestamp = gson.fromJson(request.getAsJsonObject(TIMESTAMP), Date.class);
-        final String deviceId = gson.fromJson(request.getAsJsonPrimitive(DEVICE_GUID), String.class);
-        final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), setType);
-        Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), setType);
+        final String deviceId = request.get(DEVICE_GUID).getAsString();
+        final Set<String> names = gson.fromJson(request.getAsJsonObject(NAMES), JsonTypes.STRING_SET_TYPE);
+        Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 guids, deviceId, timestamp, names, session);
 
         guids = prepareActualList(guids, deviceId);
+        Assert.notEmpty(guids);
 
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (names != null && names.isEmpty()) {
-            throw new HiveException(Messages.EMPTY_NAMES, SC_BAD_REQUEST);
-        }
+        BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
+            JsonObject json = ServerResponsesFactory.createCommandInsertMessage(command, subscriptionId);
+            sendMessage(json, session);
+        };
 
-        List<DeviceVO> actualDevices;
-        if (guids != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(guids, principal);
-            if (actualDevices.size() != guids.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, guids), SC_FORBIDDEN);
-            }
-        }
+        Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
+                .submitCommandSubscribe(guids, names, timestamp, callback);
 
-        String subId = commandService.submitCommandSubscribe(guids, names, timestamp,
-                json -> WebSocketClientHandler.sendMessage(json, session));
+        pair.getRight().thenAccept(collection ->
+                collection.forEach(cmd ->
+                        sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
+
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                guids, deviceId, timestamp, names, session);
+                guids, deviceId, timestamp, names, session.getId());
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME))
-                .add(subId);
+                .add(pair.getLeft());
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, subId, null);
+        response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
         return response;
     }
 
     @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
-        final String subscriptionId = request.get(SUBSCRIPTION_ID).getAsString();
-        final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), setType);
+        final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
+                .map(JsonElement::getAsString);
+        final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
-        if (subscriptionId == null && guids == null) {
+        if (!subscriptionId.isPresent() && guids == null) {
             Set<String> subForAll = new HashSet<String>() {
                 {
                     add(Constants.NULL_SUBSTITUTE);
@@ -112,8 +109,8 @@ public class CommandHandlers {
                 private static final long serialVersionUID = 8001668138178383978L;
             };
             commandService.submitCommandUnsubscribe(null, subForAll);
-        } else if (subscriptionId != null) {
-            commandService.submitCommandUnsubscribe(subscriptionId, guids);
+        } else if (subscriptionId.isPresent()) {
+            commandService.submitCommandUnsubscribe(subscriptionId.get(), guids);
         } else {
             commandService.submitCommandUnsubscribe(null, guids);
         }

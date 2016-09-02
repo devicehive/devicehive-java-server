@@ -14,7 +14,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * REST controller for device commands: <i>/device/{deviceGuid}/command</i>. See <a
@@ -58,7 +57,7 @@ public interface DeviceCommandResource {
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout")
             long timeout,
-            @Suspended AsyncResponse asyncResponse);
+            @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
     @Path("/command/poll")
@@ -83,7 +82,7 @@ public interface DeviceCommandResource {
             @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
             @QueryParam("waitTimeout")
             long timeout,
-            @Suspended AsyncResponse asyncResponse);
+            @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")

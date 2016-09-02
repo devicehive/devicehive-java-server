@@ -3,6 +3,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -16,6 +17,7 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,11 @@ import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -54,33 +60,73 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceGuid, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) {
-        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse, false);
+    public void poll(final String deviceGuid, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse);
     }
 
     @Override
-    public void pollMany(String deviceGuidsString, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) {
-        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse, true);
+    public void pollMany(String deviceGuidsString, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse);
     }
 
     private void poll(final long timeout,
-                      final String deviceGuids,
-                      final String namesString,
+                      final String deviceGuidsCsv,
+                      final String namesCsv,
                       final String timestamp,
-                      final AsyncResponse asyncResponse,
-                      final boolean isMany) {
-        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
+                      final AsyncResponse asyncResponse) throws InterruptedException {
+        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
         final Date ts = TimestampQueryParamParser.parse(timestamp);
 
-        final String devices = StringUtils.isNoneBlank(deviceGuids) ? deviceGuids : null;
-        final String names = StringUtils.isNoneBlank(namesString) ? namesString : null;
+        if (timeout < 0) {
+            asyncResponse.resume(ResponseFactory.response(
+                    Response.Status.OK,
+                    Collections.emptyList(),
+                    JsonPolicyDef.Policy.COMMAND_LISTED));
+        }
+        asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
-        mes.submit(() -> {
-            try {
-//                getOrWaitForCommands(principal, devices, names, ts, timeout, asyncResponse, isMany); // FIXME
-            } catch (Exception e) {
-                asyncResponse.resume(e);
+        Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
+                .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+
+        Set<String> names = Optional.of(StringUtils.split(namesCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+
+        BiConsumer<DeviceCommand, String> callback = (notification, subscriptionId) -> {
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(ResponseFactory.response(
+                        Response.Status.OK,
+                        notification,
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+            }
+        };
+
+        Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
+                .submitCommandSubscribe(availableDevices, names, ts, callback);
+
+        pair.getRight().thenAccept(collection -> {
+            if (!collection.isEmpty() && !asyncResponse.isDone()) {
+                asyncResponse.resume(ResponseFactory.response(
+                        Response.Status.OK,
+                        collection,
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+            }
+        }).exceptionally(throwable -> {
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(throwable);
+            }
+            return null;
+        });
+
+        asyncResponse.register(new CompletionCallback() {
+            @Override
+            public void onComplete(Throwable throwable) {
+                commandService.submitCommandUnsubscribe(pair.getLeft(), null);
             }
         });
     }
@@ -260,6 +306,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
             asyncResponse.resume(response);
+            return;
         }
 
         commandService.find(Long.valueOf(commandId), device.getGuid())
@@ -307,7 +354,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 asyncResponse.resume(jaxResponse);
             } else {
                 LOGGER.warn("Device command insert failed for device with guid = {}.", guid);
-                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1l));
+                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1L));
                 Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
                 asyncResponse.resume(jaxResponse);
             }
@@ -342,10 +389,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
         }
     }
-
-//    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
-//        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(), JsonPolicyDef.Policy.COMMAND_LISTED));
-//    }
 
 //    private CommandSubscription getInsertSubscription(HivePrincipal principal, String guid, UUID reqId, String names,
 //                                                      AsyncResponse asyncResponse, boolean isMany, FutureTask<Void> waitTask){

@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.messages.handler.ClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.rpc.*;
@@ -11,19 +10,16 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -32,16 +28,18 @@ public class DeviceCommandService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandService.class);
 
-    @Autowired
     private TimestampService timestampService;
-
-    @Autowired
     private HiveValidator hiveValidator;
-
-    @Autowired
     private RpcClient rpcClient;
 
-    @SuppressWarnings("unchecked")
+    public DeviceCommandService(TimestampService timestampService,
+                                HiveValidator hiveValidator,
+                                RpcClient rpcClient) {
+        this.timestampService = timestampService;
+        this.hiveValidator = hiveValidator;
+        this.rpcClient = rpcClient;
+    }
+
     public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
@@ -100,45 +98,43 @@ public class DeviceCommandService {
         return doUpdate(cmd, commandWrapper);
     }
 
-    public String submitCommandSubscribe(final Set<String> devices,
-                                         final Set<String> names,
-                                         final Date timestamp,
-                                         final ClientHandler clientHandler) throws InterruptedException {
+    public Pair<String, CompletableFuture<List<DeviceCommand>>> submitCommandSubscribe(
+            final Set<String> devices,
+            final Set<String> names,
+            final Date timestamp,
+            final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
+
         final String subscriptionId = UUID.randomUUID().toString();
-        Set<CommandSubscribeRequest> subscribeRequests = devices.stream()
+        Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
                 .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp))
-                .collect(Collectors.toSet());
+                .map(subscribeRequest -> {
+                    CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
+                    Consumer<Response> responseConsumer = response -> {
+                        String resAction = response.getBody().getAction();
+                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_REQUEST.name())) {
+                            future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
+                        } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                            callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
+                        } else {
+                            logger.warn("Unknown action received from backend {}", resAction);
+                        }
+                    };
+                    Request request = Request.newBuilder()
+                            .withBody(subscribeRequest)
+                            .withPartitionKey(subscribeRequest.getDevice())
+                            .withSingleReply(false)
+                            .build();
+                    rpcClient.call(request, responseConsumer);
+                    return future;
+                }).collect(Collectors.toList());
 
-        CountDownLatch responseLatch = new CountDownLatch(subscribeRequests.size());
-        Set<DeviceCommand> commands = new HashSet<>();
-        for (CommandSubscribeRequest subscribeRequest : subscribeRequests) {
-            Consumer<Response> callback = response -> {
-                String resAction = response.getBody().getAction();
-                if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
-                    CommandSubscribeResponse subscribeResponse = (CommandSubscribeResponse) response.getBody();
-                    commands.addAll(subscribeResponse.getCommands());
-                    responseLatch.countDown();
-                } else if (resAction.equals(Action.COMMAND_EVENT.name())) {
-                    CommandEvent event = (CommandEvent) response.getBody();
-                    JsonObject json = ServerResponsesFactory.createCommandInsertMessage(event.getCommand(), subscriptionId);
-                    clientHandler.sendMessage(json);
-                } else {
-                    logger.warn("Unknown action received from backend {}", resAction);
-                }
-            };
-
-            Request request = Request.newBuilder()
-                    .withBody(subscribeRequest)
-                    .withPartitionKey(subscribeRequest.getDevice())
-                    .withSingleReply(false)
-                    .build();
-            rpcClient.call(request, callback);
-        }
-        responseLatch.await();
-        if (!commands.isEmpty()) {
-            //todo send existing commands to device after subscription response
-        }
-        return subscriptionId;
+        CompletableFuture<List<DeviceCommand>> future = CompletableFuture
+                .allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()));
+        return Pair.of(subscriptionId, future);
     }
 
     public void submitCommandUnsubscribe(String subId, Set<String> deviceGuids) {

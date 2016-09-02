@@ -13,6 +13,7 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,24 +21,30 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
 public class DeviceNotificationService {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
-    @Autowired
     private DeviceEquipmentService deviceEquipmentService;
-
-    @Autowired
     private TimestampService timestampService;
-
-    @Autowired
     private DeviceDao deviceDao;
+    private RpcClient rpcClient;
 
     @Autowired
-    private RpcClient rpcClient;
+    public DeviceNotificationService(DeviceEquipmentService deviceEquipmentService,
+                                     TimestampService timestampService,
+                                     DeviceDao deviceDao,
+                                     RpcClient rpcClient) {
+        this.deviceEquipmentService = deviceEquipmentService;
+        this.timestampService = timestampService;
+        this.deviceDao = deviceDao;
+        this.rpcClient = rpcClient;
+    }
 
     public CompletableFuture<Optional<DeviceNotification>> find(Long id, String guid) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
@@ -84,12 +91,10 @@ public class DeviceNotificationService {
     }
 
     public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
-        processDeviceNotification(notification, device).forEach(n -> {
-            rpcClient.push(Request.newBuilder()
-                    .withBody(new NotificationInsertRequest(notification))
-                    .withPartitionKey(device.getGuid())
-                    .build());
-        });
+        processDeviceNotification(notification, device).forEach(n -> rpcClient.push(Request.newBuilder()
+                .withBody(new NotificationInsertRequest(notification))
+                .withPartitionKey(device.getGuid())
+                .build()));
     }
 
     public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper commandWrapper, DeviceVO device) {
@@ -113,11 +118,13 @@ public class DeviceNotificationService {
                 .build());
     }
 
-    public CompletableFuture<Collection<DeviceNotification>> sendSubscribeRequest(String subscriptionId,
-                                                                                  Set<String> devices,
-                                                                                  Set<String> names,
-                                                                                  Date timestamp,
-                                                                                  Consumer<DeviceNotification> callback) {
+    public Pair<String, CompletableFuture<List<DeviceNotification>>> sendSubscribeRequest(
+            final Set<String> devices,
+            final Set<String> names,
+            final Date timestamp,
+            final BiConsumer<DeviceNotification, String> callback) {
+
+        final String subscriptionId = UUID.randomUUID().toString();
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
                 .collect(Collectors.toSet());
@@ -131,7 +138,7 @@ public class DeviceNotificationService {
                     future.complete(r.getNotifications());
                 } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
                     NotificationEvent event = response.getBody().cast(NotificationEvent.class);
-                    callback.accept(event.getNotification());
+                    callback.accept(event.getNotification(), subscriptionId);
                 } else {
                     logger.warn("Unknown action received from backend {}", resAction);
                 }
@@ -144,11 +151,14 @@ public class DeviceNotificationService {
                     .build();
             rpcClient.call(request, responseConsumer);
         }
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+
+        CompletableFuture<List<DeviceNotification>> future = CompletableFuture
+                .allOf(futures.toArray(new CompletableFuture[futures.size()]))
                 .thenApply(v -> futures.stream()
                         .map(CompletableFuture::join)
                         .flatMap(Collection::stream)
                         .collect(Collectors.toList()));
+        return Pair.of(subscriptionId, future);
     }
 
     public void submitNotificationUnsubscribe(String subId, Set<String> deviceGuids) {

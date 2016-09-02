@@ -11,6 +11,9 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -22,10 +25,10 @@ import static org.junit.Assert.fail;
  * <p>
  * Other websocket functionality verification tests should work through the injection and message passing via java calls.
  */
-public class WebsocketApiInfoHandler extends AbstractResourceTest {
+public class WebSocketApiInfoHandlerTest extends AbstractResourceTest {
 
-    @Test(timeout = 5 * 1000) // 5 seconds
-    public void shouldReturnApiInfo() {
+    @Test
+    public void shouldReturnApiInfo() throws Exception {
         final String requestId = "62345vxgsa5";
 
         CompletableFuture<TextMessage> future = new CompletableFuture<>();
@@ -54,6 +57,6 @@ public class WebsocketApiInfoHandler extends AbstractResourceTest {
         }).exceptionally(e -> {
             fail(e.getMessage());
             return null;
-        }).join();
+        }).get(5, TimeUnit.SECONDS);
     }
 }

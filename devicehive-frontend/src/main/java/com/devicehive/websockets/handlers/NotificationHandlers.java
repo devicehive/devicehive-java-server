@@ -5,22 +5,18 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.shim.api.Response;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +29,9 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
 
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.NOTIFICATION;
-import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
+import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -65,8 +57,8 @@ public class NotificationHandlers {
     public WebSocketResponse processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException {
         Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
-        Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_GUIDS), new TypeToken<Set<String>>() {}.getType());
-        Set<String> names = gson.fromJson(request.get(Constants.NAMES), new TypeToken<Set<String>>() {}.getType());
+        Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
+        Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
         String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
                 .map(JsonElement::getAsString)
                 .orElse(null);
@@ -77,16 +69,17 @@ public class NotificationHandlers {
         devices = prepareActualList(devices, deviceId);
         Assert.notEmpty(devices);
 
-        String subscriptionId = UUID.randomUUID().toString();
-        Consumer<DeviceNotification> callback = notification -> {
+        BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
             sendMessage(json, session);
         };
-        CompletableFuture<Collection<DeviceNotification>> future =
-                notificationService.sendSubscribeRequest(subscriptionId, devices, names, timestamp, callback);
-        future.thenAccept(collection -> {
+
+        Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
+                .sendSubscribeRequest(devices, names, timestamp, callback);
+
+        pair.getRight().thenAccept(collection -> {
             for (DeviceNotification notification : collection) {
-                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
+                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
                 sendMessage(json, session);
             }
         });
@@ -97,10 +90,10 @@ public class NotificationHandlers {
         ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME))
-                .add(subscriptionId);
+                .add(pair.getLeft());
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, subscriptionId, null);
+        response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
         return response;
     }
 
@@ -137,10 +130,11 @@ public class NotificationHandlers {
     @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
-        UUID subId = UUID.fromString(request.get(SUBSCRIPTION_ID).getAsString());
-        Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), new TypeToken<Set<String>>() {}.getType());
+        Optional<String> subId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
+                .map(JsonElement::getAsString);
+        Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
-        if (subId == null && deviceGuids == null) {
+        if (!subId.isPresent() && deviceGuids == null) {
             Set<String> subForAll = new HashSet<String>() {
                 {
                     add(Constants.NULL_SUBSTITUTE);
@@ -149,8 +143,8 @@ public class NotificationHandlers {
                 private static final long serialVersionUID = 8001668138178383978L;
             };
             notificationService.submitNotificationUnsubscribe(null, subForAll);
-        } else if (subId != null) {
-            notificationService.submitNotificationUnsubscribe(subId.toString(), deviceGuids);
+        } else if (subId.isPresent()) {
+            notificationService.submitNotificationUnsubscribe(subId.get(), deviceGuids);
         } else {
             notificationService.submitNotificationUnsubscribe(null, deviceGuids);
         }

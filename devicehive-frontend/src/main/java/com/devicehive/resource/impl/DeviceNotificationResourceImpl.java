@@ -13,10 +13,9 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.vo.DeviceVO;
-import com.sun.org.apache.bcel.internal.generic.LLOAD;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +31,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -54,9 +52,6 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     @Autowired
     @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
     private ExecutorService mes;
-
-    @Autowired
-    private RpcClient rpcClient;
 
     /**
      * {@inheritDoc}
@@ -153,7 +148,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         final Date ts = TimestampQueryParamParser.parse(timestamp);
 
         if (timeout < 0) {
-            submitEmptyResponse(asyncResponse);
+            asyncResponse.resume(ResponseFactory.response(
+                    Response.Status.OK,
+                    Collections.emptyList(),
+                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
         }
         asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
@@ -168,19 +166,24 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        String subscriptionId = UUID.randomUUID().toString();
-        Consumer<DeviceNotification> callback = notification -> {
+        BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
-                asyncResponse.resume(
-                        ResponseFactory.response(Response.Status.OK, notification, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                asyncResponse.resume(ResponseFactory.response(
+                        Response.Status.OK,
+                        notification,
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
             }
         };
-        CompletableFuture<Collection<DeviceNotification>> future =
-                notificationService.sendSubscribeRequest(subscriptionId, availableDevices, notifications, ts, callback);
-        future.thenAccept(collection -> {
+
+        Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
+                .sendSubscribeRequest(availableDevices, notifications, ts, callback);
+
+        pair.getRight().thenAccept(collection -> {
             if (!collection.isEmpty() && !asyncResponse.isDone()) {
-                asyncResponse.resume(
-                        ResponseFactory.response(Response.Status.OK, collection, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                asyncResponse.resume(ResponseFactory.response(
+                        Response.Status.OK,
+                        collection,
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
             }
         }).exceptionally(throwable -> {
             if (!asyncResponse.isDone()) {
@@ -192,7 +195,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         asyncResponse.register(new CompletionCallback() {
             @Override
             public void onComplete(Throwable throwable) {
-                notificationService.submitNotificationUnsubscribe(subscriptionId, null);
+                notificationService.submitNotificationUnsubscribe(pair.getLeft(), null);
             }
         });
     }
@@ -242,10 +245,4 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
         }
     }
-
-    private void submitEmptyResponse(final AsyncResponse asyncResponse) {
-        asyncResponse.resume(ResponseFactory.response(Response.Status.OK, Collections.emptyList(),
-                JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-    }
-
 }

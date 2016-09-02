@@ -27,7 +27,7 @@ public class ServerResponsesFactory {
         resultMessage.addProperty("action", "notification/insert");
         resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDeviceGuid());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
-        resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId.toString());
+        resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultMessage;
     }
 
