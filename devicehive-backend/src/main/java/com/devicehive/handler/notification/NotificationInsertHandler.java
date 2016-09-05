@@ -3,7 +3,6 @@ package com.devicehive.handler.notification;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.rpc.NotificationInsertResponse;
 import com.devicehive.service.HazelcastService;

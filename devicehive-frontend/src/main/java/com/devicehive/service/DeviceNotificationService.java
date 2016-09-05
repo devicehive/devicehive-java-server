@@ -99,8 +99,8 @@ public class DeviceNotificationService {
                 .build()));
     }
 
-    public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper commandWrapper, DeviceVO device) {
-        DeviceNotification notification = convertToMessage(commandWrapper, device);
+    public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper notificationWrapper, DeviceVO device) {
+        DeviceNotification notification = convertToMessage(notificationWrapper, device);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()

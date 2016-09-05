@@ -93,6 +93,7 @@ public class DeviceCommandService {
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandInsertRequest(command))
+                .withPartitionKey(device.getGuid())
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }

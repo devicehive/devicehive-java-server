@@ -97,12 +97,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        BiConsumer<DeviceCommand, String> callback = (notification, subscriptionId) -> {
+        BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
-                        notification,
-                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                        command,
+                        JsonPolicyDef.Policy.COMMAND_TO_CLIENT));
             }
         };
 
@@ -114,7 +114,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
                         collection,
-                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                        JsonPolicyDef.Policy.COMMAND_TO_CLIENT));
             }
         }).exceptionally(throwable -> {
             if (!asyncResponse.isDone()) {
