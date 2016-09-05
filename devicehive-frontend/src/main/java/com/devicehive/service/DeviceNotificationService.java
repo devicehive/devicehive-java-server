@@ -66,7 +66,9 @@ public class DeviceNotificationService {
                 .map(guid -> {
                     NotificationSearchRequest searchRequest = new NotificationSearchRequest();
                     searchRequest.setGuid(guid);
-                    searchRequest.setNames(new HashSet<>(names));
+                    if (names != null) {
+                        searchRequest.setNames(new HashSet<>(names));
+                    }
                     searchRequest.setTimestampStart(timestampSt);
                     searchRequest.setTimestampEnd(timestampEnd);
                     return searchRequest;

@@ -150,8 +150,8 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         assertThat(notificationNames, hasSize(3));
         assertEquals(notificationNames, names);
 
-        verify(hazelcastService).find(null, null, Collections.singleton(device), names,
-                timestamp, NotificationSubscribeRequestHandler.LIMIT, DeviceNotification.class);
+        verify(hazelcastService).find(null, names, Collections.singleton(device),
+                NotificationSubscribeRequestHandler.LIMIT, timestamp, null, null, DeviceNotification.class);
     }
 
     @Test

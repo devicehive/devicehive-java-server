@@ -74,7 +74,7 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
         Collection<DeviceNotification> notifications = Collections.emptyList();
         if (timestamp != null) {
             notifications =
-                    hazelcastService.find(null, null, Collections.singleton(device), names, timestamp, LIMIT, DeviceNotification.class);
+                    hazelcastService.find(null, names, Collections.singleton(device), LIMIT, timestamp, null, null, DeviceNotification.class);
         }
         return notifications;
     }

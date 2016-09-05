@@ -25,6 +25,7 @@ public class Constants {
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final Integer DEFAULT_TAKE = 100;
     public static final String DEFAULT_TAKE_STR = "100";
+    public static final String DEFAULT_SKIP_STR = "0";
     public static final String CURRENT_USER = "current";
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String OAUTH_AUTH_SCEME = "Bearer";

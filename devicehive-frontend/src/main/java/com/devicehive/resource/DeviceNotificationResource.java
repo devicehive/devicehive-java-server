@@ -78,6 +78,7 @@ public interface DeviceNotificationResource {
             Integer take,
             @ApiParam(name = "skip", value = "Skip param")
             @QueryParam("skip")
+            @DefaultValue(Constants.DEFAULT_SKIP_STR)
             Integer skip,
             @Suspended
             AsyncResponse asyncResponse);

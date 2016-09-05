@@ -52,6 +52,8 @@ public class CommandSearchHandler implements RequestHandler {
         final Collection<DeviceCommand> commands = hazelcastService.find(
                 searchRequest.getGuid(),
                 searchRequest.getNames(),
+                null,
+                0,
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
                 searchRequest.getStatus(),

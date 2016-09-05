@@ -39,8 +39,11 @@ public class NotificationSearchHandler implements RequestHandler {
         final Collection<DeviceNotification> notifications = storageService.find(
                 searchRequest.getGuid(),
                 searchRequest.getNames(),
+                null,
+                0,
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
+                null,
                 DeviceNotification.class);
 
         notificationSearchResponse.setNotifications(new ArrayList<>(notifications));

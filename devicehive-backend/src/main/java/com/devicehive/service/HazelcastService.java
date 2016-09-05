@@ -21,14 +21,14 @@ import java.util.*;
 public class HazelcastService {
     private static final Logger logger = LoggerFactory.getLogger(HazelcastService.class);
 
-    public static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
-    public static final String COMMANDS_MAP = "COMMANDS-MAP";
+    private static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
+    private static final String COMMANDS_MAP = "COMMANDS-MAP";
 
     @Autowired
-    protected HazelcastInstance hazelcastInstance;
+    private HazelcastInstance hazelcastInstance;
 
     @Autowired
-    protected HazelcastHelper hazelcastHelper;
+    private HazelcastHelper hazelcastHelper;
 
     private Map<Class, IMap<String, HazelcastEntity>> mapsHolder = new HashMap<>(2);
 
@@ -52,30 +52,13 @@ public class HazelcastService {
 
     public <T extends HazelcastEntity> Collection<T> find(String guid,
                                                           Collection<String> names,
+                                                          Collection<String> devices,
+                                                          Integer take,
                                                           Date timestampSt,
                                                           Date timestampEnd,
                                                           String status,
                                                           Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(guid,  names, timestampSt, timestampEnd, status);
-        return find(filters, 0, entityClass);
-    }
-
-    public <T extends HazelcastEntity> Collection<T> find(String guid,
-                                                          Collection<String> names,
-                                                          Date timestampSt,
-                                                          Date timestampEnd,
-                                                          Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(guid,  names, timestampSt, timestampEnd);
-        return find(filters, 0, entityClass);
-    }
-
-    public <T extends HazelcastEntity> Collection<T> find(Long id,
-                                                          String guid,
-                                                          Collection<String> devices,
-                                                          Collection<String> names,
-                                                          Date timestamp, Integer take,
-                                                          Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(id, guid, devices, names, timestamp);
+        final Predicate filters = hazelcastHelper.prepareFilters(guid,  names, devices, timestampSt, timestampEnd, status, entityClass);
         return find(filters, take, entityClass);
     }
 

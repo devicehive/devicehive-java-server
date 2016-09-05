@@ -65,7 +65,7 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp) {
         return Optional.ofNullable(timestamp)
-                .map(t -> hazelcastService.find(null, null, Collections.singleton(device), names, t, LIMIT, DeviceCommand.class))
+                .map(t -> hazelcastService.find(null, names, Collections.singleton(device), LIMIT, t, null, null, DeviceCommand.class))
                 .orElse(Collections.emptyList());
     }
 }

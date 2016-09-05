@@ -5,7 +5,7 @@ import com.devicehive.model.DeviceNotification;
 
 import java.util.*;
 
-public class CommandResponseFilterAndSort {
+public final class CommandResponseFilterAndSort {
 
     private CommandResponseFilterAndSort() {
 
@@ -20,14 +20,11 @@ public class CommandResponseFilterAndSort {
         if (Boolean.FALSE.equals(reverse)) {
             Collections.reverse(deviceCommands);
         }
-        if (skip != null && take != null && take >= 0) {
-            return subList(deviceCommands, skip, take);
-        }
-        return deviceCommands;
+        return subList(deviceCommands, skip, take);
     }
 
     private static <T> List<T> subList(List<T> deviceCommands, Integer skip, Integer take) {
-        if (skip < 0 || take < 0 || skip >= deviceCommands.size()) {
+        if (skip < 0 || take <= 0 || skip >= deviceCommands.size()) {
             return Collections.emptyList();
         }
         int end = (int) Math.min(deviceCommands.size(), (long) skip + take);
@@ -36,22 +33,16 @@ public class CommandResponseFilterAndSort {
 
     public static Comparator<DeviceCommand> buildDeviceCommandComparator(String field) {
         if ("timestamp".equalsIgnoreCase(field)) {
-            return null;
+            return (o1, o2) -> o2.getTimestamp().compareTo(o1.getTimestamp());
         } else if ("status".equalsIgnoreCase(field)) {
-            return new Comparator<DeviceCommand>() {
-                @Override
-                public int compare(DeviceCommand o1, DeviceCommand o2) {
-                    String o2Status = o2.getStatus() == null ? "" : o2.getStatus();
-                    return o2Status.compareTo(o1.getStatus());
-                }
+            return (o1, o2) -> {
+                String o2Status = o2.getStatus() == null ? "" : o2.getStatus();
+                return o2Status.compareTo(o1.getStatus());
             };
         } else if ("command".equalsIgnoreCase(field)) {
-            return new Comparator<DeviceCommand>() {
-                @Override
-                public int compare(DeviceCommand o1, DeviceCommand o2) {
-                    String o2Command = o2.getCommand() == null ? "" : o2.getCommand();
-                    return o2Command.compareTo(o1.getCommand());
-                }
+            return (o1, o2) -> {
+                String o2Command = o2.getCommand() == null ? "" : o2.getCommand();
+                return o2Command.compareTo(o1.getCommand());
             };
         }
         return null;
@@ -59,14 +50,11 @@ public class CommandResponseFilterAndSort {
 
     public static Comparator<DeviceNotification> buildDeviceNotificationComparator(String field) {
         if ("timestamp".equalsIgnoreCase(field)) {
-            return null;
+            return (o1, o2) -> o2.getTimestamp().compareTo(o1.getTimestamp());
         } else if ("notification".equalsIgnoreCase(field)) {
-            return new Comparator<DeviceNotification>() {
-                @Override
-                public int compare(DeviceNotification o1, DeviceNotification o2) {
-                    String o2Status = o2.getNotification() == null ? "" : o2.getNotification();
-                    return o2Status.compareTo(o1.getNotification());
-                }
+            return (o1, o2) -> {
+                String o2Status = o2.getNotification() == null ? "" : o2.getNotification();
+                return o2Status.compareTo(o1.getNotification());
             };
         }
         return null;
