@@ -2,10 +2,7 @@ package com.devicehive.json.adapters;
 
 
 import com.devicehive.model.JsonStringWrapper;
-import com.google.gson.Gson;
-import com.google.gson.JsonParser;
-import com.google.gson.TypeAdapter;
-import com.google.gson.TypeAdapterFactory;
+import com.google.gson.*;
 import com.google.gson.internal.Streams;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -33,17 +30,19 @@ public class JsonStringWrapperAdapterFactory implements TypeAdapterFactory {
 
         @Override
         public void write(JsonWriter out, JsonStringWrapper value) throws IOException {
-            if (value == null) {
+            if (value == null && out.getSerializeNulls()) {
                 out.nullValue();
-            } else {
+            } else if (value != null) {
                 Streams.write(new JsonParser().parse(value.getJsonString()), out);
             }
-
         }
 
         @Override
         public JsonStringWrapper read(JsonReader in) throws IOException {
-            return new JsonStringWrapper(Streams.parse(in).toString());
+            JsonElement jsonElement = Streams.parse(in);
+            return !JsonNull.INSTANCE.equals(jsonElement)
+                    ? new JsonStringWrapper(jsonElement.toString())
+                    : null;
         }
     }
 }

@@ -4,14 +4,12 @@ import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.rpc.Action;
-import com.devicehive.model.rpc.ErrorResponse;
-import com.devicehive.model.rpc.NotificationSearchRequest;
-import com.devicehive.model.rpc.NotificationSearchResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.service.exception.BackendException;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -254,5 +252,29 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                 }).get(2, TimeUnit.SECONDS);
 
         verify(requestHandler, times(3)).handle(argument.capture());
+    }
+
+    @Test
+    public void testSubmitDeviceNotificationShouldPass() throws InterruptedException {
+        final DeviceVO deviceVO = new DeviceVO();
+        deviceVO.setId(System.nanoTime());
+        deviceVO.setGuid(UUID.randomUUID().toString());
+
+        final DeviceNotification deviceNotification = new DeviceNotification();
+        deviceNotification.setId(System.nanoTime());
+        deviceNotification.setTimestamp(new Date());
+        deviceNotification.setNotification(RandomStringUtils.randomAlphabetic(10));
+        deviceNotification.setDeviceGuid(deviceVO.getGuid());
+
+        when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder().buildSuccess());
+
+        notificationService.submitDeviceNotification(deviceNotification, deviceVO);
+        TimeUnit.SECONDS.sleep(2);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
+
+        NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
+        assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());
+        assertEquals(deviceNotification, request.getDeviceNotification());
     }
 }
