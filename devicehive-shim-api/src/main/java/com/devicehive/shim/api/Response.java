@@ -81,7 +81,6 @@ public class Response {
         private T body;
         private boolean last = true;
         private String correlationId;
-        private int errorCode;
 
         public Builder withBody(T body) {
             this.body = body;
@@ -93,22 +92,17 @@ public class Response {
             return this;
         }
 
-        public Builder withErrorCode(int errorCode) {
-            this.errorCode = errorCode;
-            return this;
-        }
-
         public Builder withLast(boolean last) {
             this.last = last;
             return this;
         }
 
-        public Response buildFailed() {
+        public Response buildFailed(int errorCode) {
             return new Response(body, correlationId, last, errorCode, true);
         }
 
         public Response buildSuccess() {
-            return new Response(body, correlationId, last, errorCode, false);
+            return new Response(body, correlationId, last, 0, false);
         }
 
     }

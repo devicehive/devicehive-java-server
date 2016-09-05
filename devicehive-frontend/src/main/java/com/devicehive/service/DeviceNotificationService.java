@@ -24,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class DeviceNotificationService {
@@ -46,7 +47,7 @@ public class DeviceNotificationService {
         this.rpcClient = rpcClient;
     }
 
-    public CompletableFuture<Optional<DeviceNotification>> find(Long id, String guid) {
+    public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String guid) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(id);
         searchRequest.setGuid(guid);
@@ -60,15 +61,13 @@ public class DeviceNotificationService {
     }
 
     @SuppressWarnings("unchecked")
-    public CompletableFuture<List<DeviceNotification>> find(Collection<String> guids, Collection<String> names,
+    public CompletableFuture<List<DeviceNotification>> find(Set<String> guids, Set<String> names,
                                                             Date timestampSt, Date timestampEnd) {
         List<CompletableFuture<Response>> futures = guids.stream()
                 .map(guid -> {
                     NotificationSearchRequest searchRequest = new NotificationSearchRequest();
                     searchRequest.setGuid(guid);
-                    if (names != null) {
-                        searchRequest.setNames(new HashSet<>(names));
-                    }
+                    searchRequest.setNames(names);
                     searchRequest.setTimestampStart(timestampSt);
                     searchRequest.setTimestampEnd(timestampEnd);
                     return searchRequest;

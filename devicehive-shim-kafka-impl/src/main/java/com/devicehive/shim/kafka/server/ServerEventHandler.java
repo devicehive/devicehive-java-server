@@ -46,8 +46,7 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
                 logger.warn("Unknown type of request received {} from client with topic {}, correlationId = {}",
                         request.getType(), replyTo, request.getCorrelationId());
                 response = Response.newBuilder()
-                        .withErrorCode(404)
-                        .buildFailed();
+                        .buildFailed(404);
         }
 
         // set correlationId explicitly to prevent missing it in request
@@ -65,9 +64,8 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
                     request.getBody().getAction(), requestHandler.getClass().getCanonicalName(), e);
 
             response = Response.newBuilder()
-                    .withErrorCode(500)
                     .withLast(request.isSingleReplyExpected())
-                    .buildFailed();
+                    .buildFailed(500);
         }
         return response;
     }

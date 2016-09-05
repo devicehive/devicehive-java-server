@@ -35,7 +35,6 @@ public class NotificationSearchHandler implements RequestHandler {
 
     private NotificationSearchResponse searchMultipleNotifications(NotificationSearchRequest searchRequest) {
         //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
-        final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
         final Collection<DeviceNotification> notifications = storageService.find(
                 searchRequest.getGuid(),
                 searchRequest.getNames(),
@@ -46,16 +45,13 @@ public class NotificationSearchHandler implements RequestHandler {
                 null,
                 DeviceNotification.class);
 
-        notificationSearchResponse.setNotifications(new ArrayList<>(notifications));
-        return notificationSearchResponse;
+        return new NotificationSearchResponse(new ArrayList<>(notifications));
     }
 
     private NotificationSearchResponse searchSingleNotificationByDeviceAndId(long id, String guid) {
-        final NotificationSearchResponse notificationSearchResponse = new NotificationSearchResponse();
         final List<DeviceNotification> notifications = storageService.find(id, guid, DeviceNotification.class)
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
-        notificationSearchResponse.setNotifications(notifications);
-        return notificationSearchResponse;
+        return new NotificationSearchResponse(notifications);
     }
 }

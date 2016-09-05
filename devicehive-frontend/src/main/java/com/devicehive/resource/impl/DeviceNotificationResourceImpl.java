@@ -71,8 +71,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> notificationNames = StringUtils.isNoneEmpty(notification) ? Collections.singletonList(notification) : Collections.EMPTY_LIST;
-            notificationService.find(Collections.singletonList(guid), notificationNames, timestampSt, timestampEnd)
+            Set<String> notificationNames = StringUtils.isNoneEmpty(notification)
+                    ? Collections.singleton(notification)
+                    : Collections.emptySet();
+            notificationService.find(Collections.singleton(guid), notificationNames, timestampSt, timestampEnd)
                     .thenApply(notifications -> {
                         final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
@@ -100,7 +102,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            notificationService.find(notificationId, guid)
+            notificationService.findOne(notificationId, guid)
                     .thenApply(notification -> notification
                             .map(n -> {
                                 logger.debug("Device notification proceed successfully");
