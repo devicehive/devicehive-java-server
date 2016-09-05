@@ -29,6 +29,10 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
         }
     }
 
+    public HivePrincipal getHivePrincipal() {
+        return hivePrincipal;
+    }
+
     public static class HiveAuthDetails {
         private InetAddress clientInetAddress;
         private String origin;

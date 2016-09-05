@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -71,7 +72,7 @@ public class CommandHandlers {
 
         List<DeviceVO> actualDevices;
         if (guids != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(guids, (HivePrincipal) session.getPrincipal());
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(guids, (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
             if (actualDevices.size() != guids.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, guids), SC_FORBIDDEN);
             }
