@@ -7,6 +7,8 @@ import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ACCESS_KEY_PUBLISHED;
@@ -41,7 +43,7 @@ public interface AccessKeyResource {
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user with given userId is not found")
     })
-    Response list(
+    void list(
             @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to list access keys of the current user.", required = true)
             @PathParam("userId")
             String userId,
@@ -65,7 +67,8 @@ public interface AccessKeyResource {
             Integer take,
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
-            Integer skip);
+            Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/AccessKey/get">DeviceHive RESTful API:
@@ -179,11 +182,12 @@ public interface AccessKeyResource {
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If access key is not found")
     })
-    Response delete(
+    void delete(
             @ApiParam(name = "userId", value = "User identifier. Use the 'current' keyword to delete access key of the current user.")
             @PathParam("userId")
             String userId,
             @ApiParam(name = "id", value = "Access key identifier.")
             @PathParam("id")
-            Long accessKeyId);
+            Long accessKeyId,
+            @Suspended final AsyncResponse asyncResponse);
 }

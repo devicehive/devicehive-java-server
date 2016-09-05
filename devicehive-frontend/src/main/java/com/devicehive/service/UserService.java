@@ -237,7 +237,7 @@ public class UserService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<UserVO> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
                               Boolean sortOrderAsc, Integer take, Integer skip) {
-        return userDao.getList(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+        return userDao.list(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
     }
 
     /**

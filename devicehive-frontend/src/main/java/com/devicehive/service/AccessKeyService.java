@@ -9,11 +9,17 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.AccessType;
 import com.devicehive.model.oauth.*;
+import com.devicehive.model.rpc.ListAccessKeyRequest;
+import com.devicehive.model.rpc.ListAccessKeyResponse;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.AccessKeyProcessor;
 import com.devicehive.service.helpers.OAuthAuthenticationUtils;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -25,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
@@ -55,6 +62,8 @@ public class AccessKeyService {
 
     @Autowired
     private DeviceDao deviceDao;
+    @Autowired
+    private RpcClient rpcClient;
 
 
     @Transactional
@@ -300,14 +309,26 @@ public class AccessKeyService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<AccessKeyVO> list(Long userId, String label,
-                                String labelPattern, Integer type,
-                                String sortField, Boolean sortOrderAsc,
-                                Integer take, Integer skip) {
-        return accessKeyDao.list(userId, label,
-                labelPattern, type,
-                sortField, sortOrderAsc,
-                take, skip);
+    public CompletableFuture<List<AccessKeyVO>> list(Long userId, String label,
+                                                  String labelPattern, Integer type,
+                                                  String sortField, Boolean sortOrderAsc,
+                                                  Integer take, Integer skip) {
+        ListAccessKeyRequest request = new ListAccessKeyRequest();
+        request.setUserId(userId);
+        request.setLabel(label);
+        request.setLabelPattern(labelPattern);
+        request.setType(type);
+        request.setSortField(sortField);
+        request.setSortOrderAsc(sortOrderAsc);
+        request.setTake(take);
+        request.setSkip(skip);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request.newBuilder()
+                .withBody(request).build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((ListAccessKeyResponse) r.getBody()).getAccessKeys());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

@@ -246,7 +246,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
                                 Long deviceClassId, String deviceClassName, String sortField,
                                 @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {

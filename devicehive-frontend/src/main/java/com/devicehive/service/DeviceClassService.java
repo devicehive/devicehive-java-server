@@ -232,7 +232,7 @@ public class DeviceClassService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
-        return deviceClassDao.getDeviceClassList(name, namePattern, sortField, sortOrderAsc, take, skip);
+        return deviceClassDao.list(name, namePattern, sortField, sortOrderAsc, take, skip);
     }
 
     /**

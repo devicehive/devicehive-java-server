@@ -16,7 +16,7 @@ public interface DeviceClassDao {
 
     DeviceClassWithEquipmentVO merge(DeviceClassWithEquipmentVO deviceClass);
 
-    List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
+    List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
 
     DeviceClassWithEquipmentVO findByName(@NotNull String name);

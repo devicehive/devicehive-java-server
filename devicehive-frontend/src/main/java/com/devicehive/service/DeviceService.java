@@ -321,7 +321,7 @@ public class DeviceService {
                                 Integer take,
                                 Integer skip,
                                 HivePrincipal principal) {
-        return deviceDao.getList(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
+        return deviceDao.list(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
                 sortField, sortOrderAsc, take, skip, principal);
     }
 

@@ -587,7 +587,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 //            .setParameter("user", user.getId())
 //            .getResultList();
 
-        List<AccessKeyVO> keys = accessKeyService.list(user.getId(), null, null, null, null, false, 0, 100);
-        assertThat(keys, hasSize(50));
+//        List<AccessKeyVO> keys = accessKeyService.list(user.getId(), null, null, null, null, false, 0, 100);
+//        assertThat(keys, hasSize(50));
     }
 }

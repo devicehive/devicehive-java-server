@@ -169,7 +169,7 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
     }
 
     @Override
-    public List<OAuthClientVO> get(String name,
+    public List<OAuthClientVO> list(String name,
                                  String namePattern,
                                  String domain,
                                  String oauthId,

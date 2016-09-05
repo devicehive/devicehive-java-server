@@ -43,7 +43,7 @@ public class OAuthClientService {
                                  Boolean sortOrderAsc,
                                  Integer take,
                                  Integer skip) {
-        return oAuthClientDao.get(name,
+        return oAuthClientDao.list(name,
                 namePattern,
                 domain,
                 oauthId,

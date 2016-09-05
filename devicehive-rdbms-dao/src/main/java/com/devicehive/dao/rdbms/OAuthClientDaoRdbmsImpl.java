@@ -70,7 +70,7 @@ public class OAuthClientDaoRdbmsImpl extends RdbmsGenericDao implements OAuthCli
     }
 
     @Override
-    public List<OAuthClientVO> get(String name,
+    public List<OAuthClientVO> list(String name,
                                  String namePattern,
                                  String domain,
                                  String oauthId,

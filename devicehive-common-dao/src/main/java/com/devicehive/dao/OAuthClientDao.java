@@ -19,7 +19,7 @@ public interface OAuthClientDao {
 
     OAuthClientVO merge(OAuthClientVO existing);
 
-    List<OAuthClientVO> get(String name,
+    List<OAuthClientVO> list(String name,
                           String namePattern,
                           String domain,
                           String oauthId,

@@ -235,7 +235,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public List<UserVO> getList(String login, String loginPattern,
+    public List<UserVO> list(String login, String loginPattern,
                               Integer role, Integer status,
                               String sortField, Boolean sortOrderAsc,
                               Integer take, Integer skip) {

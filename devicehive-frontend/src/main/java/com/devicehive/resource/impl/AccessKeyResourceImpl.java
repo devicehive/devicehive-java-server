@@ -21,8 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.LABEL;
@@ -47,7 +48,7 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
      * {@inheritDoc}
      */
     @Override
-    public Response list(String userId, String label, String labelPattern, Integer type, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public void list(String userId, String label, String labelPattern, Integer type, String sortField, String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Access key : list requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
@@ -55,17 +56,21 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LABEL.equalsIgnoreCase(sortField)) {
-            return ResponseFactory.response(BAD_REQUEST,
+            final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
+            asyncResponse.resume(response);
+        } else {
+            if (sortField != null) {
+                sortField = sortField.toLowerCase();
+            }
+
+            accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip)
+                    .thenApply(accessKeys -> {
+                        logger.debug("Access key : insert proceed successfully for userId : {}", userId);
+                        return ResponseFactory.response(OK, accessKeys, ACCESS_KEY_LISTED);
+                    }).thenAccept(asyncResponse::resume);
         }
-        List<AccessKeyVO> keyList = accessKeyService.list(id, label, labelPattern, type, sortField, sortOrder, take, skip);
-
-        logger.debug("Access key : insert proceed successfully for userId : {}", userId);
-
-        return ResponseFactory.response(OK, keyList, ACCESS_KEY_LISTED);
     }
 
     /**
@@ -129,21 +134,23 @@ public class AccessKeyResourceImpl implements AccessKeyResource {
      * {@inheritDoc}
      */
     @Override
-    public Response delete(String userId, Long accessKeyId) {
+    public void delete(String userId, Long accessKeyId, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Access key : delete requested for userId : {}", userId);
 
         Long id = getUser(userId).getId();
-        List<AccessKeyVO> existingDefaultKeys = accessKeyService.list(id, null, null, AccessKeyType.DEFAULT.getValue(), null, null, 2, 0);
-        if(existingDefaultKeys.size() < 2){
-            logger.debug("Rejected removing the last default access key");
-            throw new HiveException(Messages.CANT_DELETE_LAST_DEFAULT_ACCESS_KEY, FORBIDDEN.getStatusCode());
-        }
 
-        accessKeyService.delete(id, accessKeyId);
-
-        logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
-                accessKeyId);
-        return ResponseFactory.response(NO_CONTENT);
+        accessKeyService.list(id, null, null, AccessKeyType.DEFAULT.getValue(), null, null, 2, 0)
+                .thenApply(accessKeys -> {
+                    if(accessKeys.size() < 2){
+                        logger.debug("Rejected removing the last default access key");
+                        return ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(), Messages.CANT_DELETE_LAST_DEFAULT_ACCESS_KEY));
+                    } else {
+                        accessKeyService.delete(id, accessKeyId);
+                        logger.debug("Access key : delete proceed successfully for userId : {} and access key id : {}", userId,
+                                accessKeyId);
+                        return ResponseFactory.response(NO_CONTENT);
+                    }
+                }).thenAccept(asyncResponse::resume);
 
     }
 

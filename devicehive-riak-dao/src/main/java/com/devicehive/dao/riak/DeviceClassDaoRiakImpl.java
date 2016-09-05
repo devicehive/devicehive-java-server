@@ -110,7 +110,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
+    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip) {
 
         List<DeviceClassWithEquipmentVO> result = new ArrayList<>();
