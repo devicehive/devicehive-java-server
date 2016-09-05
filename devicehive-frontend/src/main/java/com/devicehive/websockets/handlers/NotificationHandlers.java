@@ -1,5 +1,6 @@
 package com.devicehive.websockets.handlers;
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -67,7 +68,17 @@ public class NotificationHandlers {
                 devices, deviceId, timestamp, names, session.getId());
 
         devices = prepareActualList(devices, deviceId);
-        //Assert.notEmpty(devices);
+
+        List<DeviceVO> actualDevices;
+        if (devices != null) {
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
+            if (actualDevices.size() != devices.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
+            }
+        } else {
+            devices = Collections.singleton(Constants.NULL_SUBSTITUTE);
+        }
 
         BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);

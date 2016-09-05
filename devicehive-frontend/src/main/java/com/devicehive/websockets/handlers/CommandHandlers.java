@@ -63,19 +63,22 @@ public class CommandHandlers {
                 .map(JsonElement::getAsString)
                 .orElse(null);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
-        Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
+        Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                guids, deviceId, timestamp, names, session);
+                devices, deviceId, timestamp, names, session);
 
-        guids = prepareActualList(guids, deviceId);
+        devices = prepareActualList(devices, deviceId);
 
         List<DeviceVO> actualDevices;
-        if (guids != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(guids, (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
-            if (actualDevices.size() != guids.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, guids), SC_FORBIDDEN);
+        if (devices != null) {
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
+            if (actualDevices.size() != devices.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
+        } else {
+            devices = Collections.singleton(Constants.NULL_SUBSTITUTE);
         }
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
@@ -84,14 +87,14 @@ public class CommandHandlers {
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .submitCommandSubscribe(guids, names, timestamp, callback);
+                .submitCommandSubscribe(devices, names, timestamp, callback);
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->
                         sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
 
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                guids, deviceId, timestamp, names, session.getId());
+                devices, deviceId, timestamp, names, session.getId());
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()
