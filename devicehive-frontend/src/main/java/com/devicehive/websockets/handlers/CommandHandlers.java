@@ -68,7 +68,14 @@ public class CommandHandlers {
                 guids, deviceId, timestamp, names, session);
 
         guids = prepareActualList(guids, deviceId);
-        Assert.notEmpty(guids);
+
+        List<DeviceVO> actualDevices;
+        if (guids != null) {
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(guids, (HivePrincipal) session.getPrincipal());
+            if (actualDevices.size() != guids.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, guids), SC_FORBIDDEN);
+            }
+        }
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createCommandInsertMessage(command, subscriptionId);

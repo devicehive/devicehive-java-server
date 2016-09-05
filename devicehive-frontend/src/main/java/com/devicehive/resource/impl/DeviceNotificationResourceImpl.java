@@ -147,7 +147,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     Collections.emptyList(),
                     JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
         }
-        asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
+        if (timeout != 0) asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
         Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
                 .map(Arrays::asList)
@@ -155,7 +155,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        Set<String> notifications = Optional.of(StringUtils.split(namesString, ','))
+        Set<String> notifications = Optional.ofNullable(StringUtils.split(namesString, ','))
                 .map(Arrays::asList)
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());

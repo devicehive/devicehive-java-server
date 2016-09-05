@@ -67,7 +67,7 @@ public class NotificationHandlers {
                 devices, deviceId, timestamp, names, session.getId());
 
         devices = prepareActualList(devices, deviceId);
-        Assert.notEmpty(devices);
+        //Assert.notEmpty(devices);
 
         BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);

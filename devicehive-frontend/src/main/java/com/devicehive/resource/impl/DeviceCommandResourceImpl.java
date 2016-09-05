@@ -84,7 +84,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     Collections.emptyList(),
                     JsonPolicyDef.Policy.COMMAND_LISTED));
         }
-        asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
+        if (timeout != 0) asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
         Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsCsv, ','))
                 .map(Arrays::asList)
@@ -92,7 +92,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        Set<String> names = Optional.of(StringUtils.split(namesCsv, ','))
+        Set<String> names = Optional.ofNullable(StringUtils.split(namesCsv, ','))
                 .map(Arrays::asList)
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
