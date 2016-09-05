@@ -110,9 +110,9 @@ public class DeviceCommandService {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
                         String resAction = response.getBody().getAction();
-                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_REQUEST.name())) {
+                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
-                        } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                        } else if (resAction.equals(Action.COMMAND_EVENT.name())) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);

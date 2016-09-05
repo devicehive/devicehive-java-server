@@ -63,9 +63,10 @@ public class CommonHandlers {
             password = request.get("password").getAsString();
         }
 
-        final String key = Optional.ofNullable(request.get("accessKey"))
-                .map(JsonElement::getAsString)
-                .orElse(null);
+        String key = null;
+        if (request.get("accessKey") != null) {
+            key = request.get("accessKey").toString();
+        }
 
         String deviceId = null;
         if (request.get("deviceId") != null) {
