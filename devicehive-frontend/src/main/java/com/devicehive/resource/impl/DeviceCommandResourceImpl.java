@@ -102,33 +102,40 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
                         command,
-                        JsonPolicyDef.Policy.COMMAND_TO_CLIENT));
+                        Policy.COMMAND_LISTED));
             }
         };
 
-        Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .submitCommandSubscribe(availableDevices, names, ts, callback);
+        if (timestamp != null && !availableDevices.isEmpty()) {
+            Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
+                    .submitCommandSubscribe(availableDevices, names, ts, callback);
+            pair.getRight().thenAccept(collection -> {
+                if (!collection.isEmpty() && !asyncResponse.isDone()) {
+                    asyncResponse.resume(ResponseFactory.response(
+                            Response.Status.OK,
+                            collection,
+                            Policy.COMMAND_LISTED));
+                }
+            }).exceptionally(throwable -> {
+                if (!asyncResponse.isDone()) {
+                    asyncResponse.resume(throwable);
+                }
+                return null;
+            });
 
-        pair.getRight().thenAccept(collection -> {
-            if (!collection.isEmpty() && !asyncResponse.isDone()) {
-                asyncResponse.resume(ResponseFactory.response(
-                        Response.Status.OK,
-                        collection,
-                        JsonPolicyDef.Policy.COMMAND_TO_CLIENT));
-            }
-        }).exceptionally(throwable -> {
-            if (!asyncResponse.isDone()) {
-                asyncResponse.resume(throwable);
-            }
-            return null;
-        });
+            asyncResponse.register(new CompletionCallback() {
+                @Override
+                public void onComplete(Throwable throwable) {
+                    commandService.submitCommandUnsubscribe(pair.getLeft(), null);
+                }
+            });
+        } else {
+            asyncResponse.resume(ResponseFactory.response(
+                    Response.Status.OK,
+                    Collections.emptyList(),
+                    JsonPolicyDef.Policy.COMMAND_LISTED));
+        }
 
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                commandService.submitCommandUnsubscribe(pair.getLeft(), null);
-            }
-        });
     }
 
 //    private void getOrWaitForCommands(HivePrincipal principal, final String devices, final String names, Date timestamp,
@@ -266,7 +273,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     @Override
     public void query(String guid, String startTs, String endTs, String command, String status, String sortField,
-                      String sortOrderSt, Integer take, Integer skip,  @Suspended final AsyncResponse asyncResponse) {
+                      String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command query requested for device {}", guid);
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
