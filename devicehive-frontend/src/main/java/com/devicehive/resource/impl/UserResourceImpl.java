@@ -24,6 +24,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 import java.util.Objects;
@@ -44,23 +46,28 @@ public class UserResourceImpl implements UserResource {
      * {@inheritDoc}
      */
     @Override
-    public Response list(String login, String loginPattern, Integer role, Integer status, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public void list(String login, String loginPattern, Integer role, Integer status, String sortField,
+                     String sortOrderSt, Integer take, Integer skip,  @Suspended final AsyncResponse asyncResponse) {
 
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+        final boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
-            ErrorResponse errorResponse = new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS);
-            return ResponseFactory.response(BAD_REQUEST, errorResponse);
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
+            final Response response = ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+            asyncResponse.resume(response);
+        } else {
+            if (sortField != null) {
+                sortField = sortField.toLowerCase();
+            }
+
+            userService.list(login, loginPattern, role, status, sortField, sortOrder, take, skip)
+                    .thenApply(users -> {
+                        logger.debug("User list request proceed successfully");
+
+                        return ResponseFactory.response(OK, users, JsonPolicyDef.Policy.USERS_LISTED);
+                    }).thenAccept(asyncResponse::resume);
         }
-
-        List<UserVO> result = userService.getList(login, loginPattern, role, status, sortField, sortOrder, take, skip);
-
-        logger.debug("User list request proceed successfully. Login = {}, loginPattern = {}, role = {}, status = {}, sortField = {}, sortOrder = {}, take = {}, skip = {}",
-                login, loginPattern, role, status, sortField, sortOrder, take, skip);
-
-        return ResponseFactory.response(OK, result, JsonPolicyDef.Policy.USERS_LISTED);
     }
 
     /**

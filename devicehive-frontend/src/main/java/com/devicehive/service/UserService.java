@@ -9,10 +9,16 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.model.rpc.ListUserRequest;
+import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.PasswordProcessor;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -31,6 +37,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -55,7 +62,8 @@ public class UserService {
     private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
-
+    @Autowired
+    private RpcClient rpcClient;
 
     /**
      * Tries to authenticate with given credentials
@@ -235,9 +243,26 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<UserVO> getList(String login, String loginPattern, Integer role, Integer status, String sortField,
-                              Boolean sortOrderAsc, Integer take, Integer skip) {
-        return userDao.list(login, loginPattern, role, status, sortField, sortOrderAsc, take, skip);
+    public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
+                                                  Boolean sortOrderAsc, Integer take, Integer skip) {
+        ListUserRequest request = new ListUserRequest();
+        request.setLogin(login);
+        request.setLoginPattern(loginPattern);
+        request.setRole(role);
+        request.setStatus(status);
+        request.setSortField(sortField);
+        request.setSortOrderAsc(sortOrderAsc);
+        request.setTake(take);
+        request.setSkip(skip);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(request)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((ListUserResponse) r.getBody()).getUsers());
     }
 
     /**

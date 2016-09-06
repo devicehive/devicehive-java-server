@@ -8,6 +8,8 @@ import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -41,7 +43,7 @@ public interface UserResource {
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response list(
+    void list(
             @ApiParam(name = "login", value = "Filter by user login.")
             @QueryParam("login")
             String login,
@@ -65,7 +67,8 @@ public interface UserResource {
             Integer take,
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
-            Integer skip);
+            Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Method will generate following output: <p/> <code> { "id": 2, "login": "login", "status": 0, "networks": [ {

@@ -1,6 +1,9 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.model.rpc.ListUserRequest;
+import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -12,25 +15,39 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CustomTypeSafeMatcher;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 
 public class UserServiceTest extends AbstractResourceTest {
 
@@ -44,6 +61,26 @@ public class UserServiceTest extends AbstractResourceTest {
     private ConfigurationService configurationService;
     @Autowired
     private DeviceService deviceService;
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+
+        handleListUserRequest();
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -1158,10 +1195,15 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser.setStatus(UserStatus.ACTIVE);
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
 
-        List<UserVO> users = userService.getList(testUser.getLogin(), null, null, null, null, null, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(1));
-        assertThat(users.stream().findFirst().get().getId(), equalTo(testUser.getId()));
+        final UserVO finalTestUser = testUser;
+        userService.list(testUser.getLogin(), null, null, null, null, null, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(1));
+                    assertThat(users.stream().findFirst().get().getId(), equalTo(finalTestUser.getId()));
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
@@ -1180,12 +1222,16 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
 
-        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, null, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(10));
-        for (UserVO user : users) {
-            assertThat(user.getLogin(), startsWith(prefix));
-        }
+        userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(10));
+                    for (UserVO user : users) {
+                        assertThat(user.getLogin(), startsWith(prefix));
+                    }
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
@@ -1205,13 +1251,18 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setRole(UserRole.CLIENT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<UserVO> users = userService.getList(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(10));
-        for (UserVO user : users) {
-            assertThat(user.getLogin(), startsWith(prefix));
-            assertThat(user.getRole(), equalTo(UserRole.CLIENT));
-        }
+
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(10));
+                    for (UserVO user : users) {
+                        assertThat(user.getLogin(), startsWith(prefix));
+                        assertThat(user.getRole(), equalTo(UserRole.CLIENT));
+                    }
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
@@ -1229,13 +1280,18 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.LOCKED_OUT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(10));
-        for (UserVO user : users) {
-            assertThat(user.getLogin(), startsWith(prefix));
-            assertThat(user.getStatus(), equalTo(UserStatus.LOCKED_OUT));
-        }
+
+        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(10));
+                    for (UserVO user : users) {
+                        assertThat(user.getLogin(), startsWith(prefix));
+                        assertThat(user.getStatus(), equalTo(UserStatus.LOCKED_OUT));
+                    }
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
@@ -1249,25 +1305,32 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-        List<UserVO> users = userService.getList(null, "%" + suffix, null, null, "login", true, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(5));
 
-        assertThat(users.get(0).getLogin(), startsWith("a"));
-        assertThat(users.get(1).getLogin(), startsWith("b"));
-        assertThat(users.get(2).getLogin(), startsWith("c"));
-        assertThat(users.get(3).getLogin(), startsWith("d"));
-        assertThat(users.get(4).getLogin(), startsWith("e"));
+        userService.list(null, "%" + suffix, null, null, "login", true, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(5));
 
-        users = userService.getList(null, "%" + suffix, null, null, "login", false, 100, 0);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(5));
+                    assertThat(users.get(0).getLogin(), startsWith("a"));
+                    assertThat(users.get(1).getLogin(), startsWith("b"));
+                    assertThat(users.get(2).getLogin(), startsWith("c"));
+                    assertThat(users.get(3).getLogin(), startsWith("d"));
+                    assertThat(users.get(4).getLogin(), startsWith("e"));
+                }).get(2, TimeUnit.SECONDS);
 
-        assertThat(users.get(0).getLogin(), startsWith("e"));
-        assertThat(users.get(1).getLogin(), startsWith("d"));
-        assertThat(users.get(2).getLogin(), startsWith("c"));
-        assertThat(users.get(3).getLogin(), startsWith("b"));
-        assertThat(users.get(4).getLogin(), startsWith("a"));
+        userService.list(null, "%" + suffix, null, null, "login", false, 100, 0)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(5));
+
+                    assertThat(users.get(0).getLogin(), startsWith("e"));
+                    assertThat(users.get(1).getLogin(), startsWith("d"));
+                    assertThat(users.get(2).getLogin(), startsWith("c"));
+                    assertThat(users.get(3).getLogin(), startsWith("b"));
+                    assertThat(users.get(4).getLogin(), startsWith("a"));
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(2)).handle(argument.capture());
     }
 
     @Test
@@ -1282,12 +1345,31 @@ public class UserServiceTest extends AbstractResourceTest {
             ids.add(user.getId());
         }
 
-        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, false, 20, 10);
-        assertThat(users, not(empty()));
-        assertThat(users, hasSize(20));
+        userService.list(null, "%" + prefix + "%", null, null, null, false, 20, 10)
+                .thenAccept(users -> {
+                    assertThat(users, not(empty()));
+                    assertThat(users, hasSize(20));
+                    List<Long> expectedIds = ids.stream().skip(10).limit(20).collect(Collectors.toList());
+                    List<Long> returnedIds = users.stream().map(UserVO::getId).collect(Collectors.toList());
+                    assertThat(returnedIds, equalTo(expectedIds));
+                }).get(2, TimeUnit.SECONDS);
 
-        List<Long> expectedIds = ids.stream().skip(10).limit(20).collect(Collectors.toList());
-        List<Long> returnedIds = users.stream().map(UserVO::getId).collect(Collectors.toList());
-        assertThat(returnedIds, equalTo(expectedIds));
+        verify(requestHandler, times(1)).handle(argument.capture());
+    }
+
+    private void handleListUserRequest() {
+        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
+            Request request = invocation.getArgumentAt(0, Request.class);
+            ListUserRequest req = request.getBody().cast(ListUserRequest.class);
+            final List<UserVO> users =
+                    userDao.list(req.getLogin(), req.getLoginPattern(),
+                            req.getRole(), req.getStatus(),
+                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getTake(), req.getSkip());
+
+            return Response.newBuilder()
+                    .withBody(new ListUserResponse(users))
+                    .buildSuccess();
+        });
     }
 }
