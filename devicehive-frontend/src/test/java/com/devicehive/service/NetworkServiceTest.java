@@ -160,7 +160,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 10, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 10, 0, null).join();
         assertThat(networks, hasSize(10));
     }
 
@@ -177,7 +177,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
         int index = new Random().nextInt(10);
         Pair<Long, String> randomNetwork = names.get(index);
-        List<NetworkVO> networks = networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null);
+        List<NetworkVO> networks = networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null).join();
         assertThat(networks, hasSize(1));
         assertThat(networks.get(0).getId(), equalTo(randomNetwork.getKey()));
         assertThat(networks.get(0).getName(), equalTo(randomNetwork.getRight()));
@@ -201,7 +201,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             assertThat(created.getId(), notNullValue());
         }
 
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, null).join();
         assertThat(networks, hasSize(count));
         assertThat(networks,
                 hasItems(new CustomTypeSafeMatcher<NetworkVO>(String.format("expected '%s' word in name", namePrefix)) {
@@ -223,7 +223,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         });
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", "description", true, 100, 0, null);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", "description", true, 100, 0, null).join();
         assertThat(networks, hasSize(descriptions.size()));
 
         assertThat(networks.get(0).getDescription(), equalTo("a"));
@@ -232,7 +232,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(networks.get(3).getDescription(), equalTo("d"));
         assertThat(networks.get(4).getDescription(), equalTo("e"));
 
-        networks = networkService.list(null, namePrefix + "%", "description", false, 100, 0, null);
+        networks = networkService.list(null, namePrefix + "%", "description", false, 100, 0, null).join();
         assertThat(networks, hasSize(descriptions.size()));
 
         assertThat(networks.get(0).getDescription(), equalTo("e"));
@@ -252,10 +252,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
             NetworkVO created = networkService.create(network);
             assertThat(created.getId(), notNullValue());
         }
-        List<NetworkVO> all = networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null);
+        List<NetworkVO> all = networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null).join();
         assertThat(all, hasSize(100));
 
-        List<NetworkVO> sliced = networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null);
+        List<NetworkVO> sliced = networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null).join();
         assertThat(sliced, hasSize(20));
         List<NetworkVO> expected = all.stream().skip(30).limit(20).collect(Collectors.toList());
         assertThat(sliced, contains(expected.toArray(new NetworkVO[expected.size()])));
@@ -295,11 +295,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user2.getId(), created.getId());
         }
 
-        List<NetworkVO> all = networkService.list(null, namePrefix + "%", null, true, 100, 0, null);
+        List<NetworkVO> all = networkService.list(null, namePrefix + "%", null, true, 100, 0, null).join();
         assertThat(all, hasSize(20));
 
         HivePrincipal principal = new HivePrincipal(user1);
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal).join();
         assertThat(networks, hasSize(10));
 
         Set<String> names = networks.stream().map(NetworkVO::getName).collect(Collectors.toSet());
@@ -331,7 +331,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
 
         HivePrincipal principal = new HivePrincipal(user1);
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal).join();
         assertThat(networks, hasSize(20));
     }
 
@@ -361,7 +361,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(Collections.singleton(permission));
 
         HivePrincipal principal = new HivePrincipal(accessKey);
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 100, 0, principal).join();
         assertThat(networks, hasSize(allowedIds.size()));
         Set<Long> ids = networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
         assertThat(allowedIds, equalTo(ids));
@@ -396,7 +396,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         HivePrincipal principal = new HivePrincipal(accessKey);
 
-        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 200, 0, principal);
+        List<NetworkVO> networks = networkService.list(null, namePrefix + "%", null, true, 200, 0, principal).join();
         assertThat(networks, hasSize(assignedToUserCount));
     }
 

@@ -18,11 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
@@ -36,7 +39,8 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response list(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public void list(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip,
+                     @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Network list requested");
 
@@ -44,17 +48,21 @@ public class NetworkResourceImpl implements NetworkResource {
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.error("Unable to proceed network list request. Invalid sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
-                    new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
+            final Response response = ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+            asyncResponse.resume(response);
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<NetworkVO> result = networkService
-            .list(name, namePattern, sortField, sortOrder, take, skip, principal);
+        networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
+                .thenApply(networks -> {
+                    logger.debug("Network list request proceed successfully.");
+                    return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
+                }).thenAccept(asyncResponse::resume);
 
-        logger.debug("Network list request proceed successfully.");
-        return ResponseFactory.response(Response.Status.OK, result, JsonPolicyDef.Policy.NETWORKS_LISTED);
+
     }
 
     /**

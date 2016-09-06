@@ -2,6 +2,7 @@ package com.devicehive.application;
 
 import com.devicehive.handler.command.*;
 import com.devicehive.handler.dao.list.ListAccessKeyHandler;
+import com.devicehive.handler.dao.list.ListNetworkHandler;
 import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.handler.command.CommandUnsubscribeRequestHandler;
 import com.devicehive.handler.notification.NotificationInsertHandler;
@@ -46,6 +47,7 @@ public class RequestHandlersConfig {
             put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, new CommandUpdateSubscribeRequestHandler());
 
             put(Action.LIST_ACCESS_KEY_REQUEST, new ListAccessKeyHandler());
+            put(Action.LIST_NETWORK_REQUEST, new ListNetworkHandler());
         }};
     }
 

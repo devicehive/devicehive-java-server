@@ -10,8 +10,14 @@ import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.rpc.ListNetworkRequest;
+import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.configuration.ConfigurationService;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
 import org.slf4j.Logger;
@@ -23,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.*;
@@ -43,6 +50,8 @@ public class NetworkService {
     private HiveValidator hiveValidator;
     @Autowired
     private NetworkDao networkDao;
+    @Autowired
+    private RpcClient rpcClient;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public NetworkWithUsersAndDevicesVO getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
@@ -158,18 +167,32 @@ public class NetworkService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<NetworkVO> list(String name,
-                              String namePattern,
-                              String sortField,
-                              boolean sortOrderAsc,
-                              Integer take,
-                              Integer skip,
-                              HivePrincipal principal) {
+    public CompletableFuture<List<NetworkVO>> list(String name,
+                                                  String namePattern,
+                                                  String sortField,
+                                                  boolean sortOrderAsc,
+                                                  Integer take,
+                                                  Integer skip,
+                                                  HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
         principalOpt.map(HivePrincipal::getDevice).ifPresent(device -> {
             throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
         });
-        return networkDao.list(name, namePattern, sortField, sortOrderAsc, take, skip, principalOpt);
+
+        ListNetworkRequest request = new ListNetworkRequest();
+        request.setName(name);
+        request.setNamePattern(namePattern);
+        request.setSortField(sortField);
+        request.setSortOrderAsc(sortOrderAsc);
+        request.setTake(take);
+        request.setSkip(skip);
+        request.setPrincipal(principalOpt);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((ListNetworkResponse) r.getBody()).getNetworks());
     }
 
     @Transactional
