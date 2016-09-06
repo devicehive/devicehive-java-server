@@ -17,8 +17,4 @@ public class ListNetworkResponse extends Body {
     public List<NetworkVO> getNetworks() {
         return networks;
     }
-
-    public void setNetworks(List<NetworkVO> networks) {
-        this.networks = networks;
-    }
 }
