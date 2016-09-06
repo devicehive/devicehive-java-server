@@ -28,10 +28,10 @@ public class HazelcastHelper {
                                                                 final Collection<String> devices,
                                                                 final Date timestampSt, final Date timestampEnd,
                                                                 final String status, Class<T> entityClass) {
-        if (entityClass.getClass().isInstance(DeviceCommand.class)) {
+        if (entityClass.equals(DeviceCommand.class)) {
             return prepareFilters(null, guid, devices, null, names, timestampSt, timestampEnd, status);
         }
-        if (entityClass.getClass().isInstance(DeviceNotification.class)) {
+        if (entityClass.equals(DeviceNotification.class)) {
             return prepareFilters(null, guid, devices, names, null, timestampSt, timestampEnd, status);
         }
         return null;
