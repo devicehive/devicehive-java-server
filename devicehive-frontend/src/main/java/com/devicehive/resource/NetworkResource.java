@@ -9,6 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
 @Api(tags = {"Network"}, value = "Represents a network, an isolated area where devices reside.", consumes="application/json")
@@ -50,7 +52,7 @@ public interface NetworkResource {
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response list(
+    void list(
             @ApiParam(name = "name", value = "Filter by network name.")
             @QueryParam("name")
             String name,
@@ -69,7 +71,8 @@ public interface NetworkResource {
             Integer take,
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
-            Integer skip
+            Integer skip,
+            @Suspended final AsyncResponse asyncResponse
     );
 
     /**

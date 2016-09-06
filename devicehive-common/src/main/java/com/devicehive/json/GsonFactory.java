@@ -74,7 +74,10 @@ public class GsonFactory {
                 .registerSubtype(ListAccessKeyResponse.class, Action.LIST_ACCESS_KEY_RESPONSE.name())
 
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.name())
-                .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.name());
+                .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.name())
+
+                .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.name())
+                .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()
