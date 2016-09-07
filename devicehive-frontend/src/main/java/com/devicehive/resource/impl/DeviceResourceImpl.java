@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
@@ -47,31 +49,33 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response list(String name, String namePattern, String status, Long networkId, String networkName,
-                         Long deviceClassId, String deviceClassName, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public void list(String name, String namePattern, String status, Long networkId, String networkName,
+                     Long deviceClassId, String deviceClassName, String sortField, String sortOrderSt, Integer take,
+                     Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Device list requested");
 
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null
-            && !NAME.equalsIgnoreCase(sortField)
-            && !STATUS.equalsIgnoreCase(sortField)
-            && !NETWORK.equalsIgnoreCase(sortField)
-            && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
-            return ResponseFactory.response(Response.Status.BAD_REQUEST,
+                && !NAME.equalsIgnoreCase(sortField)
+                && !STATUS.equalsIgnoreCase(sortField)
+                && !NETWORK.equalsIgnoreCase(sortField)
+                && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
+            final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
+            asyncResponse.resume(response);
         } else if (sortField != null) {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        List<DeviceVO> result = deviceService.getList(name, namePattern, status, networkId, networkName, deviceClassId,
-                deviceClassName, sortField, sortOrder, take, skip, principal);
-
-        logger.debug("Device list proceed result. Result list contains {} elems", result.size());
-
-        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(result), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        deviceService.list(name, namePattern, status, networkId, networkName, deviceClassId,
+                deviceClassName, sortField, sortOrder, take, skip, principal)
+                .thenApply(devices -> {
+                    logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
+                    return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+                }).thenAccept(asyncResponse::resume);
     }
 
     /**
@@ -154,9 +158,9 @@ public class DeviceResourceImpl implements DeviceResource {
         if (equipment == null) {
             logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
             return ResponseFactory
-                .response(NOT_FOUND,
-                          new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                            String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                    .response(NOT_FOUND,
+                            new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
         }
         logger.debug("Device equipment by code proceed successfully");
 

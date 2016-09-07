@@ -8,7 +8,13 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
@@ -22,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -45,6 +52,8 @@ public class DeviceService {
     private HiveValidator hiveValidator;
     @Autowired
     private DeviceDao deviceDao;
+    @Autowired
+    private RpcClient rpcClient;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<DeviceClassEquipmentVO> equipmentSet, HivePrincipal principal) {
@@ -309,20 +318,36 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public List<DeviceVO> getList(String name,
-                                String namePattern,
-                                String status,
-                                Long networkId,
-                                String networkName,
-                                Long deviceClassId,
-                                String deviceClassName,
-                                String sortField,
-                                @NotNull Boolean sortOrderAsc,
-                                Integer take,
-                                Integer skip,
-                                HivePrincipal principal) {
-        return deviceDao.list(name, namePattern, status, networkId, networkName, deviceClassId, deviceClassName,
-                sortField, sortOrderAsc, take, skip, principal);
+    public CompletableFuture<List<DeviceVO>> list(String name,
+                                                 String namePattern,
+                                                 String status,
+                                                 Long networkId,
+                                                 String networkName,
+                                                 Long deviceClassId,
+                                                 String deviceClassName,
+                                                 String sortField,
+                                                 @NotNull Boolean sortOrderAsc,
+                                                 Integer take,
+                                                 Integer skip,
+                                                 HivePrincipal principal) {
+        ListDeviceRequest request = new ListDeviceRequest();
+        request.setName(name);
+        request.setNamePattern(namePattern);
+        request.setStatus(status);
+        request.setNetworkId(networkId);
+        request.setNetworkName(networkName);
+        request.setDeviceClassId(deviceClassId);
+        request.setDeviceClassName(deviceClassName);
+        request.setSortField(sortField);
+        request.setSortOrderAsc(sortOrderAsc);
+        request.setTake(take);
+        request.setSkip(skip);
+        request.setPrincipal(principal);
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
+        return future.thenApply(r -> ((ListDeviceResponse) r.getBody()).getDevices());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

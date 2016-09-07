@@ -67,7 +67,7 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
-    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
     private Set<DeviceClassEquipment> equipment;
 

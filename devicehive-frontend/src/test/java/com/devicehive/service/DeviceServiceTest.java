@@ -3,7 +3,6 @@ package com.devicehive.service;
 import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
@@ -36,8 +35,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
@@ -441,7 +438,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
-        final List<DeviceVO> devices = deviceService.getList(deviceName1, null, null, null, null, null, null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.list(deviceName1, null, null, null, null, null, null, null, false, null, null, null).join();
         assertNotNull(devices);
         assertEquals(devices.size(), 1);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -469,7 +466,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
 
-        final List<DeviceVO> devices = deviceService.getList(null, null, status1, null, null, null, null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.list(null, null, status1, null, null, null, null, null, false, null, null, null).join();
         Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
         assertNotNull(devices);
         assertEquals(2, devices.size());
@@ -519,7 +516,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<DeviceVO> devices = deviceService.getList(null, null, null, network1.getId(), null, null, null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.list(null, null, null, network1.getId(), null, null, null, null, false, null, null, null).join();
         assertNotNull(devices);
         assertNotEquals(0, devices.size());
         assertEquals(device1.getGuid(), devices.get(0).getGuid());
@@ -544,7 +541,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<DeviceVO> devices = deviceService.getList(null, null, null, null, null, dc.getId(), null, null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.list(null, null, null, null, null, dc.getId(), null, null, false, null, null, null).join();
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }
@@ -566,7 +563,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
 
-        final List<DeviceVO> devices = deviceService.getList(null, null, null, null, null, null, dc.getName(), null, false, null, null, null);
+        final List<DeviceVO> devices = deviceService.list(null, null, null, null, null, null, dc.getName(), null, false, null, null, null).join();
         assertNotNull(devices);
         assertEquals(device.getGuid(), devices.get(0).getGuid());
     }

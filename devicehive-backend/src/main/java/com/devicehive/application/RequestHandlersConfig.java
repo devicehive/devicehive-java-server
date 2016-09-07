@@ -2,6 +2,7 @@ package com.devicehive.application;
 
 import com.devicehive.handler.command.*;
 import com.devicehive.handler.dao.list.ListAccessKeyHandler;
+import com.devicehive.handler.dao.list.ListDeviceHandler;
 import com.devicehive.handler.dao.list.ListUserHandler;
 import com.devicehive.handler.dao.list.ListNetworkHandler;
 import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
@@ -52,6 +53,8 @@ public class RequestHandlersConfig {
             put(Action.LIST_USER_REQUEST, new ListUserHandler());
 
             put(Action.LIST_NETWORK_REQUEST, new ListNetworkHandler());
+
+            put(Action.LIST_DEVICE_REQUEST, new ListDeviceHandler());
         }};
     }
 
