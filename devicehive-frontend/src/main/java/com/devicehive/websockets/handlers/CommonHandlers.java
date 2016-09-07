@@ -51,7 +51,6 @@ public class CommonHandlers {
         return response;
     }
 
-    @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
         String login = null;
         if (request.get("login") != null) {
@@ -65,7 +64,11 @@ public class CommonHandlers {
 
         String key = null;
         if (request.get("accessKey") != null) {
-            key = request.get("accessKey").toString();
+            try {
+                key = request.get("accessKey").getAsString();
+            } catch (UnsupportedOperationException e) {
+                logger.error("Access Key is null");
+            }
         }
 
         String deviceId = null;

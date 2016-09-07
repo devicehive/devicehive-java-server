@@ -17,6 +17,7 @@ import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,7 +141,14 @@ public class NotificationHandlers {
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
         Optional<String> subId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
-                .map(JsonElement::getAsString);
+                .map(s -> {
+                    try {
+                        return s.getAsString();
+                    } catch (UnsupportedOperationException e) {
+                        logger.error("Subscription Id is null");
+                        return StringUtils.EMPTY;
+                    }
+                });
         Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceGuids == null) {
