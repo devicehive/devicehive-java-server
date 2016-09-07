@@ -54,7 +54,7 @@ public class NotificationHandlers {
     private Gson gson;
 
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException {
         Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
@@ -138,7 +138,7 @@ public class NotificationHandlers {
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
      * {object} } </code>
      */
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
         Optional<String> subId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
@@ -168,7 +168,7 @@ public class NotificationHandlers {
         return new WebSocketResponse();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
         final String deviceGuid = Optional.ofNullable(request.get(Constants.DEVICE_GUID))

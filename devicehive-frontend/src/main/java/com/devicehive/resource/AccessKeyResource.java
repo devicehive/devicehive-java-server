@@ -31,7 +31,7 @@ public interface AccessKeyResource {
      * specification.
      */
     @GET
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "List access keys", notes = "Gets list of access keys and their permissions.")
     @ApiResponses(value = {
             @ApiResponse(code = 200,
@@ -81,7 +81,7 @@ public interface AccessKeyResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Get user's access key", notes = "Gets information about access key and its permissions.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a AccessKey resource in the response body.",
@@ -108,7 +108,7 @@ public interface AccessKeyResource {
      * resource in the response body according to the specification.
      */
     @POST
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Create Access key", notes = "Creates new access key.")
     @ApiResponses(value = {
             @ApiResponse(code = 201,
@@ -141,7 +141,7 @@ public interface AccessKeyResource {
      */
     @PUT
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Update Access key", notes = "Updates an existing access key.")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -174,7 +174,7 @@ public interface AccessKeyResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'MANAGE_ACCESS_KEY')")
     @ApiOperation(value = "Delete Access key", notes = "Deletes an existing access key.")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

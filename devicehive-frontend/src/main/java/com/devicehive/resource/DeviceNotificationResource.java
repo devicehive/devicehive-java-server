@@ -49,7 +49,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceGuid}/notification")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
             response = DeviceNotification.class)
     void query(
@@ -98,7 +98,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Returned notification by device guid and notification id",
@@ -126,7 +126,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceGuid}/notification/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications for specified device Guid.\n" +
             "\n" +
             "This method returns all device notifications that were created after specified timestamp.\n" +
@@ -160,7 +160,7 @@ public interface DeviceNotificationResource {
 
     @GET
     @Path("/notification/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications.\n" +
             "\n" +
             "This method returns all device notifications that were created after specified timestamp.\n" +
@@ -209,7 +209,7 @@ public interface DeviceNotificationResource {
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "notification sent", response = DeviceNotification.class),

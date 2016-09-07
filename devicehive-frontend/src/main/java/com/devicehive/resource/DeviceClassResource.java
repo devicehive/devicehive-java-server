@@ -37,7 +37,7 @@ public interface DeviceClassResource {
      * .com/restful#Reference/DeviceClass"> DeviceClass </a> resources in the response body.
      */
     @GET
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "List device classes", notes = "Gets list of device classes.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.",
@@ -77,7 +77,7 @@ public interface DeviceClassResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.",
@@ -107,7 +107,7 @@ public interface DeviceClassResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Create device class", notes = "Creates new device class.")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.",
@@ -132,7 +132,7 @@ public interface DeviceClassResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -159,7 +159,7 @@ public interface DeviceClassResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

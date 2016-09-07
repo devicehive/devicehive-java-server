@@ -44,7 +44,7 @@ public interface NetworkResource {
      * @param skip        offset, default 0
      */
     @GET
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "List networks", notes = "Gets list of device networks the client has access to.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Network resources in the response body.", response = NetworkVO.class, responseContainer = "List"),
@@ -90,7 +90,7 @@ public interface NetworkResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get network", notes = "Gets information about device network and its devices.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
@@ -127,7 +127,7 @@ public interface NetworkResource {
      * provided anyway.
      */
     @POST
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Create network", notes = "Creates new device network.")
     @ApiResponses({
             @ApiResponse(code = 201, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
@@ -161,7 +161,7 @@ public interface NetworkResource {
      */
     @PUT
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Update network", notes = "Updates an existing device network.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -183,7 +183,7 @@ public interface NetworkResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Delete network", notes = "Deletes an existing device network.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

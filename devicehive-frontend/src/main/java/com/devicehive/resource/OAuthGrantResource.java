@@ -16,7 +16,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.OAUTH_GRANT_PU
 public interface OAuthGrantResource {
 
     @GET
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     @ApiOperation(value = "List oAuth grants", notes = "Returns list of oAuth grants for user")
     Response list(
             @ApiParam(name = "userId", value = "User Id", required = true)
@@ -59,7 +59,7 @@ public interface OAuthGrantResource {
 
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     @ApiOperation(value = "Get oAuth grant", notes = "Returns oAuth grant by user and id")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If grant not found")
@@ -73,7 +73,7 @@ public interface OAuthGrantResource {
             long grantId);
 
     @POST
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     @ApiOperation(value = "Create oAuth grant")
     Response insert(
             @ApiParam(name = "userId", value = "User Id", required = true)
@@ -86,7 +86,7 @@ public interface OAuthGrantResource {
 
     @PUT
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     @ApiOperation(value = "Update oAuth grant")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If grant not found")
@@ -105,7 +105,7 @@ public interface OAuthGrantResource {
 
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_GRANT')")
     @ApiOperation(value = "Delete oAuth grant")
     Response delete(
             @ApiParam(name = "userId", value = "User Id", required = true)

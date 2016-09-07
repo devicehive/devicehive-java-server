@@ -36,7 +36,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
@@ -61,7 +61,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/command/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
@@ -86,7 +86,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Waits for a command to be processed.",
             notes = "Waits for a command to be processed.<br>" +
                     "<br>" +
@@ -115,7 +115,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Query commands.",
             notes = "Gets list of commands that has been received in specified time range.",
             response = DeviceCommand.class,
@@ -163,7 +163,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Get command ",
             notes = "Gets command by device GUID and command id",
             response = DeviceCommand.class)
@@ -193,7 +193,7 @@ public interface DeviceCommandResource {
     @POST
     @Path("/{deviceGuid}/command")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Creates new device command.",
             notes = "Creates new device command, stores and returns command with generated id.",
             response = DeviceCommand.class)
@@ -226,7 +226,7 @@ public interface DeviceCommandResource {
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Updates an existing device command.",
             notes = "Updates an existing device command.",
             response = DeviceCommand.class)

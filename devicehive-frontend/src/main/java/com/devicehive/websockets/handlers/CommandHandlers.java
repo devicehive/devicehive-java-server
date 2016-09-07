@@ -54,7 +54,7 @@ public class CommandHandlers {
     @Autowired
     private DeviceCommandService commandService;
 
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
 
@@ -106,7 +106,7 @@ public class CommandHandlers {
         return response;
     }
 
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
                 .map(JsonElement::getAsString);
@@ -136,7 +136,7 @@ public class CommandHandlers {
         return new WebSocketResponse();
     }
 
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandInsert(JsonObject request, WebSocketSession session) {
         final String deviceGuid = request.get(DEVICE_GUID).getAsString();
         final DeviceCommandWrapper deviceCommand = gson
@@ -170,7 +170,7 @@ public class CommandHandlers {
         return response;
     }
 
-    @PreAuthorize("hasAnyRole('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(JsonObject request, WebSocketSession session) {
         String guid = request.get(DEVICE_GUID).getAsString();
         final Long id = Long.valueOf(request.get(COMMAND_ID).getAsString()); // TODO: nullable long?
