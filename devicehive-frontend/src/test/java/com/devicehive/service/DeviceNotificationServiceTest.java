@@ -2,8 +2,11 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.configuration.Constants;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.*;
 import com.devicehive.service.exception.BackendException;
 import com.devicehive.shim.api.Request;
@@ -18,12 +21,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -58,7 +60,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testFindOneWithResponse() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testFindOneWithResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String notification = "Expected notification";
@@ -88,7 +90,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                     assertEquals(Long.valueOf(id), opt.get().getId());
                 })
                 .exceptionally(ex -> {
-                    fail("Must be completed successfully");
+                    fail(ex.toString());
                     return null;
                 }).get(2, TimeUnit.SECONDS);
 
@@ -106,7 +108,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testFindOneWithEmptyResponse() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testFindOneWithEmptyResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
 
@@ -119,7 +121,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         notificationService.findOne(id, guid)
                 .thenAccept(opt -> assertFalse(opt.isPresent()))
                 .exceptionally(ex -> {
-                    fail("Must be completed successfully");
+                    fail(ex.toString());
                     return null;
                 }).get(2, TimeUnit.SECONDS);
 
@@ -136,7 +138,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testFindOneWithErrorResponse() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testFindOneWithErrorResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String expectedErrorMessage = "EXPECTED ERROR MESSAGE";
@@ -170,7 +172,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testFindWithEmptyResponse() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testFindWithEmptyResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
@@ -188,11 +190,9 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                 .buildSuccess());
 
         notificationService.find(guidsForSearch, Collections.emptySet(), timestampSt, timestampEnd)
-                .thenAccept(notifications -> {
-                    assertTrue(notifications.isEmpty());
-                })
+                .thenAccept(notifications -> assertTrue(notifications.isEmpty()))
                 .exceptionally(ex -> {
-                    fail("Must be completed successfully");
+                    fail(ex.toString());
                     return null;
                 }).get(2, TimeUnit.SECONDS);
 
@@ -207,7 +207,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testFindWithResponse() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testFindWithResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
@@ -232,7 +232,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                     return notification;
                 }));
 
-        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
             String guid = request.getBody().cast(NotificationSearchRequest.class).getGuid();
             return Response.newBuilder()
@@ -247,7 +247,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                     assertEquals(new HashSet<>(notificationMap.values()), new HashSet<>(notifications)); // using HashSet to ignore order
                 })
                 .exceptionally(ex -> {
-                    fail("Must be completed successfully");
+                    fail(ex.toString());
                     return null;
                 }).get(2, TimeUnit.SECONDS);
 
@@ -255,7 +255,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void testSubmitDeviceNotificationShouldPass() throws InterruptedException {
+    public void testSubmitDeviceNotificationShouldInsertSingleNotification() throws Exception {
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
         deviceVO.setGuid(UUID.randomUUID().toString());
@@ -266,15 +266,126 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         deviceNotification.setNotification(RandomStringUtils.randomAlphabetic(10));
         deviceNotification.setDeviceGuid(deviceVO.getGuid());
 
-        when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder().buildSuccess());
+        when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder()
+                .withBody(new NotificationInsertResponse(deviceNotification))
+                .buildSuccess());
 
-        notificationService.submitDeviceNotification(deviceNotification, deviceVO);
-        TimeUnit.SECONDS.sleep(2);
+        notificationService.submitDeviceNotification(deviceNotification, deviceVO)
+                .thenAccept(notifications -> {
+                    assertEquals(1, notifications.size());
+                    assertEquals(deviceNotification, notifications.get(0));
+                })
+                .exceptionally(ex -> {
+                    fail(ex.toString());
+                    return null;
+                }).get(2, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
 
         NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
         assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());
         assertEquals(deviceNotification, request.getDeviceNotification());
+    }
+
+    @Test
+    public void testSubmitDeviceNotificationWithRefreshEquipmentShouldInsertSingleNotification() throws Exception {
+        // mock DeviceDao
+        final DeviceEquipmentService equipmentServiceMock = Mockito.mock(DeviceEquipmentService.class);
+        Whitebox.setInternalState(notificationService, "deviceEquipmentService", equipmentServiceMock);
+
+        // create inputs
+        final DeviceVO deviceVO = new DeviceVO();
+        deviceVO.setId(System.nanoTime());
+        deviceVO.setGuid(UUID.randomUUID().toString());
+
+        final DeviceNotification deviceNotification = new DeviceNotification();
+        deviceNotification.setId(System.nanoTime());
+        deviceNotification.setTimestamp(new Date());
+        deviceNotification.setNotification(SpecialNotifications.EQUIPMENT);
+        deviceNotification.setDeviceGuid(deviceVO.getGuid());
+
+        // define returns
+        when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder()
+                .withBody(new NotificationInsertResponse(deviceNotification))
+                .buildSuccess());
+
+        // execute
+        notificationService.submitDeviceNotification(deviceNotification, deviceVO)
+                .thenAccept(notifications -> {
+                    assertEquals(1, notifications.size());
+                    assertEquals(deviceNotification, notifications.get(0));
+                })
+                .exceptionally(ex -> {
+                    fail(ex.toString());
+                    return null;
+                }).get(2, TimeUnit.SECONDS);
+
+        // check
+        verify(requestHandler, times(1)).handle(argument.capture());
+        verify(equipmentServiceMock, times(1)).refreshDeviceEquipment(eq(deviceNotification), eq(deviceVO));
+
+        NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
+        assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());
+        assertEquals(deviceNotification, request.getDeviceNotification());
+    }
+
+    @Test
+    public void testSubmitDeviceNotificationWithRefreshDeviceStatusShouldInsertTwoNotifications() throws Exception {
+        // mock DeviceDao
+        final DeviceDao deviceDaoMock = Mockito.mock(DeviceDao.class);
+        Whitebox.setInternalState(notificationService, "deviceDao", deviceDaoMock);
+
+        // create inputs
+        final DeviceVO deviceVO = new DeviceVO();
+        deviceVO.setId(System.nanoTime());
+        deviceVO.setGuid(UUID.randomUUID().toString());
+
+        final DeviceNotification originalNotification = new DeviceNotification();
+        originalNotification.setId(System.nanoTime());
+        originalNotification.setTimestamp(new Date());
+        originalNotification.setNotification(SpecialNotifications.DEVICE_STATUS);
+        originalNotification.setDeviceGuid(deviceVO.getGuid());
+        originalNotification.setParameters(new JsonStringWrapper("{\"" + Constants.STATUS + "\":\"status1\"}"));
+
+        // define return values
+        when(deviceDaoMock.findByUUID(deviceVO.getGuid())).thenReturn(deviceVO);
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            NotificationInsertRequest insertRequest = invocation.getArgumentAt(0, Request.class)
+                    .getBody().cast(NotificationInsertRequest.class);
+            return Response.newBuilder()
+                    .withBody(new NotificationInsertResponse(insertRequest.getDeviceNotification()))
+                    .buildSuccess();
+        });
+
+        // execute
+        notificationService.submitDeviceNotification(originalNotification, deviceVO)
+                .thenAccept(resultNotifications -> {
+                    assertEquals(2, resultNotifications.size());
+                    assertTrue(resultNotifications.stream().anyMatch(n -> n.equals(originalNotification)));
+                    assertTrue(resultNotifications.stream()
+                            .map(DeviceNotification::getNotification)
+                            .allMatch(value -> originalNotification.getNotification().equals(value)
+                                    || SpecialNotifications.DEVICE_UPDATE.equals(value)));
+                })
+                .exceptionally(ex -> {
+                    fail(ex.toString());
+                    return null;
+                }).get(2, TimeUnit.SECONDS);
+
+        // check
+        verify(requestHandler, times(2)).handle(argument.capture());
+
+        Optional<DeviceNotification> statusNotification = argument.getAllValues().stream()
+                .map(r -> r.getBody().cast(NotificationInsertRequest.class).getDeviceNotification())
+                .filter(n -> SpecialNotifications.DEVICE_STATUS.equals(n.getNotification())).findFirst();
+        assertTrue(statusNotification.isPresent());
+        assertEquals(originalNotification, statusNotification.get());
+
+        Optional<DeviceNotification> updateNotification = argument.getAllValues().stream()
+                .map(r -> r.getBody().cast(NotificationInsertRequest.class).getDeviceNotification())
+                .filter(n -> SpecialNotifications.DEVICE_UPDATE.equals(n.getNotification())).findFirst();
+        assertTrue(updateNotification.isPresent());
+        assertNotNull(originalNotification.getId());
+        assertEquals(deviceVO.getGuid(), updateNotification.get().getDeviceGuid());
     }
 }

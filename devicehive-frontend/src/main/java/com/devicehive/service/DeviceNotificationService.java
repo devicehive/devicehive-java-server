@@ -24,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class DeviceNotificationService {
@@ -85,17 +84,30 @@ public class DeviceNotificationService {
         // List<CompletableFuture<Response>> => CompletableFuture<List<DeviceNotification>>
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
                 .thenApply(v -> futures.stream()
-                        .map(CompletableFuture::join)                                            // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
-                        .map(r -> ((NotificationSearchResponse) r.getBody()).getNotifications()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceNotification>>>
-                        .flatMap(Collection::stream)                                             // CompletableFuture<List<List<DeviceNotification>>> => CompletableFuture<List<DeviceNotification>>
+                        .map(CompletableFuture::join)                                                    // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
+                        .map(r -> r.getBody().cast(NotificationSearchResponse.class).getNotifications()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceNotification>>>
+                        .flatMap(Collection::stream)                                                     // CompletableFuture<List<List<DeviceNotification>>> => CompletableFuture<List<DeviceNotification>>
                         .collect(Collectors.toList()));
     }
 
-    public void submitDeviceNotification(final DeviceNotification notification, final DeviceVO device) {
-        processDeviceNotification(notification, device).forEach(n -> rpcClient.push(Request.newBuilder()
-                .withBody(new NotificationInsertRequest(notification))
-                .withPartitionKey(device.getGuid())
-                .build()));
+    public CompletableFuture<List<DeviceNotification>> submitDeviceNotification(final DeviceNotification notification,
+                                                                                final DeviceVO device) {
+        List<CompletableFuture<Response>> futures = processDeviceNotification(notification, device).stream()
+                .map(n -> {
+                    CompletableFuture<Response> future = new CompletableFuture<>();
+                    rpcClient.call(Request.newBuilder()
+                            .withBody(new NotificationInsertRequest(n))
+                            .withPartitionKey(device.getGuid())
+                            .build(), new ResponseConsumer(future));
+                    return future;
+                })
+                .collect(Collectors.toList());
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
+                .thenApply(x -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .map(r -> r.getBody().cast(NotificationInsertResponse.class).getDeviceNotification())
+                        .collect(Collectors.toList()));
     }
 
     public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper notificationWrapper, DeviceVO device) {

@@ -13,8 +13,11 @@ import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.springframework.util.Assert;
 
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.Random;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -54,6 +57,7 @@ public class ServerResponsesFactory {
     }
 
     public static String parseNotificationStatus(DeviceNotification notificationMessage) {
+        Assert.notNull(notificationMessage.getParameters(), "Notification parameters are required.");
         String jsonParametersString = notificationMessage.getParameters().getJsonString();
         Gson gson = GsonFactory.createGson();
         JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
@@ -63,11 +67,16 @@ public class ServerResponsesFactory {
         } else {
             throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
         }
-        return statusJsonObject.get(Constants.STATUS).getAsString();
+
+        JsonElement jsonElement = statusJsonObject.get(Constants.STATUS);
+        Assert.notNull(jsonElement, "Parameter " + Constants.STATUS + " is required.");
+
+        return jsonElement.getAsString();
     }
 
     public static DeviceNotification createNotificationForDevice(DeviceVO device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();
+        notification.setId(Math.abs(new Random().nextInt())); // TODO: remove this when id generation will be moved to backend
         notification.setNotification(notificationName);
         notification.setDeviceGuid(device.getGuid());
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);

@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
@@ -37,6 +36,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_T
 import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class NotificationHandlers {
@@ -88,12 +88,10 @@ public class NotificationHandlers {
         Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
                 .sendSubscribeRequest(devices, names, timestamp, callback);
 
-        pair.getRight().thenAccept(collection -> {
-            for (DeviceNotification notification : collection) {
-                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
-                sendMessage(json, session);
-            }
-        });
+        pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
+            JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
+            sendMessage(json, session);
+        }));
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
@@ -199,11 +197,18 @@ public class NotificationHandlers {
             throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
         }
         DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
-        notificationService.submitDeviceNotification(message, device);
-        logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+        notificationService.submitDeviceNotification(message, device)
+                .thenApply(notification -> {
+                    logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
+                    response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.warn("Unable to insert notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
         return response;
     }
 }
