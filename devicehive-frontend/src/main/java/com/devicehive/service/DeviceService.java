@@ -317,7 +317,7 @@ public class DeviceService {
         return existing.isEmpty() || deviceDao.deleteByUUID(guid) != 0;
     }
 
-    @Transactional(readOnly = true)
+    //@Transactional(readOnly = true)
     public CompletableFuture<List<DeviceVO>> list(String name,
                                                  String namePattern,
                                                  String status,

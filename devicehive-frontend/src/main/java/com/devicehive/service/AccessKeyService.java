@@ -308,7 +308,7 @@ public class AccessKeyService {
         return existing;
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<AccessKeyVO>> list(Long userId, String label,
                                                   String labelPattern, Integer type,
                                                   String sortField, Boolean sortOrderAsc,

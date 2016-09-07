@@ -1,22 +1,65 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.ListDeviceClassRequest;
+import com.devicehive.model.rpc.ListDeviceClassResponse;
+import com.devicehive.model.rpc.ListUserRequest;
+import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.UserVO;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Autowired
     private DeviceClassService deviceClassService;
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Autowired
+    private DeviceClassDao deviceClassDao;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
 
     @Test
     public void should_add_device_class_and_retrieve_back() {
@@ -165,7 +208,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_get_device_class_list_sorted() {
+    public void should_get_device_class_list_sorted() throws Exception {
         UUID uuid = UUID.randomUUID();
         final DeviceClassWithEquipmentVO deviceClass0 = DeviceFixture.createDCVO();
         deviceClass0.setName("F_COMMON_SPECIFIC_NAME-" + uuid);
@@ -187,17 +230,33 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         deviceClassService.addDeviceClass(deviceClass4);
         deviceClassService.addDeviceClass(deviceClass5);
 
-        List<DeviceClassWithEquipmentVO> deviceClasses = deviceClassService.getDeviceClassList(null, "%COMMON_SPECIFIC_NAME-" + uuid, "name",
-                true, null, null);
-        assertNotNull(deviceClasses);
-        assertEquals(6, deviceClasses.size());
-        assertEquals(deviceClass5.getId(), deviceClasses.get(0).getId());
-        assertEquals(deviceClass3.getId(), deviceClasses.get(1).getId());
-        assertEquals(deviceClass1.getId(), deviceClasses.get(2).getId());
-        assertEquals(deviceClass4.getId(), deviceClasses.get(3).getId());
-        assertEquals(deviceClass2.getId(), deviceClasses.get(4).getId());
-        assertEquals(deviceClass0.getId(), deviceClasses.get(5).getId());
+        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
+            Request request = invocation.getArgumentAt(0, Request.class);
+            ListDeviceClassRequest req = request.getBody().cast(ListDeviceClassRequest.class);
+            final List<DeviceClassWithEquipmentVO> deviceClasses =
+                    deviceClassDao.list(req.getName(), req.getNamePattern(),
+                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getTake(), req.getSkip());
 
+            return Response.newBuilder()
+                    .withBody(new ListDeviceClassResponse(deviceClasses))
+                    .buildSuccess();
+        });
+
+        deviceClassService.list(null, "%COMMON_SPECIFIC_NAME-" + uuid, "name",
+                true, null, null)
+                .thenAccept(deviceClasses -> {
+                    assertNotNull(deviceClasses);
+                    assertEquals(6, deviceClasses.size());
+                    assertEquals(deviceClass5.getId(), deviceClasses.get(0).getId());
+                    assertEquals(deviceClass3.getId(), deviceClasses.get(1).getId());
+                    assertEquals(deviceClass1.getId(), deviceClasses.get(2).getId());
+                    assertEquals(deviceClass4.getId(), deviceClasses.get(3).getId());
+                    assertEquals(deviceClass2.getId(), deviceClasses.get(4).getId());
+                    assertEquals(deviceClass0.getId(), deviceClasses.get(5).getId());
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test

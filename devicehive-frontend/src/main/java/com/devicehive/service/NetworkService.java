@@ -166,7 +166,7 @@ public class NetworkService {
         return networkDao.merge(existing);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<NetworkVO>> list(String name,
                                                   String namePattern,
                                                   String sortField,

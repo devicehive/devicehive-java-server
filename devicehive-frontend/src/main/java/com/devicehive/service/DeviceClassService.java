@@ -3,8 +3,13 @@ package com.devicehive.service;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.ListDeviceClassRequest;
+import com.devicehive.model.rpc.ListDeviceClassResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.EquipmentUpdate;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
@@ -17,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -29,6 +35,8 @@ public class DeviceClassService {
     private HiveValidator hiveValidator;
     @Autowired
     private DeviceClassDao deviceClassDao;
+    @Autowired
+    private RpcClient rpcClient;
 
     @Transactional
     public void delete(@NotNull long id) {
@@ -229,10 +237,25 @@ public class DeviceClassService {
         return equipment;
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
-                                                Boolean sortOrderAsc, Integer take, Integer skip) {
-        return deviceClassDao.list(name, namePattern, sortField, sortOrderAsc, take, skip);
+    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public CompletableFuture<List<DeviceClassWithEquipmentVO>> list(String name, String namePattern, String sortField,
+                                                                   Boolean sortOrderAsc, Integer take, Integer skip) {
+        ListDeviceClassRequest request = new ListDeviceClassRequest();
+        request.setName(name);
+        request.setNamePattern(namePattern);
+        request.setSortField(sortField);
+        request.setSortOrderAsc(sortOrderAsc);
+        request.setTake(take);
+        request.setSkip(skip);
+
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(request)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((ListDeviceClassResponse) r.getBody()).getDeviceClasses());
     }
 
     /**

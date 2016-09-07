@@ -242,7 +242,7 @@ public class UserService {
         userDao.unassignNetwork(existingUser, networkId);
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
                                                   Boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();

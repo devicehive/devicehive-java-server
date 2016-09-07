@@ -9,6 +9,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.ws.rs.*;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -46,7 +48,7 @@ public interface DeviceClassResource {
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response getDeviceClassList(
+    void getDeviceClassList(
             @ApiParam(name = "name", value = "Filter by device class name.")
             @QueryParam("name")
             String name,
@@ -65,7 +67,8 @@ public interface DeviceClassResource {
             Integer take,
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
-            Integer skip);
+            Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceClass/get"> DeviceHive RESTful API:

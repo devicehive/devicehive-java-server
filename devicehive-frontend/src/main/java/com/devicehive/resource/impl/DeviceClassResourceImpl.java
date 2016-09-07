@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
@@ -36,20 +38,29 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response getDeviceClassList(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip) {
+    public void getDeviceClassList(String name, String namePattern, String sortField, String sortOrderSt,
+                                   Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("DeviceClass list requested");
         boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.debug("DeviceClass list request failed. Bad request for sortField");
-            return ResponseFactory.response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
-        } else if (sortField != null) {
-            sortField = sortField.toLowerCase();
+            final Response response = ResponseFactory.response(Response.Status.BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+            asyncResponse.resume(response);
+        } else {
+            if (sortField != null) {
+                sortField = sortField.toLowerCase();
+            }
+
+            deviceClassService.list(name, namePattern, sortField, sortOrder, take, skip)
+                    .thenApply(deviceClasses -> {
+                        logger.debug("DeviceClass list proceed result. Result list contains {} elements", deviceClasses.size());
+                        return ResponseFactory.response(OK, deviceClasses, DEVICECLASS_LISTED);
+                    })
+                    .thenAccept(asyncResponse::resume);
         }
-
-        List<DeviceClassWithEquipmentVO> result = deviceClassService.getDeviceClassList(name, namePattern, sortField, sortOrder, take, skip);
-        logger.debug("DeviceClass list proceed result. Result list contains {} elements", result.size());
-
-        return ResponseFactory.response(OK, result, DEVICECLASS_LISTED);
     }
 
     /**
