@@ -47,9 +47,9 @@ public class DeviceHandlers {
                 .orElse(null);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         DeviceVO toResponse;
-        if(deviceId != null){
+        if (deviceId != null) {
             toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
-        }else{
+        } else {
             toResponse = principal.getDevice();
         }
         WebSocketResponse response = new WebSocketResponse();

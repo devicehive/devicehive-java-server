@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -78,7 +79,9 @@ public class NotificationHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            devices = Collections.singleton(Constants.NULL_SUBSTITUTE);
+            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
         BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
@@ -152,14 +155,10 @@ public class NotificationHandlers {
         Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceGuids == null) {
-            Set<String> subForAll = new HashSet<String>() {
-                {
-                    add(Constants.NULL_SUBSTITUTE);
-                }
-
-                private static final long serialVersionUID = 8001668138178383978L;
-            };
-            notificationService.submitNotificationUnsubscribe(null, subForAll);
+            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            deviceGuids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
+            notificationService.submitNotificationUnsubscribe(null, deviceGuids);
         } else if (subId.isPresent()) {
             notificationService.submitNotificationUnsubscribe(subId.get(), deviceGuids);
         } else {

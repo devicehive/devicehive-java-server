@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
@@ -78,7 +79,9 @@ public class CommandHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            devices = Collections.singleton(Constants.NULL_SUBSTITUTE);
+            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
@@ -110,18 +113,14 @@ public class CommandHandlers {
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
                 .map(JsonElement::getAsString);
-        final Set<String> guids = gson.fromJson(request.getAsJsonObject(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
+        Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (!subscriptionId.isPresent() && guids == null) {
-            Set<String> subForAll = new HashSet<String>() {
-                {
-                    add(Constants.NULL_SUBSTITUTE);
-                }
-
-                private static final long serialVersionUID = 8001668138178383978L;
-            };
-            commandService.submitCommandUnsubscribe(null, subForAll);
+            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
+                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
+            commandService.submitCommandUnsubscribe(null, guids);
         } else if (subscriptionId.isPresent()) {
             commandService.submitCommandUnsubscribe(subscriptionId.get(), guids);
         } else {
