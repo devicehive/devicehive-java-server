@@ -59,6 +59,7 @@ public class NotificationHandlers {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
         Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
         Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
@@ -73,14 +74,12 @@ public class NotificationHandlers {
 
         List<DeviceVO> actualDevices;
         if (devices != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null, principal).join();
             devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
@@ -143,6 +142,7 @@ public class NotificationHandlers {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Optional<String> subId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
                 .map(s -> {
                     try {
@@ -156,7 +156,7 @@ public class NotificationHandlers {
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceGuids == null) {
             List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+                    principal).join();
             deviceGuids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
             notificationService.submitNotificationUnsubscribe(null, deviceGuids);
         } else if (subId.isPresent()) {
@@ -176,13 +176,13 @@ public class NotificationHandlers {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String deviceGuid = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
                 .map(JsonElement::getAsString)
                 .orElse(null);
         DeviceNotificationWrapper notificationSubmit = gson.fromJson(request.get(Constants.NOTIFICATION), DeviceNotificationWrapper.class);
 
         logger.debug("notification/insert requested. Session {}. Guid {}", session, deviceGuid);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
             logger.debug(
                     "notification/insert proceed with error. Bad notification: notification is required.");

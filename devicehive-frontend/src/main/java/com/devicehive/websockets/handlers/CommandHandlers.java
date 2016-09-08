@@ -58,7 +58,7 @@ public class CommandHandlers {
     @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
-
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Date timestamp = gson.fromJson(request.getAsJsonObject(TIMESTAMP), Date.class);
         final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
                 .map(JsonElement::getAsString)
@@ -73,14 +73,12 @@ public class CommandHandlers {
 
         List<DeviceVO> actualDevices;
         if (devices != null) {
-            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal());
+            actualDevices = deviceService.findByGuidWithPermissionsCheck(devices, principal);
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null, principal).join();
             devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
@@ -111,6 +109,7 @@ public class CommandHandlers {
 
     @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
                 .map(JsonElement::getAsString);
         Set<String> guids = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
@@ -118,7 +117,7 @@ public class CommandHandlers {
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (!subscriptionId.isPresent() && guids == null) {
             List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
-                    (HivePrincipal) ((HiveAuthentication) session.getPrincipal()).getPrincipal()).join();
+                   principal).join();
             guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
             commandService.submitCommandUnsubscribe(null, guids);
         } else if (subscriptionId.isPresent()) {
@@ -137,16 +136,22 @@ public class CommandHandlers {
 
     @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandInsert(JsonObject request, WebSocketSession session) {
-        final String deviceGuid = request.get(DEVICE_GUID).getAsString();
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final String deviceGuid = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
         final DeviceCommandWrapper deviceCommand = gson
                 .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
 
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
+
+        DeviceVO device;
         if (deviceGuid == null) {
-            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
+            device = principal.getDevice();
+        } else {
+           device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
         }
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+
         if (device == null) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
         }
@@ -171,13 +176,13 @@ public class CommandHandlers {
 
     @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(JsonObject request, WebSocketSession session) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String guid = request.get(DEVICE_GUID).getAsString();
         final Long id = Long.valueOf(request.get(COMMAND_ID).getAsString()); // TODO: nullable long?
         final DeviceCommandWrapper commandUpdate = gson
                 .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
 
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (guid == null) {
             if (principal.getDevice() != null) {
                 guid = principal.getDevice().getGuid();
