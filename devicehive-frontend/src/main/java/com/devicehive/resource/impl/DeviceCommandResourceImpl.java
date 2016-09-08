@@ -3,6 +3,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
@@ -16,6 +17,7 @@ import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
+import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -25,14 +27,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.container.TimeoutHandler;
 import javax.ws.rs.core.Response;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -76,21 +79,39 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        final Date ts = TimestampQueryParamParser.parse(timestamp);
 
-        if (timeout < 0) {
+        final Date ts = TimestampQueryParamParser.parse(timestamp == null ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()) : timestamp);
+
+        long time = timeout == 0 ? 1 : timeout; // setTimemeout(0, TimeUnit.SECONDS); never ends
+
+        if (time < 0) {
             asyncResponse.resume(ResponseFactory.response(
                     Response.Status.OK,
                     Collections.emptyList(),
                     JsonPolicyDef.Policy.COMMAND_LISTED));
         }
-        if (timeout != 0) asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
 
-        Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsCsv, ','))
-                .map(Arrays::asList)
-                .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
-                .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+        asyncResponse.setTimeoutHandler(asyncResponse1 -> asyncResponse1.resume(
+                ResponseFactory.response(Response.Status.OK,
+                        Collections.emptyList(),
+                        Policy.COMMAND_LISTED)));
+
+        asyncResponse.setTimeout(time, TimeUnit.SECONDS);
+
+        Set<String> availableDevices;
+        if (deviceGuidsCsv == null) {
+            availableDevices = deviceService.findByGuidWithPermissionsCheck(Collections.emptyList(), principal)
+                    .stream()
+                    .map(DeviceVO::getGuid)
+                    .collect(Collectors.toSet());
+
+        } else {
+            availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsCsv, ','))
+                    .map(Arrays::asList)
+                    .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
+                    .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
+                    .orElse(Collections.emptySet());
+        }
 
         Set<String> names = Optional.ofNullable(StringUtils.split(namesCsv, ','))
                 .map(Arrays::asList)
@@ -101,12 +122,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
-                        command,
+                        Collections.singleton(command),
                         Policy.COMMAND_LISTED));
             }
         };
 
-        if (timestamp != null && !availableDevices.isEmpty()) {
+        if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
                     .submitCommandSubscribe(availableDevices, names, ts, callback);
             pair.getRight().thenAccept(collection -> {
@@ -116,11 +137,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                             collection,
                             Policy.COMMAND_LISTED));
                 }
-            }).exceptionally(throwable -> {
-                if (!asyncResponse.isDone()) {
-                    asyncResponse.resume(throwable);
-                }
-                return null;
             });
 
             asyncResponse.register(new CompletionCallback() {
@@ -199,28 +215,32 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                LOGGER.debug("DeviceCommand poll proceed successfully: deviceGuid {}, commandId {}", deviceGuid, commandId);
-            }
-        });
+//        asyncResponse.register(new CompletionCallback() {
+//            @Override
+//            public void onComplete(Throwable throwable) {
+//                LOGGER.debug("DeviceCommand poll proceed successfully: deviceGuid {}, commandId {}", deviceGuid, commandId);
+//            }
+//        });
 
-        mes.submit(() -> {
-            try {
-                waitAction(deviceGuid, commandId, timeout, asyncResponse, principal);
-            } catch (Exception e) {
-                asyncResponse.resume(e);
-            }
-        });
+        waitAction(deviceGuid, commandId, timeout, asyncResponse, principal);
+
     }
 
     private void waitAction(String deviceGuid, String commandId, long timeout, AsyncResponse asyncResponse,
                             HivePrincipal principal) {
         LOGGER.debug("DeviceCommand wait requested, deviceId = {},  commandId = {}", deviceGuid, commandId);
-        if (timeout < 0) {
-            asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
+        long time = timeout == 0 ? 1 : timeout;
+
+        if (time < 0) {
+            asyncResponse.resume(ResponseFactory.response(
+                    Response.Status.NO_CONTENT));
         }
+        asyncResponse.setTimeoutHandler(asyncResponse1 -> asyncResponse1.resume(
+                ResponseFactory.response(
+                        Response.Status.NO_CONTENT)));
+
+        asyncResponse.setTimeout(time, TimeUnit.SECONDS);
+
         if (deviceGuid == null || commandId == null) {
             LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: deviceGuid and commandId required", deviceGuid);
             Response response = ResponseFactory.response(Response.Status.BAD_REQUEST);
@@ -242,7 +262,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         if (!command.isPresent()) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
                     commandId, deviceGuid);
-            Response response = ResponseFactory.response(Response.Status.NOT_FOUND);
+            Response response = ResponseFactory.response(Response.Status.NO_CONTENT);
             asyncResponse.resume(response);
             return;
         }
@@ -255,19 +275,41 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        if (!command.get().getIsUpdated()) { // FIXME
-//            CommandUpdateSubscriptionStorage storage = subscriptionManager.getCommandUpdateSubscriptionStorage();
-//            UUID reqId = UUID.randomUUID();
-//            CommandUpdateSubscription commandSubscription =
-//                    new CommandUpdateSubscription(Long.valueOf(commandId), reqId, RestHandlerCreator.createCommandUpdate(asyncResponse));
-//
-//            if (!SimpleWaiter.subscribeAndWait(storage, commandSubscription, new FutureTask<>(Runnables.doNothing(), null), timeout)) {
-//                asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
-//            }
-        }
+        BiConsumer<DeviceCommand, String> callback = (com, subscriptionId) -> {
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(ResponseFactory.response(
+                        Response.Status.OK,
+                        com,
+                        Policy.COMMAND_TO_DEVICE));
+            }
+        };
 
-        Response result = ResponseFactory.response(Response.Status.OK, command, Policy.COMMAND_TO_DEVICE);
-        asyncResponse.resume(result);
+        if (!command.get().getIsUpdated()) { // FIXME
+            CompletableFuture<Pair<String, DeviceCommand>> future = commandService
+                    .submitSubscribeOnUpdate(Long.valueOf(commandId), deviceGuid, callback);
+            future.thenAccept(pair -> {
+                final DeviceCommand deviceCommand = pair.getRight();
+                if (!asyncResponse.isDone() && deviceCommand.getIsUpdated()) {
+                    asyncResponse.resume(ResponseFactory.response(
+                            Response.Status.OK,
+                            deviceCommand,
+                            Policy.COMMAND_TO_DEVICE));
+                }
+            });
+            asyncResponse.register(new CompletionCallback() {
+                @Override
+                public void onComplete(Throwable throwable) {
+                    try {
+                        commandService.submitCommandUnsubscribe(future.get().getLeft(), null);
+                    } catch (InterruptedException | ExecutionException e) {
+                        asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
+                    }
+                }
+            });
+        } else {
+            Response result = ResponseFactory.response(Response.Status.OK, command.get(), Policy.COMMAND_TO_DEVICE);
+            asyncResponse.resume(result);
+        }
 
     }
 

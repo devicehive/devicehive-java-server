@@ -2,6 +2,7 @@ package com.devicehive.service;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
+import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -145,15 +146,22 @@ public class DeviceCommandService {
         rpcClient.push(request);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> submitSubscribeOnUpdate(long commandId, String guid) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
+    public CompletableFuture<Pair<String, DeviceCommand>> submitSubscribeOnUpdate(long commandId, String guid, BiConsumer<DeviceCommand, String> callback) {
+        CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
+        Consumer<Response> responseConsumer = response -> {
+            String resAction = response.getBody().getAction();
+            if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())) {
+                future.complete(Pair.of(response.getBody().cast(CommandUpdateSubscribeResponse.class).getSubscriptionId(), response.getBody().cast(CommandUpdateSubscribeResponse.class).getDeviceCommand()));
+            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
+                callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), "");
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandUpdateSubscribeRequest(commandId, guid))
-                .build(), new ResponseConsumer(future));
-        return future.thenApply(r -> {
-            CommandUpdateSubscribeResponse response = r.getBody().cast(CommandUpdateSubscribeResponse.class);
-            return Pair.of(response.getSubscriptionId(), response.getDeviceCommand());
-        });
+                .build(), responseConsumer);
+        return future;
     }
 
     public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {

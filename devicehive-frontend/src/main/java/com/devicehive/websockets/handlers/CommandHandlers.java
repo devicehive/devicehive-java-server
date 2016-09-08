@@ -239,6 +239,6 @@ public class CommandHandlers {
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
-        commandService.submitSubscribeOnUpdate(commandId, guid); // TODO: handle response
+        //commandService.submitSubscribeOnUpdate(commandId, guid); // TODO: handle response
     }
 }

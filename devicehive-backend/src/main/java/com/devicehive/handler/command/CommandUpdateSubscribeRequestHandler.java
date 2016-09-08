@@ -29,12 +29,12 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
 
         final String subscriptionId = UUID.randomUUID().toString();
         final Subscriber subscriber = new Subscriber(subscriptionId, request.getReplyTo(), request.getCorrelationId());
-        final Subscription subscription = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), body.getGuid());
+        final Subscription subscription = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), Long.toString(body.getCommandId()));
 
         eventBus.subscribe(subscriber, subscription);
 
         final DeviceCommand deviceCommand = hazelcastService
-                .find(body.getCommamdId(), body.getGuid(), DeviceCommand.class)
+                .find(body.getCommandId(), body.getGuid(), DeviceCommand.class)
                 .orElse(null);
 
         return Response.newBuilder()

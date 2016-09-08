@@ -4,16 +4,17 @@ import com.devicehive.shim.api.Body;
 
 public class CommandUpdateSubscribeRequest extends Body {
 
-    private long commamdId;
+    private long commandId;
     private String guid;
 
-    public CommandUpdateSubscribeRequest(long commamdId, String guid) {
+    public CommandUpdateSubscribeRequest(long commandId, String guid) {
         super(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.name());
-        this.commamdId = commamdId;
+        this.commandId = commandId;
+        this.guid = guid;
     }
 
-    public long getCommamdId() {
-        return commamdId;
+    public long getCommandId() {
+        return commandId;
     }
 
     public String getGuid() {

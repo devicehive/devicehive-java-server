@@ -3,6 +3,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
@@ -14,6 +15,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
+import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -27,10 +29,9 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -141,21 +142,36 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                       final String timestamp,
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Date ts = TimestampQueryParamParser.parse(timestamp);
+        final Date ts = TimestampQueryParamParser.parse(timestamp == null ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()) : timestamp);
 
-        if (timeout < 0) {
+        long time = timeout == 0 ? 1 : timeout;
+        if (time < 0) {
             asyncResponse.resume(ResponseFactory.response(
                     Response.Status.OK,
                     Collections.emptyList(),
                     JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
         }
-        if (timeout != 0) asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
+        asyncResponse.setTimeoutHandler(asyncResponse1 -> asyncResponse1.resume(
+                ResponseFactory.response(Response.Status.OK,
+                        Collections.emptyList(),
+                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)));
 
-        Set<String> availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
-                .map(Arrays::asList)
-                .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
-                .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+        asyncResponse.setTimeout(time, TimeUnit.SECONDS);
+
+        Set<String> availableDevices;
+        if (deviceGuidsString == null) {
+            availableDevices = deviceService.findByGuidWithPermissionsCheck(Collections.emptyList(), principal)
+                    .stream()
+                    .map(DeviceVO::getGuid)
+                    .collect(Collectors.toSet());
+
+        } else {
+            availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
+                    .map(Arrays::asList)
+                    .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
+                    .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
+                    .orElse(Collections.emptySet());
+        }
 
         Set<String> notifications = Optional.ofNullable(StringUtils.split(namesString, ','))
                 .map(Arrays::asList)
@@ -166,34 +182,35 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
-                        notification,
+                        Collections.singleton(notification),
                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
             }
         };
 
-        Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                .sendSubscribeRequest(availableDevices, notifications, ts, callback);
+        if (!availableDevices.isEmpty()) {
+            Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
+                    .sendSubscribeRequest(availableDevices, notifications, ts, callback);
+            pair.getRight().thenAccept(collection -> {
+                if (!collection.isEmpty() && !asyncResponse.isDone()) {
+                    asyncResponse.resume(ResponseFactory.response(
+                            Response.Status.OK,
+                            collection,
+                            JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                }
+            });
 
-        pair.getRight().thenAccept(collection -> {
-            if (!collection.isEmpty() && !asyncResponse.isDone()) {
-                asyncResponse.resume(ResponseFactory.response(
-                        Response.Status.OK,
-                        collection,
-                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-            }
-        }).exceptionally(throwable -> {
-            if (!asyncResponse.isDone()) {
-                asyncResponse.resume(throwable);
-            }
-            return null;
-        });
-
-        asyncResponse.register(new CompletionCallback() {
-            @Override
-            public void onComplete(Throwable throwable) {
-                notificationService.submitNotificationUnsubscribe(pair.getLeft(), null);
-            }
-        });
+            asyncResponse.register(new CompletionCallback() {
+                @Override
+                public void onComplete(Throwable throwable) {
+                    notificationService.submitNotificationUnsubscribe(pair.getLeft(), null);
+                }
+            });
+        } else {
+            asyncResponse.resume(ResponseFactory.response(
+                    Response.Status.OK,
+                    Collections.emptyList(),
+                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+        }
     }
 
     /**
