@@ -5,13 +5,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.service.DeviceService;
 import com.devicehive.vo.ApiInfoVO;
-import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +19,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Date;
-import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
@@ -34,9 +30,6 @@ public class CommonHandlers {
 
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
-
-    @Autowired
-    private DeviceService deviceService;
 
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
@@ -97,26 +90,16 @@ public class CommonHandlers {
         HiveAuthentication authentication;
         if (login != null) {
             authentication = authenticationManager.authenticateUser(login, password, details);
-            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         } else if (key != null) {
             authentication = authenticationManager.authenticateKey(key, details);
-            session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
         } else {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
-        HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
-
-        if(deviceId != null){
-            DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
-            principal.setDevice(byGuidWithPermissionsCheck);
-        }
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
+
         return new WebSocketResponse();
     }
 }

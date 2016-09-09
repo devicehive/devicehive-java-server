@@ -1,7 +1,6 @@
 package com.devicehive.auth.websockets;
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.util.ThreadLocalVariablesKeeper;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -21,7 +20,7 @@ public class WebSocketActionAuthenticationAspect {
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
 
-    @Pointcut("execution(public * com.devicehive.websockets.handlers..*(..)) && args(session,..)")
+    @Pointcut("execution(public * com.devicehive.websockets.handlers..*(..)) && args(..,session)")
     public void publicHandlerMethod(WebSocketSession session) {}
 
     @Before("publicHandlerMethod(session)")
