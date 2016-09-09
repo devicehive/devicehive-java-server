@@ -32,7 +32,7 @@ public class SessionMonitor {
         sessionMap.remove(sessionId);
         WebSocketSession session = sessionMap.get(sessionId);
         try {
-            session.close();
+            if (session!= null) session.close();
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }
