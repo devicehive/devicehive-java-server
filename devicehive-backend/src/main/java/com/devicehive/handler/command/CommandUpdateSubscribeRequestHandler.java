@@ -27,8 +27,7 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
     public Response handle(Request request) {
         final CommandUpdateSubscribeRequest body = request.getBody().cast(CommandUpdateSubscribeRequest.class);
 
-        final String subscriptionId = UUID.randomUUID().toString();
-        final Subscriber subscriber = new Subscriber(subscriptionId, request.getReplyTo(), request.getCorrelationId());
+        final Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
         final Subscription subscription = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), Long.toString(body.getCommandId()));
 
         eventBus.subscribe(subscriber, subscription);
@@ -38,7 +37,7 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
                 .orElse(null);
 
         return Response.newBuilder()
-                .withBody(new CommandUpdateSubscribeResponse(subscriptionId, deviceCommand))
+                .withBody(new CommandUpdateSubscribeResponse(body.getSubscriptionId(), deviceCommand))
                 .withLast(false)
                 .withCorrelationId(request.getCorrelationId())
                 .buildSuccess();

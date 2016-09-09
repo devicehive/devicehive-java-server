@@ -146,20 +146,21 @@ public class DeviceCommandService {
         rpcClient.push(request);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> submitSubscribeOnUpdate(long commandId, String guid, BiConsumer<DeviceCommand, String> callback) {
+    public CompletableFuture<Pair<String, DeviceCommand>> submitSubscribeOnUpdate(final long commandId, final String guid, BiConsumer<DeviceCommand, String> callback) {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
+        final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {
             String resAction = response.getBody().getAction();
             if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())) {
                 future.complete(Pair.of(response.getBody().cast(CommandUpdateSubscribeResponse.class).getSubscriptionId(), response.getBody().cast(CommandUpdateSubscribeResponse.class).getDeviceCommand()));
             } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
-                callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), "");
+                callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }
         };
         rpcClient.call(Request.newBuilder()
-                .withBody(new CommandUpdateSubscribeRequest(commandId, guid))
+                .withBody(new CommandUpdateSubscribeRequest(commandId, guid, subscriptionId))
                 .build(), responseConsumer);
         return future;
     }

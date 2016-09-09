@@ -153,7 +153,8 @@ public interface DeviceNotificationResource {
             String timestamp,
             @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
-            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
+            @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse) throws Exception;
@@ -177,7 +178,8 @@ public interface DeviceNotificationResource {
     void pollMany(
             @ApiParam(name = "waitTimeout", value = "Wait timeout")
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
-            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
+            @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
             @ApiParam(name = "deviceGuids", value = "Device guids")

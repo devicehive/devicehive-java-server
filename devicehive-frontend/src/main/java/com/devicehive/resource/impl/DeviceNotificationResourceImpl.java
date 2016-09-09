@@ -14,6 +14,7 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
@@ -127,12 +128,12 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceGuid, final String namesString, final String timestamp, long timeout, final AsyncResponse asyncResponse) throws Exception {
+    public void poll(final String deviceGuid, final String namesString, final String timestamp, final long timeout, final AsyncResponse asyncResponse) throws Exception {
         poll(timeout, deviceGuid, namesString, timestamp, asyncResponse);
     }
 
     @Override
-    public void pollMany(long timeout, String deviceGuidsString, final String namesString, final String timestamp, final AsyncResponse asyncResponse) throws Exception {
+    public void pollMany(final long timeout, String deviceGuidsString, final String namesString, final String timestamp, final AsyncResponse asyncResponse) throws Exception {
         poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse);
     }
 
@@ -142,21 +143,14 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                       final String timestamp,
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Date ts = TimestampQueryParamParser.parse(timestamp == null ? new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS").format(new Date()) : timestamp);
+        final Date ts = TimestampQueryParamParser.parse(timestamp == null ? TimestampService.DATE_FORMAT.format(new Date()) : timestamp);
 
-        long time = timeout == 0 ? 1 : timeout;
-        if (time < 0) {
-            asyncResponse.resume(ResponseFactory.response(
-                    Response.Status.OK,
-                    Collections.emptyList(),
-                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-        }
-        asyncResponse.setTimeoutHandler(asyncResponse1 -> asyncResponse1.resume(
-                ResponseFactory.response(Response.Status.OK,
-                        Collections.emptyList(),
-                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT)));
+        final Response response = ResponseFactory.response(
+                Response.Status.OK,
+                Collections.emptyList(),
+                JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
 
-        asyncResponse.setTimeout(time, TimeUnit.SECONDS);
+        asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
         Set<String> availableDevices;
         if (deviceGuidsString == null) {
@@ -197,6 +191,13 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                             collection,
                             JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                 }
+
+                if (timeout == 0) {
+                    asyncResponse.setTimeout(1, TimeUnit.MILLISECONDS); // setting timeout to 0 would cause
+                    // the thread to suspend indefinitely, see AsyncResponse docs
+                } else {
+                    asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
+                }
             });
 
             asyncResponse.register(new CompletionCallback() {
@@ -206,10 +207,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 }
             });
         } else {
-            asyncResponse.resume(ResponseFactory.response(
-                    Response.Status.OK,
-                    Collections.emptyList(),
-                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+            if (!asyncResponse.isDone()) {
+                asyncResponse.resume(response);
+            }
         }
     }
 

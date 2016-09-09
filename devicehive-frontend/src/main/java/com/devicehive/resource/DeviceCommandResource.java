@@ -54,7 +54,8 @@ public interface DeviceCommandResource {
             String timestamp,
             @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
-            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
+            @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse) throws Exception;
@@ -79,7 +80,8 @@ public interface DeviceCommandResource {
             String timestamp,
             @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
-            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
+            @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse) throws Exception;
@@ -108,7 +110,8 @@ public interface DeviceCommandResource {
             String commandId,
             @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable waiting.", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
-            @Min(0) @Max(Constants.MAX_WAIT_TIMEOUT)
+            @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
+            @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
             @Suspended AsyncResponse asyncResponse);
