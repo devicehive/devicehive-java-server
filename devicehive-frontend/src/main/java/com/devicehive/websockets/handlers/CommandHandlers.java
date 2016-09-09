@@ -163,7 +163,7 @@ public class CommandHandlers {
         WebSocketResponse response = new WebSocketResponse();
         commandService.insert(deviceCommand, device, user)
                 .thenApply(cmd -> {
-                    commandUpdateSubscribeAction(cmd.getId(), device.getGuid());
+                    commandUpdateSubscribeAction(cmd.getId(), device.getGuid(), session);
                     response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
                     return response;
                 })
@@ -235,10 +235,14 @@ public class CommandHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
-    private void commandUpdateSubscribeAction(Long commandId, String guid) {
+    private void commandUpdateSubscribeAction(Long commandId, String guid, WebSocketSession session) {
         if (commandId == null) {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
-        //commandService.submitSubscribeOnUpdate(commandId, guid); // TODO: handle response
+        BiConsumer<DeviceCommand, String> callback =  (command, subscriptionId) -> {
+            JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
+            sendMessage(json, session);
+        };
+        commandService.submitSubscribeOnUpdate(commandId, guid, callback); // TODO: handle response
     }
 }

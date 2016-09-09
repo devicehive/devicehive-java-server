@@ -33,6 +33,10 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
         return hivePrincipal;
     }
 
+    public void setHivePrincipal(HivePrincipal hivePrincipal) {
+        this.hivePrincipal = hivePrincipal;
+    }
+
     public static class HiveAuthDetails {
         private InetAddress clientInetAddress;
         private String origin;

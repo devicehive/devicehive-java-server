@@ -5,7 +5,9 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.service.DeviceService;
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -31,6 +33,9 @@ public class CommonHandlers {
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
 
+    @Autowired
+    private DeviceService deviceService;
+
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
@@ -44,6 +49,7 @@ public class CommonHandlers {
         return response;
     }
 
+    @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
         String login = null;
         if (request.get("login") != null) {
@@ -95,10 +101,18 @@ public class CommonHandlers {
         } else {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
+
+        HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
+        if (deviceId != null) {
+            DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+            principal.setDevice(byGuidWithPermissionsCheck);
+            authentication.setHivePrincipal(principal);
+        }
+
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        state.setHivePrincipal((HivePrincipal) authentication.getPrincipal());
+        state.setHivePrincipal(principal);
 
         return new WebSocketResponse();
     }
