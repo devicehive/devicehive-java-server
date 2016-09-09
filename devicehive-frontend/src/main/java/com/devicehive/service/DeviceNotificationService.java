@@ -113,6 +113,9 @@ public class DeviceNotificationService {
     public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper notificationWrapper, DeviceVO device) {
         DeviceNotification notification = convertToMessage(notificationWrapper, device);
 
+        //TODO do we have to use submit notifications based on the results of this method call?
+        processDeviceNotification(notification, device);
+
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new NotificationInsertRequest(notification))

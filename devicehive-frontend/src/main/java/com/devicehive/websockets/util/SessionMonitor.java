@@ -1,17 +1,13 @@
 package com.devicehive.websockets.util;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,11 +24,18 @@ public class SessionMonitor {
     }
 
     public WebSocketSession getSession(String sessionId) {
-        return sessionMap.get(sessionId);
+        WebSocketSession session = sessionMap.get(sessionId);
+        return session != null && session.isOpen() ? session : null;
     }
 
-    public void removeSession(String sessionId) {
+    public void removeSession(String sessionId) throws IOException {
         sessionMap.remove(sessionId);
+        WebSocketSession session = sessionMap.get(sessionId);
+        try {
+            session.close();
+        } catch (IOException ex) {
+            logger.error("Error closing session", ex);
+        }
     }
 
     public void updateDeviceSession(WebSocketSession session) {
