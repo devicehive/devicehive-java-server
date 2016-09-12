@@ -90,8 +90,8 @@ public class DeviceNotificationService {
                         .collect(Collectors.toList()));
     }
 
-    public CompletableFuture<List<DeviceNotification>> submitDeviceNotification(final DeviceNotification notification,
-                                                                                final DeviceVO device) {
+    public CompletableFuture<DeviceNotification> insert(final DeviceNotification notification,
+                                                        final DeviceVO device) {
         List<CompletableFuture<Response>> futures = processDeviceNotification(notification, device).stream()
                 .map(n -> {
                     CompletableFuture<Response> future = new CompletableFuture<>();
@@ -107,24 +107,11 @@ public class DeviceNotificationService {
                 .thenApply(x -> futures.stream()
                         .map(CompletableFuture::join)
                         .map(r -> r.getBody().cast(NotificationInsertResponse.class).getDeviceNotification())
-                        .collect(Collectors.toList()));
+                        .filter(n -> !SpecialNotifications.DEVICE_UPDATE.equals(n.getNotification())) // we are not going to return DEVICE_UPDATE notification
+                        .collect(Collectors.toList()).get(0)); // after filter we should get only one notification
     }
 
-    public CompletableFuture<DeviceNotification> insert(DeviceNotificationWrapper notificationWrapper, DeviceVO device) {
-        DeviceNotification notification = convertToMessage(notificationWrapper, device);
-
-        //TODO do we have to use submit notifications based on the results of this method call?
-        processDeviceNotification(notification, device);
-
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        rpcClient.call(Request.newBuilder()
-                .withBody(new NotificationInsertRequest(notification))
-                .withPartitionKey(device.getGuid())
-                .build(), new ResponseConsumer(future));
-        return future.thenApply(r -> ((NotificationInsertResponse) r.getBody()).getDeviceNotification());
-    }
-
-    public void submitDeviceNotification(final DeviceNotification notification, final String deviceGuid) {
+    public void insert(final DeviceNotification notification, final String deviceGuid) {
         notification.setTimestamp(timestampService.getTimestamp());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);

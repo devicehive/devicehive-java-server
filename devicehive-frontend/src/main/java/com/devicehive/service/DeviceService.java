@@ -75,7 +75,7 @@ public class DeviceService {
         } else {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
-        deviceNotificationService.submitDeviceNotification(dn, device.getGuid().orElse(null));
+        deviceNotificationService.insert(dn, device.getGuid().orElse(null));
         deviceActivityService.update(device.getGuid().orElse(null));
     }
 

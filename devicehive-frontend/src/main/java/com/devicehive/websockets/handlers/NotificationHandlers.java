@@ -1,6 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -206,7 +205,7 @@ public class NotificationHandlers {
         DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
 
         WebSocketResponse response = new WebSocketResponse();
-        notificationService.submitDeviceNotification(message, device)
+        notificationService.insert(message, device)
                 .thenApply(notification -> {
                     logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
                     response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);

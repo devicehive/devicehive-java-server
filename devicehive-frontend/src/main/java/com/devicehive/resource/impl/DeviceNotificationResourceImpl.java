@@ -3,7 +3,6 @@ package com.devicehive.resource.impl;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
@@ -16,7 +15,6 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.DeviceVO;
-import com.google.common.util.concurrent.Runnables;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -30,9 +28,10 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -242,19 +241,25 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                         String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
                 asyncResponse.resume(response);
             } else {
-                DeviceNotification notification = notificationService.insert(notificationSubmit, device).join();
-                if (notification != null) {
-                    logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}", guid,
-                            notification.getNotification());
-                    Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, notification, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                    asyncResponse.resume(jaxResponse);
-                } else {
-                    // FIX ERROR
-                    logger.warn("Device notification insert failed for device with guid = {}.", guid);
-                    ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
-                    Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                    asyncResponse.resume(jaxResponse);
-                }
+                DeviceNotification toInsert = notificationService.convertToMessage(notificationSubmit, device);
+                notificationService.insert(toInsert, device)
+                        .thenAccept(notification -> {
+                            logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}",
+                                    guid, notification.getNotification());
+
+                            asyncResponse.resume(ResponseFactory.response(
+                                    Response.Status.CREATED,
+                                    notification,
+                                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                        })
+                        .exceptionally(e -> {
+                            // FIX ERROR
+                            logger.warn("Device notification insert failed for device with guid = {}.", guid);
+                            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
+                            Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                            asyncResponse.resume(jaxResponse);
+                            return null;
+                        });
             }
         }
     }

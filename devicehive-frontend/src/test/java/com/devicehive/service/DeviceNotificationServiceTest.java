@@ -270,11 +270,8 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                 .withBody(new NotificationInsertResponse(deviceNotification))
                 .buildSuccess());
 
-        notificationService.submitDeviceNotification(deviceNotification, deviceVO)
-                .thenAccept(notifications -> {
-                    assertEquals(1, notifications.size());
-                    assertEquals(deviceNotification, notifications.get(0));
-                })
+        notificationService.insert(deviceNotification, deviceVO)
+                .thenAccept(notification -> assertEquals(deviceNotification, notification))
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
@@ -310,11 +307,8 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                 .buildSuccess());
 
         // execute
-        notificationService.submitDeviceNotification(deviceNotification, deviceVO)
-                .thenAccept(notifications -> {
-                    assertEquals(1, notifications.size());
-                    assertEquals(deviceNotification, notifications.get(0));
-                })
+        notificationService.insert(deviceNotification, deviceVO)
+                .thenAccept(notification -> assertEquals(deviceNotification, notification))
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
@@ -358,15 +352,8 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         });
 
         // execute
-        notificationService.submitDeviceNotification(originalNotification, deviceVO)
-                .thenAccept(resultNotifications -> {
-                    assertEquals(2, resultNotifications.size());
-                    assertTrue(resultNotifications.stream().anyMatch(n -> n.equals(originalNotification)));
-                    assertTrue(resultNotifications.stream()
-                            .map(DeviceNotification::getNotification)
-                            .allMatch(value -> originalNotification.getNotification().equals(value)
-                                    || SpecialNotifications.DEVICE_UPDATE.equals(value)));
-                })
+        notificationService.insert(originalNotification, deviceVO)
+                .thenAccept(resultNotification -> assertEquals(originalNotification, resultNotification))
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
