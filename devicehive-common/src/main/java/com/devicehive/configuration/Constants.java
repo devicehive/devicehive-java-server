@@ -84,4 +84,6 @@ public class Constants {
     public static final String AUTO_COMMIT_INTERVAL_MS = "auto.commit.interval.ms";
     public static final String THREADS_COUNT = "threads.count";
 
+    public static final String WELCOME_MESSAGE = "The DeviceHive RESTful API is now running, please refer to documentation to get the list of available resources.";
+
 }
