@@ -53,8 +53,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     private DeviceService deviceService;
 
     @Autowired
-    @Qualifier(DeviceHiveApplication.MESSAGE_EXECUTOR)
-    private ExecutorService mes;
+    private TimestampService timestampService;
 
     /**
      * {@inheritDoc}
@@ -77,7 +76,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        final Date ts = TimestampQueryParamParser.parse(timestamp == null ? TimestampService.DATE_FORMAT.format(new Date()) : timestamp);
+        final Date ts = TimestampQueryParamParser.parse(timestamp == null ?  timestampService.getDateAsString() : timestamp);
 
         final Response response = ResponseFactory.response(
                 Response.Status.OK,

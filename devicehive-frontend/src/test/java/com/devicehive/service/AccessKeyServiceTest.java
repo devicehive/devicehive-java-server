@@ -18,6 +18,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -62,6 +63,9 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
     @Autowired
     private AccessKeyDao accessKeyDao;
+
+    @Autowired
+    private TimestampService timestampService;
 
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
@@ -272,7 +276,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
         accessKey.setType(AccessKeyType.SESSION);
 
-        Date initial = new Date();
+        Date initial = timestampService.getDate();
         accessKey.setExpirationDate(initial);
         accessKey = accessKeyService.create(user, accessKey);
 
@@ -460,7 +464,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
 
-        AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
+        AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, timestampService.getDate());
         assertThat(key, notNullValue());
         assertThat(key.getLabel(), notNullValue());
         assertThat(key.getKey(), notNullValue());
@@ -487,7 +491,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         grant.setClient(client);
         grant.setScope(AccessKeyAction.GET_DEVICE.getValue());
         grant.setAccessType(AccessType.ONLINE);
-        AccessKeyVO created = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, new Date());
+        AccessKeyVO created = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, timestampService.getDate());
 
         OAuthClientVO newClient = new OAuthClientVO();
         newClient.setName(RandomStringUtils.randomAlphabetic(10));
@@ -498,7 +502,7 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         newGrant.setScope(AccessKeyAction.MANAGE_ACCESS_KEY.getValue());
         newGrant.setAccessType(AccessType.ONLINE);
 
-        AccessKeyVO updated = accessKeyService.updateAccessKeyFromOAuthGrant(newGrant, user, new Date());
+        AccessKeyVO updated = accessKeyService.updateAccessKeyFromOAuthGrant(newGrant, user, timestampService.getDate());
         assertThat(updated.getId(), equalTo(created.getId()));
         assertThat(updated.getLabel(), notNullValue());
         assertThat(updated.getKey(), notNullValue());

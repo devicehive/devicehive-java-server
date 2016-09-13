@@ -1,6 +1,7 @@
 package com.devicehive.service;
 
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.service.time.TimestampService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +27,19 @@ public class DeviceActivityService {
     @Autowired
     private DeviceDao deviceDAO;
 
+    @Autowired
+    private TimestampService timestampService;
+
     private ConcurrentHashMap<String, Long> deviceActivityMap = new ConcurrentHashMap<>();
 
     public void update(String deviceGuid) {
-        deviceActivityMap.put(deviceGuid, System.currentTimeMillis());
+        deviceActivityMap.put(deviceGuid, timestampService.getTimestamp());
     }
 
     @Scheduled(cron = "0 * * * * *") //executing at start of every minute
     public void processOfflineDevices() {
         logger.debug("Checking lost offline devices");
-        long now = System.currentTimeMillis();
+        long now = timestampService.getTimestamp();
         List<String> activityKeys = Collections.list(deviceActivityMap.keys());
         int indexFrom = 0;
         int indexTo = Math.min(activityKeys.size(), indexFrom + PROCESS_DEVICES_BUFFER_SIZE);

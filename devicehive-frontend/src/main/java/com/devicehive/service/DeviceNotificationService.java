@@ -112,7 +112,7 @@ public class DeviceNotificationService {
     }
 
     public void insert(final DeviceNotification notification, final String deviceGuid) {
-        notification.setTimestamp(timestampService.getTimestamp());
+        notification.setTimestamp(timestampService.getDate());
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceGuid(deviceGuid);
         rpcClient.push(Request.newBuilder()
@@ -176,7 +176,7 @@ public class DeviceNotificationService {
         DeviceNotification message = new DeviceNotification();
         message.setId(Math.abs(new Random().nextInt()));
         message.setDeviceGuid(device.getGuid());
-        message.setTimestamp(timestampService.getTimestamp());
+        message.setTimestamp(timestampService.getDate());
         message.setNotification(notificationSubmit.getNotification());
         message.setParameters(notificationSubmit.getParameters());
         return message;

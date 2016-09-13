@@ -9,6 +9,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.*;
 import com.devicehive.service.exception.BackendException;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -43,6 +44,9 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
 
+    @Autowired
+    private TimestampService timestampService;
+
     @Mock
     private RequestHandler requestHandler;
 
@@ -64,7 +68,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String notification = "Expected notification";
-        final Date timestamp = new Date();
+        final Date timestamp = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
 
         final DeviceNotification deviceNotification = new DeviceNotification();
@@ -176,8 +180,8 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
-        final Date timestampSt = new Date();
-        final Date timestampEnd = new Date();
+        final Date timestampSt = timestampService.getDate();
+        final Date timestampEnd = timestampService.getDate();
 
         final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
                 guids.get(0),
@@ -211,8 +215,8 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
-        final Date timestampSt = new Date();
-        final Date timestampEnd = new Date();
+        final Date timestampSt = timestampService.getDate();
+        final Date timestampEnd = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
 
         final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
@@ -227,7 +231,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
                     notification.setId(System.nanoTime());
                     notification.setDeviceGuid(guid);
                     notification.setNotification(RandomStringUtils.randomAlphabetic(10));
-                    notification.setTimestamp(new Date());
+                    notification.setTimestamp(timestampService.getDate());
                     notification.setParameters(new JsonStringWrapper(parameters));
                     return notification;
                 }));
@@ -262,7 +266,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
 
         final DeviceNotification deviceNotification = new DeviceNotification();
         deviceNotification.setId(System.nanoTime());
-        deviceNotification.setTimestamp(new Date());
+        deviceNotification.setTimestamp(timestampService.getDate());
         deviceNotification.setNotification(RandomStringUtils.randomAlphabetic(10));
         deviceNotification.setDeviceGuid(deviceVO.getGuid());
 
@@ -297,7 +301,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
 
         final DeviceNotification deviceNotification = new DeviceNotification();
         deviceNotification.setId(System.nanoTime());
-        deviceNotification.setTimestamp(new Date());
+        deviceNotification.setTimestamp(timestampService.getDate());
         deviceNotification.setNotification(SpecialNotifications.EQUIPMENT);
         deviceNotification.setDeviceGuid(deviceVO.getGuid());
 
@@ -336,7 +340,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
 
         final DeviceNotification originalNotification = new DeviceNotification();
         originalNotification.setId(System.nanoTime());
-        originalNotification.setTimestamp(new Date());
+        originalNotification.setTimestamp(timestampService.getDate());
         originalNotification.setNotification(SpecialNotifications.DEVICE_STATUS);
         originalNotification.setDeviceGuid(deviceVO.getGuid());
         originalNotification.setParameters(new JsonStringWrapper("{\"" + Constants.STATUS + "\":\"status1\"}"));

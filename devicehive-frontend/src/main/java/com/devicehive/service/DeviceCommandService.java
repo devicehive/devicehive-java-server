@@ -201,7 +201,7 @@ public class DeviceCommandService {
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceGuid(device.getGuid());
         command.setIsUpdated(false);
-        command.setTimestamp(timestampService.getTimestamp());
+        command.setTimestamp(timestampService.getDate());
 
         if (user != null) {
             command.setUserId(user.getId());

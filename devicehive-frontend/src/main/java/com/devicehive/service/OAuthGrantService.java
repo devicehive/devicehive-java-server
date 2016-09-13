@@ -58,7 +58,7 @@ public class OAuthGrantService {
         if (grant.getAccessType() == null) {
             grant.setAccessType(AccessType.ONLINE);
         }
-        Date now = timestampService.getTimestamp();
+        Date now = timestampService.getDate();
         grant.setTimestamp(now);
         AccessKeyVO key = accessKeyService.createAccessKeyFromOAuthGrant(grant, user, now);
         grant.setAccessKey(key);
@@ -125,7 +125,7 @@ public class OAuthGrantService {
         if (grantToUpdate.getScope() != null) {
             existing.setScope(grantToUpdate.getScope().orElse(null));
         }
-        Date now = timestampService.getTimestamp();
+        Date now = timestampService.getDate();
         existing.setTimestamp(now);
         AccessKeyVO key = accessKeyService.updateAccessKeyFromOAuthGrant(existing, user, now);
         existing.setAccessKey(key);
@@ -183,7 +183,7 @@ public class OAuthGrantService {
         if (redirectUri != null && !grant.getRedirectUri().equals(redirectUri)) {
             throw new HiveException(Messages.INVALID_URI, SC_UNAUTHORIZED);
         }
-        if (grant.getTimestamp().getTime() - timestampService.getTimestamp().getTime() > 600_000) {
+        if (grant.getTimestamp().getTime() - timestampService.getTimestamp() > 600_000) {
             throw new HiveException(Messages.EXPIRED_GRANT, SC_UNAUTHORIZED);
         }
         grant.setAuthCode(null);
@@ -199,11 +199,11 @@ public class OAuthGrantService {
         if (user == null || !user.getStatus().equals(UserStatus.ACTIVE)) {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, SC_UNAUTHORIZED);
         }
-        user.setLastLogin(timestampService.getTimestamp());
+        user.setLastLogin(timestampService.getDate());
         List<OAuthGrantVO> found = list(user, null, null, client.getOauthId(), Type.PASSWORD.ordinal(), scope,
                 null, null, null, null, null, null);
         OAuthGrantVO grant = found.isEmpty() ? null : found.get(0);
-        Date now = timestampService.getTimestamp();
+        Date now = timestampService.getDate();
         if (grant == null) {
             grant = new OAuthGrantVO();
             grant.setClient(client);

@@ -11,6 +11,7 @@ import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -48,6 +49,9 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
 
+    @Autowired
+    private TimestampService timestampService;
+
     @Mock
     private RequestHandler requestHandler;
 
@@ -69,8 +73,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
-        final Date timestampSt = new Date();
-        final Date timestampEnd = new Date();
+        final Date timestampSt = timestampService.getDate();
+        final Date timestampEnd = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
 
         final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
@@ -84,7 +88,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     command.setId(System.nanoTime());
                     command.setDeviceGuid(guid);
                     command.setCommand(RandomStringUtils.randomAlphabetic(10));
-                    command.setTimestamp(new Date());
+                    command.setTimestamp(timestampService.getDate());
                     command.setParameters(new JsonStringWrapper(parameters));
                     command.setStatus(DEFAULT_STATUS);
                     return command;
@@ -115,8 +119,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         final List<String> names = IntStream.range(0, 5)
                 .mapToObj(i -> RandomStringUtils.randomAlphabetic(10))
                 .collect(Collectors.toList());
-        final Date timestampSt = new Date();
-        final Date timestampEnd = new Date();
+        final Date timestampSt = timestampService.getDate();
+        final Date timestampEnd = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
         final String guid = UUID.randomUUID().toString();
 
@@ -131,7 +135,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     command.setId(System.nanoTime());
                     command.setDeviceGuid(guid);
                     command.setCommand(name);
-                    command.setTimestamp(new Date());
+                    command.setTimestamp(timestampService.getDate());
                     command.setParameters(new JsonStringWrapper(parameters));
                     command.setStatus(DEFAULT_STATUS);
                     return command;
@@ -164,7 +168,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         command.setId(id);
         command.setDeviceGuid(guid);
         command.setCommand(RandomStringUtils.randomAlphabetic(10));
-        command.setTimestamp(new Date());
+        command.setTimestamp(timestampService.getDate());
         command.setStatus(DEFAULT_STATUS);
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> {

@@ -100,7 +100,7 @@ public class UserService {
         long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
         boolean mustUpdateLoginStatistic = user.getLoginAttempts() != 0
                 || user.getLastLogin() == null
-                || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout;
+                || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout;
 
         if (validPassword && mustUpdateLoginStatistic) {
             UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
@@ -124,9 +124,9 @@ public class UserService {
             update = true;
             user.setLoginAttempts(0);
         }
-        if (user.getLastLogin() == null || System.currentTimeMillis() - user.getLastLogin().getTime() > loginTimeout) {
+        if (user.getLastLogin() == null || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout) {
             update = true;
-            user.setLastLogin(timestampService.getTimestamp());
+            user.setLastLogin(timestampService.getDate());
         }
         return update ? userDao.merge(user) : user;
     }

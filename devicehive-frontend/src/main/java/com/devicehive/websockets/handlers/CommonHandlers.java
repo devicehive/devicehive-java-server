@@ -6,6 +6,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
@@ -36,13 +37,16 @@ public class CommonHandlers {
     @Autowired
     private DeviceService deviceService;
 
+    @Autowired
+    private TimestampService timestampService;
+
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfoVO apiInfo = new ApiInfoVO();
         apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
         //TODO: Replace with timestamp service
-        apiInfo.setServerTimestamp(new Date());
+        apiInfo.setServerTimestamp(timestampService.getDate());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("info", apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {}", session.getId());

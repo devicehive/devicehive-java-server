@@ -153,12 +153,12 @@ public class AccessKeyService {
         AccessKeyVO accessKey = accessKeyOpt.get();
         final Long expirationPeriod = configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT);
         if (accessKey.getExpirationDate() != null) {
-            final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp().getTime();
+            final Long expiresIn = accessKey.getExpirationDate().getTime() - timestampService.getTimestamp();
             if (AccessKeyType.SESSION == accessKey.getType() && expiresIn > 0 && expiresIn < expirationPeriod / 2) {
                 // previously EntityManager.refresh(accessKey, LockModeType.PESSIMISTIC_WRITE);
                 // was used because authenticate from various threads could update expiration date too often and run into deadlock
                 // Migration on JWT can solve this problem
-                accessKey.setExpirationDate(new Date(timestampService.getTimestamp().getTime() + expirationPeriod));
+                accessKey.setExpirationDate(new Date(timestampService.getTimestamp() + expirationPeriod));
                 return accessKeyDao.merge(accessKey);
             }
         }
@@ -270,7 +270,7 @@ public class AccessKeyService {
             newKey.setExpirationDate(expirationDate);
         }
         newKey.setUser(user);
-        newKey.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
+        newKey.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), timestampService.getTimestamp()));
         Set<AccessKeyPermissionVO> permissions = new HashSet<>();
         AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDomainArray(grant.getClient().getDomain());
@@ -292,7 +292,7 @@ public class AccessKeyService {
         } else {
             existing.setExpirationDate(null);
         }
-        existing.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), System.currentTimeMillis()));
+        existing.setLabel(String.format(Messages.OAUTH_GRANT_TOKEN_LABEL, grant.getClient().getName(), timestampService.getTimestamp()));
         Set<AccessKeyPermissionVO> permissions = new HashSet<>();
         AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         permission.setDomainArray(grant.getClient().getDomain());
@@ -362,7 +362,7 @@ public class AccessKeyService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public void removeExpiredKeys() {
         logger.debug("Removing expired access keys");
-        int removed = accessKeyDao.deleteOlderThan(timestampService.getTimestamp());
+        int removed = accessKeyDao.deleteOlderThan(timestampService.getDate());
         logger.info("Removed {} expired access keys", removed);
     }
 

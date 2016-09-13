@@ -2,12 +2,14 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.service.time.TimestampService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +27,9 @@ public class DeviceActivityServiceTest {
 
     @Mock
     private DeviceDao deviceDAO;
+
+    @Mock
+    private TimestampService timestampService;
 
     @Mock
     private ConcurrentHashMap<String, Long> imap;
@@ -50,7 +55,7 @@ public class DeviceActivityServiceTest {
         offlineTimeMap = new TreeMap<>();
         imapProxy = new ConcurrentHashMap<>();
         guids = new ArrayList<>();
-        inputTime = System.currentTimeMillis();
+        inputTime = timestampService.getTimestamp();
     }
 
     @Test

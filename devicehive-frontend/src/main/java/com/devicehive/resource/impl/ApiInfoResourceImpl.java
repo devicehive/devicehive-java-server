@@ -58,7 +58,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         } else {
             apiInfo.setApiVersion(version);
         }
-        apiInfo.setServerTimestamp(timestampService.getTimestamp());
+        apiInfo.setServerTimestamp(timestampService.getDate());
         
         // Generate websocket url based on current request url
         int port = uriInfo.getBaseUri().getPort();

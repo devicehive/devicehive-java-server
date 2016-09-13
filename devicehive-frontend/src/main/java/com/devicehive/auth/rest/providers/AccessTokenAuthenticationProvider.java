@@ -5,6 +5,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.AccessKeyVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,9 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
     @Autowired
     private AccessKeyService accessKeyService;
 
+    @Autowired
+    private TimestampService timestampService;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String token = (String) authentication.getPrincipal();
@@ -31,7 +35,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
         AccessKeyVO accessKey = accessKeyService.authenticate(token);
         if (accessKey == null
                 || accessKey.getUser() == null || !accessKey.getUser().getStatus().equals(UserStatus.ACTIVE)
-                || (accessKey.getExpirationDate() != null && accessKey.getExpirationDate().before(new Date()))) {
+                || (accessKey.getExpirationDate() != null && accessKey.getExpirationDate().before(timestampService.getDate()))) {
             throw new BadCredentialsException("Unauthorized"); //"Wrong access key"
         }
         logger.debug("Access token authentication successful");

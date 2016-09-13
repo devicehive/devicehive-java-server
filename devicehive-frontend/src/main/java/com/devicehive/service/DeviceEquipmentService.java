@@ -48,7 +48,7 @@ public class DeviceEquipmentService {
             deviceEquipment = ServerResponsesFactory.parseDeviceEquipmentNotification(notificationMessage, device);
             if (deviceEquipment.getTimestamp() == null) {
                 // TODO [rafa] why do we need timestamp here?
-                deviceEquipment.setTimestamp(timestampService.getTimestamp());
+                deviceEquipment.setTimestamp(timestampService.getDate());
             }
         }
         createDeviceEquipment(deviceEquipment, device);
@@ -59,11 +59,11 @@ public class DeviceEquipmentService {
     public void createDeviceEquipment(DeviceEquipmentVO deviceEquipment, DeviceVO device) {
         DeviceEquipmentVO equipment = findByCodeAndDevice(deviceEquipment.getCode(), device);
         if (equipment != null) {
-            equipment.setTimestamp(timestampService.getTimestamp());
+            equipment.setTimestamp(timestampService.getDate());
             equipment.setParameters(deviceEquipment.getParameters());
             deviceEquipmentDao.merge(equipment, device);
         } else {
-            deviceEquipment.setTimestamp(timestampService.getTimestamp());
+            deviceEquipment.setTimestamp(timestampService.getDate());
             deviceEquipmentDao.persist(deviceEquipment, device);
         }
     }

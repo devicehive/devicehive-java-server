@@ -40,10 +40,10 @@ public class OAuthAuthenticationUtils {
     public AccessKeyVO prepareAccessKey(final UserVO user) {
         AccessKeyVO accessKey = new AccessKeyVO();
         accessKey.setUser(user);
-        accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin(), System.currentTimeMillis()));
+        accessKey.setLabel(String.format(Messages.OAUTH_TOKEN_LABEL, user.getLogin(), timestampService.getTimestamp()));
         AccessKeyProcessor keyProcessor = new AccessKeyProcessor();
         accessKey.setKey(keyProcessor.generateKey());
-        Date expirationDate = new Date(timestampService.getTimestamp().getTime() +
+        Date expirationDate = new Date(timestampService.getTimestamp() +
                 configurationService.getLong(Constants.SESSION_TIMEOUT, Constants.DEFAULT_SESSION_TIMEOUT));
         accessKey.setExpirationDate(expirationDate);
         accessKey.setType(AccessKeyType.SESSION);
