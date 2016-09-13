@@ -174,6 +174,11 @@ public class DeviceCommandService {
         if (commandWrapper.getCommand() != null) {
             cmd.setCommand(commandWrapper.getCommand().orElse(null));
         }
+        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+            cmd.setTimestamp(commandWrapper.getTimestamp().get());
+        } else {
+            cmd.setTimestamp(timestampService.getDate());
+        }
         if (commandWrapper.getParameters() != null) {
             cmd.setParameters(commandWrapper.getParameters().orElse(null));
         }
@@ -201,7 +206,12 @@ public class DeviceCommandService {
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceGuid(device.getGuid());
         command.setIsUpdated(false);
-        command.setTimestamp(timestampService.getDate());
+
+        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+            command.setTimestamp(commandWrapper.getTimestamp().get());
+        } else {
+            command.setTimestamp(timestampService.getDate());
+        }
 
         if (user != null) {
             command.setUserId(user.getId());

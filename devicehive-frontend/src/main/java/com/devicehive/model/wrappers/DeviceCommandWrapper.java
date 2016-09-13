@@ -5,6 +5,7 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -19,6 +20,11 @@ public class DeviceCommandWrapper implements HiveEntity {
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private Optional<String> command;
+
+    @SerializedName("timestamp")
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    private Optional<Date> timestamp;
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -46,6 +52,14 @@ public class DeviceCommandWrapper implements HiveEntity {
 
     public void setCommand(Optional<String> command) {
         this.command = command;
+    }
+
+    public Optional<Date> getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Optional<Date> timestamp) {
+        this.timestamp = timestamp;
     }
 
     public Optional<JsonStringWrapper> getParameters() {

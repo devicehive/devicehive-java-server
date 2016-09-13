@@ -176,7 +176,11 @@ public class DeviceNotificationService {
         DeviceNotification message = new DeviceNotification();
         message.setId(Math.abs(new Random().nextInt()));
         message.setDeviceGuid(device.getGuid());
-        message.setTimestamp(timestampService.getDate());
+        if (notificationSubmit.getTimestamp() == null) {
+            message.setTimestamp(timestampService.getDate());
+        } else {
+            message.setTimestamp(notificationSubmit.getTimestamp());
+        }
         message.setNotification(notificationSubmit.getNotification());
         message.setParameters(notificationSubmit.getParameters());
         return message;

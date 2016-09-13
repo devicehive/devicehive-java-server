@@ -5,6 +5,8 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
+import java.util.Date;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
@@ -17,6 +19,10 @@ public class DeviceNotificationWrapper implements HiveEntity {
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE, NOTIFICATION_FROM_DEVICE})
     private String notification;
 
+    @SerializedName("timestamp")
+    @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE, NOTIFICATION_FROM_DEVICE})
+    private Date timestamp;
+
     @SerializedName("parameters")
     @JsonPolicyDef({NOTIFICATION_FROM_DEVICE, NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private JsonStringWrapper parameters;
@@ -27,6 +33,14 @@ public class DeviceNotificationWrapper implements HiveEntity {
 
     public void setNotification(String notification) {
         this.notification = notification;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 
     public JsonStringWrapper getParameters() {
