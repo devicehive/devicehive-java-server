@@ -243,6 +243,6 @@ public class CommandHandlers {
             JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
             sendMessage(json, session);
         };
-        commandService.submitSubscribeOnUpdate(commandId, guid, callback); // TODO: handle response
+        commandService.submitSubscribeOnUpdate(commandId, guid, callback); // TODO: make sure this is the correct place to create update message
     }
 }

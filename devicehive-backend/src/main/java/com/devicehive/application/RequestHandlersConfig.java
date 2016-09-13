@@ -44,6 +44,7 @@ public class RequestHandlersConfig {
             put(Action.COMMAND_SUBSCRIBE_REQUEST, new CommandSubscribeRequestHandler());
             put(Action.COMMAND_UNSUBSCRIBE_REQUEST, new CommandUnsubscribeRequestHandler());
             put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, new CommandUpdateSubscribeRequestHandler());
+            put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, new CommandGetSubscriptionRequestHandler());
 
             put(Action.LIST_ACCESS_KEY_REQUEST, new ListAccessKeyHandler());
 

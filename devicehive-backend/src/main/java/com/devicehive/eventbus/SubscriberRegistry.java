@@ -88,6 +88,11 @@ class SubscriberRegistry {
         return this.subscriptions.getOrDefault(subscription, new CopyOnWriteArraySet<>());
     }
 
+    Collection<Subscription> getSubscriptions(Subscriber subscriber) {
+        Assert.notNull(subscriber);
+        return this.subscriberSubscriptions.getOrDefault(subscriber.getId(), new CopyOnWriteArraySet<>());
+    }
+
     private static <T> T firstNonNull(T first, T second) {
         Assert.notNull(second);
         return first != null ? first : second;

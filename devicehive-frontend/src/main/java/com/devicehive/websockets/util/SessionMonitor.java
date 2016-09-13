@@ -1,8 +1,21 @@
 package com.devicehive.websockets.util;
 
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.eventbus.Subscription;
+import com.devicehive.model.rpc.CommandGetSubscriptionRequest;
+import com.devicehive.model.rpc.CommandGetSubscriptionResponse;
+import com.devicehive.service.DeviceActivityService;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.websockets.handlers.CommandHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
@@ -10,12 +23,21 @@ import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Component
 public class SessionMonitor {
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
+
+    @Autowired
+    private RpcClient rpcClient;
+
+    @Autowired
+    private DeviceActivityService deviceActivityService;
 
     private ConcurrentMap<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
 
@@ -32,21 +54,41 @@ public class SessionMonitor {
         sessionMap.remove(sessionId);
         WebSocketSession session = sessionMap.get(sessionId);
         try {
-            if (session!= null) session.close();
+            if (session != null) session.close();
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
         }
     }
 
     public void updateDeviceSession(WebSocketSession session) {
-//        HivePrincipal hivePrincipal = HiveWebSocketSessionState.get(session).getHivePrincipal();
-//        DeviceVO authorizedDevice = hivePrincipal != null ? hivePrincipal.getDevice() : null;
-//        if (authorizedDevice != null) {
-//            String deviceGuid = authorizedDevice.getGuid();
-            //TODO: Replace with RPC call
-//            deviceActivityService.update(deviceGuid);
-//        }
-       //TODO Add with RPC Command Subscription
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        DeviceVO authorizedDevice = principal != null ? principal.getDevice() : null;
+        if (authorizedDevice != null) {
+            String deviceGuid = authorizedDevice.getGuid();
+            deviceActivityService.update(deviceGuid);
+        }
+
+        CopyOnWriteArraySet<String> subIds = (CopyOnWriteArraySet)
+                session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
+
+        for (String id : subIds) {
+            CommandGetSubscriptionRequest request = new CommandGetSubscriptionRequest(id);
+            CompletableFuture<Response> future = new CompletableFuture<>();
+
+            rpcClient.call(Request.newBuilder()
+                    .withBody(request).build(), new ResponseConsumer(future));
+
+            future.thenApply(r -> {
+                Set<Subscription> subscriptions = ((CommandGetSubscriptionResponse) r.getBody()).getSubscriptions();
+
+                for (Subscription subscription : subscriptions) {
+                    if (subscription.getGuid() != null) {
+                        deviceActivityService.update(subscription.getGuid());
+                    }
+                }
+                return subscriptions;
+            });
+        }
     }
 
     @Scheduled(cron = "0/30 * * * * *")

@@ -37,6 +37,10 @@ public class EventBus {
         return registry.getSubscribers(subscription);
     }
 
+    public Collection<Subscription> getSubscriptions(Subscriber subscriber) {
+       return registry.getSubscriptions(subscriber);
+    }
+
     public void publish(Event event) {
         event.getApplicableSubscriptions()
                 .stream()
