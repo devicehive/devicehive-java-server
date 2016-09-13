@@ -73,8 +73,6 @@ public class UserServiceTest extends AbstractResourceTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         requestDispatcherProxy.setRequestHandler(requestHandler);
-
-        handleListUserRequest();
     }
 
     @After
@@ -1194,7 +1192,7 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         testUser.setStatus(UserStatus.ACTIVE);
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
-
+        handleListUserRequest();
         final UserVO finalTestUser = testUser;
         userService.list(testUser.getLogin(), null, null, null, null, null, 100, 0)
                 .thenAccept(users -> {
@@ -1221,7 +1219,7 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-
+        handleListUserRequest();
         userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
@@ -1251,7 +1249,7 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setRole(UserRole.CLIENT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-
+        handleListUserRequest();
         userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
@@ -1280,7 +1278,7 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.LOCKED_OUT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-
+        handleListUserRequest();
         userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
@@ -1305,7 +1303,7 @@ public class UserServiceTest extends AbstractResourceTest {
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
-
+        handleListUserRequest();
         userService.list(null, "%" + suffix, null, null, "login", true, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
@@ -1344,7 +1342,7 @@ public class UserServiceTest extends AbstractResourceTest {
             user = userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
             ids.add(user.getId());
         }
-
+        handleListUserRequest();
         userService.list(null, "%" + prefix + "%", null, null, null, false, 20, 10)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));

@@ -2,6 +2,10 @@ package com.devicehive.service;
 
 import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.dao.AccessKeyDao;
+import com.devicehive.model.rpc.ListAccessKeyRequest;
+import com.devicehive.model.rpc.ListAccessKeyResponse;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -14,24 +18,34 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.updates.AccessKeyUpdate;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 
 public class AccessKeyServiceTest extends AbstractResourceTest {
 
@@ -45,6 +59,28 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     private NetworkService networkService;
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private AccessKeyDao accessKeyDao;
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -568,7 +604,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
         assertFalse(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
     }
 
-    @Ignore
     @Test
     public void should_list_access_keys_by_user() throws Exception {
         UserVO user = new UserVO();
@@ -583,11 +618,26 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
             accessKeyService.create(user, accessKey);
         }
 
-//        List<AccessKey> k = genericDAO.createQuery("select ak from AccessKey ak left join fetch ak.user u where u.id = :user", AccessKey.class)
-//            .setParameter("user", user.getId())
-//            .getResultList();
+        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
+            Request request = invocation.getArgumentAt(0, Request.class);
+            ListAccessKeyRequest req = request.getBody().cast(ListAccessKeyRequest.class);
+            final List<AccessKeyVO> accessKeys =
+                    accessKeyDao.list(req.getUserId(), req.getLabel(),
+                            req.getLabelPattern(), req.getType(),
+                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getTake(), req.getSkip());
 
-//        List<AccessKeyVO> keys = accessKeyService.list(user.getId(), null, null, null, null, false, 0, 100);
-//        assertThat(keys, hasSize(50));
+            return Response.newBuilder()
+                    .withBody(new ListAccessKeyResponse(accessKeys))
+                    .buildSuccess();
+        });
+
+        accessKeyService.list(user.getId(), null, null, AccessKeyType.DEFAULT.getValue(), null, false, 50, 0)
+                .thenAccept(accessKeys -> {
+                    assertThat(accessKeys, not(empty()));
+                    assertThat(accessKeys, hasSize(50));
+                }).get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 }

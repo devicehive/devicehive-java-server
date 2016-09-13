@@ -7,10 +7,14 @@ import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.rpc.ListDeviceClassResponse;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -19,6 +23,7 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.*;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,11 +40,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class DeviceServiceTest extends AbstractSpringKafkaTest {
 
@@ -64,26 +71,36 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
 
+    @Autowired
+    private DeviceDao deviceDao;
+
     @Mock
     private RequestHandler requestHandler;
 
     private final Set<DeviceClassEquipmentVO> emptyEquipmentSet = Collections.<DeviceClassEquipmentVO>emptySet();
 
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        Mockito.reset(requestHandler);
-        Mockito.when(requestHandler.handle(Mockito.any(Request.class)))
-                .thenAnswer(new Answer<Response>() {
-                    @Override
-                    public Response answer(InvocationOnMock invocation) throws Throwable {
-                        Request request = (Request) invocation.getArguments()[0];
-                        return Response.newBuilder()
-                                .withCorrelationId(request.getCorrelationId())
-                                .buildSuccess();
-                    }
-                });
+//        Mockito.reset(requestHandler);
+//        when(requestHandler.handle(Mockito.any(Request.class)))
+//                .thenAnswer(new Answer<Response>() {
+//                    @Override
+//                    public Response answer(InvocationOnMock invocation) throws Throwable {
+//                        Request request = (Request) invocation.getArguments()[0];
+//                        return Response.newBuilder()
+//                                .withCorrelationId(request.getCorrelationId())
+//                                .buildSuccess();
+//                    }
+//                });
         requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
     }
 
     /**
@@ -417,7 +434,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
-    public void should_save_and_find_by_device_name() {
+    public void should_save_and_find_by_device_name() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String deviceName1 = RandomStringUtils.randomAlphabetic(10);
         device.setName(deviceName1);
@@ -437,16 +454,20 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
+        handleListDeviceRequest();
+        deviceService.list(deviceName1, null, null, null, null, null, null, null, false, null, null, null)
+                .thenAccept(devices -> {
+                    assertNotNull(devices);
+                    assertEquals(devices.size(), 1);
+                    assertEquals(device.getGuid(), devices.get(0).getGuid());
+                    assertEquals(device.getName(), devices.get(0).getName());
+                }).get(2, TimeUnit.SECONDS);
 
-        final List<DeviceVO> devices = deviceService.list(deviceName1, null, null, null, null, null, null, null, false, null, null, null).join();
-        assertNotNull(devices);
-        assertEquals(devices.size(), 1);
-        assertEquals(device.getGuid(), devices.get(0).getGuid());
-        assertEquals(device.getName(), devices.get(0).getName());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
-    public void should_save_and_find_by_device_status() {
+    public void should_save_and_find_by_device_status() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String status = RandomStringUtils.randomAlphabetic(10);
         device.setStatus(status);
@@ -465,17 +486,21 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
+        handleListDeviceRequest();
+        deviceService.list(null, null, status1, null, null, null, null, null, false, null, null, null)
+                .thenAccept(devices -> {
+                    Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
+                    assertNotNull(devices);
+                    assertEquals(2, devices.size());
+                    assertEquals(device1.getGuid(), devices.get(0).getGuid());
+                    assertEquals(device2.getGuid(), devices.get(1).getGuid());
+                }).get(2, TimeUnit.SECONDS);
 
-        final List<DeviceVO> devices = deviceService.list(null, null, status1, null, null, null, null, null, false, null, null, null).join();
-        Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
-        assertNotNull(devices);
-        assertEquals(2, devices.size());
-        assertEquals(device1.getGuid(), devices.get(0).getGuid());
-        assertEquals(device2.getGuid(), devices.get(1).getGuid());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
-    public void should_save_and_find_by_network_id() {
+    public void should_save_and_find_by_network_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
@@ -515,17 +540,21 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        handleListDeviceRequest();
+        deviceService.list(null, null, null, network1.getId(), null, null, null, null, false, null, null, null)
+                .thenAccept(devices -> {
+                    assertNotNull(devices);
+                    assertNotEquals(0, devices.size());
+                    assertEquals(device1.getGuid(), devices.get(0).getGuid());
+                    assertNotNull(devices.get(0).getNetwork());
+                    assertEquals(network1.getId(), devices.get(0).getNetwork().getId());
+                }).get(2, TimeUnit.SECONDS);
 
-        final List<DeviceVO> devices = deviceService.list(null, null, null, network1.getId(), null, null, null, null, false, null, null, null).join();
-        assertNotNull(devices);
-        assertNotEquals(0, devices.size());
-        assertEquals(device1.getGuid(), devices.get(0).getGuid());
-        assertNotNull(devices.get(0).getNetwork());
-        assertEquals(network1.getId(), devices.get(0).getNetwork().getId());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
-    public void should_save_and_find_by_device_class_id() {
+    public void should_save_and_find_by_device_class_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
@@ -540,14 +569,18 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        handleListDeviceRequest();
+        deviceService.list(null, null, null, null, null, dc.getId(), null, null, false, null, null, null)
+                .thenAccept(devices -> {
+                    assertNotNull(devices);
+                    assertEquals(device.getGuid(), devices.get(0).getGuid());
+                }).get(2, TimeUnit.SECONDS);
 
-        final List<DeviceVO> devices = deviceService.list(null, null, null, null, null, dc.getId(), null, null, false, null, null, null).join();
-        assertNotNull(devices);
-        assertEquals(device.getGuid(), devices.get(0).getGuid());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
-    public void should_save_and_find_by_device_class_name() {
+    public void should_save_and_find_by_device_class_name() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
@@ -562,10 +595,14 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        handleListDeviceRequest();
+        deviceService.list(null, null, null, null, null, null, dc.getName(), null, false, null, null, null)
+                .thenAccept(devices -> {
+                    assertNotNull(devices);
+                    assertEquals(device.getGuid(), devices.get(0).getGuid());
+                }).get(2, TimeUnit.SECONDS);
 
-        final List<DeviceVO> devices = deviceService.list(null, null, null, null, null, null, dc.getName(), null, false, null, null, null).join();
-        assertNotNull(devices);
-        assertEquals(device.getGuid(), devices.get(0).getGuid());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
@@ -637,6 +674,23 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+    }
+
+    private void handleListDeviceRequest() {
+        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
+            Request request = invocation.getArgumentAt(0, Request.class);
+            ListDeviceRequest req = request.getBody().cast(ListDeviceRequest.class);
+            final List<DeviceVO> devices =
+                    deviceDao.list(req.getName(), req.getNamePattern(),
+                            req.getStatus(), req.getNetworkId(), req.getNetworkName(),
+                            req.getDeviceClassId(), req.getDeviceClassName(),
+                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getTake(), req.getSkip(), req.getPrincipal());
+
+            return Response.newBuilder()
+                    .withBody(new ListDeviceResponse(devices))
+                    .buildSuccess();
+        });
     }
 
 }

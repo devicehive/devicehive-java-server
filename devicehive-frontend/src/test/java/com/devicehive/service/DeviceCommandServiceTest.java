@@ -1,169 +1,245 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.model.Device;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.rpc.CommandInsertRequest;
+import com.devicehive.model.rpc.CommandInsertResponse;
+import com.devicehive.model.rpc.CommandSearchRequest;
+import com.devicehive.model.rpc.CommandSearchResponse;
+import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 public class DeviceCommandServiceTest extends AbstractResourceTest {
+
     private static final String DEFAULT_STATUS = "default_status";
-    private static final Boolean DEFAULT_IS_UPDATED = false;
 
     @Autowired
     private DeviceCommandService deviceCommandService;
 
-    @Test
-    public void testFindAllCommands(){
-        final int NUMBER_OF_COMMANDS = 99;
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
 
-        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
-                sendNCommands(1, DEFAULT_STATUS, i % 2 == 0);
+    @Mock
+    private RequestHandler requestHandler;
+
+    private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
+
+    @Test
+    public void testFindCommandsByGuid() throws Exception {
+        final List<String> guids = IntStream.range(0, 5)
+                .mapToObj(i -> UUID.randomUUID().toString())
+                .collect(Collectors.toList());
+        final Date timestampSt = new Date();
+        final Date timestampEnd = new Date();
+        final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
+
+        final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
+                guids.get(0),
+                guids.get(2),
+                guids.get(3)));
+
+        final Map<String, DeviceCommand> commandMap = guidsForSearch.stream()
+                .collect(Collectors.toMap(Function.identity(), guid -> {
+                    DeviceCommand command = new DeviceCommand();
+                    command.setId(System.nanoTime());
+                    command.setDeviceGuid(guid);
+                    command.setCommand(RandomStringUtils.randomAlphabetic(10));
+                    command.setTimestamp(new Date());
+                    command.setParameters(new JsonStringWrapper(parameters));
+                    command.setStatus(DEFAULT_STATUS);
+                    return command;
+                }));
+
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            Request request = invocation.getArgumentAt(0, Request.class);
+            String guid = request.getBody().cast(CommandSearchRequest.class).getGuid();
+            CommandSearchResponse response = new CommandSearchResponse();
+            response.setCommands(Collections.singletonList(commandMap.get(guid)));
+            return Response.newBuilder()
+                    .withBody(response)
+                    .buildSuccess();
+        });
+
+        deviceCommandService.find(guidsForSearch, Collections.emptySet(), timestampSt, timestampEnd, DEFAULT_STATUS)
+                .thenAccept(commands -> {
+                    assertEquals(3, commands.size());
+                    assertEquals(new HashSet<>(commandMap.values()), new HashSet<>(commands));
+                })
+                .get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(3)).handle(argument.capture());
+    }
+
+    @Test
+    public void testFindCommandsByGuidAndName() throws Exception {
+        final List<String> names = IntStream.range(0, 5)
+                .mapToObj(i -> RandomStringUtils.randomAlphabetic(10))
+                .collect(Collectors.toList());
+        final Date timestampSt = new Date();
+        final Date timestampEnd = new Date();
+        final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
+        final String guid = UUID.randomUUID().toString();
+
+        final Set<String> namesForSearch = new HashSet<>(Arrays.asList(
+                names.get(0),
+                names.get(2),
+                names.get(3)));
+
+        final List<DeviceCommand> commandList = namesForSearch.stream()
+                .map(name -> {
+                    DeviceCommand command = new DeviceCommand();
+                    command.setId(System.nanoTime());
+                    command.setDeviceGuid(guid);
+                    command.setCommand(name);
+                    command.setTimestamp(new Date());
+                    command.setParameters(new JsonStringWrapper(parameters));
+                    command.setStatus(DEFAULT_STATUS);
+                    return command;
+                }).collect(Collectors.toList());
+
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            CommandSearchResponse response = new CommandSearchResponse();
+            response.setCommands(commandList);
+            return Response.newBuilder()
+                    .withBody(response)
+                    .buildSuccess();
+        });
+
+        deviceCommandService.find(Collections.singleton(guid), names, timestampSt, timestampEnd, DEFAULT_STATUS)
+                .thenAccept(commands -> {
+                    assertEquals(3, commands.size());
+                    assertEquals(new HashSet<>(commandList), new HashSet<>(commands));
+                })
+                .get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
+    }
+
+    @Test
+    public void testFindCommand() throws Exception {
+        final String guid = UUID.randomUUID().toString();
+        final long id = System.nanoTime();
+
+        final DeviceCommand command = new DeviceCommand();
+        command.setId(id);
+        command.setDeviceGuid(guid);
+        command.setCommand(RandomStringUtils.randomAlphabetic(10));
+        command.setTimestamp(new Date());
+        command.setStatus(DEFAULT_STATUS);
+
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            CommandSearchResponse response = new CommandSearchResponse();
+            response.setCommands(Collections.singletonList(command));
+            return Response.newBuilder()
+                    .withBody(response)
+                    .buildSuccess();
+        });
+
+        deviceCommandService.find(id, guid)
+                .thenAccept(deviceCommand -> assertTrue(deviceCommand.isPresent()))
+                .get(2, TimeUnit.SECONDS);
+
+        verify(requestHandler, times(1)).handle(argument.capture());
+    }
+
+    @Test
+    public void testInsertCommands() throws Exception {
+        final int num = 10;
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            CommandInsertRequest insertRequest = invocation.getArgumentAt(0, Request.class)
+                    .getBody().cast(CommandInsertRequest.class);
+            return Response.newBuilder()
+                    .withBody(new CommandInsertResponse(insertRequest.getDeviceCommand()))
+                    .buildSuccess();
+        });
+
+        final UserVO user = new UserVO();
+        user.setId(System.nanoTime());
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
+
+        final DeviceVO deviceVO = new DeviceVO();
+        deviceVO.setId(System.nanoTime());
+        deviceVO.setGuid(UUID.randomUUID().toString());
+
+        for (int i = 0; i < num; i++) {
+            final DeviceCommandWrapper deviceCommand = new DeviceCommandWrapper();
+            deviceCommand.setCommand(Optional.of("command" + i));
+            deviceCommand.setParameters(Optional.of(new JsonStringWrapper("{'test':'test'}")));
+            deviceCommand.setStatus(Optional.of(DEFAULT_STATUS));
+
+            deviceCommandService.insert(deviceCommand, deviceVO, user)
+                    .thenAccept(deviceCom -> {
+                        assertNotNull(deviceCom);
+                        assertNotNull(deviceCom.getId());
+                        assertNotNull(deviceCom.getUserId());
+                        assertNotNull(deviceCom.getTimestamp());
+                    }).get(2, TimeUnit.SECONDS);
         }
 
-        assertEquals(NUMBER_OF_COMMANDS, deviceCommandService.find(
-                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size());
+        verify(requestHandler, times(num)).handle(argument.capture());
     }
 
     @Test
-    public void testFindCommandsWithResponse(){
-        final int NUMBER_OF_COMMANDS = 99;
+    public void testUpdateCommand() throws Exception {
+        final DeviceCommand deviceCommand = new DeviceCommand();
+        deviceCommand.setId(System.nanoTime());
+        deviceCommand.setDeviceGuid(UUID.randomUUID().toString());
+        deviceCommand.setCommand("command");
+        deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
+        deviceCommand.setStatus(DEFAULT_STATUS);
 
-        int withResponse = 0;
+        final DeviceCommandWrapper commandWrapper = new DeviceCommandWrapper();
+        commandWrapper.setStatus(Optional.of("OK"));
+        commandWrapper.setLifetime(Optional.of(100500));
 
-        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
-            if(i % 2 == 0) {
-                withResponse++;
-                sendNCommands(1, DEFAULT_STATUS, true);
-            }else{
-                sendNCommands(1, DEFAULT_STATUS, false);
-            }
-        }
-        assertEquals(withResponse, deviceCommandService.find(
-                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size()
-                );
-    }
-    @Test
-    public void testFindCommandsWithoutResponse(){
-        final int NUMBER_OF_COMMANDS = 99;
+        when(requestHandler.handle(any(Request.class))).then(invocation -> Response.newBuilder()
+                .buildSuccess());
 
-        int withResponse = 0;
+        deviceCommandService.update(deviceCommand, commandWrapper).
+                thenAccept(Assert::assertNull).get(2, TimeUnit.SECONDS);
 
-        for(int i = 0; i < NUMBER_OF_COMMANDS; i++){
-            if(i % 2 == 0) {
-                withResponse++;
-                sendNCommands(1, DEFAULT_STATUS, true);
-            }else{
-                sendNCommands(1, DEFAULT_STATUS, false);
-            }
-        }
-        assertEquals(NUMBER_OF_COMMANDS - withResponse, deviceCommandService.find(
-                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join().size()
-                );
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
-
-    /**
-     * Simple test to check that all command were successfully saved and than retrieved
-     */
-    @Test
-    public void testSubmitDeviceCommands() {
-        final int NUMBER_OF_COMMANDS = 100;
-        sendNCommands(NUMBER_OF_COMMANDS);
-
-        final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join();
-        assertEquals(NUMBER_OF_COMMANDS, commands.size());
-    }
-
-    /**
-     * Tests all commands were saved with increasing timestamp
-     */
-    @Test
-    public void testIncreasingTimestamps() {
-        final int NUMBER_OF_COMMANDS = 20;
-        sendNCommands(NUMBER_OF_COMMANDS);
-
-        final List<DeviceCommand> commands = new ArrayList<>(deviceCommandService.find(
-                null, Collections.emptyList(), null, null, DEFAULT_STATUS).join());
-
-        for (int i = 1; i < commands.size(); i++) {
-            final Date currentElem = commands.get(i).getTimestamp();
-            final Date previousElem = commands.get(i - 1).getTimestamp();
-            assertTrue(currentElem.before(previousElem));
-        }
-    }
-
-    /**
-     * Tests ability to retrieve commands which were after specified date
-     */
-    @Test
-    public void testRetrieveCommandsFromDate() {
-        final Timestamp timeBeforeBatches = new Timestamp(new Date().getTime());
-        sendNCommands(10);
-        try {
-            Thread.sleep(1000); //need it to have delay between two groups of commands
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        final Timestamp timeBetweenBatches = new Timestamp(new Date().getTime());
-        sendNCommands(15);
-
-        final Collection<DeviceCommand> commandsAll =  deviceCommandService.find(
-                null, Collections.emptyList(), timeBeforeBatches, null, DEFAULT_STATUS).join();
-        assertEquals(25, commandsAll.size());
-
-
-        final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Collections.emptyList(), timeBetweenBatches, null, DEFAULT_STATUS).join();
-        assertEquals(15, commands.size());
-
-    }
-
-    /**
-     * Tests ability to retrieve commands by name
-     */
-    @Test
-    public void testRetrieveCommandsByName() {
-        sendNCommands(10);
-
-        final Collection<DeviceCommand> commands =  deviceCommandService.find(
-                null, Arrays.asList("command2", "command3", "command4"), null, null, DEFAULT_STATUS).join();
-        assertEquals(3, commands.size());
-    }
-
-    // FIXME: this method is not actual anymore and must be reimplemented
-    private void sendNCommands(int n, String status, boolean isUpdated) {
-        for (int i = 0; i < n; i++) {
-            //Need this hack to have different timestamp for each command
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            final DeviceCommand deviceCommand = new DeviceCommand();
-
-            deviceCommand.setId(Math.abs(new Random().nextInt()));
-            deviceCommand.setTimestamp(new Date());
-            deviceCommand.setUserId(0L);
-            deviceCommand.setDeviceGuid(UUID.randomUUID().toString());
-            deviceCommand.setCommand("command"+i);
-            deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
-            deviceCommand.setStatus(status);
-            deviceCommand.setIsUpdated(isUpdated);
-
-//            deviceCommandService.store(deviceCommand);
-        }
-    }
-
-    private void sendNCommands(int n) {
-        sendNCommands(n, DEFAULT_STATUS, DEFAULT_IS_UPDATED);
-    }
 }
