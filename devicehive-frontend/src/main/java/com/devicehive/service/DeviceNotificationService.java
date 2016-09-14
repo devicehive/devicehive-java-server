@@ -188,18 +188,20 @@ public class DeviceNotificationService {
 
     private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        switch (notificationMessage.getNotification()) {
-            case SpecialNotifications.EQUIPMENT:
-                deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
-                break;
-            case SpecialNotifications.DEVICE_STATUS:
-                DeviceNotification deviceNotification = refreshDeviceStatusCase(notificationMessage, device);
-                notificationsToCreate.add(deviceNotification);
-                break;
-            default:
-                break;
-
+        if (notificationMessage.getNotification() != null ) {
+            switch (notificationMessage.getNotification()) {
+                case SpecialNotifications.EQUIPMENT:
+                    deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
+                    break;
+                case SpecialNotifications.DEVICE_STATUS:
+                    DeviceNotification deviceNotification = refreshDeviceStatusCase(notificationMessage, device);
+                    notificationsToCreate.add(deviceNotification);
+                    break;
+                default:
+                    break;
+            }
         }
+
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
 
