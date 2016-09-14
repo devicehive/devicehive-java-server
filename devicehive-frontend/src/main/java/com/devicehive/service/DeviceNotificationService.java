@@ -111,16 +111,6 @@ public class DeviceNotificationService {
                         .collect(Collectors.toList()).get(0)); // after filter we should get only one notification
     }
 
-    public void insert(final DeviceNotification notification, final String deviceGuid) {
-        notification.setTimestamp(timestampService.getDate());
-        notification.setId(Math.abs(new Random().nextInt()));
-        notification.setDeviceGuid(deviceGuid);
-        rpcClient.push(Request.newBuilder()
-                .withBody(new NotificationInsertRequest(notification))
-                .withPartitionKey(deviceGuid)
-                .build());
-    }
-
     public Pair<String, CompletableFuture<List<DeviceNotification>>> sendSubscribeRequest(
             final Set<String> devices,
             final Set<String> names,
@@ -188,7 +178,7 @@ public class DeviceNotificationService {
 
     private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        if (notificationMessage.getNotification() != null ) {
+        if (notificationMessage.getNotification() != null) {
             switch (notificationMessage.getNotification()) {
                 case SpecialNotifications.EQUIPMENT:
                     deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);

@@ -12,6 +12,7 @@ import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -49,6 +50,8 @@ public class DeviceService {
     @Autowired
     private AccessKeyService accessKeyService;
     @Autowired
+    private TimestampService timestampService;
+    @Autowired
     private HiveValidator hiveValidator;
     @Autowired
     private DeviceDao deviceDao;
@@ -75,7 +78,8 @@ public class DeviceService {
         } else {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
-        deviceNotificationService.insert(dn, device.getGuid().orElse(null));
+        dn.setTimestamp(timestampService.getDate());
+        deviceNotificationService.insert(dn, device.convertTo());
         deviceActivityService.update(device.getGuid().orElse(null));
     }
 
