@@ -1,6 +1,5 @@
 package com.devicehive.resource.impl;
 
-import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -22,7 +21,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +28,6 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.CompletionCallback;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
@@ -116,7 +113,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .submitCommandSubscribe(availableDevices, names, ts, callback);
+                    .sendSubscribeRequest(availableDevices, names, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
@@ -136,7 +133,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             asyncResponse.register(new CompletionCallback() {
                 @Override
                 public void onComplete(Throwable throwable) {
-                    commandService.submitCommandUnsubscribe(pair.getLeft(), null);
+                    commandService.sendUnsubscribeRequest(pair.getLeft(), null);
                 }
             });
         } else {
@@ -179,7 +176,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        Optional<DeviceCommand> command = commandService.find(Long.valueOf(commandId), device.getGuid()).join();
+        Optional<DeviceCommand> command = commandService.findOne(Long.valueOf(commandId), device.getGuid()).join();
 
         if (!command.isPresent()) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
@@ -206,7 +203,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!command.get().getIsUpdated()) {
             CompletableFuture<Pair<String, DeviceCommand>> future = commandService
-                    .submitSubscribeOnUpdate(Long.valueOf(commandId), deviceGuid, callback);
+                    .sendSubscribeToUpdateRequest(Long.valueOf(commandId), deviceGuid, callback);
             future.thenAccept(pair -> {
                 final DeviceCommand deviceCommand = pair.getRight();
                 if (!asyncResponse.isDone() && deviceCommand.getIsUpdated()) {
@@ -227,7 +224,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 @Override
                 public void onComplete(Throwable throwable) {
                     try {
-                        commandService.submitCommandUnsubscribe(future.get().getLeft(), null);
+                        commandService.sendUnsubscribeRequest(future.get().getLeft(), null);
                     } catch (InterruptedException | ExecutionException e) {
                         if (!asyncResponse.isDone()) {
                             asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
@@ -290,7 +287,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        commandService.find(Long.valueOf(commandId), device.getGuid())
+        commandService.findOne(Long.valueOf(commandId), device.getGuid())
                 .thenApply(command -> {
                     if (!command.isPresent()) {
                         LOGGER.warn("Device command get failed. No command with id = {} found for device with guid = {}", commandId, guid);
@@ -357,7 +354,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            Optional<DeviceCommand> savedCommand = commandService.find(commandId, guid).join();
+            Optional<DeviceCommand> savedCommand = commandService.findOne(commandId, guid).join();
             if (!savedCommand.isPresent()) {
                 LOGGER.warn("Device command update failed. No command with id = {} found for device with guid = {}", commandId, guid);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

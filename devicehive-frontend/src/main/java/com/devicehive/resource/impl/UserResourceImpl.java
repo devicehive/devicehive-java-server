@@ -27,7 +27,6 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.util.List;
 import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.ID;

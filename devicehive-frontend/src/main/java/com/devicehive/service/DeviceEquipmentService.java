@@ -26,7 +26,7 @@ public class DeviceEquipmentService {
     private DeviceEquipmentDao deviceEquipmentDao;
 
     /**
-     * find Device equipment by device
+     * findOne Device equipment by device
      *
      * @param device Equipment will be fetched for this device
      * @return List of DeviceEquipment for specified device

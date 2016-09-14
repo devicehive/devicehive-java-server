@@ -18,7 +18,7 @@ public enum IdentityProviderEnum {
 
     private String value;
 
-    private IdentityProviderEnum(String value) {
+    IdentityProviderEnum(String value) {
         this.value = value;
     }
 

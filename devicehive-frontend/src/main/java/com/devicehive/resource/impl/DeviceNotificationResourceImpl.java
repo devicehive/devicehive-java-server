@@ -1,6 +1,5 @@
 package com.devicehive.resource.impl;
 
-import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -20,7 +19,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +28,6 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -201,7 +198,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             asyncResponse.register(new CompletionCallback() {
                 @Override
                 public void onComplete(Throwable throwable) {
-                    notificationService.submitNotificationUnsubscribe(pair.getLeft(), null);
+                    notificationService.sendUnsubscribeRequest(pair.getLeft(), null);
                 }
             });
         } else {
@@ -240,7 +237,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                         String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
                 asyncResponse.resume(response);
             } else {
-                DeviceNotification toInsert = notificationService.convertToMessage(notificationSubmit, device);
+                DeviceNotification toInsert = notificationService.convertWrapperToNotification(notificationSubmit, device);
                 notificationService.insert(toInsert, device)
                         .thenAccept(notification -> {
                             logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}",

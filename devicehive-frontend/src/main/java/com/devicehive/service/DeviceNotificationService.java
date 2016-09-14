@@ -154,7 +154,7 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void submitNotificationUnsubscribe(String subId, Set<String> deviceGuids) {
+    public void sendUnsubscribeRequest(String subId, Set<String> deviceGuids) {
         NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceGuids);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
@@ -162,18 +162,18 @@ public class DeviceNotificationService {
         rpcClient.push(request);
     }
 
-    public DeviceNotification convertToMessage(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
-        DeviceNotification message = new DeviceNotification();
-        message.setId(Math.abs(new Random().nextInt()));
-        message.setDeviceGuid(device.getGuid());
+    public DeviceNotification convertWrapperToNotification(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
+        DeviceNotification notification = new DeviceNotification();
+        notification.setId(Math.abs(new Random().nextInt()));
+        notification.setDeviceGuid(device.getGuid());
         if (notificationSubmit.getTimestamp() == null) {
-            message.setTimestamp(timestampService.getDate());
+            notification.setTimestamp(timestampService.getDate());
         } else {
-            message.setTimestamp(notificationSubmit.getTimestamp());
+            notification.setTimestamp(notificationSubmit.getTimestamp());
         }
-        message.setNotification(notificationSubmit.getNotification());
-        message.setParameters(notificationSubmit.getParameters());
-        return message;
+        notification.setNotification(notificationSubmit.getNotification());
+        notification.setParameters(notificationSubmit.getParameters());
+        return notification;
     }
 
     private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {

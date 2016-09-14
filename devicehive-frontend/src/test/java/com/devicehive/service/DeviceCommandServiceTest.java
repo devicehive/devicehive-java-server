@@ -18,7 +18,6 @@ import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -29,7 +28,6 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -179,7 +177,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     .buildSuccess();
         });
 
-        deviceCommandService.find(id, guid)
+        deviceCommandService.findOne(id, guid)
                 .thenAccept(deviceCommand -> assertTrue(deviceCommand.isPresent()))
                 .get(2, TimeUnit.SECONDS);
 

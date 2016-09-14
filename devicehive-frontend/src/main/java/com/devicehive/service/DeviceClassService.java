@@ -227,7 +227,7 @@ public class DeviceClassService {
         deviceClass.getEquipment().add(equipment);
         deviceClass = deviceClassDao.merge(deviceClass);
 
-        //TODO [rafa] find device equipment class back from the set in device class.
+        //TODO [rafa] findOne device equipment class back from the set in device class.
         for (DeviceClassEquipmentVO s : deviceClass.getEquipment()) {
             if (equipment.getCode().equals(s.getCode())) {
                 equipment.setId(s.getId());

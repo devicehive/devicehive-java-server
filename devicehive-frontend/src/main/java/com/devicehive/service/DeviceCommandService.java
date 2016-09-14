@@ -43,7 +43,7 @@ public class DeviceCommandService {
         this.rpcClient = rpcClient;
     }
 
-    public CompletableFuture<Optional<DeviceCommand>> find(Long id, String guid) {
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String guid) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
         searchRequest.setGuid(guid);
@@ -99,7 +99,7 @@ public class DeviceCommandService {
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
-    public Pair<String, CompletableFuture<List<DeviceCommand>>> submitCommandSubscribe(
+    public Pair<String, CompletableFuture<List<DeviceCommand>>> sendSubscribeRequest(
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
@@ -138,7 +138,7 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void submitCommandUnsubscribe(String subId, Set<String> deviceGuids) {
+    public void sendUnsubscribeRequest(String subId, Set<String> deviceGuids) {
         CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceGuids);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
@@ -146,7 +146,7 @@ public class DeviceCommandService {
         rpcClient.push(request);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> submitSubscribeOnUpdate(final long commandId, final String guid, BiConsumer<DeviceCommand, String> callback) {
+    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String guid, BiConsumer<DeviceCommand, String> callback) {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
         final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {

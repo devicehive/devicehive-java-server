@@ -1,6 +1,5 @@
 package com.devicehive.websockets.handlers;
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
@@ -25,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
@@ -88,7 +86,7 @@ public class CommandHandlers {
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .submitCommandSubscribe(devices, names, timestamp, callback);
+                .sendSubscribeRequest(devices, names, timestamp, callback);
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->
@@ -119,11 +117,11 @@ public class CommandHandlers {
             List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
                    principal).join();
             guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
-            commandService.submitCommandUnsubscribe(null, guids);
+            commandService.sendUnsubscribeRequest(null, guids);
         } else if (subscriptionId.isPresent()) {
-            commandService.submitCommandUnsubscribe(subscriptionId.get(), guids);
+            commandService.sendUnsubscribeRequest(subscriptionId.get(), guids);
         } else {
-            commandService.submitCommandUnsubscribe(null, guids);
+            commandService.sendUnsubscribeRequest(null, guids);
         }
 
         ((CopyOnWriteArraySet) session
@@ -196,15 +194,13 @@ public class CommandHandlers {
             logger.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        //TODO [rafa] unused local variable?
-//        final UserVO user = principal.getUser() != null ? principal.getUser() :
-//                (principal.getKey() != null ? principal.getKey().getUser() : null);
+
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
         if (device == null) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, id), SC_NOT_FOUND);
         }
 
-        Optional<DeviceCommand> savedCommand = commandService.find(id, guid).join();
+        Optional<DeviceCommand> savedCommand = commandService.findOne(id, guid).join();
         if (!savedCommand.isPresent()) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
@@ -243,6 +239,6 @@ public class CommandHandlers {
             JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
             sendMessage(json, session);
         };
-        commandService.submitSubscribeOnUpdate(commandId, guid, callback); // TODO: make sure this is the correct place to create update message
+        commandService.sendSubscribeToUpdateRequest(commandId, guid, callback); // TODO: make sure this is the correct place to create update message
     }
 }

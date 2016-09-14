@@ -84,7 +84,7 @@ public class UserService {
     public UserVO findUser(String login, String password) {
         Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
-            logger.error("Can't find user with login {} and password {}", login, password);
+            logger.error("Can't findOne user with login {} and password {}", login, password);
             throw new AccessDeniedException(Messages.USER_NOT_FOUND);
         } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
             logger.error("User with login {} is not active", login);

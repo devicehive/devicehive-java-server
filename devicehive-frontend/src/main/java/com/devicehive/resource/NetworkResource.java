@@ -2,7 +2,6 @@ package com.devicehive.resource;
 
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 

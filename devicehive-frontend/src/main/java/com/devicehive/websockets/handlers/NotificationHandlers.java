@@ -108,28 +108,6 @@ public class NotificationHandlers {
         return response;
     }
 
-    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
-        if (deviceId == null && deviceIdSet == null) {
-            return null;
-        }
-        if (deviceIdSet != null && deviceId == null) {
-            deviceIdSet.remove(null);
-            return deviceIdSet;
-        }
-
-        if (deviceIdSet == null) {
-            return new HashSet<String>() {
-                {
-                    add(deviceId);
-                }
-
-                private static final long serialVersionUID = 955343867580964077L;
-            };
-
-        }
-        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
-    }
-
     /**
      * Implementation of the <a href="http://www.devicehive.com/restful#WsReference/Client/notificationunsubscribe">
      * WebSocket API: Client: notification/unsubscribe</a> Unsubscribes from device notifications.
@@ -157,11 +135,11 @@ public class NotificationHandlers {
             List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
                     principal).join();
             deviceGuids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
-            notificationService.submitNotificationUnsubscribe(null, deviceGuids);
+            notificationService.sendUnsubscribeRequest(null, deviceGuids);
         } else if (subId.isPresent()) {
-            notificationService.submitNotificationUnsubscribe(subId.get(), deviceGuids);
+            notificationService.sendUnsubscribeRequest(subId.get(), deviceGuids);
         } else {
-            notificationService.submitNotificationUnsubscribe(null, deviceGuids);
+            notificationService.sendUnsubscribeRequest(null, deviceGuids);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
 
@@ -202,7 +180,7 @@ public class NotificationHandlers {
             logger.debug("notification/insert. No network specified for device with guid = {}", deviceGuid);
             throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
         }
-        DeviceNotification message = notificationService.convertToMessage(notificationSubmit, device);
+        DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
 
         WebSocketResponse response = new WebSocketResponse();
         notificationService.insert(message, device)
@@ -216,5 +194,27 @@ public class NotificationHandlers {
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 }).join();
         return response;
+    }
+
+    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
+        if (deviceId == null && deviceIdSet == null) {
+            return null;
+        }
+        if (deviceIdSet != null && deviceId == null) {
+            deviceIdSet.remove(null);
+            return deviceIdSet;
+        }
+
+        if (deviceIdSet == null) {
+            return new HashSet<String>() {
+                {
+                    add(deviceId);
+                }
+
+                private static final long serialVersionUID = 955343867580964077L;
+            };
+
+        }
+        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 }

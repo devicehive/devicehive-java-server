@@ -5,7 +5,7 @@ public enum HiveEndpoint {
     DEVICE("device");
     String value;
 
-    private HiveEndpoint(String value) {
+    HiveEndpoint(String value) {
         this.value = value;
     }
 
