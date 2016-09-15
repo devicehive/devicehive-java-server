@@ -2,6 +2,7 @@ package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceClassEquipmentVO;
@@ -16,6 +17,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
@@ -39,7 +41,10 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
-        // When creating device, automatically created one notification.
+        // Create notification
+        DeviceNotification notification = DeviceFixture.createDeviceNotification();
+        notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), notification, CREATED, DeviceNotification.class);
+        assertNotNull(notification.getId());
 
         // poll notification
         Map<String, Object> params = new HashMap<>();

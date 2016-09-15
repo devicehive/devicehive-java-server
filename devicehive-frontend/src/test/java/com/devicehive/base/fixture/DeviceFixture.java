@@ -1,6 +1,7 @@
 package com.devicehive.base.fixture;
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -103,6 +104,13 @@ public class DeviceFixture {
         command.setStatus("test-status");
         command.setResult(new JsonStringWrapper("{'jsonString': 'string'}"));
         return command;
+    }
+
+    public static DeviceNotification createDeviceNotification() {
+        DeviceNotification notification = new DeviceNotification();
+        notification.setNotification("test-notification");
+        notification.setParameters(new JsonStringWrapper("{'param':'testParam'}"));
+        return notification;
     }
 
 }
