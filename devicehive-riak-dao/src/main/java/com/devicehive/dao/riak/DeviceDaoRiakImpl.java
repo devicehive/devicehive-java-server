@@ -400,7 +400,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                     "})" +
                                     "}";
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction, deviceGuids);
+                    if (!deviceGuids.isEmpty()) builder.withReducePhase(reduceFunction, deviceGuids);
                 } else if (principal.getDevice() != null) {
                     String functionString = String.format(
                             "function(values, arg) {" +
