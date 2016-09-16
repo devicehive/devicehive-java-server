@@ -178,7 +178,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                    .sendSubscribeRequest(availableDevices, notifications, ts, callback);
+                    .subscribe(availableDevices, notifications, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
@@ -198,7 +198,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             asyncResponse.register(new CompletionCallback() {
                 @Override
                 public void onComplete(Throwable throwable) {
-                    notificationService.sendUnsubscribeRequest(pair.getLeft(), null);
+                    notificationService.unsubscribe(pair.getLeft(), null);
                 }
             });
         } else {

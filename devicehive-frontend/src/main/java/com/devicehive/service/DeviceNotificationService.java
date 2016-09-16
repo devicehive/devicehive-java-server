@@ -111,7 +111,7 @@ public class DeviceNotificationService {
                         .collect(Collectors.toList()).get(0)); // after filter we should get only one notification
     }
 
-    public Pair<String, CompletableFuture<List<DeviceNotification>>> sendSubscribeRequest(
+    public Pair<String, CompletableFuture<List<DeviceNotification>>> subscribe(
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
@@ -154,7 +154,7 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(String subId, Set<String> deviceGuids) {
+    public void unsubscribe(String subId, Set<String> deviceGuids) {
         NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceGuids);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)

@@ -83,7 +83,7 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         CopyOnWriteArraySet<String> notificationSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
         for (String s : notificationSubscriptions) {
-            notificationService.sendUnsubscribeRequest(s, null);
+            notificationService.unsubscribe(s, null);
         }
 
         sessionMonitor.removeSession(session.getId());

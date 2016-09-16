@@ -88,7 +88,7 @@ public class NotificationHandlers {
         };
 
         Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                .sendSubscribeRequest(devices, names, timestamp, callback);
+                .subscribe(devices, names, timestamp, callback);
 
         pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
@@ -135,11 +135,11 @@ public class NotificationHandlers {
             List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
                     principal).join();
             deviceGuids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
-            notificationService.sendUnsubscribeRequest(null, deviceGuids);
+            notificationService.unsubscribe(null, deviceGuids);
         } else if (subId.isPresent()) {
-            notificationService.sendUnsubscribeRequest(subId.get(), deviceGuids);
+            notificationService.unsubscribe(subId.get(), deviceGuids);
         } else {
-            notificationService.sendUnsubscribeRequest(null, deviceGuids);
+            notificationService.unsubscribe(null, deviceGuids);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
 
