@@ -90,7 +90,6 @@ public class GsonFactory {
         return new GsonBuilder()
                 .disableHtmlEscaping()
                 .serializeNulls()
-                .setPrettyPrinting()
                 .registerTypeAdapterFactory(new OptionalAdapterFactory())
                 .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
                 .registerTypeAdapter(Date.class, new TimestampAdapter())
