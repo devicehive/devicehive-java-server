@@ -5,7 +5,10 @@ import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +33,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
 @DirtiesContext
-@WebIntegrationTest
+@WebIntegrationTest("server.port=0")
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ADMIN_LOGIN = "test_admin";
@@ -38,12 +41,13 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ACCESS_KEY = "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=";
     public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
 
-    @Value("${server.port}")
+    @Value("${local.server.port}")
     protected Integer port;
 
     private String httpBaseUri;
     private String wsBaseUrl;
     private WebTarget target;
+    private static Client client;
 
     @Autowired
     protected Gson gson;
@@ -52,10 +56,15 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public void initSpringBootIntegrationTest() {
         httpBaseUri = "http://localhost:" + port;
         wsBaseUrl = "ws://localhost:" + port;
-        Client client = ClientBuilder.newClient();
+        client = ClientBuilder.newClient();
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);
         target = client.target(httpBaseUri).path("rest");
+    }
+
+    @AfterClass
+    public static void cleanUp() throws Exception {
+        client.close();
     }
 
     protected WebTarget target() {
