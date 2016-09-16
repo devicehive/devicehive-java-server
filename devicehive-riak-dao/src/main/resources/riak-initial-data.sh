@@ -96,7 +96,7 @@ curl -XPUT \
 
 curl -XPUT \
     -H "Content-Type: application/json" \
-    -d "{\"value\":\"google_id\"" \
+    -d "{\"value\":\"google_id\"}" \
     'http://127.0.0.1:8098/types/default/buckets/configuration/keys/google.identity.client.id'
 
 curl -XPUT \

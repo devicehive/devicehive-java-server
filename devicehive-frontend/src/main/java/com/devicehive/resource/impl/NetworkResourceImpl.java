@@ -60,8 +60,6 @@ public class NetworkResourceImpl implements NetworkResource {
                     logger.debug("Network list request proceed successfully.");
                     return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
                 }).thenAccept(asyncResponse::resume);
-
-
     }
 
     /**

@@ -1,15 +1,30 @@
 package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.base.handler.MockNotificationHandler;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.shim.api.Body;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -24,6 +39,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class DeviceNotificationResourceTest extends AbstractResourceTest {
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+
+        MockNotificationHandler mockNotificationHandler = new MockNotificationHandler();
+        mockNotificationHandler.handle(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Test
     public void should_get_response_with_status_200_and_notification_when_waitTimeout_is_0_and_polling_for_device() {
@@ -54,7 +92,5 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         notifications = performRequest("/device/" + guid + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), null, OK, notifications.getClass());
         assertNotNull(notifications);
         assertEquals(1, notifications.size());
-
-
     }
 }

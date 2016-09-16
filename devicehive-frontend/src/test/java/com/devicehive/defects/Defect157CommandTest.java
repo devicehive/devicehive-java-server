@@ -1,15 +1,25 @@
 package com.devicehive.defects;
 
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.handler.MockCommandHandler;
+import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -27,6 +37,28 @@ import static org.junit.Assert.assertNotNull;
 public class Defect157CommandTest extends AbstractResourceTest {
 
     private final String guid = UUID.randomUUID().toString();
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Mock
+    private RequestHandler requestHandler;
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        requestDispatcherProxy.setRequestHandler(requestHandler);
+        MockCommandHandler mockCommandHandler = new MockCommandHandler();
+        mockCommandHandler.handle(requestHandler);
+    }
+
+    @After
+    public void tearDown() {
+        Mockito.reset(requestHandler);
+    }
+
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
 
     @Before
     public void prepareCommands() {

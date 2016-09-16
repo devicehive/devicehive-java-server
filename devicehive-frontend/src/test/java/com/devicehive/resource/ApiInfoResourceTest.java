@@ -30,10 +30,11 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
 
-        //configure rest.url and websocket.url
-        String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
+        //TODO what exactly was supposed to be tested here? Asserts are the same as at the start of the test
+        /*String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
         performRequest(path, "GET", singletonMap("value", baseUri() + JerseyConfig.REST_PATH),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
+
         path = String.format("configuration/%s/set", Constants.WEBSOCKET_SERVER_URL);
         performRequest(path, "GET", singletonMap("value", wsBaseUri() + "/websocket"),
                 singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
@@ -41,7 +42,7 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfoVO.class);
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
-        assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
+        assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));*/
     }
 
     @Test

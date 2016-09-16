@@ -13,6 +13,7 @@ INSERT INTO configuration (name, value, entity_version) VALUES ('github.identity
 INSERT INTO configuration (name, value, entity_version) VALUES ('github.identity.client.id', 'github_id', 0);
 INSERT INTO configuration (name, value, entity_version) VALUES ('session.timeout', '1200000', 0);
 INSERT INTO configuration (name, value, entity_version) VALUES ('allowNetworkAutoCreate', 'true', 0);
+INSERT INTO configuration (name, value, entity_version) VALUES ('user.login.lastTimeout', '1000', 0);
 
 -- 2. Default device classes
 INSERT INTO device_class (name, is_permanent, offline_timeout) VALUES ('Sample VirtualLed Device', FALSE, 600);

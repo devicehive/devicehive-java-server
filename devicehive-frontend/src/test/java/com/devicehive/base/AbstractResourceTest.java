@@ -54,8 +54,8 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     @Before
     public void initSpringBootIntegrationTest() {
-        httpBaseUri = "http://localhost:" + port;
-        wsBaseUrl = "ws://localhost:" + port;
+        httpBaseUri = "http://localhost:" + port + "/dh";
+        wsBaseUrl = "ws://localhost:" + port + "/dh";
         client = ClientBuilder.newClient();
         client.register(HiveEntityProvider.class);
         client.register(CollectionProvider.class);

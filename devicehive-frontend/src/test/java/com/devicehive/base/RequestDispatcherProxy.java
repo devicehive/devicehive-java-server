@@ -1,5 +1,6 @@
 package com.devicehive.base;
 
+import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -14,7 +15,14 @@ public class RequestDispatcherProxy implements RequestHandler {
 
     @Override
     public Response handle(Request request) {
-        return requestHandler.handle(request);
+        if (requestHandler == null) {
+            return Response.newBuilder()
+                    .withBody(new Body("") {
+                    })
+                    .buildSuccess();
+        } else {
+            return requestHandler.handle(request);
+        }
     }
 
     public void setRequestHandler(RequestHandler requestHandler) {
