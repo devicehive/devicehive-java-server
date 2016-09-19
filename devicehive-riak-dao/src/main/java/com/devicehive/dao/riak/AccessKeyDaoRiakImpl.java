@@ -57,7 +57,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
         sortMap.put("expirationDate", "function(a,b){ return a.expirationDate %s b.expirationDate; }");
         sortMap.put("type", "function(a,b){ return a.type %s b.type; }");
         sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
-        ConverterFactory.getInstance().registerConverterForClass(RiakAccessKey.class, new GsonConverter<>(RiakAccessKey.class));
+        //ConverterFactory.getInstance().registerConverterForClass(RiakAccessKey.class, new GsonConverter<>(RiakAccessKey.class));
     }
 
 

@@ -199,6 +199,12 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     @Override
     public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
+        if (guids.isEmpty()) {
+            return list(null, null, null, null, null,
+                    null, null, null,
+                    true, null,
+                    null, principal);
+        }
         List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
 
         if (principal != null) {
@@ -380,7 +386,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
 
-                if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
+                if (principal.getKey() != null && principal.getKey().getPermissions() != null ) {
                     Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
                     Set<String> deviceGuids = new HashSet<>();
                     for (AccessKeyPermissionVO permission : permissions) {
@@ -398,7 +404,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                     "})" +
                                     "}";
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction, deviceGuids);
+                    if (!deviceGuids.isEmpty()) builder.withReducePhase(reduceFunction, deviceGuids);
                 } else if (principal.getDevice() != null) {
                     String functionString = String.format(
                             "function(values, arg) {" +
