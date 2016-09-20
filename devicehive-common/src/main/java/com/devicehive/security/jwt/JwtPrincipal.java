@@ -4,6 +4,7 @@ import com.devicehive.vo.AccessKeyPermissionVO;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Set;
 
 /**
@@ -12,6 +13,8 @@ import java.util.Set;
 public class JwtPrincipal implements Serializable {
 
     private static final long serialVersionUID = -6904689203121394308L;
+
+    //Public claims
 
     @SerializedName("role")
     private String role;
@@ -25,12 +28,37 @@ public class JwtPrincipal implements Serializable {
     @SerializedName("access_token")
     private String accessToken;
 
+    @SerializedName("refresh_token")
+    private String refreshToken;
+
     @SerializedName("token_type")
     private String tokenType;
 
-    @SerializedName("expires_in")
-    private Long expiresIn;
+    //Registered claims
 
+    // This will define the expiration in NumericDate value. The expiration MUST be after the current date/time.
+    @SerializedName("exp")
+    private Date expiration;
+
+    //The time the JWT was issued. Can be used to determine the age of the JWT
+    @SerializedName("iat")
+    private Date issuedAt;
+
+    public JwtPrincipal(String role, String clientId, String refreshToken, Date expiration) {
+        this.role = role;
+        this.clientId = clientId;
+        this.refreshToken = refreshToken;
+        this.expiration = expiration;
+    }
+
+    public JwtPrincipal(String clientId, String role, String accessToken, String tokenType, Date expiration, Date issuedAt) {
+        this.role = role;
+        this.clientId = clientId;
+        this.accessToken = accessToken;
+        this.tokenType = tokenType;
+        this.expiration = expiration;
+        this.issuedAt = issuedAt;
+    }
 
     public String getRole() {
         return role;
@@ -64,6 +92,14 @@ public class JwtPrincipal implements Serializable {
         this.accessToken = accessToken;
     }
 
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
     public String getTokenType() {
         return tokenType;
     }
@@ -72,11 +108,19 @@ public class JwtPrincipal implements Serializable {
         this.tokenType = tokenType;
     }
 
-    public Long getExpiresIn() {
-        return expiresIn;
+    public Date getExpiration() {
+        return expiration;
     }
 
-    public void setExpiresIn(Long expiresIn) {
-        this.expiresIn = expiresIn;
+    public void setExpiration(Date expiration) {
+        this.expiration = expiration;
+    }
+
+    public Date getIssuedAt() {
+        return issuedAt;
+    }
+
+    public void setIssuedAt(Date issuedAt) {
+        this.issuedAt = issuedAt;
     }
 }

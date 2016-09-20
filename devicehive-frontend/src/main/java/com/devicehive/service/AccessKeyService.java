@@ -366,6 +366,16 @@ public class AccessKeyService {
         logger.info("Removed {} expired access keys", removed);
     }
 
+    @Transactional
+    public AccessKeyVO getAccessKey(@NotNull String key) {
+        Optional<AccessKeyVO> accessKeyOpt = accessKeyDao.getByKey(key);
+        AccessKeyVO accessKey = null;
+        if (accessKeyOpt.isPresent()) {
+            accessKey = accessKeyOpt.get();
+        }
+        return accessKey;
+    }
+
     private boolean hasPrincipalAccessToDevice(Set<String> allowedDevices, UserVO accessKeyUser, DeviceVO device) {
         boolean hasAccess = false;
         if (allowedDevices.contains(null)) {
