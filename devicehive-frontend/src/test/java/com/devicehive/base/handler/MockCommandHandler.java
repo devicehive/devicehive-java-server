@@ -4,6 +4,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 
 import java.util.HashSet;
@@ -77,6 +78,15 @@ public class MockCommandHandler {
                         .withCorrelationId(request.getCorrelationId())
                         .buildSuccess();
 
+            } else if (request.getBody() instanceof CommandUnsubscribeRequest) {
+                CommandUnsubscribeRequest body = (CommandUnsubscribeRequest) request.getBody();
+                CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionId(), null);
+
+                return Response.newBuilder()
+                        .withBody(unsubscribeResponse)
+                        .withLast(false)
+                        .withCorrelationId(request.getCorrelationId())
+                        .buildSuccess();
             } else {
                 return com.devicehive.shim.api.Response.newBuilder()
                         .withBody(new Body("") {

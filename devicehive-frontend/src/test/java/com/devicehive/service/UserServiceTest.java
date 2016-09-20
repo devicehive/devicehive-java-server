@@ -1208,14 +1208,14 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_list_of_users_by_login_pattern() throws Exception {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             UserVO user = new UserVO();
             user.setLogin(RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         String prefix = RandomStringUtils.randomAlphabetic(10);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
@@ -1225,11 +1225,11 @@ public class UserServiceTest extends AbstractResourceTest {
         userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
-                    assertThat(users, hasSize(10));
+                    assertThat(users, hasSize(5));
                     for (UserVO user : users) {
                         assertThat(user.getLogin(), startsWith(prefix));
                     }
-                }).get(2, TimeUnit.SECONDS);
+                }).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }

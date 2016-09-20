@@ -112,7 +112,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         //updateCommand
         response = performRequest("/device/" + guid + "/command/" + command.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, NO_CONTENT, null);
         assertNotNull(response);
-        TimeUnit.SECONDS.sleep(2);
+        TimeUnit.SECONDS.sleep(3);
 
         // try get processed command
         Map<String, Object> params = new HashMap<>();

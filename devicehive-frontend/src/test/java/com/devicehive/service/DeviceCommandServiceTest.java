@@ -108,7 +108,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandMap.values()), new HashSet<>(commands));
                 })
-                .get(2, TimeUnit.SECONDS);
+                .get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(3)).handle(argument.capture());
     }
@@ -154,7 +154,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandList), new HashSet<>(commands));
                 })
-                .get(2, TimeUnit.SECONDS);
+                .get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -182,7 +182,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
         deviceCommandService.findOne(id, guid)
                 .thenAccept(deviceCommand -> assertTrue(deviceCommand.isPresent()))
-                .get(2, TimeUnit.SECONDS);
+                .get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -190,7 +190,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testInsertCommands() throws Exception {
-        final int num = 10;
+        final int num = 5;
         when(requestHandler.handle(any(Request.class))).then(invocation -> {
             CommandInsertRequest insertRequest = invocation.getArgumentAt(0, Request.class)
                     .getBody().cast(CommandInsertRequest.class);
@@ -220,7 +220,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                         assertNotNull(deviceCom.getId());
                         assertNotNull(deviceCom.getUserId());
                         assertNotNull(deviceCom.getTimestamp());
-                    }).get(2, TimeUnit.SECONDS);
+                    }).get(5, TimeUnit.SECONDS);
         }
 
         verify(requestHandler, times(num)).handle(argument.capture());
@@ -243,7 +243,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 .buildSuccess());
 
         deviceCommandService.update(deviceCommand, commandWrapper).
-                thenAccept(Assert::assertNull).get(2, TimeUnit.SECONDS);
+                thenAccept(Assert::assertNull).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
