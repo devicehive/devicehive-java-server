@@ -3,6 +3,7 @@ package com.devicehive.service;
 import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
@@ -36,6 +37,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -48,7 +50,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-public class DeviceServiceTest extends AbstractSpringKafkaTest {
+public class DeviceServiceTest extends AbstractResourceTest {
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -146,6 +148,18 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         final HivePrincipal principal = new HivePrincipal(user);
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        when(requestHandler.handle(Mockito.any(Request.class)))
+                .thenAnswer(new Answer<Response>() {
+                    @Override
+                    public Response answer(InvocationOnMock invocation) throws Throwable {
+                        Request request = (Request) invocation.getArguments()[0];
+                        return Response.newBuilder()
+                                .withCorrelationId(request.getCorrelationId())
+                                .buildSuccess();
+                    }
+                });
+
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
@@ -256,6 +270,17 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
         final HivePrincipal principal = new HivePrincipal(accessKey);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
+
+        when(requestHandler.handle(Mockito.any(Request.class)))
+                .thenAnswer(new Answer<Response>() {
+                    @Override
+                    public Response answer(InvocationOnMock invocation) throws Throwable {
+                        Request request = (Request) invocation.getArguments()[0];
+                        return Response.newBuilder()
+                                .withCorrelationId(request.getCorrelationId())
+                                .buildSuccess();
+                    }
+                });
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
@@ -434,6 +459,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_name() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String deviceName1 = RandomStringUtils.randomAlphabetic(10);
@@ -467,6 +493,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_status() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String status = RandomStringUtils.randomAlphabetic(10);
@@ -500,6 +527,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_network_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
@@ -554,6 +582,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_class_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
@@ -580,6 +609,7 @@ public class DeviceServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_class_name() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();

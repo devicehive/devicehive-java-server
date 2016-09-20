@@ -34,6 +34,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -1181,6 +1182,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_users_by_login() throws Exception {
         for (int i = 0; i < 10; i++) {
             UserVO user = new UserVO();
@@ -1233,6 +1235,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_users_by_role() throws Exception {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         for (int i = 0; i < 10; i++) {
@@ -1264,6 +1267,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_users_by_status() throws Exception {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         for (int i = 0; i < 10; i++) {
@@ -1293,6 +1297,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_users_sorted() throws Exception {
         String suffix = RandomStringUtils.randomAlphabetic(5);
         List<String> prefixes = Arrays.asList("a", "b", "c", "d", "e");
@@ -1332,6 +1337,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_users_paginated() throws Exception {
         String prefix = RandomStringUtils.randomAlphabetic(5);
         List<Long> ids = new ArrayList<>(100);

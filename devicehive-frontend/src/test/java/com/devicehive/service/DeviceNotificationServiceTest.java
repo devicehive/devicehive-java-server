@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.configuration.Constants;
@@ -23,6 +24,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +37,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 @SuppressWarnings("unchecked")
-public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
+public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
     @Autowired
     private DeviceNotificationService notificationService;
@@ -60,6 +62,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
@@ -108,6 +111,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithEmptyResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
@@ -138,6 +142,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithErrorResponse() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
@@ -172,6 +177,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithEmptyResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
@@ -207,6 +213,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
@@ -255,6 +262,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationShouldInsertSingleNotification() throws Exception {
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
@@ -285,6 +293,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationWithRefreshEquipmentShouldInsertSingleNotification() throws Exception {
         // mock DeviceDao
         final DeviceEquipmentService equipmentServiceMock = Mockito.mock(DeviceEquipmentService.class);
@@ -324,6 +333,7 @@ public class DeviceNotificationServiceTest extends AbstractSpringKafkaTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationWithRefreshDeviceStatusShouldInsertTwoNotifications() throws Exception {
         // mock DeviceDao
         final DeviceDao deviceDaoMock = Mockito.mock(DeviceDao.class);

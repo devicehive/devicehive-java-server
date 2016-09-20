@@ -26,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +67,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindCommandsByGuid() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
@@ -112,6 +114,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindCommandsByGuidAndName() throws Exception {
         final List<String> names = IntStream.range(0, 5)
                 .mapToObj(i -> RandomStringUtils.randomAlphabetic(10))
@@ -157,6 +160,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindCommand() throws Exception {
         final String guid = UUID.randomUUID().toString();
         final long id = System.nanoTime();
@@ -184,6 +188,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testInsertCommands() throws Exception {
         final int num = 10;
         when(requestHandler.handle(any(Request.class))).then(invocation -> {

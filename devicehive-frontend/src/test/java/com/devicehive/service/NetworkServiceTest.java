@@ -30,12 +30,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.InetAddress;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -47,6 +45,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
+
 
 public class NetworkServiceTest extends AbstractResourceTest {
 
@@ -181,6 +180,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_list_of_networks() throws Exception {
         for (int i = 0; i < 10; i++) {
             NetworkVO network = new NetworkVO();
@@ -191,12 +191,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 10, 0, null)
-                .thenAccept(networks ->  assertThat(networks, hasSize(10))).get(2, TimeUnit.SECONDS);
+                .thenAccept(networks ->  assertThat(networks, hasSize(10))).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_filter_networks_by_name() throws Exception {
         List<Pair<Long, String>> names = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -215,12 +216,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks, hasSize(1));
                     assertThat(networks.get(0).getId(), equalTo(randomNetwork.getKey()));
                     assertThat(networks.get(0).getName(), equalTo(randomNetwork.getRight()));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_filter_networks_by_name_pattern() throws Exception {
         for (int i = 0; i < 20; i++) {
             NetworkVO network = new NetworkVO();
@@ -248,12 +250,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                                     return item.getName().contains(namePrefix);
                                 }
                             }));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_sort_networks() throws Exception {
         List<String> descriptions = asList("a", "b", "c", "d", "e");
         Collections.shuffle(descriptions);
@@ -274,7 +277,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks.get(2).getDescription(), equalTo("c"));
                     assertThat(networks.get(3).getDescription(), equalTo("d"));
                     assertThat(networks.get(4).getDescription(), equalTo("e"));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         networkService.list(null, namePrefix + "%", "description", false, 100, 0, null)
                 .thenAccept(networks -> {
@@ -285,12 +288,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks.get(2).getDescription(), equalTo("c"));
                     assertThat(networks.get(3).getDescription(), equalTo("b"));
                     assertThat(networks.get(4).getDescription(), equalTo("a"));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         verify(requestHandler, times(2)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_correctly_apply_skip_limit_params() throws Exception {
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
@@ -304,17 +308,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(100));
 
-                    try {
-                        networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null)
-                                .thenAccept(sliced -> {
-                                    assertThat(sliced, hasSize(20));
-                                    List<NetworkVO> expected = networks.stream().skip(30).limit(20).collect(Collectors.toList());
-                                    assertThat(sliced, contains(expected.toArray(new NetworkVO[expected.size()])));
-                                }).get(2, TimeUnit.SECONDS);
-                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                        e.printStackTrace(); // ?
-                    }
-                }).get(2, TimeUnit.SECONDS);
+                    networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null)
+                            .thenAccept(sliced -> {
+                                assertThat(sliced, hasSize(20));
+                                List<NetworkVO> expected = networks.stream().skip(30).limit(20).collect(Collectors.toList());
+                                assertThat(sliced, contains(expected.toArray(new NetworkVO[expected.size()])));
+                            }).join();
+                }).join();
 
         verify(requestHandler, times(2)).handle(argument.capture());
     }
@@ -329,6 +329,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_networks_only_for_user() throws Exception {
         UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
@@ -354,7 +355,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 100, 0, null)
-                .thenAccept(networks -> assertThat(networks, hasSize(20))).get(2, TimeUnit.SECONDS);
+                .thenAccept(networks -> assertThat(networks, hasSize(20))).join();
 
         HivePrincipal principal = new HivePrincipal(user1);
         networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
@@ -362,12 +363,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks, hasSize(10));
                     Set<String> names = networks.stream().map(NetworkVO::getName).collect(Collectors.toSet());
                     assertThat(names, equalTo(expectedNames));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         verify(requestHandler, times(2)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_all_networks_for_admin() throws Exception {
         UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
@@ -393,12 +395,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         handleListNetworkRequest();
         HivePrincipal principal = new HivePrincipal(user1);
         networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
-                .thenAccept(networks ->  assertThat(networks, hasSize(20))).get(2, TimeUnit.SECONDS);
+                .thenAccept(networks ->  assertThat(networks, hasSize(20))).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_only_allowed_networks_for_access_key() throws Exception {
         Set<Long> allowedIds = new HashSet<>();
 
@@ -429,12 +432,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks, hasSize(allowedIds.size()));
                     Set<Long> ids = networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
                     assertThat(allowedIds, equalTo(ids));
-                }).get(2, TimeUnit.SECONDS);
+                }).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_networks_for_access_key_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
@@ -464,7 +468,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HivePrincipal principal = new HivePrincipal(accessKey);
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 200, 0, principal)
-                .thenAccept(networks-> assertThat(networks, hasSize(assignedToUserCount))).get(2, TimeUnit.SECONDS);
+                .thenAccept(networks-> assertThat(networks, hasSize(assignedToUserCount))).join();
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -512,6 +516,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         NetworkVO created = networkService.create(network);
+
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
