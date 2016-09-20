@@ -35,7 +35,6 @@ public class JerseyConfig extends ResourceConfig {
                 OAuthTokenResourceImpl.class,
                 WelcomeResourceImpl.class,
                 UserResourceImpl.class,
-                UserResourceImpl.class,
                 JwtTokenResourceImpl.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
