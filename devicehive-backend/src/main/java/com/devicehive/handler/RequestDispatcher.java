@@ -20,10 +20,10 @@ public class RequestDispatcher implements RequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);
 
-    private final Map<Action, RequestHandler> handlerMap;
+    private Map<Action, RequestHandler> handlerMap;
 
     @Autowired
-    public RequestDispatcher(@Value("#{requestHandlerMap}") Map<Action, RequestHandler> handlerMap) {
+    public void setHandlerMap(@Value("#{requestHandlerMap}") Map<Action, RequestHandler> handlerMap) {
         this.handlerMap = handlerMap;
     }
 
