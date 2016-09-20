@@ -64,6 +64,8 @@
 
         <tomcat.version>8.0.21</tomcat.version>
 
+        <jjwt.version>0.7.0</jjwt.version>
+
         <skipTests>false</skipTests>
         <packaging.type>jar</packaging.type>
 
