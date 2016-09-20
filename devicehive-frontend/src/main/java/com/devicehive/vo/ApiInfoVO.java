@@ -15,7 +15,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERV
 /**
  * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfoVO</a>
  */
-public class ApiInfoVO implements Serializable, HiveEntity {
+public class ApiInfoVO implements HiveEntity {
 
 
     private static final long serialVersionUID = -4899398629379606180L;
