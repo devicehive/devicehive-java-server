@@ -1,7 +1,6 @@
 package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
@@ -95,7 +94,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
         assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
@@ -127,7 +126,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
         assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
@@ -162,7 +161,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                     assertEquals(expectedErrorMessage, ex.getCause().getMessage());
                     assertEquals(errorCode, ((BackendException) ex.getCause()).getErrorCode());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
         assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
@@ -200,7 +199,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(3)).handle(argument.capture());
 
@@ -256,7 +255,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(30, TimeUnit.SECONDS);
 
         verify(requestHandler, times(3)).handle(argument.capture());
     }
@@ -283,7 +282,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
 
@@ -321,7 +320,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         // check
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -367,7 +366,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .exceptionally(ex -> {
                     fail(ex.toString());
                     return null;
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         // check
         verify(requestHandler, times(2)).handle(argument.capture());

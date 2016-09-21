@@ -48,5 +48,5 @@ public abstract class AbstractSpringKafkaTest {
         }
     }
     @ClassRule
-    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
+    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 5, REQUEST_TOPIC, RESPONSE_TOPIC);
 }

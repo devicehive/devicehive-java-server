@@ -108,7 +108,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandMap.values()), new HashSet<>(commands));
                 })
-                .get(5, TimeUnit.SECONDS);
+                .get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(3)).handle(argument.capture());
     }
@@ -154,7 +154,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandList), new HashSet<>(commands));
                 })
-                .get(5, TimeUnit.SECONDS);
+                .get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -182,7 +182,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
         deviceCommandService.findOne(id, guid)
                 .thenAccept(deviceCommand -> assertTrue(deviceCommand.isPresent()))
-                .get(5, TimeUnit.SECONDS);
+                .get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -220,7 +220,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                         assertNotNull(deviceCom.getId());
                         assertNotNull(deviceCom.getUserId());
                         assertNotNull(deviceCom.getTimestamp());
-                    }).get(5, TimeUnit.SECONDS);
+                    }).join();
         }
 
         verify(requestHandler, times(num)).handle(argument.capture());
@@ -243,7 +243,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 .buildSuccess());
 
         deviceCommandService.update(deviceCommand, commandWrapper).
-                thenAccept(Assert::assertNull).get(5, TimeUnit.SECONDS);
+                thenAccept(Assert::assertNull).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }

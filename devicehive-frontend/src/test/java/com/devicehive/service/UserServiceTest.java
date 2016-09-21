@@ -1201,7 +1201,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(1));
                     assertThat(users.stream().findFirst().get().getId(), equalTo(finalTestUser.getId()));
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -1229,7 +1229,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     for (UserVO user : users) {
                         assertThat(user.getLogin(), startsWith(prefix));
                     }
-                }).get(5, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -1261,7 +1261,7 @@ public class UserServiceTest extends AbstractResourceTest {
                         assertThat(user.getLogin(), startsWith(prefix));
                         assertThat(user.getRole(), equalTo(UserRole.CLIENT));
                     }
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -1291,7 +1291,7 @@ public class UserServiceTest extends AbstractResourceTest {
                         assertThat(user.getLogin(), startsWith(prefix));
                         assertThat(user.getStatus(), equalTo(UserStatus.LOCKED_OUT));
                     }
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -1319,7 +1319,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     assertThat(users.get(2).getLogin(), startsWith("c"));
                     assertThat(users.get(3).getLogin(), startsWith("d"));
                     assertThat(users.get(4).getLogin(), startsWith("e"));
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         userService.list(null, "%" + suffix, null, null, "login", false, 100, 0)
                 .thenAccept(users -> {
@@ -1331,7 +1331,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     assertThat(users.get(2).getLogin(), startsWith("c"));
                     assertThat(users.get(3).getLogin(), startsWith("b"));
                     assertThat(users.get(4).getLogin(), startsWith("a"));
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(2)).handle(argument.capture());
     }
@@ -1356,7 +1356,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     List<Long> expectedIds = ids.stream().skip(10).limit(20).collect(Collectors.toList());
                     List<Long> returnedIds = users.stream().map(UserVO::getId).collect(Collectors.toList());
                     assertThat(returnedIds, equalTo(expectedIds));
-                }).get(2, TimeUnit.SECONDS);
+                }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
