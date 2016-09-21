@@ -41,7 +41,13 @@ public interface JwtTokenResource {
             String grantType,
             @ApiParam(name = "client_credentials", value = "Client credentials", required = true)
             @FormParam("client_credentials")
-            String clientCredentials);
+            String clientCredentials,
+            @ApiParam(name = "username", value = "User login", required = true)
+            @FormParam("username")
+            String username,
+            @ApiParam(name = "password", value = "User password", required = true)
+            @FormParam("password")
+            String password);
 }
 
 
