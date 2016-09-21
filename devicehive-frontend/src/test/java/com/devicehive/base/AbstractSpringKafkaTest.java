@@ -19,6 +19,7 @@ import java.net.UnknownHostException;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
 @ActiveProfiles("test")
@@ -49,4 +50,10 @@ public abstract class AbstractSpringKafkaTest {
     }
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 5, REQUEST_TOPIC, RESPONSE_TOPIC);
+
+    @Before
+    public void setUp() throws Exception {
+        // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
+        TimeUnit.SECONDS.sleep(10);
+    }
 }

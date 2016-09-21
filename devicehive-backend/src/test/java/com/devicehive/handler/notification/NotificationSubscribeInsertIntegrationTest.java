@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -153,7 +154,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         CompletableFuture<Response> f1 = new CompletableFuture<>();
         client.call(Request.newBuilder().withBody(event).build(), f1::complete);
 
-        f1.join();
+        f1.get(15, TimeUnit.SECONDS);
 
         assertThat(c1.notifications, hasSize(1));
         assertThat(c2.notifications, hasSize(1));
