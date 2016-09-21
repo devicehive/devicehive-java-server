@@ -1,6 +1,6 @@
 package com.devicehive.security.util;
 
-import com.devicehive.security.jwt.JwtPrincipal;
+import com.devicehive.security.jwt.JwtPayload;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -23,12 +23,12 @@ public class JwtTokenGenerator {
 
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified
-     * JwtPrincipal object.
+     * JwtPayload object.
      *
      * @param principal the principal entity for which the token will be generated
      * @return the JWT token
      */
-    public String generateToken(JwtPrincipal principal) {
+    public String generateToken(JwtPayload principal) {
         String val = gson.toJson(principal);
         Claims claims = Jwts.claims().setSubject(val);
         return Jwts.builder()

@@ -1,10 +1,11 @@
 package com.devicehive.resource.impl;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.security.jwt.JwtPrincipal;
+import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.vo.AccessKeyVO;
@@ -23,8 +24,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenResourceImpl.class);
 
-    private static final int JWT_AGE_IN_MILLISECONDS = 600000 * 2; // 20 minutes
-
     @Autowired
     private JwtClientService tokenService;
 
@@ -32,35 +31,33 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     private AccessKeyService accessKeyService;
 
     @Override
-    public Response tokenRequest(String accessKey, String grantType, String clientCredentials) {
-
+    public Response tokenRequest(String token, String grantType, String clientCredentials) {
 
         switch (grantType) {
             case AUTH_HEADER:
                 //TODO: go to DB and check by key if user exists
-                logger.debug("JwtToken: get access key VO by key {}", accessKey);
-                AccessKeyVO accessKeyVO = accessKeyService.getAccessKey(accessKey);
+                logger.debug("JwtToken: get access key VO by key {}", token);
+                AccessKeyVO accessKeyVO = accessKeyService.getAccessKey(token);
                 if (accessKeyVO == null) {
                     return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.UNAUTHORIZED_REASON_PHRASE));
                 }
-                logger.debug("JwtToken: proceed successfully. AccessKey : {}", accessKey);
+                logger.debug("JwtToken: proceed successfully. AccessKey : {}", token);
 
                 long currentTimeMillis = System.currentTimeMillis();
-                Date now = new Date(currentTimeMillis);
-                Date expiredDate = new Date(currentTimeMillis + JWT_AGE_IN_MILLISECONDS); //the JWT principal is valid for 20 minutes
+                Date expirationDate = new Date(currentTimeMillis + Constants.DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE); //the JWT principal is valid for 20 minutes
 
-                JwtPrincipal jwtPrincipal = new JwtPrincipal(
-                        String.valueOf(accessKeyVO.getUser().getId()),
-                        accessKeyVO.getUser().getRole().name(),
-                        accessKeyVO.getKey(),
-                        accessKeyVO.getType().name(),
-                        expiredDate,
-                        now);
-                jwtPrincipal.setPermissions(accessKeyVO.getPermissions());
+                JwtPayload payload = JwtPayload.newBuilder()
+                        .withPublicClaims(accessKeyVO.getUser().getRole().name(),
+                                String.valueOf(accessKeyVO.getUser().getId()),
+                                accessKeyVO.getPermissions(),
+                                accessKeyVO.getKey())
+                        .withExpirationDate(expirationDate)
+                        .buildAccessToken();
 
-                return ResponseFactory.response(OK, tokenService.generateJwtAccessToken(jwtPrincipal));
+                return ResponseFactory.response(OK, tokenService.generateJwtAccessToken(payload));
             case REFRESH_TOKEN:
-                //TODO: refresh token logic - need regenerate token here
+                logger.debug("JwtToken: requesting access by refresh token");
+
                 break;
             case PASSWORD:
                 //TODO: get user by login and if success generate JWT principal by particular claims

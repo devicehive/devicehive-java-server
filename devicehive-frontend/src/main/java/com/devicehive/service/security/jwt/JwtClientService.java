@@ -1,6 +1,6 @@
 package com.devicehive.service.security.jwt;
 
-import com.devicehive.security.jwt.JwtPrincipal;
+import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.util.JwtTokenGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -11,12 +11,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtClientService {
 
-
     @Autowired
     private JwtTokenGenerator tokenGenerator;
 
-
-    public String generateJwtAccessToken(JwtPrincipal principal) {
+    public String generateJwtAccessToken(JwtPayload principal) {
         return tokenGenerator.generateToken(principal);
     }
 
@@ -24,6 +22,5 @@ public class JwtClientService {
         //TODO: [azavgorodny] - not implemented yet
         return null;
     }
-
 
 }

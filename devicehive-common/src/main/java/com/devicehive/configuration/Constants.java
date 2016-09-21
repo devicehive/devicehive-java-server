@@ -23,6 +23,8 @@ public class Constants {
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
     public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
+    public static final int DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE = 20 * 60 * 1000; // 20 minutes
+    public static final int DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE = 2 * 60 * 1000; // 2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final Integer DEFAULT_TAKE = 100;
     public static final String DEFAULT_TAKE_STR = "100";
