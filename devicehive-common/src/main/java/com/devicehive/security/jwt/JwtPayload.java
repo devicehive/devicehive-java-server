@@ -14,9 +14,9 @@ import java.util.Set;
 public class JwtPayload implements Serializable {
 
     private static final long serialVersionUID = -6904689203121394308L;
+    public static final String JWT_CLAIM_KEY = "payload";
 
     //Public claims
-
     @SerializedName("role")
     private String role;
 
@@ -33,8 +33,6 @@ public class JwtPayload implements Serializable {
     private TokenType type;
 
     //Registered claims
-
-    // This will define the expiration in NumericDate value. The expiration MUST be after the current date/time.
     @SerializedName("exp")
     private Date expiration;
 
