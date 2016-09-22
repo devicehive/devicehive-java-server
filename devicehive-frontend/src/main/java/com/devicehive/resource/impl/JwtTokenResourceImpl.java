@@ -42,7 +42,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         long currentTimeMillis = System.currentTimeMillis();
         //the JWT payload is valid for 20 minutes
-        Date expirationDate = new Date(currentTimeMillis + Constants.DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE);
+        Date expirationDate = new Date(currentTimeMillis + Constants.DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE);
 
         switch (grantType) {
             case AUTH_HEADER:
@@ -67,21 +67,42 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                 break;
             case REFRESH_TOKEN:
                 logger.debug("JwtToken: requesting access by refresh token");
+                if (jwtPayload.getType() != TokenType.REFRESH) {
+                    return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS));
+                }
 
+                String accessKey = jwtPayload.getToken();
+                AccessKeyVO accessKeyVO = accessKeyService.getAccessKey(accessKey);
+
+                Long userId = Long.parseLong(jwtPayload.getClientId());
+                UserVO refreshUser = userService.findById(userId);
+
+                if (refreshUser == null || accessKeyVO == null) {
+                    return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.UNAUTHORIZED_REASON_PHRASE));
+                }
+                logger.debug("JwtToken: access by refresh token processed successfully. User : {}", refreshUser);
+
+                jwtPayload = JwtPayload.newBuilder()
+                        .withPublicClaims(accessKeyVO.getUser().getRole().name(),
+                                String.valueOf(accessKeyVO.getUser().getId()),
+                                accessKeyVO.getPermissions(),
+                                accessKeyVO.getKey())
+                        .withExpirationDate(expirationDate)
+                        .buildAccessToken();
                 break;
             case PASSWORD:
                 logger.debug("JwtToken: requesting access by user's login / password");
                 //authenticate user using credentials
-                UserVO user = userService.authenticate(username, password);
-                if (user == null) {
+                UserVO passwordUser = userService.authenticate(username, password);
+                if (passwordUser == null) {
                     return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.UNAUTHORIZED_REASON_PHRASE));
                 }
-                logger.debug("JwtToken: access by user's login / password proceed successfully. UserVo : {}", user);
+                logger.debug("JwtToken: access by user's login / password proceed successfully. User : {}", passwordUser);
 
                 //create JWT token by user's info
                 jwtPayload = JwtPayload.newBuilder()
-                        .withPublicClaims(user.getRole().name(),
-                                String.valueOf(user.getId()),
+                        .withPublicClaims(passwordUser.getRole().name(),
+                                String.valueOf(passwordUser.getId()),
                                 null,
                                 null)
                         .withExpirationDate(expirationDate)
