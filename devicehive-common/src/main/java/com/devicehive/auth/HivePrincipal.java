@@ -1,6 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
@@ -11,26 +10,29 @@ import java.util.Set;
 /**
  * Implements authentication principal for a permission-based security system.
  * User - if present, represents the user the is accessing the system
- * Permissions - if present, represents the set of actions that the principal has permission to execute
+ * Actions - if present, represents the set of actions that the principal has permission to execute
+ * Subnets - if present, represents the set of ips that the principal has permission to access
  * Networks - if present, represents the set of networks that the principal has permission to access
  * Devices - if present, represents the set of the devices that the principal has permission to access
  */
 public class HivePrincipal implements Principal {
 
     private UserVO user;
-    private Set<AccessKeyPermissionVO> permissions;
+    private Set<String> actions;
+    private Set<String> subnets;
     private Set<NetworkVO> networks;
     private Set<DeviceVO> devices;
 
-    public HivePrincipal(UserVO user, Set<AccessKeyPermissionVO> permissions, Set<NetworkVO> networks, Set<DeviceVO> devices) {
+    public HivePrincipal(UserVO user, Set<String> actions, Set<String> subnets, Set<NetworkVO> networks, Set<DeviceVO> devices) {
         this.user = user;
-        this.permissions = permissions;
+        this.actions = actions;
+        this.subnets = subnets;
         this.networks = networks;
         this.devices = devices;
     }
 
-    public HivePrincipal(Set<AccessKeyPermissionVO> permissions) {
-        this.permissions = permissions;
+    public HivePrincipal(Set<String> actions) {
+        this.actions = actions;
     }
 
     public HivePrincipal() {
@@ -45,12 +47,20 @@ public class HivePrincipal implements Principal {
         this.user = user;
     }
 
-    public Set<AccessKeyPermissionVO> getPermissions() {
-        return permissions;
+    public Set<String> getActions() {
+        return actions;
     }
 
-    public void setPermissions(Set<AccessKeyPermissionVO> permissions) {
-        this.permissions = permissions;
+    public void setActions(Set<String> actions) {
+        this.actions = actions;
+    }
+
+    public Set<String> getSubnets() {
+        return subnets;
+    }
+
+    public void setSubnets(Set<String> subnets) {
+        this.subnets = subnets;
     }
 
     public Set<NetworkVO> getNetworks() {
@@ -74,8 +84,8 @@ public class HivePrincipal implements Principal {
         if (user != null) {
             return user.getLogin();
         }
-        if (permissions != null) {
-            return permissions.toString();
+        if (actions != null) {
+            return actions.toString();
         }
         if (networks != null) {
             return networks.toString();
@@ -88,7 +98,7 @@ public class HivePrincipal implements Principal {
     }
 
     public boolean isAuthenticated() {
-        return user != null || permissions != null || networks != null || devices != null;
+        return user != null || actions != null || networks != null || devices != null;
     }
 
     @Override
