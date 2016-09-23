@@ -87,6 +87,9 @@ public class HivePrincipal implements Principal {
         if (actions != null) {
             return actions.toString();
         }
+        if (subnets != null) {
+            return subnets.toString();
+        }
         if (networks != null) {
             return networks.toString();
         }
@@ -98,7 +101,7 @@ public class HivePrincipal implements Principal {
     }
 
     public boolean isAuthenticated() {
-        return user != null || actions != null || networks != null || devices != null;
+        return user != null || actions != null || subnets != null || networks != null || devices != null;
     }
 
     @Override
