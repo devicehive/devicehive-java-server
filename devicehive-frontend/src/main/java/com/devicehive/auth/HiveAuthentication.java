@@ -1,6 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.enums.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
@@ -16,17 +15,6 @@ public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
 
     public HiveAuthentication(Object aPrincipal) {
         super(aPrincipal, null);
-    }
-
-    public boolean isUserInRole(String roleString) {
-        switch (roleString) {
-            case HiveRoles.KEY:
-                return hivePrincipal != null && hivePrincipal.getKey() != null;
-            default:
-                return hivePrincipal != null
-                        && hivePrincipal.getUser() != null
-                        && hivePrincipal.getUser().getRole() == UserRole.valueOf(roleString);
-        }
     }
 
     public HivePrincipal getHivePrincipal() {

@@ -166,33 +166,38 @@ public class NotificationHandlers {
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
 
-        DeviceVO device;
+        Set<DeviceVO> devices = new HashSet<>();
         if (deviceGuid == null) {
-            device = principal.getDevice();
+            devices = principal.getDevices();
         } else {
-            device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+            devices.add(deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal));
         }
-        if (device == null) {
+        if (devices.isEmpty()) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
         }
-        if (device.getNetwork() == null) {
-            logger.debug("notification/insert. No network specified for device with guid = {}", deviceGuid);
-            throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
-        }
-        DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
 
         WebSocketResponse response = new WebSocketResponse();
-        notificationService.insert(message, device)
-                .thenApply(notification -> {
-                    logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
-                    response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                    return response;
-                })
-                .exceptionally(ex -> {
-                    logger.warn("Unable to insert notification.", ex);
-                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
+
+        for (DeviceVO device : devices) {
+            if (device.getNetwork() == null) {
+                logger.debug("notification/insert. No network specified for device with guid = {}", deviceGuid);
+                throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
+            }
+            DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
+
+            notificationService.insert(message, device)
+                    .thenApply(notification -> {
+                        logger.debug("notification/insert proceed successfully. Session {}. Guid {}", session, deviceGuid);
+                        response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+                        return response;
+                    })
+                    .exceptionally(ex -> {
+                        logger.warn("Unable to insert notification.", ex);
+                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                    }).join();
+        }
+
         return response;
     }
 

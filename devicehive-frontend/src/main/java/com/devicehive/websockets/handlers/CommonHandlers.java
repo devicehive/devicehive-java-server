@@ -51,6 +51,7 @@ public class CommonHandlers {
         return response;
     }
 
+    //TODO - replace with jwt authentication
     @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
         String login = null;
@@ -84,12 +85,16 @@ public class CommonHandlers {
                 if (!hivePrincipal.getUser().getLogin().equals(login)) {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
-            } else if (hivePrincipal.getDevice() != null) {
-                if (!hivePrincipal.getDevice().getGuid().equals(deviceId)) {
+            } else if (hivePrincipal.getDevices() != null) {
+                String finalDeviceId = deviceId;
+                boolean containsGuid = hivePrincipal.getDevices()
+                        .stream()
+                        .filter(d -> d.getGuid().equals(finalDeviceId))
+                        .findFirst()
+                        .isPresent();
+                if (!containsGuid) {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
-            } else if (!hivePrincipal.getKey().getKey().equals(key)) {
-                throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
             }
         }
 
@@ -107,7 +112,7 @@ public class CommonHandlers {
         HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         if (deviceId != null) {
             DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
-            principal.setDevice(byGuidWithPermissionsCheck);
+            principal.addDevice(byGuidWithPermissionsCheck);
             authentication.setHivePrincipal(principal);
         }
 

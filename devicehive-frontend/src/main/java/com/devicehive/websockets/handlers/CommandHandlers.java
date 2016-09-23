@@ -143,32 +143,35 @@ public class CommandHandlers {
 
         logger.debug("command/insert action for {}, Session ", deviceGuid, session.getId());
 
-        DeviceVO device;
+        Set<DeviceVO> devices = new HashSet<>();
         if (deviceGuid == null) {
-            device = principal.getDevice();
+            devices = principal.getDevices();
         } else {
-           device = deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal);
+           devices.add(deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal));
         }
 
-        if (device == null) {
+        if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceGuid), SC_NOT_FOUND);
         }
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
-        final UserVO user = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        final UserVO user = principal.getUser();
 
         WebSocketResponse response = new WebSocketResponse();
-        commandService.insert(deviceCommand, device, user)
-                .thenApply(cmd -> {
-                    commandUpdateSubscribeAction(cmd.getId(), device.getGuid(), session);
-                    response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
-                    return response;
-                })
-                .exceptionally(ex -> {
-                    logger.warn("Unable to insert notification.", ex);
-                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
+        for (DeviceVO device : devices) {
+            commandService.insert(deviceCommand, device, user)
+                    .thenApply(cmd -> {
+                        commandUpdateSubscribeAction(cmd.getId(), device.getGuid(), session);
+                        response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
+                        return response;
+                    })
+                    .exceptionally(ex -> {
+                        logger.warn("Unable to insert notification.", ex);
+                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                    }).join();
+        }
+
         return response;
     }
 
@@ -181,30 +184,38 @@ public class CommandHandlers {
                 .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
 
         logger.debug("command/update requested for session: {}. Device guid: {}. Command id: {}", session, guid, id);
-        if (guid == null) {
-            if (principal.getDevice() != null) {
-                guid = principal.getDevice().getGuid();
-            }
-        }
+        /*todo - is check really redundant now?
         if (guid == null) {
             logger.debug("command/update canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
-        }
+        }*/
         if (id == null) {
             logger.debug("command/update canceled for session: {}. Command id is not provided", session);
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
-        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
-        if (device == null) {
+        Set<DeviceVO> devices = new HashSet<>();
+        if (guid == null) {
+            devices = principal.getDevices();
+        } else {
+            devices.add(deviceService.findByGuidWithPermissionsCheck(guid, principal));
+        }
+
+        if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, id), SC_NOT_FOUND);
         }
 
-        Optional<DeviceCommand> savedCommand = commandService.findOne(id, guid).join();
+        Optional<DeviceCommand> savedCommand = Optional.empty();
+        for (DeviceVO device : devices) {
+            savedCommand = commandService.findOne(id, device.getGuid()).join();
+            if (savedCommand.isPresent()) {
+                commandService.update(savedCommand.get(), commandUpdate);
+            }
+        }
+
         if (!savedCommand.isPresent()) {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
         }
-        commandService.update(savedCommand.get(), commandUpdate);
 
         logger.debug("command/update proceed successfully for session: {}. Device guid: {}. Command id: {}", session,
                 guid, id);

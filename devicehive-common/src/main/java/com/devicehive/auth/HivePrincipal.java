@@ -5,6 +5,8 @@ import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 
 import java.security.Principal;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -79,6 +81,13 @@ public class HivePrincipal implements Principal {
         this.devices = devices;
     }
 
+    public void addDevice(DeviceVO device) {
+        if (devices == null) {
+            devices = new HashSet<>();
+        }
+        devices.add(device);
+    }
+
     @Override
     public String getName() {
         if (user != null) {
@@ -97,7 +106,7 @@ public class HivePrincipal implements Principal {
             return devices.toString();
         }
 
-        return "anonymousUser";
+        return "anonymousPrincipal";
     }
 
     public boolean isAuthenticated() {

@@ -45,15 +45,18 @@ public class DeviceHandlers {
                 .map(JsonElement::getAsString)
                 .orElse(null);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        DeviceVO toResponse;
-        if (deviceId != null) {
-            toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
-        } else {
-            toResponse = principal.getDevice();
-        }
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
-        return response;
+
+        if (deviceId != null) {
+            DeviceVO toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+            return response;
+        } else {
+            for (DeviceVO device : principal.getDevices()) {
+                response.addValue(Constants.DEVICE, device, DEVICE_PUBLISHED);
+            }
+            return response;
+        }
     }
 
     @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
