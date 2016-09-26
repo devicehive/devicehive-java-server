@@ -231,11 +231,8 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
         if (principalOptional.isPresent()) {
             HivePrincipal principal = principalOptional.get();
-            if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+            if (principal != null) {
                 UserVO user = principal.getUser();
-                if (user == null && principal.getKey() != null) {
-                    user = principal.getKey().getUser();
-                }
 
                 if (user != null && !user.isAdmin()) {
                     Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
@@ -250,15 +247,10 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
 
-                if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                    Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                    Set<Long> ids = new HashSet<>();
-                    for (AccessKeyPermissionVO permission : permissions) {
-                        Set<Long> id = permission.getNetworkIdsAsSet();
-                        if (id != null) {
-                            ids.addAll(id);
-                        }
-                    }
+                if (principal.getNetworks() != null) {
+                    Set<Long> ids = principal.getNetworks().stream()
+                            .map(NetworkVO::getId)
+                            .collect(Collectors.toSet());
 
                     String functionString =
                             "function(values, arg) {" +
@@ -268,17 +260,6 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                                     "}";
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
                     if (!ids.isEmpty()) builder.withReducePhase(reduceFunction, ids);
-                } else if (principal.getDevice() != null) {
-                    String functionString =
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var devices = v.devices;" +
-                                    "if (devices == null) return false;" +
-                                    "return devices.indexOf(arg) > -1;" +
-                                    "})" +
-                                    "}";
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction, principal.getDevice());
                 }
             }
         }

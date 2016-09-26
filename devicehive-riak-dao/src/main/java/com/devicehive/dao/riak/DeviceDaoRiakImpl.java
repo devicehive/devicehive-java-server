@@ -19,7 +19,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.riak.model.NetworkDevice;
 import com.devicehive.dao.riak.model.RiakDevice;
 import com.devicehive.dao.riak.model.RiakNetwork;
@@ -209,9 +208,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
         if (principal != null) {
             UserVO user = principal.getUser();
-            if (user == null && principal.getKey() != null) {
-                user = principal.getKey().getUser();
-            }
 
             if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
@@ -221,24 +217,23 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                         .collect(Collectors.toList());
             }
 
-            if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                for (AccessKeyBasedFilterForDevices extraFilter :
-                        AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
-                    if (extraFilter.getDeviceGuids() != null) {
-                        deviceList = deviceList.stream()
-                                .filter(d -> extraFilter.getDeviceGuids().contains(d.getGuid()))
-                                .collect(Collectors.toList());
-                    }
-                    if (extraFilter.getNetworkIds() != null) {
-                        deviceList = deviceList.stream()
-                                .filter(d -> extraFilter.getNetworkIds().contains(d.getNetwork().getId()))
-                                .collect(Collectors.toList());
-                    }
-                }
-            } else if (principal.getDevice() != null) {
-                Long networkId = principal.getDevice().getNetwork().getId();
+            if (principal.getDevices() != null) {
+                Set<String> allowedGuids = principal.getDevices().stream()
+                        .map(DeviceVO::getGuid)
+                        .collect(Collectors.toSet());
+
                 deviceList = deviceList.stream()
-                        .filter(d -> d.getNetwork().getId().equals(networkId))
+                        .filter(d -> allowedGuids.contains(d.getGuid()))
+                        .collect(Collectors.toList());
+            }
+
+            if (principal.getNetworks() != null) {
+                Set<Long> allowedNetworkIds = principal.getNetworks().stream()
+                        .map(NetworkVO::getId)
+                        .collect(Collectors.toSet());
+
+                deviceList = deviceList.stream()
+                        .filter(d -> allowedNetworkIds.contains(d.getNetwork().getId()))
                         .collect(Collectors.toList());
             }
         }
@@ -366,11 +361,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 builder.withReducePhase(reduceFunction);
             }
 
-            if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+            if (principal != null) {
                 UserVO user = principal.getUser();
-                if (user == null && principal.getKey() != null) {
-                    user = principal.getKey().getUser();
-                }
 
                 if (user != null && !user.isAdmin()) {
                     Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
@@ -386,15 +378,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
 
-                if (principal.getKey() != null && principal.getKey().getPermissions() != null ) {
-                    Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                    Set<String> deviceGuids = new HashSet<>();
-                    for (AccessKeyPermissionVO permission : permissions) {
-                        Set<String> guid = permission.getDeviceGuidsAsSet();
-                        if (guid != null) {
-                            deviceGuids.addAll(guid);
-                        }
-                    }
+                if (principal.getDevices() != null) {
+                    Set<String> deviceGuids = principal.getDevices().stream()
+                            .map(DeviceVO::getGuid)
+                            .collect(Collectors.toSet());
                     String functionString =
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +
@@ -405,16 +392,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                                     "}";
                     Function reduceFunction = Function.newAnonymousJsFunction(functionString);
                     if (!deviceGuids.isEmpty()) builder.withReducePhase(reduceFunction, deviceGuids);
-                } else if (principal.getDevice() != null) {
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var id = v.id;" +
-                                    "return id == %s;" +
-                                    "})" +
-                                    "}", principal.getDevice().getId());
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
                 }
             }
             builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
