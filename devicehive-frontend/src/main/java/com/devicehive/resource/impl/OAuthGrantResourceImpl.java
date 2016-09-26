@@ -132,7 +132,7 @@ public class OAuthGrantResourceImpl implements OAuthGrantResource {
 
     private UserVO getUser(String userId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserVO current = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        UserVO current = principal.getUser();
         if (userId.equalsIgnoreCase(Constants.CURRENT_USER)) {
             return current;
         }

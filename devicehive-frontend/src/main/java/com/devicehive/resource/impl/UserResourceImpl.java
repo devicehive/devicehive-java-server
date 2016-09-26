@@ -97,7 +97,7 @@ public class UserResourceImpl implements UserResource {
     @Override
     public Response getCurrent() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Long id = principal.getUser() != null ? principal.getUser().getId() : principal.getKey().getUser().getId();
+        Long id = principal.getUser().getId();
         UserVO currentUser = userService.findUserWithNetworks(id);
 
         if (currentUser == null) {
@@ -142,9 +142,8 @@ public class UserResourceImpl implements UserResource {
         UserVO currentUser = null;
         if(principal.getUser() != null){
             currentUser = principal.getUser();
-        }else if(principal.getKey() != null){
-            currentUser = principal.getKey().getUser();
         }
+
         if(currentUser != null && currentUser.getId().equals(userId)){
             logger.debug("Rejected removing current user");
             throw new HiveException(Messages.CANT_DELETE_CURRENT_USER_KEY, FORBIDDEN.getStatusCode());
@@ -195,7 +194,7 @@ public class UserResourceImpl implements UserResource {
      */
     private UserVO findCurrentUserFromAuthContext() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal.getUser() != null ? principal.getUser() : (principal.getKey() != null ? principal.getKey().getUser() : null);
+        return principal.getUser();
     }
 
 }

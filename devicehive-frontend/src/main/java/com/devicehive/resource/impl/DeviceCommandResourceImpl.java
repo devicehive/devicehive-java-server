@@ -315,7 +315,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public void insert(String guid, DeviceCommandWrapper deviceCommand, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserVO authUser = principal.getUser() != null ? principal.getUser() : principal.getKey().getUser();
+        UserVO authUser = principal.getUser();
         DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
 
         if (device == null) {

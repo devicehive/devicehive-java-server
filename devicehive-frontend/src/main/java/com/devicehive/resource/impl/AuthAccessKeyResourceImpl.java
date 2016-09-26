@@ -36,7 +36,7 @@ public class AuthAccessKeyResourceImpl implements AuthAccessKeyResource {
     @Override
     public Response logout() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        AccessKeyVO accessKey = principal.getKey();
+        AccessKeyVO accessKey = accessKeyService.authenticate(principal.getUser());
         accessKeyService.delete(null, accessKey.getId());
         return ResponseFactory.response(NO_CONTENT);
     }
