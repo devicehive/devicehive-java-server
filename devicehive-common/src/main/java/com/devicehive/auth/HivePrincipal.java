@@ -87,6 +87,20 @@ public class HivePrincipal implements Principal {
         devices.add(device);
     }
 
+    public boolean hasAccessToNetwork(long networkId) {
+        return networks.stream()
+                .filter(n -> n.getId().equals(networkId))
+                .findFirst()
+                .isPresent();
+    }
+
+    public boolean hasAccessToDevice(String deviceGuid) {
+        return devices.stream()
+                .filter(d -> d.getGuid().equals(deviceGuid))
+                .findFirst()
+                .isPresent();
+    }
+
     @Override
     public String getName() {
         if (user != null) {

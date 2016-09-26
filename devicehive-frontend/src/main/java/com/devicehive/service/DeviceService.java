@@ -1,8 +1,6 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
@@ -58,22 +56,19 @@ public class DeviceService {
     @Autowired
     private RpcClient rpcClient;
 
+    //todo equipmentSet is not used
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<DeviceClassEquipmentVO> equipmentSet, HivePrincipal principal) {
-        logger.debug("Device: {}. Current role: {}.", device.getGuid(), principal == null ? null : principal.getRole());
+        logger.debug("Device: {}. Current principal: {}.", device.getGuid(), principal == null ? null : principal.getName());
         validateDevice(device);
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
-            switch (principal.getRole()) {
-                case HiveRoles.ADMIN:
-                case HiveRoles.CLIENT:
-                    dn = deviceSaveByUser(device, equipmentSet, principal.getUser());
-                    break;
-                case HiveRoles.KEY:
-                    dn = deviceSaveByKey(device, equipmentSet, principal.getKey());
-                    break;
-                default:
-                    throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
+            if (principal.getUser() != null) {
+                dn = deviceSaveByUser(device, principal.getUser());
+            } else if (principal.getNetworks() != null && principal.getDevices() != null) {
+                dn = deviceSaveByPrincipalPermissions(device, principal);
+            } else {
+                throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
             }
         } else {
             throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
@@ -83,10 +78,7 @@ public class DeviceService {
         deviceActivityService.update(device.getGuid().orElse(null));
     }
 
-    //TODO [rafa] equipmentSet parameter looks strange
-    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate,
-                                               Set<DeviceClassEquipmentVO> equipmentSet,
-                                                UserVO user) {
+    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
         NetworkVO vo = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
@@ -159,19 +151,19 @@ public class DeviceService {
         return deviceClass;
     }
 
-    private DeviceNotification deviceSaveByKey(DeviceUpdate deviceUpdate,
-                                              Set<DeviceClassEquipmentVO> equipmentSet,
-                                              AccessKeyVO key) {
-        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), key.getKey());
+    private DeviceNotification deviceSaveByPrincipalPermissions(DeviceUpdate deviceUpdate, HivePrincipal principal) {
+        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), principal.getName());
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
-        if (existingDevice != null && !accessKeyService.hasAccessToNetwork(key, existingDevice.getNetwork())) {
-            logger.error("Access key {} has no access to device network {}", key, existingDevice.getNetwork().getId());
+        if (existingDevice != null && !principal.hasAccessToNetwork(existingDevice.getNetwork().getId())) {
+            logger.error("Principal {} has no access to device network {}", principal.getName(), existingDevice.getNetwork().getId());
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
+
         NetworkVO nw = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO network = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(nw), key);
+        NetworkVO network = networkService.createOrVerifyNetwork(Optional.ofNullable(nw));
         network = findNetworkForAuth(network);
+
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
             DeviceClassVO dc = new DeviceClassVO();
@@ -184,8 +176,8 @@ public class DeviceService {
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (!accessKeyService.hasAccessToDevice(key, deviceUpdate.getGuid().orElse(null))) {
-                logger.error("Access key {} has no access to device {}", key, existingDevice.getGuid());
+            if (!principal.hasAccessToDevice(deviceUpdate.getGuid().orElse(null))) {
+                logger.error("Principal {} has no access to device {}", principal, existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
             if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getIsPermanent()) {
@@ -360,20 +352,6 @@ public class DeviceService {
         return deviceDao.getAllowedDeviceCount(principal, guids);
     }
 
-    @Transactional
-    public boolean hasAccessTo(@NotNull HivePrincipal filtered, @NotNull String deviceGuid) {
-        if (filtered.getDevice() != null) {
-            return filtered.getDevice().getGuid().equals(deviceGuid);
-        }
-        if (filtered.getUser() != null) {
-            return userService.hasAccessToDevice(filtered.getUser(), deviceGuid);
-        }
-        return filtered.getKey() != null
-                && userService.hasAccessToDevice(filtered.getKey().getUser(), deviceGuid)
-                && CheckPermissionsHelper.checkFilteredPermissions(
-                        filtered.getKey().getPermissions(), deviceDao.findByUUID(deviceGuid));
-    }
-
     private List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         return deviceDao.getDeviceList(guids, principal);
     }
@@ -395,13 +373,7 @@ public class DeviceService {
     }
 
     private UserVO findUserFromAuth(HivePrincipal principal) {
-        if (principal.getUser() != null) {
-            return principal.getUser();
-        }
-        if (principal.getKey() != null && principal.getKey().getUser() != null)  {
-            return principal.getKey().getUser();
-        }
-        return null;
+        return principal.getUser();
     }
 
 }

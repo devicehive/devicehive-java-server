@@ -58,15 +58,13 @@ public class NetworkService {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
-        Set<Long> permittedNetworks = permittedNetworksIds(principal.getKey());
-        Set<String> permittedDevices = permittedDeviceGuids(principal.getKey());
+        Set<Long> permittedNetworks = permittedNetworkIds(principal);
+        Set<String> permittedDevices = permittedDeviceGuids(principal);
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
                     if (pr.getUser() != null)
                         return of(pr.getUser());
-                    else if (pr.getKey() != null && pr.getKey().getUser() != null)
-                        return of(pr.getKey().getUser());
                     else
                         return empty();
                 }).flatMap(user -> {
@@ -75,7 +73,8 @@ public class NetworkService {
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
                 }).map(network -> {
-                    if (principal.getKey() != null) {
+                    //fixme - important, restore functionality once permission evaluator is switched to jwt
+                    /*if (principal.getKey() != null) {
                         Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
                         Set<AccessKeyPermissionVO> filtered = CheckPermissionsHelper
                                 .filterPermissions(principal.getKey(), permissions, AccessKeyAction.GET_DEVICE,
@@ -83,7 +82,7 @@ public class NetworkService {
                         if (filtered.isEmpty()) {
                             network.setDevices(Collections.emptySet());
                         }
-                    }
+                    }*/
                     if (permittedDevices != null && !permittedDevices.isEmpty()) {
                         Set<DeviceVO> allowed = network.getDevices().stream()
                                 .filter(device -> permittedDevices.contains(device.getGuid()))
@@ -96,28 +95,20 @@ public class NetworkService {
         return result.orElse(null);
     }
 
-    private Set<Long> permittedNetworksIds(AccessKeyVO accessKey) {
-        return ofNullable(accessKey)
-                .map(AccessKeyVO::getPermissions)
-                .map(AccessKeyBasedFilterForNetworks::createExtraFilters)
-                .map(filters -> filters.stream().map(AccessKeyBasedFilterForNetworks::getNetworkIds).filter(s -> s != null).collect(Collectors.toSet()))
-                .flatMap(setOfSets -> {
-                    Set<Long> networkIds = new HashSet<>();
-                    setOfSets.forEach(networkIds::addAll);
-                    return networkIds.isEmpty() ? empty() : of(networkIds);
-                }).orElse(null);
+    private Set<Long> permittedNetworkIds(HivePrincipal principal) {
+        Set<NetworkVO> networks = principal.getNetworks();
+        if (networks == null) {
+            return null;
+        }
+        return networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
     }
 
-    private Set<String> permittedDeviceGuids(AccessKeyVO accessKey) {
-        return ofNullable(accessKey)
-                .map(AccessKeyVO::getPermissions)
-                .map(AccessKeyBasedFilterForDevices::createExtraFilters)
-                .map(filters -> filters.stream().map(AccessKeyBasedFilterForDevices::getDeviceGuids).filter(s -> s != null).collect(Collectors.toSet()))
-                .map(setOfSets -> {
-                    Set<String> deviceGuids = new HashSet<>();
-                    setOfSets.forEach(deviceGuids::addAll);
-                    return deviceGuids;
-                }).orElse(null);
+    private Set<String> permittedDeviceGuids(HivePrincipal principal) {
+        Set<DeviceVO> devices = principal.getDevices();
+        if (devices == null) {
+            return null;
+        }
+        return devices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
     }
 
     @Transactional
@@ -175,9 +166,6 @@ public class NetworkService {
                                                   Integer skip,
                                                   HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
-        principalOpt.map(HivePrincipal::getDevice).ifPresent(device -> {
-            throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-        });
 
         ListNetworkRequest request = new ListNetworkRequest();
         request.setName(name);
