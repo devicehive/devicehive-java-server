@@ -5,7 +5,6 @@ import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 
 import java.security.Principal;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -20,12 +19,12 @@ import java.util.Set;
 public class HivePrincipal implements Principal {
 
     private UserVO user;
-    private Set<String> actions;
+    private Set<HiveAction> actions;
     private Set<String> subnets;
     private Set<NetworkVO> networks;
     private Set<DeviceVO> devices;
 
-    public HivePrincipal(UserVO user, Set<String> actions, Set<String> subnets, Set<NetworkVO> networks, Set<DeviceVO> devices) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<NetworkVO> networks, Set<DeviceVO> devices) {
         this.user = user;
         this.actions = actions;
         this.subnets = subnets;
@@ -33,7 +32,7 @@ public class HivePrincipal implements Principal {
         this.devices = devices;
     }
 
-    public HivePrincipal(Set<String> actions) {
+    public HivePrincipal(Set<HiveAction> actions) {
         this.actions = actions;
     }
 
@@ -49,11 +48,11 @@ public class HivePrincipal implements Principal {
         this.user = user;
     }
 
-    public Set<String> getActions() {
+    public Set<HiveAction> getActions() {
         return actions;
     }
 
-    public void setActions(Set<String> actions) {
+    public void setActions(Set<HiveAction> actions) {
         this.actions = actions;
     }
 
