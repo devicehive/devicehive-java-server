@@ -62,10 +62,13 @@ public class SessionMonitor {
 
     public void updateDeviceSession(WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        DeviceVO authorizedDevice = principal != null ? principal.getDevice() : null;
-        if (authorizedDevice != null) {
-            String deviceGuid = authorizedDevice.getGuid();
-            deviceActivityService.update(deviceGuid);
+        Set<DeviceVO> authorizedDevices = principal != null ? principal.getDevices() : null;
+        //Assumption is if principal is a device, it principal.getDevices will return only itself todo - update logic if neccessary
+        if (authorizedDevices != null) {
+            authorizedDevices.forEach(device -> {
+                String deviceGuid = device.getGuid();
+                deviceActivityService.update(deviceGuid);
+            });
         }
 
         CopyOnWriteArraySet<String> subIds = (CopyOnWriteArraySet)
