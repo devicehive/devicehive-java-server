@@ -53,7 +53,7 @@ public interface OAuthClientResource {
             long clientId);
 
     @POST
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     @ApiOperation(value = "Create oAuth client")
     @ApiResponses({
             @ApiResponse(code = 400, message = "If request is malformed")
@@ -64,7 +64,7 @@ public interface OAuthClientResource {
 
     @PUT
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     @ApiOperation(value = "Update oAuth client")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If oAuth client not found"),
@@ -79,7 +79,7 @@ public interface OAuthClientResource {
 
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_OAUTH_CLIENT')")
     @ApiOperation(value = "Delete oAuth client")
     Response delete(
             @ApiParam(name = "id", value = "oAuth client id", required = true)

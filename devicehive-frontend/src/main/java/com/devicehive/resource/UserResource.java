@@ -35,7 +35,7 @@ public interface UserResource {
      * @return List of User
      */
     @GET
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "List users", notes = "Gets list of users.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of User resources in the response body.", response = UserVO.class, responseContainer = "List"),
@@ -80,7 +80,7 @@ public interface UserResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'GET_CURRENT_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
     @ApiOperation(value = "Get user", notes = "Gets information about user and its assigned networks.\n" +
             "Only administrators are allowed to get information about any user. User-level accounts can only retrieve information about themselves.")
     @ApiResponses({
@@ -97,7 +97,7 @@ public interface UserResource {
 
     @GET
     @Path("/current")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'GET_CURRENT_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
     @ApiOperation(value = "Get current user", notes = "Get information about the current user.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
@@ -116,7 +116,7 @@ public interface UserResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     @ApiOperation(value = "Create user", notes = "Creates new user.")
     @ApiResponses({
@@ -141,7 +141,7 @@ public interface UserResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Update user")
     @ApiResponses({
             @ApiResponse(code = 404, message = "If user not found")
@@ -156,7 +156,7 @@ public interface UserResource {
     @PUT
     @Path("/current")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY', 'CLIENT') and hasPermission(null, 'UPDATE_CURRENT_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_CURRENT_USER')")
     @ApiOperation(value = "Update current user", notes = "Updates an existing user. \n" +
             "Only administrators are allowed to update any property of any user. User-level accounts can only change their own password in case:\n" +
             "1. They already have a password.\n" +
@@ -179,7 +179,7 @@ public interface UserResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Delete user", notes = "Deletes an existing user.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -202,7 +202,7 @@ public interface UserResource {
      */
     @GET
     @Path("/{id}/network/{networkId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'GET_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get user's network", notes = "Gets information about user/network association.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
@@ -226,7 +226,7 @@ public interface UserResource {
      */
     @PUT
     @Path("/{id}/network/{networkId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Assign network", notes = "Associates network with the user.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -251,7 +251,7 @@ public interface UserResource {
      */
     @DELETE
     @Path("/{id}/network/{networkId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'KEY') and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Unassign network", notes = "Removes association between network and user.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

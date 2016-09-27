@@ -43,7 +43,7 @@ public interface DeviceResource {
      * @return list of <a href="http://www.devicehive.com/restful#Reference/Device">Devices</a>
      */
     @GET
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "List devices", notes = "Gets list of devices.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Device resources in the response body.",
@@ -103,7 +103,7 @@ public interface DeviceResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -129,7 +129,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
             response = DeviceVO.class)
     @ApiResponses({
@@ -153,7 +153,7 @@ public interface DeviceResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -182,7 +182,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}/equipment")
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_STATE')")
     @ApiOperation(value = "Get device's equipment", notes = "Gets current state of device equipment.\n" +
             "The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:\n" +
             "equipment: equipment code\n" +
@@ -212,7 +212,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_STATE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_STATE')")
     @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",

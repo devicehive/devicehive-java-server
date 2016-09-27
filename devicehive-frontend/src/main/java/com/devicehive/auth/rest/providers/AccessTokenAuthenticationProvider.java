@@ -29,7 +29,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String token = (String) authentication.getPrincipal();
-
+        //TODO [azavgorodny] ???
         AccessKeyVO accessKey = accessKeyService.authenticate(token);
         if (accessKey == null
                 || accessKey.getUser() == null || !accessKey.getUser().getStatus().equals(UserStatus.ACTIVE)

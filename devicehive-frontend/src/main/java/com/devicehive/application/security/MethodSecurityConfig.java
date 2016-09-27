@@ -1,6 +1,7 @@
 package com.devicehive.application.security;
 
 import com.devicehive.auth.AccessKeyPermissionEvaluator;
+import com.devicehive.auth.JwtPermissionEvaluator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -15,8 +16,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 public class MethodSecurityConfig {
 
     @Bean
-    public AccessKeyPermissionEvaluator permissionEvaluator() {
-        return new AccessKeyPermissionEvaluator();
+    public JwtPermissionEvaluator permissionEvaluator() {
+        return new JwtPermissionEvaluator();
     }
 
     @Bean

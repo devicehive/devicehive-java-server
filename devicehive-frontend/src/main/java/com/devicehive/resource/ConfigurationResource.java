@@ -16,7 +16,7 @@ import javax.ws.rs.core.Response;
 public interface ConfigurationResource {
 
     @GET
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
     @ApiOperation(value = "Get property", notes = "Returns requested property value")
     Response get(
@@ -25,7 +25,7 @@ public interface ConfigurationResource {
                     String name);
 
     @PUT
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
     Response setProperty(
@@ -36,7 +36,7 @@ public interface ConfigurationResource {
                     String value);
 
     @GET
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Path("/{name}/set")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
     Response setPropertyGet(
@@ -48,7 +48,7 @@ public interface ConfigurationResource {
                     String value);
 
     @DELETE
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
     @ApiOperation(value = "Delete property", notes = "Deletes property")
     Response deleteProperty(
