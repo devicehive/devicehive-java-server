@@ -6,7 +6,6 @@ import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  */
@@ -34,7 +33,7 @@ public class JwtPermissionEvaluator implements PermissionEvaluator {
             logger.info("Successfully checked for permission {}", permission);
             return true;
         }
-        logger.error("Can't check access key permission for auth '{}'", authentication.getClass().getName());
+        logger.error("Can't check access key permission for jwt '{}'", authentication.getClass().getName());
         return true;
     }
 

@@ -8,9 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created on 9/26/16.
- *
- * @author azavgorodny
  */
 public class JwtCheckPermissionsHelper {
 

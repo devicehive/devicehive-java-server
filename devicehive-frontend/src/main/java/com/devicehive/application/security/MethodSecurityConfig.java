@@ -1,6 +1,5 @@
 package com.devicehive.application.security;
 
-import com.devicehive.auth.AccessKeyPermissionEvaluator;
 import com.devicehive.auth.JwtPermissionEvaluator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
