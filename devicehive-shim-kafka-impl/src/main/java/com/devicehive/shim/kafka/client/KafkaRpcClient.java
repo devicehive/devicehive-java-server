@@ -118,6 +118,9 @@ public class KafkaRpcClient implements RpcClient {
             if (response != null && !response.isFailed()) {
                 connected = true;
                 break;
+            } else {
+                responseListener.shutdown();
+                responseListener.startWorkers();
             }
         }
         if (connected) {
