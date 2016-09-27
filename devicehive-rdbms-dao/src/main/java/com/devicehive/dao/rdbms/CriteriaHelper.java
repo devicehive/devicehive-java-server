@@ -4,10 +4,13 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
 import com.devicehive.vo.AccessKeyPermissionVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.devicehive.model.Device.Queries.Parameters.GUID;
 import static java.util.Optional.ofNullable;
@@ -22,7 +25,7 @@ public class CriteriaHelper {
      * 4) if principal is key which has permissions only to specific networks adds 'network.id in (allowed_networks)' predicates
      *
      * @return array of above predicates
-     * @see {@link com.devicehive.service.NetworkService#list(String, String, String, boolean, Integer, Integer, HivePrincipal)}
+     * @see {com.devicehive.service.NetworkService#list(String, String, String, boolean, Integer, Integer, HivePrincipal)}
      */
     public static Predicate[] networkListPredicates(CriteriaBuilder cb, Root<Network> from, Optional<String> nameOpt, Optional<String> namePatternOpt, Optional<HivePrincipal> principalOpt) {
         List<Predicate> predicates = new LinkedList<>();
@@ -35,9 +38,7 @@ public class CriteriaHelper {
 
         principalOpt.flatMap(principal -> {
             UserVO user = principal.getUser();
-            if (user == null && principal.getKey() != null) {
-                user = principal.getKey().getUser();
-            }
+
             return ofNullable(user);
         }).ifPresent(user -> {
             if (!user.isAdmin()) {
@@ -46,9 +47,17 @@ public class CriteriaHelper {
             }
         });
 
-        principalOpt.map(HivePrincipal::getKey).ifPresent(key ->
-                        predicates.add(cb.or(networkPermissionsPredicates(cb, from, key.getPermissions())))
-        );
+        principalOpt.flatMap(principal -> {
+            Set<NetworkVO> networks = principal.getNetworks();
+
+            return ofNullable(networks);
+        }).ifPresent(networks -> {
+            Set<Long> networkIds = networks.stream()
+                    .map(NetworkVO::getId)
+                    .collect(Collectors.toSet());
+
+            predicates.add(from.<Long>get("id").in(networkIds));
+        });
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
@@ -210,26 +219,25 @@ public class CriteriaHelper {
         from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
-            if (user == null && p.getKey() != null) {
-                user = p.getKey().getUser();
-            }
+
             if (user != null && !user.isAdmin()) {
                 predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
             }
 
-            if (p.getDevice() != null) {
-                predicates.add(cb.equal(from.<Long>get("id"), p.getDevice().getId()));
+            if (p.getNetworks() != null) {
+                Set<Long> networkIds = p.getNetworks().stream()
+                        .map(NetworkVO::getId)
+                        .collect(Collectors.toSet());
+
+                predicates.add(networkJoin.<Long>get("id").in(networkIds));
             }
 
-            if (p.getKey() != null) {
-                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(p.getKey().getPermissions())) {
-                    if (extraFilter.getDeviceGuids() != null) {
-                        predicates.add(from.<String>get("guid").in(extraFilter.getDeviceGuids()));
-                    }
-                    if (extraFilter.getNetworkIds() != null) {
-                        predicates.add(networkJoin.<Long>get("id").in(extraFilter.getNetworkIds()));
-                    }
-                }
+            if (p.getDevices() != null) {
+                Set<String> deviceGuids = p.getDevices().stream()
+                        .map(DeviceVO::getGuid)
+                        .collect(Collectors.toSet());
+
+                predicates.add(from.<String>get("guid").in(deviceGuids));
             }
         });
 
