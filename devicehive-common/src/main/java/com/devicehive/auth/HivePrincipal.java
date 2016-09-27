@@ -21,13 +21,15 @@ public class HivePrincipal implements Principal {
     private UserVO user;
     private Set<HiveAction> actions;
     private Set<String> subnets;
+    private Set<String> domains;
     private Set<NetworkVO> networks;
     private Set<DeviceVO> devices;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<NetworkVO> networks, Set<DeviceVO> devices) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<NetworkVO> networks, Set<DeviceVO> devices) {
         this.user = user;
         this.actions = actions;
         this.subnets = subnets;
+        this.domains = domains;
         this.networks = networks;
         this.devices = devices;
     }
@@ -62,6 +64,14 @@ public class HivePrincipal implements Principal {
 
     public void setSubnets(Set<String> subnets) {
         this.subnets = subnets;
+    }
+
+    public Set<String> getDomains() {
+        return domains;
+    }
+
+    public void setDomains(Set<String> domains) {
+        this.domains = domains;
     }
 
     public Set<NetworkVO> getNetworks() {
