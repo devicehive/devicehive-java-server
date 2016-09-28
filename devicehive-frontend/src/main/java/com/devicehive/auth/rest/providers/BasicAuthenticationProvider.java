@@ -19,6 +19,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 
+import java.util.Collections;
+
 /**
  * Intercepts Authentication for ADMIN, CLIENT and external oAuth token (e.g. github, google, facebook)
  */
@@ -55,8 +57,11 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
             OAuthClientVO client = clientService.authenticate(key, pass);
             logger.info("oAuth client {} authenticated", key);
             if (client != null) {
-                return new HiveAuthentication(
-                        new HivePrincipal(client),
+                HivePrincipal principal = new HivePrincipal();
+                principal.setDomains(Collections.singleton(client.getDomain()));
+                principal.setSubnets(Collections.singleton(client.getSubnet()));
+
+                return new HiveAuthentication(principal,
                         AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
             }
         }
