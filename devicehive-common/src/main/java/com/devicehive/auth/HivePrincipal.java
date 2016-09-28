@@ -1,7 +1,5 @@
 package com.devicehive.auth;
 
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 
 import java.security.Principal;
@@ -22,10 +20,10 @@ public class HivePrincipal implements Principal {
     private Set<HiveAction> actions;
     private Set<String> subnets;
     private Set<String> domains;
-    private Set<NetworkVO> networks;
-    private Set<DeviceVO> devices;
+    private Set<Long> networks;
+    private Set<String> devices;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<NetworkVO> networks, Set<DeviceVO> devices) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networks, Set<String> devices) {
         this.user = user;
         this.actions = actions;
         this.subnets = subnets;
@@ -36,6 +34,10 @@ public class HivePrincipal implements Principal {
 
     public HivePrincipal(Set<HiveAction> actions) {
         this.actions = actions;
+    }
+
+    public HivePrincipal(UserVO user) {
+        this.user = user;
     }
 
     public HivePrincipal() {
@@ -74,23 +76,23 @@ public class HivePrincipal implements Principal {
         this.domains = domains;
     }
 
-    public Set<NetworkVO> getNetworks() {
+    public Set<Long> getNetworks() {
         return networks;
     }
 
-    public void setNetworks(Set<NetworkVO> networks) {
+    public void setNetworks(Set<Long> networks) {
         this.networks = networks;
     }
 
-    public Set<DeviceVO> getDevices() {
+    public Set<String> getDevices() {
         return devices;
     }
 
-    public void setDevices(Set<DeviceVO> devices) {
+    public void setDevices(Set<String> devices) {
         this.devices = devices;
     }
 
-    public void addDevice(DeviceVO device) {
+    public void addDevice(String device) {
         if (devices == null) {
             devices = new HashSet<>();
         }
@@ -98,17 +100,11 @@ public class HivePrincipal implements Principal {
     }
 
     public boolean hasAccessToNetwork(long networkId) {
-        return networks.stream()
-                .filter(n -> n.getId().equals(networkId))
-                .findFirst()
-                .isPresent();
+        return networks.contains(networkId);
     }
 
     public boolean hasAccessToDevice(String deviceGuid) {
-        return devices.stream()
-                .filter(d -> d.getGuid().equals(deviceGuid))
-                .findFirst()
-                .isPresent();
+        return devices.contains(deviceGuid);
     }
 
     @Override

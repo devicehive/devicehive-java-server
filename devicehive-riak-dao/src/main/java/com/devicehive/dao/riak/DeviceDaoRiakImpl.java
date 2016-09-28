@@ -218,22 +218,14 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (principal.getDevices() != null) {
-                Set<String> allowedGuids = principal.getDevices().stream()
-                        .map(DeviceVO::getGuid)
-                        .collect(Collectors.toSet());
-
                 deviceList = deviceList.stream()
-                        .filter(d -> allowedGuids.contains(d.getGuid()))
+                        .filter(d -> principal.getDevices().contains(d.getGuid()))
                         .collect(Collectors.toList());
             }
 
             if (principal.getNetworks() != null) {
-                Set<Long> allowedNetworkIds = principal.getNetworks().stream()
-                        .map(NetworkVO::getId)
-                        .collect(Collectors.toSet());
-
                 deviceList = deviceList.stream()
-                        .filter(d -> allowedNetworkIds.contains(d.getNetwork().getId()))
+                        .filter(d -> principal.getNetworks().contains(d.getNetwork().getId()))
                         .collect(Collectors.toList());
             }
         }
@@ -379,9 +371,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 }
 
                 if (principal.getDevices() != null) {
-                    Set<String> deviceGuids = principal.getDevices().stream()
-                            .map(DeviceVO::getGuid)
-                            .collect(Collectors.toSet());
+                    Set<String> deviceGuids = principal.getDevices();
                     String functionString =
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +

@@ -145,7 +145,9 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceGuid == null) {
-            devices = principal.getDevices();
+            for (String guid : principal.getDevices()) {
+                devices.add(deviceService.findByGuidWithPermissionsCheck(guid, principal));
+            }
         } else {
            devices.add(deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal));
         }
@@ -196,7 +198,9 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (guid == null) {
-            devices = principal.getDevices();
+            for (String deviceGuid : principal.getDevices()) {
+                devices.add(deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal));
+            }
         } else {
             devices.add(deviceService.findByGuidWithPermissionsCheck(guid, principal));
         }

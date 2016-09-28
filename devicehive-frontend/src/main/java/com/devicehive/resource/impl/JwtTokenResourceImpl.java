@@ -44,7 +44,8 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         //the JWT payload is valid for 20 minutes
         Date expirationDate = new Date(currentTimeMillis + Constants.DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE);
 
-        switch (grantType) {
+        //fixme
+        /*switch (grantType) {
             case AUTH_HEADER:
                 logger.debug("JwtToken: check token type {}", token);
                 if (jwtPayload.getType() == TokenType.ACCESS) {
@@ -110,7 +111,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                 break;
             default:
                 return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_GRANT_TYPE));
-        }
+        }*/
 
         return ResponseFactory.response(OK, tokenService.generateJwtAccessToken(jwtPayload));
     }

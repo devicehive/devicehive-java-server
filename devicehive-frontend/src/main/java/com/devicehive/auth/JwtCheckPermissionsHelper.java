@@ -44,17 +44,19 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkNetworksAllowed(HivePrincipal principal) {
+        /*todo - add real check
         boolean result = false;
-        Set<NetworkVO> networks = principal.getNetworks();
-        if (networks != null) result = !networks.stream().map(NetworkVO::getId).collect(Collectors.toSet()).isEmpty();
-        return result;
+        Set<Long> networks = principal.getNetworks();
+        if (networks != null) result = !networks.stream().map(NetworkVO::getId).collect(Collectors.toSet()).isEmpty();*/
+        return true;
     }
 
     private static boolean checkDeviceGuidsAllowed(HivePrincipal principal) {
+        /*todo - add real check
         boolean result = false;
-        Set<DeviceVO> devices = principal.getDevices();
-        if (devices != null) result = !devices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()).isEmpty();
-        return result;
+        Set<String> devices = principal.getDevices();
+        if (devices != null) result = !devices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()).isEmpty();*/
+        return true;
     }
 
 }

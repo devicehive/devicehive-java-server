@@ -248,9 +248,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                 }
 
                 if (principal.getNetworks() != null) {
-                    Set<Long> ids = principal.getNetworks().stream()
-                            .map(NetworkVO::getId)
-                            .collect(Collectors.toSet());
+                    Set<Long> ids = principal.getNetworks();
 
                     String functionString =
                             "function(values, arg) {" +

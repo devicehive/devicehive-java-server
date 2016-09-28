@@ -48,15 +48,11 @@ public class CriteriaHelper {
         });
 
         principalOpt.flatMap(principal -> {
-            Set<NetworkVO> networks = principal.getNetworks();
+            Set<Long> networks = principal.getNetworks();
 
             return ofNullable(networks);
         }).ifPresent(networks -> {
-            Set<Long> networkIds = networks.stream()
-                    .map(NetworkVO::getId)
-                    .collect(Collectors.toSet());
-
-            predicates.add(from.<Long>get("id").in(networkIds));
+            predicates.add(from.<Long>get("id").in(networks));
         });
 
         return predicates.toArray(new Predicate[predicates.size()]);
@@ -225,19 +221,11 @@ public class CriteriaHelper {
             }
 
             if (p.getNetworks() != null) {
-                Set<Long> networkIds = p.getNetworks().stream()
-                        .map(NetworkVO::getId)
-                        .collect(Collectors.toSet());
-
-                predicates.add(networkJoin.<Long>get("id").in(networkIds));
+                predicates.add(networkJoin.<Long>get("id").in(p.getNetworks()));
             }
 
             if (p.getDevices() != null) {
-                Set<String> deviceGuids = p.getDevices().stream()
-                        .map(DeviceVO::getGuid)
-                        .collect(Collectors.toSet());
-
-                predicates.add(from.<String>get("guid").in(deviceGuids));
+                predicates.add(from.<String>get("guid").in(p.getDevices()));
             }
         });
 

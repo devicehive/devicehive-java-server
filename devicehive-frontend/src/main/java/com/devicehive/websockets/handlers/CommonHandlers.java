@@ -86,12 +86,7 @@ public class CommonHandlers {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
             } else if (hivePrincipal.getDevices() != null) {
-                String finalDeviceId = deviceId;
-                boolean containsGuid = hivePrincipal.getDevices()
-                        .stream()
-                        .filter(d -> d.getGuid().equals(finalDeviceId))
-                        .findFirst()
-                        .isPresent();
+                boolean containsGuid = hivePrincipal.getDevices().contains(deviceId);
                 if (!containsGuid) {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
@@ -112,7 +107,7 @@ public class CommonHandlers {
         HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         if (deviceId != null) {
             DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
-            principal.addDevice(byGuidWithPermissionsCheck);
+            principal.addDevice(byGuidWithPermissionsCheck.getGuid());
             authentication.setHivePrincipal(principal);
         }
 

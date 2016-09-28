@@ -58,8 +58,8 @@ public class NetworkService {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
-        Set<Long> permittedNetworks = permittedNetworkIds(principal);
-        Set<String> permittedDevices = permittedDeviceGuids(principal);
+        Set<Long> permittedNetworks = principal.getNetworks();
+        Set<String> permittedDevices = principal.getDevices();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -93,22 +93,6 @@ public class NetworkService {
                 });
 
         return result.orElse(null);
-    }
-
-    private Set<Long> permittedNetworkIds(HivePrincipal principal) {
-        Set<NetworkVO> networks = principal.getNetworks();
-        if (networks == null) {
-            return null;
-        }
-        return networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
-    }
-
-    private Set<String> permittedDeviceGuids(HivePrincipal principal) {
-        Set<DeviceVO> devices = principal.getDevices();
-        if (devices == null) {
-            return null;
-        }
-        return devices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
     }
 
     @Transactional
