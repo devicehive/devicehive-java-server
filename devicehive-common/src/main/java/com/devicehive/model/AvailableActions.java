@@ -78,8 +78,8 @@ public class AvailableActions {
         return true;
     }
 
-    public static String[] getAllActions() {
-        return KNOWN_ACTIONS.toArray(new String[KNOWN_ACTIONS.size()]);
+    public static Set<String> getAllActions() {
+        return KNOWN_ACTIONS;
     }
 
     public static String[] getClientActions() {

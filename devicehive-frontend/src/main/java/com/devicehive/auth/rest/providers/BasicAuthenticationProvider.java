@@ -1,9 +1,11 @@
 package com.devicehive.auth.rest.providers;
 
+import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
@@ -19,7 +21,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Intercepts Authentication for ADMIN, CLIENT and external oAuth token (e.g. github, google, facebook)
@@ -49,8 +54,17 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
         if (user != null && user.getStatus() == UserStatus.ACTIVE) {
             String role = user.isAdmin() ? HiveRoles.ADMIN : HiveRoles.CLIENT;
             logger.info("User {} authenticated with role {}", key, role);
-            return new HiveAuthentication(
-                    new HivePrincipal(user),
+
+            HivePrincipal principal = new HivePrincipal(user);
+
+            if (user.isAdmin()) {
+                Set<String> allActions = AvailableActions.getAllActions();
+                Set<HiveAction> allowedActions = new HashSet<>();
+                allActions.forEach(action -> allowedActions.add(HiveAction.fromString(action)));
+                principal.setActions(allowedActions);
+            }
+
+            return new HiveAuthentication(principal,
                     AuthorityUtils.createAuthorityList(role));
 
         } else {

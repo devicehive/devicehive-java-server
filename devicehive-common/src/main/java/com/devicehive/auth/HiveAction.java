@@ -33,4 +33,15 @@ public enum HiveAction {
     public String getValue() {
         return value;
     }
+
+    public static HiveAction fromString(String text) {
+        if (text != null) {
+            for (HiveAction b : HiveAction.values()) {
+                if (text.equalsIgnoreCase(b.value)) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
 }

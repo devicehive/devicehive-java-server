@@ -11,7 +11,7 @@ import java.io.Serializable;
  */
 public class JwtPermissionEvaluator implements PermissionEvaluator {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessKeyPermissionEvaluator.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtPermissionEvaluator.class);
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {

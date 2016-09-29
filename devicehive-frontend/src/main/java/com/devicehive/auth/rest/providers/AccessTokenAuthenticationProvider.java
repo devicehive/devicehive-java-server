@@ -51,15 +51,21 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
         Set<String> subnets = new HashSet<>();
         Set<String> domains = new HashSet<>();
         accessKey.getPermissions().forEach(permission -> {
-            allowedNetworksIds.addAll(permission.getNetworkIdsAsSet());
-            allowedDeviceGuids.addAll(permission.getDeviceGuidsAsSet());
+            if (permission.getActionsAsSet() != null) {
+                allowedNetworksIds.addAll(permission.getNetworkIdsAsSet());
+            }
+
+            if (permission.getDeviceGuidsAsSet() != null) {
+                allowedDeviceGuids.addAll(permission.getDeviceGuidsAsSet());
+            }
 
             Set<String> allowedActions = permission.getActionsAsSet();
-            allowedActions.forEach(action -> actions.add(HiveAction.valueOf(action)));
+            allowedActions.forEach(action -> actions.add(HiveAction.fromString(action)));
 
             Set<Subnet> allowedSubnets = permission.getSubnetsAsSet();
             allowedSubnets.forEach(subnet -> subnets.add(subnet.toString()));
 
+            if (principal.getDomains() != null)
             domains.addAll(principal.getDomains());
         });
 

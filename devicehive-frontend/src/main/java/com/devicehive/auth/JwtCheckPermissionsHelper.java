@@ -26,19 +26,19 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
-        boolean result = false;
+        boolean result = true;
         if (permissions != null) result = permissions.contains(hiveAction);
         return result;
     }
 
     private static boolean checkClientIpAllowed(InetAddress clientIP, HivePrincipal principal) {
-        boolean result = false;
+        boolean result = true;
         if (principal.getSubnets() != null) result = principal.getSubnets().contains(clientIP.toString());
         return result;
     }
 
     private static boolean checkDomainAllowed(String clientDomain, HivePrincipal principal) {
-        boolean result = false;
+        boolean result = true;
         if (principal.getDomains() != null) result = principal.getDomains().contains(clientDomain);
         return result;
     }
