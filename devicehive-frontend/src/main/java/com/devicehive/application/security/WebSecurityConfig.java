@@ -60,6 +60,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         auth
                 .authenticationProvider(basicAuthenticationProvider())
                 .authenticationProvider(accessTokenAuthenticationProvider())
+                .authenticationProvider(jwtTokenAuthenticationProvider())
                 .authenticationProvider(anonymousAuthenticationProvider());
     }
 
