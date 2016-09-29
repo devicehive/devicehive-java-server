@@ -52,7 +52,7 @@ public class DeviceHandlers {
             response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
             return response;
         } else {
-            for (String device : principal.getDevices()) {
+            for (String device : principal.getDeviceGuids()) {
                 DeviceVO toResponse = deviceService.findByGuidWithPermissionsCheck(device, principal);
                 response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
             }

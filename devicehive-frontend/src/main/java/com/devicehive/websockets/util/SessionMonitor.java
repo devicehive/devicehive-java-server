@@ -9,7 +9,6 @@ import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.handlers.CommandHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +61,7 @@ public class SessionMonitor {
 
     public void updateDeviceSession(WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<String> authorizedDevices = principal != null ? principal.getDevices() : null;
+        Set<String> authorizedDevices = principal != null ? principal.getDeviceGuids() : null;
         //Assumption is if principal is a device, it principal.getDevices will return only itself todo - update logic if neccessary
         if (authorizedDevices != null) {
             authorizedDevices.forEach(deviceGuid -> {

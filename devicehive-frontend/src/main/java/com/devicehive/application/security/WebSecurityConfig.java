@@ -5,6 +5,7 @@ import com.devicehive.auth.rest.SimpleCORSFilter;
 import com.devicehive.auth.rest.providers.AccessTokenAuthenticationProvider;
 import com.devicehive.auth.rest.providers.BasicAuthenticationProvider;
 import com.devicehive.auth.rest.providers.HiveAnonymousAuthenticationProvider;
+import com.devicehive.auth.rest.providers.JwtTokenAuthenticationProvider;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.model.ErrorResponse;
@@ -76,6 +77,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AccessTokenAuthenticationProvider accessTokenAuthenticationProvider() {
         return new AccessTokenAuthenticationProvider();
+    }
+
+    @Bean
+    public JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider() {
+        return new JwtTokenAuthenticationProvider();
     }
 
     @Bean

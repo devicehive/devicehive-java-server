@@ -63,8 +63,8 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
             domains.addAll(principal.getDomains());
         });
 
-        principal.setNetworks(allowedNetworksIds);
-        principal.setDevices(allowedDeviceGuids);
+        principal.setNetworkIds(allowedNetworksIds);
+        principal.setDeviceGuids(allowedDeviceGuids);
         principal.setActions(actions);
         principal.setSubnets(subnets);
         principal.setDomains(domains);

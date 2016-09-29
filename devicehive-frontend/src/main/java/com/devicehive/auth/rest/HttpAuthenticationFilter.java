@@ -57,6 +57,8 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
                     processBasicAuth(header);
                 } else if (header.startsWith(Constants.OAUTH_AUTH_SCEME)) {
                     processKeyAuth(authHeader.get().substring(6).trim());
+                } else if (header.startsWith("Token")) { //todo is this proper header?? If yes, replace with constant
+                    processJwtAuth(authHeader.get().substring(5).trim());
                 }
             } else {
                 processAnonymousAuth();
@@ -92,6 +94,11 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
     private void processBasicAuth(String authHeader) throws UnsupportedEncodingException {
         Pair<String, String> credentials = extractAndDecodeHeader(authHeader);
         UsernamePasswordAuthenticationToken requestAuth = new UsernamePasswordAuthenticationToken(credentials.getLeft().trim(), credentials.getRight().trim());
+        tryAuthenticate(requestAuth);
+    }
+
+    private void processJwtAuth(String token) {
+        PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(token, null);
         tryAuthenticate(requestAuth);
     }
 

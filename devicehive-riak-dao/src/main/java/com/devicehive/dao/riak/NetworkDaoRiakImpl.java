@@ -14,7 +14,6 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.application.RiakQuorum;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
@@ -247,8 +246,8 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
 
-                if (principal.getNetworks() != null) {
-                    Set<Long> ids = principal.getNetworks();
+                if (principal.getNetworkIds() != null) {
+                    Set<Long> ids = principal.getNetworkIds();
 
                     String functionString =
                             "function(values, arg) {" +

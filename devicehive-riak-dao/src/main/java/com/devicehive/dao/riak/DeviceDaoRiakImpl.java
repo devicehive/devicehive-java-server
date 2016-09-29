@@ -14,7 +14,6 @@ import com.basho.riak.client.core.query.functions.Function;
 import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.application.RiakQuorum;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
@@ -217,15 +216,15 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                         .collect(Collectors.toList());
             }
 
-            if (principal.getDevices() != null) {
+            if (principal.getDeviceGuids() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getDevices().contains(d.getGuid()))
+                        .filter(d -> principal.getDeviceGuids().contains(d.getGuid()))
                         .collect(Collectors.toList());
             }
 
-            if (principal.getNetworks() != null) {
+            if (principal.getNetworkIds() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getNetworks().contains(d.getNetwork().getId()))
+                        .filter(d -> principal.getNetworkIds().contains(d.getNetwork().getId()))
                         .collect(Collectors.toList());
             }
         }
@@ -370,8 +369,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                     builder.withReducePhase(reduceFunction, networks);
                 }
 
-                if (principal.getDevices() != null) {
-                    Set<String> deviceGuids = principal.getDevices();
+                if (principal.getDeviceGuids() != null) {
+                    Set<String> deviceGuids = principal.getDeviceGuids();
                     String functionString =
                             "function(values, arg) {" +
                                     "return values.filter(function(v) {" +

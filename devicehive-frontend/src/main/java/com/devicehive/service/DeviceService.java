@@ -65,7 +65,7 @@ public class DeviceService {
         if (principal != null && principal.isAuthenticated()) {
             if (principal.getUser() != null) {
                 dn = deviceSaveByUser(device, principal.getUser());
-            } else if (principal.getNetworks() != null && principal.getDevices() != null) {
+            } else if (principal.getNetworkIds() != null && principal.getDeviceGuids() != null) {
                 dn = deviceSaveByPrincipalPermissions(device, principal);
             } else {
                 throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());

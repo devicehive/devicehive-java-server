@@ -1,13 +1,9 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.AccessKeyAction;
-import com.devicehive.auth.CheckPermissionsHelper;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForNetworks;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.rpc.ListNetworkRequest;
@@ -58,8 +54,8 @@ public class NetworkService {
         HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
-        Set<Long> permittedNetworks = principal.getNetworks();
-        Set<String> permittedDevices = principal.getDevices();
+        Set<Long> permittedNetworks = principal.getNetworkIds();
+        Set<String> permittedDevices = principal.getDeviceGuids();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {

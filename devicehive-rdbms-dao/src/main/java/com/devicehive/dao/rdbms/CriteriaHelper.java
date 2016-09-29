@@ -4,13 +4,10 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
 import com.devicehive.vo.AccessKeyPermissionVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.devicehive.model.Device.Queries.Parameters.GUID;
 import static java.util.Optional.ofNullable;
@@ -48,7 +45,7 @@ public class CriteriaHelper {
         });
 
         principalOpt.flatMap(principal -> {
-            Set<Long> networks = principal.getNetworks();
+            Set<Long> networks = principal.getNetworkIds();
 
             return ofNullable(networks);
         }).ifPresent(networks -> {
@@ -220,12 +217,12 @@ public class CriteriaHelper {
                 predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
             }
 
-            if (p.getNetworks() != null) {
-                predicates.add(networkJoin.<Long>get("id").in(p.getNetworks()));
+            if (p.getNetworkIds() != null) {
+                predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
             }
 
-            if (p.getDevices() != null) {
-                predicates.add(from.<String>get("guid").in(p.getDevices()));
+            if (p.getDeviceGuids() != null) {
+                predicates.add(from.<String>get("guid").in(p.getDeviceGuids()));
             }
         });
 

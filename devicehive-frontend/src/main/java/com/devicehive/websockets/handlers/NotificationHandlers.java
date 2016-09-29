@@ -168,7 +168,7 @@ public class NotificationHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceGuid == null) {
-            for (String guid : principal.getDevices()) {
+            for (String guid : principal.getDeviceGuids()) {
                 devices.add(deviceService.findByGuidWithPermissionsCheck(guid, principal));
             }
         } else {

@@ -85,8 +85,8 @@ public class CommonHandlers {
                 if (!hivePrincipal.getUser().getLogin().equals(login)) {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
-            } else if (hivePrincipal.getDevices() != null) {
-                boolean containsGuid = hivePrincipal.getDevices().contains(deviceId);
+            } else if (hivePrincipal.getDeviceGuids() != null) {
+                boolean containsGuid = hivePrincipal.getDeviceGuids().contains(deviceId);
                 if (!containsGuid) {
                     throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
