@@ -1,17 +1,13 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.functions.Function;
-import com.basho.riak.client.core.util.BinaryValue;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
@@ -43,9 +39,6 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
             "userCounter");
 
     @Autowired
-    private RiakClient client;
-
-    @Autowired
     private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
@@ -57,21 +50,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Autowired
     private DeviceDao deviceDao;
 
-    @Autowired
-    private RiakQuorum quorum;
-
-    private final Map<String, String> sortMap = new HashMap<>();
-
     public UserDaoRiakImpl() {
-        sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
-        sortMap.put("login", "function(a,b){ return a.login %s b.login; }");
-        sortMap.put("role", "function(a,b){ return a.role %s b.role; }");
-        sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
-        sortMap.put("lastLogin", "function(a,b){ return a.lastLogin %s b.lastLogin; }");
-        sortMap.put("googleLogin", "function(a,b){ return a.googleLogin %s b.googleLogin; }");
-        sortMap.put("facebookLogin", "function(a,b){ return a.facebookLogin %s b.facebookLogin; }");
-        sortMap.put("githubLogin", "function(a,b){ return a.githubLogin %s b.githubLogin; }");
-        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
     @PostConstruct
@@ -237,11 +216,9 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
 
     @Override
     public List<UserVO> getList(String login, String loginPattern,
-                              Integer role, Integer status,
-                              String sortField, Boolean sortOrderAsc,
-                              Integer take, Integer skip) {
-
-
+            Integer role, Integer status,
+            String sortField, Boolean isSortOrderAsc,
+            Integer take, Integer skip) {
         List<UserVO> result = new ArrayList<>();
         if (login != null) {
             Optional<UserVO> user = findByName(login);
@@ -250,87 +227,29 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
             }
         } else {
             try {
-                String sortFunction = sortMap.get(sortField);
-                if (sortOrderAsc == null) {
-                    sortOrderAsc = true;
-                }
                 BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                        .withNamespace(USER_NS)
-                        .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
-                                "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
-                                "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
-                        .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "if (v === [] || v.id === null) { return false; }" +
-                                "return true;" +
-                                "})" +
-                                "}"));
-
+                        .withNamespace(USER_NS);
+                addMapValues(builder);
                 if (loginPattern != null) {
                     loginPattern = loginPattern.replace("%", "");
-                    String functionString = String.format(
-                        "function(values, arg) {" +
-                            "return values.filter(function(v) {" +
-                                "var login = v.login;" +
-                                "var match = login.indexOf('%s');" +
-                                "return match > -1;" +
-                            "})" +
-                        "}", loginPattern);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
+                    addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
                 }
-
                 if (role != null) {
                     String roleString = UserRole.getValueForIndex(role).name();
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                    "var role = v.role;" +
-                                    "return role == '%s';" +
-                                "})" +
-                            "}", roleString);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
+                    addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
                 }
-
                 if (status != null) {
                     String statusString = UserStatus.getValueForIndex(status).name();
-                    String functionString = String.format(
-                            "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                    "var status = v.status;" +
-                                    "return status == '%s';" +
-                                "})" +
-                            "}", statusString);
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction);
+                    addReduceFilter(builder, "status", FilterOperator.EQUAL, statusString);
                 }
 
-                if (sortFunction == null) {
-                    sortFunction = sortMap.get("id");
-                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                            String.format(sortFunction, sortOrderAsc ? "<" : ">"),
-                            true);
-                } else {
-                    builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                            String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                            true);
-                }
+                addReduceSort(builder, sortField, isSortOrderAsc);
+                addReducePaging(builder, true, take, skip);
 
                 BucketMapReduce bmr = builder.build();
-                RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-                future.await();
-                MapReduce.Response response = future.get();
+                MapReduce.Response response = client.execute(bmr);
                 Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
                 result.addAll(users.stream().map(RiakUser::convertToVo).collect(Collectors.toList()));
-
-                if (skip != null) {
-                    result = result.stream().skip(skip).collect(Collectors.toList());
-                }
-
-                if (take != null) {
-                    result = result.stream().limit(take).collect(Collectors.toList());
-                }
             } catch (InterruptedException | ExecutionException e) {
                 throw new HivePersistenceLayerException("Cannot execute search user.", e);
             }

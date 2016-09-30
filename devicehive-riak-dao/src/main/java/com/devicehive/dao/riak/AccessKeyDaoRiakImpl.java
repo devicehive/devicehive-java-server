@@ -1,6 +1,5 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.indexes.IntIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
@@ -42,13 +41,7 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             "accessKeyCounter");
 
     @Autowired
-    RiakClient client;
-
-    @Autowired
     UserDao userDao;
-
-    @Autowired
-    RiakQuorum quorum;
 
     private final Map<String, String> sortMap = new HashMap<>();
 

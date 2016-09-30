@@ -15,6 +15,7 @@ import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
+import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -30,11 +31,36 @@ import java.util.stream.Collectors;
 @Repository
 public class RiakGenericDao {
 
-    @Autowired
-    RiakClient client;
+    protected static enum FilterOperator {
+        EQUAL("="), MORE(">"), LESS("<"), MORE_EQUAL(">="), LESS_EQUAL("<="), NOT_EQUAL("!="), REGEX("regex");
+        private final String value;
+
+        private FilterOperator(String value) {
+            this.value = value;
+        }
+    }
+
+    protected static enum SortOrder {
+        ASC("asc"), DESC("desc");
+        private final String value;
+
+        private SortOrder(String value) {
+            this.value = value;
+        }
+    }
 
     @Autowired
-    RiakQuorum quorum;
+    protected RiakClient client;
+
+    @Autowired
+    protected RiakQuorum quorum;
+
+    private final String MAP_REDUCE_FUNCTIONS_MODULE = "dhmr";
+
+    protected final Function REDUCE_SORT = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_sort");
+    protected final Function REDUCE_PAGINATION = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_offset_with_limit");
+    protected final Function REDUCE_FILTER = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_filter");
+    protected final Function MAP_VALUES = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "map_values");
 
     protected Long getId(Location location) {
         return getId(location, 1);
@@ -65,21 +91,85 @@ public class RiakGenericDao {
         }
     }
 
-    protected<T> T getOrNull(FetchValue.Response response, Class<T> clazz) throws UnresolvedConflictException {
+    protected BucketMapReduce.Builder addReducePaging(BucketMapReduce.Builder builder, Boolean keep, Integer take, Integer skip) {
+        if ((skip == null) || (skip == 0)) {
+            skip = 1;
+        }
+        if (take == null) {
+            take = Constants.DEFAULT_TAKE;
+        }
+        return builder.withReducePhase(REDUCE_PAGINATION, new Object[]{skip, take}, keep);
+    }
+
+    protected BucketMapReduce.Builder addReducePaging(BucketMapReduce.Builder builder, Integer take, Integer skip) {
+        return addReducePaging(builder, false, take, skip);
+    }
+
+    protected BucketMapReduce.Builder addReduceFilter(BucketMapReduce.Builder builder, Boolean keep, String fieldName, FilterOperator operation, Object value) {
+        if ((fieldName == null) || (operation == null) || (value == null)) {
+            return builder;
+        } else {
+            return builder.withReducePhase(REDUCE_FILTER, new Object[]{fieldName, operation.value, value}, keep);
+        }
+    }
+
+    protected BucketMapReduce.Builder addReduceFilter(BucketMapReduce.Builder builder, String fieldName, FilterOperator operation, Object value) {
+        return addReduceFilter(builder, false, fieldName, operation, value);
+    }
+
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, Boolean keep, String sortField, SortOrder order) {
+        if ((sortField == null) || (order == null)) {
+            return builder;
+        } else {
+            return builder.withReducePhase(REDUCE_SORT, new Object[]{sortField, order.value}, keep);
+        }
+    }
+
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, String sortField, SortOrder order) {
+        return addReduceSort(builder, false, sortField, order);
+    }
+
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, Boolean keep, String sortField, Boolean isSortOrderAsc) {
+        SortOrder sortOrder;
+        if (isSortOrderAsc == null) {
+            sortOrder = SortOrder.ASC;
+        } else {
+            sortOrder = (isSortOrderAsc) ? SortOrder.ASC : SortOrder.DESC;
+        }
+        if ((sortField == null) || (sortField.isEmpty())) {
+            return addReduceSort(builder, keep, "id", sortOrder);
+        } else {
+            return addReduceSort(builder, keep, sortField, sortOrder);
+        }
+    }
+
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, String sortField, Boolean isSortOrderAsc) {
+        return addReduceSort(builder, false, sortField, isSortOrderAsc);
+    }
+
+    protected BucketMapReduce.Builder addMapValues(BucketMapReduce.Builder builder, Boolean keep) {
+        return builder.withMapPhase(MAP_VALUES, keep);
+    }
+
+    protected BucketMapReduce.Builder addMapValues(BucketMapReduce.Builder builder) {
+        return addMapValues(builder, false);
+    }
+
+    protected <T> T getOrNull(FetchValue.Response response, Class<T> clazz) throws UnresolvedConflictException {
         if (response.hasValues()) {
             return response.getValue(clazz);
         }
         return null;
     }
 
-    protected int deleteById(Long id, Namespace ns) throws ExecutionException, InterruptedException{
+    protected int deleteById(Long id, Namespace ns) throws ExecutionException, InterruptedException {
         Location location = new Location(ns, String.valueOf(id));
         DeleteValue deleteOp = new DeleteValue.Builder(location).build();
         client.execute(deleteOp);
         return 1;
     }
 
-    protected<T> List<T> fetchMultiple(BigIntIndexQuery.Response response, Class<T> clazz)
+    protected <T> List<T> fetchMultiple(BigIntIndexQuery.Response response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<BigIntIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
@@ -91,7 +181,7 @@ public class RiakGenericDao {
         }
     }
 
-    protected<T> List<T> fetchMultiple(BinIndexQuery.Response response, Class<T> clazz)
+    protected <T> List<T> fetchMultiple(BinIndexQuery.Response response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<BinIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
@@ -103,7 +193,7 @@ public class RiakGenericDao {
         }
     }
 
-    protected<T> List<T> fetchMultiple(IntIndexQuery.Response response, Class<T> clazz)
+    protected <T> List<T> fetchMultiple(IntIndexQuery.Response response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<IntIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
@@ -115,7 +205,7 @@ public class RiakGenericDao {
         }
     }
 
-    protected<T> List<T> fetchMultiple(RawIndexQuery.Response response, Class<T> clazz)
+    protected <T> List<T> fetchMultiple(RawIndexQuery.Response response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<RawIndexQuery.Response.Entry> entries = response.getEntries();
         if (entries.isEmpty()) {
