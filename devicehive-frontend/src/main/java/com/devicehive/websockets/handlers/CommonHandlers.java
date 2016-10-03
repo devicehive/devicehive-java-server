@@ -5,10 +5,14 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.UserService;
+import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -17,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -36,7 +41,13 @@ public class CommonHandlers {
     private DeviceService deviceService;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private JwtClientService jwtClientService;
 
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
@@ -78,12 +89,20 @@ public class CommonHandlers {
             deviceId = request.get("deviceId").getAsString();
         }
 
-        logger.debug("authenticate action for {} ", login);
+        String jwtToken = null;
+        JwtPayload jwtPayload = null;
+        if (request.get("token") != null) {
+            jwtToken = request.get("token").getAsString();
+            jwtPayload = jwtClientService.getPayload(jwtToken);
+        }
+
+//        logger.debug("authenticate action for {} ", login);
         HivePrincipal hivePrincipal = HiveWebsocketSessionState.get(session).getHivePrincipal();
         if (hivePrincipal != null && hivePrincipal.isAuthenticated()) {
             if (hivePrincipal.getUser() != null) {
                 if (!hivePrincipal.getUser().getLogin().equals(login)) {
-                    throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
+                    if (!hivePrincipal.getUser().getLogin().equals(jwtPayload.getUserId().toString()))
+                        throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
                 }
             } else if (hivePrincipal.getDeviceGuids() != null) {
                 boolean containsGuid = hivePrincipal.getDeviceGuids().contains(deviceId);
@@ -100,12 +119,31 @@ public class CommonHandlers {
             authentication = authenticationManager.authenticateUser(login, password, details);
         } else if (key != null) {
             authentication = authenticationManager.authenticateKey(key, details);
+        } else if (jwtToken != null) {
+            authentication = authenticationManager.authenticateJWT(jwtToken, details);
         } else {
             throw new HiveException(Messages.INCORRECT_CREDENTIALS, SC_UNAUTHORIZED);
         }
 
         HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
-        if (deviceId != null) {
+
+        if (jwtToken != null) {
+            if (jwtPayload == null
+                    || (jwtPayload.getExpiration() != null && jwtPayload.getExpiration().before(timestampService.getDate()))) {
+                throw new BadCredentialsException("Unauthorized");
+            }
+            logger.debug("Jwt token authentication successful");
+            if (jwtPayload.getUserId() != null) {
+                UserVO userVO = userService.findById(jwtPayload.getUserId());
+                principal.setUser(userVO);
+            }
+            principal.setActions(jwtPayload.getActions());
+            principal.setDomains(jwtPayload.getDomains());
+            principal.setSubnets(jwtPayload.getSubnets());
+            principal.setNetworkIds(jwtPayload.getNetworkIds());
+            principal.setDeviceGuids(jwtPayload.getDeviceGuids());
+            authentication.setHivePrincipal(principal);
+        } else if (deviceId != null) {
             DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
             principal.addDevice(byGuidWithPermissionsCheck.getGuid());
             authentication.setHivePrincipal(principal);

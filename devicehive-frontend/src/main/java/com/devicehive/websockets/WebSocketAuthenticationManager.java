@@ -38,6 +38,13 @@ public class WebSocketAuthenticationManager {
         return authentication;
     }
 
+    public HiveAuthentication authenticateJWT(String token, HiveAuthentication.HiveAuthDetails details) {
+        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(token, null);
+        HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
+        authentication.setDetails(details);
+        return authentication;
+    }
+
     public HiveAuthentication authenticateAnonymous(HiveAuthentication.HiveAuthDetails details) {
         AnonymousAuthenticationToken authenticationToken = new AnonymousAuthenticationToken(
                 UUID.randomUUID().toString(), "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));

@@ -51,7 +51,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
         Set<String> subnets = new HashSet<>();
         Set<String> domains = new HashSet<>();
         accessKey.getPermissions().forEach(permission -> {
-            if (permission.getActionsAsSet() != null) {
+            if (permission.getNetworkIdsAsSet() != null) {
                 allowedNetworksIds.addAll(permission.getNetworkIdsAsSet());
             }
 
@@ -60,13 +60,15 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
             }
 
             Set<String> allowedActions = permission.getActionsAsSet();
-            allowedActions.forEach(action -> actions.add(HiveAction.fromString(action)));
+            if (permission.getActionsAsSet() != null)
+                allowedActions.forEach(action -> actions.add(HiveAction.fromString(action)));
 
             Set<Subnet> allowedSubnets = permission.getSubnetsAsSet();
-            allowedSubnets.forEach(subnet -> subnets.add(subnet.toString()));
+            if (permission.getSubnetsAsSet() != null)
+                allowedSubnets.forEach(subnet -> subnets.add(subnet.toString()));
 
             if (principal.getDomains() != null)
-            domains.addAll(principal.getDomains());
+                domains.addAll(principal.getDomains());
         });
 
         principal.setNetworkIds(allowedNetworksIds);

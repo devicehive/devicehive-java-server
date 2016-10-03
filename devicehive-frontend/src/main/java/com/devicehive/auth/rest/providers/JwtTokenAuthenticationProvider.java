@@ -7,6 +7,7 @@ import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.UserVO;
+import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,15 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String token = (String) authentication.getPrincipal();
 
-        JwtPayload jwtPayload = jwtClientService.getPayload(token);
+        String token = (String) authentication.getPrincipal();
+        JwtPayload jwtPayload = null;
+        try {
+            jwtPayload = jwtClientService.getPayload(token);
+        } catch (MalformedJwtException e) {
+            return null;
+        }
+
         if (jwtPayload == null
                 || (jwtPayload.getExpiration() != null && jwtPayload.getExpiration().before(timestampService.getDate()))) {
             throw new BadCredentialsException("Unauthorized");
