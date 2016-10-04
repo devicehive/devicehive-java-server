@@ -74,7 +74,7 @@ public class KafkaRpcClient implements RpcClient {
         Request request = Request.newBuilder().build();
         request.setReplyTo(replyToTopic);
         request.setType(RequestType.ping);
-        boolean connected = true;
+        boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
             logger.info("Ping RpcServer attempt {}", i);
