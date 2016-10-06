@@ -62,6 +62,11 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
                 Set<HiveAction> allowedActions = new HashSet<>();
                 allActions.forEach(action -> allowedActions.add(HiveAction.fromString(action)));
                 principal.setActions(allowedActions);
+            } else {
+                String[] actions = AvailableActions.getClientActions();
+                Set<HiveAction> allowedActions = new HashSet<>();
+                for (String action : actions) allowedActions.add(HiveAction.fromString(action));
+                principal.setActions(allowedActions);
             }
 
             return new HiveAuthentication(principal,

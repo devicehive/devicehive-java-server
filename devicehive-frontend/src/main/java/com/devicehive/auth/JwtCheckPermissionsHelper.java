@@ -26,7 +26,7 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
-        boolean result = true;
+        boolean result = false;
         if (permissions != null) result = permissions.contains(hiveAction);
         return result;
     }
@@ -38,8 +38,9 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkDomainAllowed(String clientDomain, HivePrincipal principal) {
-        boolean result = true;
-        if (principal.getDomains() != null) result = principal.getDomains().contains(clientDomain);
+        boolean result = false;
+        if (principal.getDomains() != null && !principal.getDomains().isEmpty())
+            result = principal.getDomains().contains(clientDomain);
         return result;
     }
 
