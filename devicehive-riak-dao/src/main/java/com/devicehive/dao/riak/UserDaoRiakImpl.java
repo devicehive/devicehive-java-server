@@ -19,15 +19,14 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
-
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 @Profile({"riak"})
 @Repository
@@ -246,8 +245,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
                 addReduceSort(builder, sortField, isSortOrderAsc);
                 addReducePaging(builder, true, take, skip);
 
-                BucketMapReduce bmr = builder.build();
-                MapReduce.Response response = client.execute(bmr);
+                MapReduce.Response response = client.execute(builder.build());
                 Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
                 result.addAll(users.stream().map(RiakUser::convertToVo).collect(Collectors.toList()));
             } catch (InterruptedException | ExecutionException e) {

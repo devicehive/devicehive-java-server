@@ -17,15 +17,14 @@ import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HivePersistenceLayerException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 @Profile({"riak"})
 @Repository
@@ -58,7 +57,9 @@ public class RiakGenericDao {
     private final String MAP_REDUCE_FUNCTIONS_MODULE = "dhmr";
 
     protected final Function REDUCE_SORT = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_sort");
-    protected final Function REDUCE_PAGINATION = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_offset_with_limit");
+    protected final Function REDUCE_PAGINATION = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_pagination_filter");
+    protected final Function REDUCE_ADD_INDEX = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_add_index");
+    protected final Function REDUCE_DELETE_INDEX = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_delete_index");
     protected final Function REDUCE_FILTER = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "reduce_filter");
     protected final Function MAP_VALUES = Function.newErlangFunction(MAP_REDUCE_FUNCTIONS_MODULE, "map_values");
 
@@ -91,18 +92,21 @@ public class RiakGenericDao {
         }
     }
 
-    protected BucketMapReduce.Builder addReducePaging(BucketMapReduce.Builder builder, Boolean keep, Integer take, Integer skip) {
-        if ((skip == null) || (skip == 0)) {
-            skip = 1;
+    protected BucketMapReduce.Builder addReducePaging(BucketMapReduce.Builder builder, Boolean keep, Integer count, Integer skip) {
+        if (skip == null) {
+            skip = 0;
         }
-        if (take == null) {
-            take = Constants.DEFAULT_TAKE;
+        if (count == null) {
+            count = Constants.DEFAULT_TAKE;
         }
-        return builder.withReducePhase(REDUCE_PAGINATION, new Object[]{skip, take}, keep);
+        builder.withReducePhase(REDUCE_ADD_INDEX)
+                .withReducePhase(REDUCE_PAGINATION, new Object[]{skip, count})
+                .withReducePhase(REDUCE_DELETE_INDEX, true);
+        return builder;
     }
 
     protected BucketMapReduce.Builder addReducePaging(BucketMapReduce.Builder builder, Integer take, Integer skip) {
-        return addReducePaging(builder, false, take, skip);
+        return addReducePaging(builder, true, take, skip);
     }
 
     protected BucketMapReduce.Builder addReduceFilter(BucketMapReduce.Builder builder, Boolean keep, String fieldName, FilterOperator operation, Object value) {
