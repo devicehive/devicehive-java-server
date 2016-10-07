@@ -1,6 +1,5 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
@@ -11,7 +10,6 @@ import com.devicehive.dao.riak.model.RiakDeviceEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -26,12 +24,6 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     private static final Namespace DEVICE_EQUIPMENT_NS = new Namespace("device_equipment");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceEquipmentCounter");
-
-    @Autowired
-    private RiakClient client;
-
-    @Autowired
-    private RiakQuorum quorum;
 
     @Override
     public List<DeviceEquipmentVO> getByDevice(DeviceVO device) {
