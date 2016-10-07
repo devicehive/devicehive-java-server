@@ -32,16 +32,12 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkClientIpAllowed(InetAddress clientIP, HivePrincipal principal) {
-        boolean result = true;
-        if (principal.getSubnets() != null) result = principal.getSubnets().contains(clientIP.toString());
-        return result;
+        // fixme: subnets
+        return principal.getSubnets() == null || principal.getSubnets().isEmpty() || principal.getSubnets().contains(clientIP);
     }
 
     private static boolean checkDomainAllowed(String clientDomain, HivePrincipal principal) {
-        boolean result = false;
-        if (principal.getDomains() != null && !principal.getDomains().isEmpty())
-            result = principal.getDomains().contains(clientDomain);
-        return result;
+        return principal.getDomains() == null || principal.getDomains().isEmpty() || principal.getDomains().contains(clientDomain);
     }
 
     private static boolean checkNetworksAllowed(HivePrincipal principal) {
