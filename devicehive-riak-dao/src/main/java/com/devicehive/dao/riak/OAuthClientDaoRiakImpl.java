@@ -155,21 +155,20 @@ public class OAuthClientDaoRiakImpl extends RiakGenericDao implements OAuthClien
             Boolean isSortOrderAsc,
             Integer take,
             Integer skip) {
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                .withNamespace(OAUTH_CLIENT_NS);
+        addMapValues(builder);
+        if (name != null) {
+            addReduceFilter(builder, "name", FilterOperator.EQUAL, namePattern);
+        } else if (namePattern != null) {
+            namePattern = namePattern.replace("%", "");
+            addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
+        }
+        addReduceFilter(builder, "domain", FilterOperator.EQUAL, domain);
+        addReduceFilter(builder, "oauthId", FilterOperator.EQUAL, oauthId);
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
         try {
-            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                    .withNamespace(OAUTH_CLIENT_NS);
-            addMapValues(builder);
-            if (name != null) {
-                addReduceFilter(builder, "name", FilterOperator.EQUAL, namePattern);
-            } else if (namePattern != null) {
-                namePattern = namePattern.replace("%", "");
-                addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
-            }
-            addReduceFilter(builder, "domain", FilterOperator.EQUAL, domain);
-            addReduceFilter(builder, "oauthId", FilterOperator.EQUAL, oauthId);
-            addReduceSort(builder, sortField, isSortOrderAsc);
-            addReducePaging(builder, true, take, skip);
-
             MapReduce.Response response = client.execute(builder.build());
             Collection<RiakOAuthClient> result = response.getResultsFromAllPhases(RiakOAuthClient.class);
             return result.stream().map(RiakOAuthClient::convert).collect(Collectors.toList());

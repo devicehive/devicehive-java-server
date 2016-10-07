@@ -186,29 +186,28 @@ public class OAuthGrantDaoRiakImpl extends RiakGenericDao implements OAuthGrantD
             Boolean isSortOrderAsc,
             Integer take,
             Integer skip) {
-        try {
-            BucketMapReduce.Builder builder = new BucketMapReduce.Builder();
 
-            addMapValues(builder);
-            addReduceFilter(builder, "userId", FilterOperator.EQUAL, user.getId());
-            addReduceFilter(builder, "timestamp", FilterOperator.MORE, start);
-            addReduceFilter(builder, "timestamp", FilterOperator.LESS, end);
-            addReduceFilter(builder, "client.oauthId", FilterOperator.EQUAL, clientOAuthId);
-            if (type != null) {
-                String typeString = Type.getValueForIndex(type).toString();
-                addReduceFilter(builder, "type", FilterOperator.EQUAL, typeString);
-            }
-            addReduceFilter(builder, "scope", FilterOperator.EQUAL, scope);
-            addReduceFilter(builder, "redirectUri", FilterOperator.EQUAL, redirectUri);
-            if (accessType != null) {
-                String accessTypeString = AccessType.getValueForIndex(accessType).toString();
-                addReduceFilter(builder, "accessType", FilterOperator.EQUAL, accessTypeString);
-            }
-            addReduceSort(builder, sortField, isSortOrderAsc);
-            addReducePaging(builder, true, take, skip);
-            
-            BucketMapReduce bmr = builder.build();
-            MapReduce.Response response = client.execute(bmr);
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder();
+
+        addMapValues(builder);
+        addReduceFilter(builder, "userId", FilterOperator.EQUAL, user.getId());
+        addReduceFilter(builder, "timestamp", FilterOperator.MORE, start);
+        addReduceFilter(builder, "timestamp", FilterOperator.LESS, end);
+        addReduceFilter(builder, "client.oauthId", FilterOperator.EQUAL, clientOAuthId);
+        if (type != null) {
+            String typeString = Type.getValueForIndex(type).toString();
+            addReduceFilter(builder, "type", FilterOperator.EQUAL, typeString);
+        }
+        addReduceFilter(builder, "scope", FilterOperator.EQUAL, scope);
+        addReduceFilter(builder, "redirectUri", FilterOperator.EQUAL, redirectUri);
+        if (accessType != null) {
+            String accessTypeString = AccessType.getValueForIndex(accessType).toString();
+            addReduceFilter(builder, "accessType", FilterOperator.EQUAL, accessTypeString);
+        }
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
+        try {
+            MapReduce.Response response = client.execute(builder.build());
             Collection<RiakOAuthGrant> grants = response.getResultsFromAllPhases(RiakOAuthGrant.class);
             return grants.stream().map(RiakOAuthGrant::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {

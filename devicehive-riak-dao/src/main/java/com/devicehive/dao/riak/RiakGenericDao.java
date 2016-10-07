@@ -31,7 +31,9 @@ import org.springframework.stereotype.Repository;
 public class RiakGenericDao {
 
     protected static enum FilterOperator {
-        EQUAL("="), MORE(">"), LESS("<"), MORE_EQUAL(">="), LESS_EQUAL("<="), NOT_EQUAL("!="), REGEX("regex");
+        EQUAL("="), MORE(">"), LESS("<"),
+        MORE_EQUAL(">="), LESS_EQUAL("<="), NOT_EQUAL("!="),
+        REGEX("regex"), IN("in"), CONTAINS("contains");
         private final String value;
 
         private FilterOperator(String value) {

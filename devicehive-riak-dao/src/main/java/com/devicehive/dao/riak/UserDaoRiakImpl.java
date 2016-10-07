@@ -224,28 +224,27 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
             Integer role, Integer status,
             String sortField, Boolean isSortOrderAsc,
             Integer take, Integer skip) {
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                .withNamespace(USER_NS);
+        addMapValues(builder);
+        if (login != null) {
+            addReduceFilter(builder, "login", FilterOperator.EQUAL, login);
+        } else if (loginPattern != null) {
+            loginPattern = loginPattern.replace("%", "");
+            addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
+        }
+        if (role != null) {
+            String roleString = UserRole.getValueForIndex(role).name();
+            addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
+        }
+        if (status != null) {
+            String statusString = UserStatus.getValueForIndex(status).name();
+            addReduceFilter(builder, "status", FilterOperator.EQUAL, statusString);
+        }
+
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
         try {
-            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                    .withNamespace(USER_NS);
-            addMapValues(builder);
-            if (login != null) {
-                addReduceFilter(builder, "login", FilterOperator.EQUAL, login);
-            } else if (loginPattern != null) {
-                loginPattern = loginPattern.replace("%", "");
-                addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
-            }
-            if (role != null) {
-                String roleString = UserRole.getValueForIndex(role).name();
-                addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
-            }
-            if (status != null) {
-                String statusString = UserStatus.getValueForIndex(status).name();
-                addReduceFilter(builder, "status", FilterOperator.EQUAL, statusString);
-            }
-
-            addReduceSort(builder, sortField, isSortOrderAsc);
-            addReducePaging(builder, true, take, skip);
-
             MapReduce.Response response = client.execute(builder.build());
             Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
             return users.stream().map(RiakUser::convertToVo).collect(Collectors.toList());
