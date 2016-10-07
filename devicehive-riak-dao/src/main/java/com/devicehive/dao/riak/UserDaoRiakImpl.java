@@ -1,6 +1,5 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
@@ -59,23 +58,30 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
 
     @Override
     public Optional<UserVO> findByName(String name) {
-        UserVO user = findBySomeIdentityName(name, "login");
-        return Optional.ofNullable(user);
+        RiakUser riakUser = findBySecondaryIndex("login", name, USER_NS, RiakUser.class);
+        RiakUser.convertToVo(riakUser);
+        return Optional.ofNullable(RiakUser.convertToVo(riakUser));
     }
 
     @Override
     public UserVO findByGoogleName(String name) {
-        return findBySomeIdentityName(name, "googleLogin");
+        RiakUser riakUser = findBySecondaryIndex("googleLogin", name, USER_NS, RiakUser.class);
+        RiakUser.convertToVo(riakUser);
+        return RiakUser.convertToVo(riakUser);
     }
 
     @Override
     public UserVO findByFacebookName(String name) {
-        return findBySomeIdentityName(name, "facebookLogin");
+        RiakUser riakUser = findBySecondaryIndex("facebookLogin", name, USER_NS, RiakUser.class);
+        RiakUser.convertToVo(riakUser);
+        return RiakUser.convertToVo(riakUser);
     }
 
     @Override
     public UserVO findByGithubName(String name) {
-        return findBySomeIdentityName(name, "githubLogin");
+        RiakUser riakUser = findBySecondaryIndex("githubLogin", name, USER_NS, RiakUser.class);
+        RiakUser.convertToVo(riakUser);
+        return RiakUser.convertToVo(riakUser);
     }
 
     @Override
@@ -218,67 +224,37 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
             Integer role, Integer status,
             String sortField, Boolean isSortOrderAsc,
             Integer take, Integer skip) {
-        List<UserVO> result = new ArrayList<>();
-        if (login != null) {
-            Optional<UserVO> user = findByName(login);
-            if (user.isPresent()) {
-                result.add(user.get());
+        try {
+            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                    .withNamespace(USER_NS);
+            addMapValues(builder);
+            if (login != null) {
+                addReduceFilter(builder, "login", FilterOperator.EQUAL, login);
+            } else if (loginPattern != null) {
+                loginPattern = loginPattern.replace("%", "");
+                addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
             }
-        } else {
-            try {
-                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                        .withNamespace(USER_NS);
-                addMapValues(builder);
-                if (loginPattern != null) {
-                    loginPattern = loginPattern.replace("%", "");
-                    addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
-                }
-                if (role != null) {
-                    String roleString = UserRole.getValueForIndex(role).name();
-                    addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
-                }
-                if (status != null) {
-                    String statusString = UserStatus.getValueForIndex(status).name();
-                    addReduceFilter(builder, "status", FilterOperator.EQUAL, statusString);
-                }
-
-                addReduceSort(builder, sortField, isSortOrderAsc);
-                addReducePaging(builder, true, take, skip);
-
-                MapReduce.Response response = client.execute(builder.build());
-                Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
-                result.addAll(users.stream().map(RiakUser::convertToVo).collect(Collectors.toList()));
-            } catch (InterruptedException | ExecutionException e) {
-                throw new HivePersistenceLayerException("Cannot execute search user.", e);
+            if (role != null) {
+                String roleString = UserRole.getValueForIndex(role).name();
+                addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
             }
+            if (status != null) {
+                String statusString = UserStatus.getValueForIndex(status).name();
+                addReduceFilter(builder, "status", FilterOperator.EQUAL, statusString);
+            }
+
+            addReduceSort(builder, sortField, isSortOrderAsc);
+            addReducePaging(builder, true, take, skip);
+
+            MapReduce.Response response = client.execute(builder.build());
+            Collection<RiakUser> users = response.getResultsFromAllPhases(RiakUser.class);
+            return users.stream().map(RiakUser::convertToVo).collect(Collectors.toList());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new HivePersistenceLayerException("Cannot execute search user.", e);
         }
-        return result;
     }
 
     private boolean doesUserAlreadyExist(UserVO user, String login) {
         return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
     }
-
-    private UserVO findBySomeIdentityName(String name, String identityName) {
-        if (name == null) {
-            return null;
-        }
-        BinIndexQuery biq = new BinIndexQuery.Builder(USER_NS, identityName, name).build();
-        try {
-            BinIndexQuery.Response response = client.execute(biq);
-            List<BinIndexQuery.Response.Entry> entries = response.getEntries();
-            if (entries.isEmpty()) {
-                return null;
-            }
-            Location location = entries.get(0).getRiakObjectLocation();
-            FetchValue fetchOp = new FetchValue.Builder(location)
-                    .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
-                    .build();
-            RiakUser riakUser = getOrNull(client.execute(fetchOp), RiakUser.class);
-            return RiakUser.convertToVo(riakUser);
-        } catch (ExecutionException | InterruptedException e) {
-            throw new HivePersistenceLayerException("Cannot find by identity.", e);
-        }
-    }
-
 }
