@@ -80,7 +80,7 @@ public interface DeviceClassResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.",

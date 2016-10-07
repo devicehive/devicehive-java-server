@@ -12,6 +12,7 @@ public class AvailableActions {
     public static final String GET_DEVICE_STATE = "GetDeviceState";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
+    public static final String GET_DEVICE_CLASS = "GetDeviceClass";
     public static final String REGISTER_DEVICE = "RegisterDevice";
     public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
@@ -35,6 +36,7 @@ public class AvailableActions {
             add(GET_DEVICE_STATE);
             add(GET_DEVICE_NOTIFICATION);
             add(GET_DEVICE_COMMAND);
+            add(GET_DEVICE_CLASS);
             add(REGISTER_DEVICE);
             add(CREATE_DEVICE_NOTIFICATION);
             add(CREATE_DEVICE_COMMAND);
