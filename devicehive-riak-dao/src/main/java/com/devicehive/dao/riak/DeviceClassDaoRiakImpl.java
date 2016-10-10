@@ -1,6 +1,5 @@
 package com.devicehive.dao.riak;
 
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -9,14 +8,12 @@ import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.functions.Function;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.riak.model.RiakDeviceClass;
 import com.devicehive.dao.riak.model.RiakDeviceClassEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +21,6 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Profile({"riak"})
 @Repository
@@ -35,19 +31,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceClassCounter");
 
-    @Autowired
-    private RiakClient client;
-
-    @Autowired
-    private RiakQuorum quorum;
-
-    private final Map<String, String> sortMap = new HashMap<>();
-
     public DeviceClassDaoRiakImpl() {
-        sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
-        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
-        sortMap.put("offlineTimeout", "function(a,b){ return a.offlineTimeout %s b.offlineTimeout; }");
-        sortMap.put("isPermanent", "function(a,b){ return a.isPermanent %s b.isPermanent; }");
     }
 
     @Override
@@ -103,7 +87,6 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
                     .build();
             client.execute(storeOp);
 
-
             return deviceClass;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot merge device class.", e);
@@ -112,59 +95,25 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
 
     @Override
     public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
-                                                Boolean sortOrderAsc, Integer take, Integer skip) {
-
-        List<DeviceClassWithEquipmentVO> result = new ArrayList<>();
+            Boolean isSortOrderAsc, Integer take, Integer skip) {
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                .withNamespace(DEVICE_CLASS_NS);
+        addMapValues(builder);
         if (name != null) {
-            DeviceClassWithEquipmentVO deviceClass = findByName(name);
-            if (deviceClass != null)
-                result.add(deviceClass);
-        } else {
-            try {
-                String sortFunction = sortMap.get(sortField);
-                if (sortFunction == null) {
-                    sortFunction = sortMap.get("name");
-                }
-                BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                        .withNamespace(DEVICE_CLASS_NS)
-                        .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
-                        "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
-                        "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
-                        .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "if (v === [] || v.name === null) { return false; }" +
-                                "return true;" +
-                                "})" +
-                                "}"))
-                        .withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                                String.format(sortFunction, sortOrderAsc ? ">" : "<"), take == null && namePattern == null);
-                if (namePattern != null) {
-                    if (namePattern.startsWith("%")) {
-                        namePattern = namePattern.substring(1);
-                    }
-                    if (namePattern.endsWith("%")) {
-                        namePattern = namePattern.substring(0, namePattern.length() - 1);
-                    }
-                    String functionBody = String.format(
-                            "function(values, arg) {" +
-                                    "  return values.filter(function(v) {" +
-                                    "    return v.name.indexOf('%s') > -1;" +
-                                    "  })" +
-                                    "}", namePattern);
-                    builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null);
-                }
-                builder = addPaging(builder, take, skip);
-                BucketMapReduce bmr = builder.build();
-                MapReduce.Response response = client.execute(bmr);
-                Collection<RiakDeviceClass> resultsFromAllPhases = response.getResultsFromAllPhases(RiakDeviceClass.class);
-                Stream<DeviceClassWithEquipmentVO> objectStream = resultsFromAllPhases.stream().map(RiakDeviceClass::convertDeviceClassWithEquipment);
-                List<DeviceClassWithEquipmentVO> voList = objectStream.collect(Collectors.toList());
-                result.addAll(voList);
-            } catch (InterruptedException | ExecutionException e) {
-                throw new HivePersistenceLayerException("Cannot get device class list.", e);
-            }
+            addReduceFilter(builder, "name", FilterOperator.EQUAL, name);
+        } else if (namePattern != null) {
+            namePattern = namePattern.replace("%", "");
+            addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
         }
-        return result;
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
+        try {
+            MapReduce.Response response = client.execute(builder.build());
+            return response.getResultsFromAllPhases(RiakDeviceClass.class).stream()
+                    .map(RiakDeviceClass::convertDeviceClassWithEquipment).collect(Collectors.toList());
+        } catch (InterruptedException | ExecutionException e) {
+            throw new HivePersistenceLayerException("Cannot get device class list.", e);
+        }
     }
 
     @Override
