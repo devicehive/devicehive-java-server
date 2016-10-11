@@ -17,8 +17,6 @@ public class JwtPayload implements Serializable {
     public static final String JWT_CLAIM_KEY = "payload";
 
     //Public claims
-    @SerializedName("is_admin")
-    private Boolean isAdmin;
 
     @SerializedName("user_id")
     private Long userId;
@@ -45,9 +43,8 @@ public class JwtPayload implements Serializable {
     @SerializedName("exp")
     private Date expiration;
 
-    private JwtPayload(Boolean isAdmin, Long userId, Set<HiveAction> actions, Set<String> subnets, Set<String> domains,
+    private JwtPayload(Long userId, Set<HiveAction> actions, Set<String> subnets, Set<String> domains,
                       Set<Long> networkIds, Set<String> deviceGuids, TokenType type, Date expiration) {
-        this.isAdmin = isAdmin;
         this.userId = userId;
         this.actions = actions;
         this.subnets = subnets;
@@ -56,14 +53,6 @@ public class JwtPayload implements Serializable {
         this.deviceGuids = deviceGuids;
         this.type = type;
         this.expiration = expiration;
-    }
-
-    public Boolean getAdmin() {
-        return isAdmin;
-    }
-
-    public void setAdmin(Boolean admin) {
-        isAdmin = admin;
     }
 
     public Long getUserId() {
@@ -135,7 +124,6 @@ public class JwtPayload implements Serializable {
     }
 
     public static class Builder {
-        private Boolean isAdmin;
         private Long userId;
         private Set<HiveAction> actions;
         private Set<String> subnets;
@@ -156,8 +144,33 @@ public class JwtPayload implements Serializable {
             return this;
         }
 
-        public Builder withAdmin() {
-            this.isAdmin = true;
+        public Builder withUserId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public Builder withActions(Set<HiveAction> actions) {
+            this.actions = actions;
+            return this;
+        }
+
+        public Builder withSubnets(Set<String> subnets) {
+            this.subnets = subnets;
+            return this;
+        }
+
+        public Builder withDomains(Set<String> domains) {
+            this.domains = domains;
+            return this;
+        }
+
+        public Builder withNetworkIds(Set<Long> networkIds) {
+            this.networkIds = networkIds;
+            return this;
+        }
+
+        public Builder withDeviceGuids(Set<String> deviceGuids) {
+            this.deviceGuids = deviceGuids;
             return this;
         }
 
@@ -172,11 +185,7 @@ public class JwtPayload implements Serializable {
                 expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE);
             }
 
-            if (isAdmin == null) {
-                isAdmin = false;
-            }
-
-            return new JwtPayload(isAdmin, userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
+            return new JwtPayload(userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
         }
 
         public JwtPayload buildAccessToken() {
@@ -185,11 +194,7 @@ public class JwtPayload implements Serializable {
                 expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE);
             }
 
-            if (isAdmin == null) {
-                isAdmin = false;
-            }
-
-            return new JwtPayload(isAdmin, userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
+            return new JwtPayload(userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
         }
     }
 }

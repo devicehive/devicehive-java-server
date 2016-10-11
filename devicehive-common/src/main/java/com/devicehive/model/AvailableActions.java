@@ -1,6 +1,8 @@
 package com.devicehive.model;
 
 
+import com.devicehive.auth.HiveAction;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -71,6 +73,14 @@ public class AvailableActions {
         private static final long serialVersionUID = -1571200010251977615L;
     };
 
+    private static Set<HiveAction> CLIENT_HIVE_ACTIONS = new HashSet<>();
+    private static Set<HiveAction> KNOWN_HIVE_ACTIONS = new HashSet<>();
+
+    static {
+        CLIENT_ACTIONS.forEach(action -> CLIENT_HIVE_ACTIONS.add(HiveAction.fromString(action)));
+        KNOWN_ACTIONS.forEach(action -> KNOWN_HIVE_ACTIONS.add(HiveAction.fromString(action)));
+    }
+
     public static boolean validate(Set<String> actions) {
         for (String current : actions) {
             if (!KNOWN_ACTIONS.contains(current)) {
@@ -82,6 +92,14 @@ public class AvailableActions {
 
     public static Set<String> getAllActions() {
         return KNOWN_ACTIONS;
+    }
+
+    public static Set<HiveAction> getAllHiveActions() {
+        return KNOWN_HIVE_ACTIONS;
+    }
+
+    public static Set<HiveAction> getClientHiveActions() {
+        return CLIENT_HIVE_ACTIONS;
     }
 
     public static String[] getClientActions() {

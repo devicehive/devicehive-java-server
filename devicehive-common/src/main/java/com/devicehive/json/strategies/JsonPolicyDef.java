@@ -12,6 +12,7 @@ public @interface JsonPolicyDef {
     Policy[] value();
 
     public static enum Policy {
+        JWT_TOKEN_SUBMITTED,
         WEBSOCKET_SERVER_INFO,
         REST_SERVER_INFO,
         REST_SERVER_CONFIG,

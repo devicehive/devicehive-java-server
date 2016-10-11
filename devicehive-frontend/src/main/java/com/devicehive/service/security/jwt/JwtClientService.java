@@ -24,7 +24,7 @@ public class JwtClientService {
         return tokenGenerator.generateToken(payload);
     }
 
-    public String generateJwtRefreshToken() {
+    public String generateJwtRefreshToken(JwtPayload payload) {
         //TODO: [azavgorodny] - not implemented yet
         return null;
     }

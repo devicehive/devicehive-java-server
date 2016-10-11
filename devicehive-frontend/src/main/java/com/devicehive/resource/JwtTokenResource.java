@@ -1,5 +1,6 @@
 package com.devicehive.resource;
 
+import com.devicehive.vo.JwtTokenVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -14,39 +15,37 @@ import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
  */
 @Path("/token")
 @Api(tags = {"JwtToken"}, description = "Represents an JWT access/refresh tokens management to API/device.",
-        consumes = "application/x-www-form-urlencoded")
+        consumes = "application/json")
 @Produces({"application/json"})
 public interface JwtTokenResource {
 
-    String AUTH_HEADER = "auth_header";
+    String ACCESS_KEY = "access_key";
     String REFRESH_TOKEN = "refresh_token";
     String PASSWORD = "password";
-    String CLIENT_CREDENTIALS = "client_credentials";
 
     @POST
     @Consumes(APPLICATION_FORM_URLENCODED)
     @PreAuthorize("permitAll")
     @ApiOperation(value = "JWT token request")
     @ApiResponses({
+            @ApiResponse(code = 200,
+                    message = "If successful, this method returns a JWT token in the response body.",
+                    response = JwtTokenVO.class),
         @ApiResponse(code = 404, message = "If access token not found")
     })
     Response tokenRequest(
-            @ApiParam(name = "access_key", value = "Access key", required = true)
-            @FormParam("access_key")
-            @NotNull
-            String accessKey,
             @ApiParam(name = "grant_type", value = "Grant type", required = true)
-            @FormParam("grant_type")
+            @QueryParam("grant_type")
             @NotNull
             String grantType,
-            @ApiParam(name = "client_credentials", value = "Client credentials", required = true)
-            @FormParam("client_credentials")
-            String clientCredentials,
-            @ApiParam(name = "username", value = "User login", required = true)
-            @FormParam("username")
+            @ApiParam(name = "access_key", value = "Access key", required = false)
+            @QueryParam("access_key")
+            String accessKey,
+            @ApiParam(name = "username", value = "User login", required = false)
+            @QueryParam("username")
             String username,
-            @ApiParam(name = "password", value = "User password", required = true)
-            @FormParam("password")
+            @ApiParam(name = "password", value = "User password", required = false)
+            @QueryParam("password")
             String password);
 }
 
