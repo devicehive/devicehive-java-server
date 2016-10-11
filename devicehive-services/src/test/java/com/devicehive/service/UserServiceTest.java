@@ -1282,7 +1282,7 @@ public class UserServiceTest extends AbstractResourceTest {
             ids.add(user.getId());
         }
 
-        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, false, 20, 10);
+        List<UserVO> users = userService.getList(null, "%" + prefix + "%", null, null, null, true, 20, 10);
         assertThat(users, not(empty()));
         assertThat(users, hasSize(20));
 
