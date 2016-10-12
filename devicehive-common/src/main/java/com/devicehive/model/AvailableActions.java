@@ -30,6 +30,7 @@ public class AvailableActions {
     public static final String MANAGE_DEVICE_CLASS = "ManageDeviceClass";
     public static final String MANAGE_NETWORK = "ManageNetwork";
     public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
+    public static final String GET_USER_NETWORK = "GetUsersNetwork";
 
     private static Set<String> CLIENT_ACTIONS = new HashSet<String>() {
         {
@@ -59,6 +60,7 @@ public class AvailableActions {
             add(MANAGE_DEVICE_CLASS);
             add(MANAGE_NETWORK);
             add(MANAGE_OAUTH_CLIENT);
+            add(GET_USER_NETWORK);
         }
 
         private static final long serialVersionUID = -1946208903850253584L;

@@ -65,7 +65,7 @@ public class AccessTokenAuthenticationProvider implements AuthenticationProvider
 
             Set<Subnet> allowedSubnets = permission.getSubnetsAsSet();
             if (permission.getSubnetsAsSet() != null)
-                allowedSubnets.forEach(subnet -> subnets.add(subnet.toString()));
+                allowedSubnets.forEach(subnet -> subnets.add(subnet.getSubnet()));
 
             if (principal.getDomains() != null)
                 domains.addAll(principal.getDomains());

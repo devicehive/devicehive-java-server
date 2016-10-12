@@ -4,6 +4,7 @@ import com.devicehive.model.AvailableActions;
 
 public enum HiveAction {
     GET_NETWORK(AvailableActions.GET_NETWORK),
+    GET_USER_NETWORK(AvailableActions.GET_USER_NETWORK),
     GET_DEVICE(AvailableActions.GET_DEVICE),
     GET_DEVICE_STATE(AvailableActions.GET_DEVICE_STATE),
     GET_DEVICE_NOTIFICATION(AvailableActions.GET_DEVICE_NOTIFICATION),

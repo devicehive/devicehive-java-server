@@ -1,5 +1,6 @@
 package com.devicehive.auth;
 
+import com.devicehive.model.Subnet;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 
@@ -32,8 +33,14 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkClientIpAllowed(InetAddress clientIP, HivePrincipal principal) {
-        // fixme: subnets
-        return principal.getSubnets() == null || principal.getSubnets().isEmpty() || principal.getSubnets().contains(clientIP);
+        if (principal.getSubnets() != null && !principal.getSubnets().isEmpty()) {
+            for (String subnetStr : principal.getSubnets()) {
+                Subnet subnet = new Subnet(subnetStr);
+                if (subnet.isAddressFromSubnet(clientIP))
+                    return true;
+            }
+            return false;
+        } else return true;
     }
 
     private static boolean checkDomainAllowed(String clientDomain, HivePrincipal principal) {
