@@ -10,7 +10,6 @@ public class JwtCheckPermissionsHelper {
             HivePrincipal hivePrincipal,
             HiveAction action,
             Object targetDomainObject) {
-        if (hivePrincipal.getUser() != null && hivePrincipal.getUser().isAdmin()) return true;
 
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
         return checkActionAllowed(action, permittedActions)
