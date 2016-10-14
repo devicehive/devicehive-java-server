@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.*;
+
 /**
  * Class responsible for access and refresh JWT keys generation.
  */
@@ -34,7 +36,21 @@ public class JwtClientService {
                 .setSigningKey(secret)
                 .parseClaimsJws(jwtToken)
                 .getBody();
-        return (JwtPayload) claims.get(JwtPayload.JWT_CLAIM_KEY);
+        LinkedHashMap payloadMap = (LinkedHashMap) claims.get(JwtPayload.JWT_CLAIM_KEY);
+
+        Optional userId = Optional.ofNullable(payloadMap.get(JwtPayload.USER_ID));
+        Optional networkIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.NETWORK_IDS));
+        Optional actions = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.ACTIONS));
+        Optional deviceGuids = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_GUIDS));
+        Optional expiration = Optional.ofNullable((Long) payloadMap.get(JwtPayload.EXPIRATION));
+
+        JwtPayload.Builder builder = new JwtPayload.Builder();
+        if (userId.isPresent()) builder.withUserId(Long.valueOf(userId.get().toString()));
+        if (networkIds.isPresent()) builder.withNetworkIds(new HashSet<>((ArrayList) networkIds.get()));
+        if (actions.isPresent()) builder.withActions(new HashSet<>((ArrayList) actions.get()));
+        if (deviceGuids.isPresent()) builder.withDeviceGuids(new HashSet<>((ArrayList) deviceGuids.get()));
+        if (expiration.isPresent()) builder.withExpirationDate(new Date((Long) expiration.get()));
+        return  builder.buildPayload();
     }
 
 }

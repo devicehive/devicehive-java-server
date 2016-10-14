@@ -1,14 +1,14 @@
 package com.devicehive.resource;
 
+import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.vo.JwtTokenVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /**
  * REST controller for JwtToken.
@@ -19,12 +19,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_FORM_URLENCODED;
 @Produces({"application/json"})
 public interface JwtTokenResource {
 
-    String ACCESS_KEY = "access_key";
-    String REFRESH_TOKEN = "refresh_token";
-    String PASSWORD = "password";
-
     @POST
-    @Consumes(APPLICATION_FORM_URLENCODED)
+    @Consumes(APPLICATION_JSON)
     @PreAuthorize("permitAll")
     @ApiOperation(value = "JWT token request")
     @ApiResponses({
@@ -35,18 +31,7 @@ public interface JwtTokenResource {
     })
     Response tokenRequest(
             @ApiParam(name = "grant_type", value = "Grant type", required = true)
-            @QueryParam("grant_type")
-            @NotNull
-            String grantType,
-            @ApiParam(name = "access_key", value = "Access key", required = false)
-            @QueryParam("access_key")
-            String accessKey,
-            @ApiParam(name = "username", value = "User login", required = false)
-            @QueryParam("username")
-            String username,
-            @ApiParam(name = "password", value = "User password", required = false)
-            @QueryParam("password")
-            String password);
+            JwtPayload payload);
 }
 
 

@@ -1,12 +1,6 @@
 package com.devicehive.auth;
 
-import com.devicehive.model.Subnet;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-
-import java.net.InetAddress;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  */
@@ -15,15 +9,13 @@ public class JwtCheckPermissionsHelper {
     public static boolean checkPermissions(
             HivePrincipal hivePrincipal,
             HiveAction action,
-            InetAddress clientIP,
-            String clientDomain) {
+            Object targetDomainObject) {
+        if (hivePrincipal.getUser() != null && hivePrincipal.getUser().isAdmin()) return true;
+
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
-        if (!checkActionAllowed(action, permittedActions)) return false;
-        if (!checkClientIpAllowed(clientIP, hivePrincipal)) return false;
-        if (!checkDomainAllowed(clientDomain, hivePrincipal)) return false;
-        if (!checkNetworksAllowed(hivePrincipal)) return false;
-        if (!checkDeviceGuidsAllowed(hivePrincipal)) return false;
-        return true;
+        return checkActionAllowed(action, permittedActions)
+                && checkNetworksAllowed(hivePrincipal, targetDomainObject)
+                && checkDeviceGuidsAllowed(hivePrincipal, targetDomainObject);
     }
 
     private static boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
@@ -32,34 +24,19 @@ public class JwtCheckPermissionsHelper {
         return result;
     }
 
-    private static boolean checkClientIpAllowed(InetAddress clientIP, HivePrincipal principal) {
-        if (principal.getSubnets() != null && !principal.getSubnets().isEmpty()) {
-            for (String subnetStr : principal.getSubnets()) {
-                Subnet subnet = new Subnet(subnetStr);
-                if (subnet.isAddressFromSubnet(clientIP))
-                    return true;
-            }
-            return false;
-        } else return true;
-    }
-
-    private static boolean checkDomainAllowed(String clientDomain, HivePrincipal principal) {
-        return principal.getDomains() == null || principal.getDomains().isEmpty() || principal.getDomains().contains(clientDomain);
-    }
-
-    private static boolean checkNetworksAllowed(HivePrincipal principal) {
-        /*todo - add real check
-        boolean result = false;
-        Set<Long> networks = principal.getNetworks();
-        if (networks != null) result = !networks.stream().map(NetworkVO::getId).collect(Collectors.toSet()).isEmpty();*/
+    private static boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
+        if (principal.areAllNetworksAvailable()) return true;
+        else if (targetDomainObject instanceof Long) {
+            return principal.getNetworkIds() != null || principal.getNetworkIds().contains((Long) targetDomainObject);
+        }
         return true;
     }
 
-    private static boolean checkDeviceGuidsAllowed(HivePrincipal principal) {
-        /*todo - add real check
-        boolean result = false;
-        Set<String> devices = principal.getDevices();
-        if (devices != null) result = !devices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()).isEmpty();*/
+    private static boolean checkDeviceGuidsAllowed(HivePrincipal principal, Object targetDomainObject) {
+        if (principal.areAllDevicesAvailable()) return true;
+        else if (targetDomainObject instanceof String) {
+            return principal.getDeviceGuids() != null || principal.getDeviceGuids().contains((String) targetDomainObject);
+        }
         return true;
     }
 

@@ -22,14 +22,18 @@ public class HivePrincipal implements Principal {
     private Set<String> domains;
     private Set<Long> networkIds;
     private Set<String> deviceGuids;
+    private Boolean allNetworksAvailable;
+    private Boolean allDevicesAvailable;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceGuids) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceGuids, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
         this.user = user;
         this.actions = actions;
         this.subnets = subnets;
         this.domains = domains;
         this.networkIds = networkIds;
         this.deviceGuids = deviceGuids;
+        this.allNetworksAvailable = allNetworksAvailable != null;
+        this.allDevicesAvailable = allDevicesAvailable != null;
     }
 
     public HivePrincipal(Set<HiveAction> actions) {
@@ -84,12 +88,28 @@ public class HivePrincipal implements Principal {
         this.networkIds = networkIds;
     }
 
+    public Boolean areAllNetworksAvailable() {
+        return allNetworksAvailable;
+    }
+
+    public void setAllNetworksAvailable(Boolean allNetworksAvailable) {
+        this.allNetworksAvailable = allNetworksAvailable;
+    }
+
     public Set<String> getDeviceGuids() {
         return deviceGuids;
     }
 
     public void setDeviceGuids(Set<String> deviceGuids) {
         this.deviceGuids = deviceGuids;
+    }
+
+    public Boolean areAllDevicesAvailable() {
+        return allDevicesAvailable;
+    }
+
+    public void setAllDevicesAvailable(Boolean allDevicesAvailable) {
+        this.allDevicesAvailable = allDevicesAvailable;
     }
 
     public void addDevice(String device) {
@@ -100,11 +120,11 @@ public class HivePrincipal implements Principal {
     }
 
     public boolean hasAccessToNetwork(long networkId) {
-        return networkIds.contains(networkId);
+        return allNetworksAvailable || networkIds.contains(networkId);
     }
 
     public boolean hasAccessToDevice(String deviceGuid) {
-        return deviceGuids.contains(deviceGuid);
+        return allDevicesAvailable || deviceGuids.contains(deviceGuid);
     }
 
     @Override

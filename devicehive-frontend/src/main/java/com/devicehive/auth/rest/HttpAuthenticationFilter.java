@@ -55,10 +55,8 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
                 String header = authHeader.get();
                 if (header.startsWith(Constants.BASIC_AUTH_SCHEME)) {
                     processBasicAuth(header);
-                } else if (header.startsWith(Constants.OAUTH_AUTH_SCEME)) {
-                    processKeyAuth(authHeader.get().substring(6).trim());
-                } else if (header.startsWith("Token")) { //todo is this proper header?? If yes, replace with constant
-                    processJwtAuth(authHeader.get().substring(5).trim());
+                } else if (header.startsWith(Constants.TOKEN_SCHEME)) {
+                    processJwtAuth(authHeader.get().substring(6).trim());
                 }
             } else {
                 processAnonymousAuth();

@@ -20,12 +20,8 @@ public class JwtPermissionEvaluator implements PermissionEvaluator {
             HivePrincipal hivePrincipal = (HivePrincipal) hiveAuthentication.getPrincipal();
             HiveAction action = HiveAction.valueOf(permission.toString().trim());
             logger.debug("Checking {} for permissions {}", authentication.getName(), hivePrincipal.getActions());
-            HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
             boolean permissionAllowed = JwtCheckPermissionsHelper.checkPermissions(
-                    hivePrincipal,
-                    action,
-                    details.getClientInetAddress(),
-                    details.getOrigin());
+                    hivePrincipal, action, targetDomainObject);
             if (!permissionAllowed) {
                 logger.warn("Principal doesn't have required permission {}. Access denied", permission);
                 return false;

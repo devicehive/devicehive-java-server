@@ -2,12 +2,12 @@ package com.devicehive.resource.impl;
 
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.vo.AccessToken;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.OAuthTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.OAuthGrantService;
 import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.AccessToken;
 import com.devicehive.vo.OAuthClientVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 
-import static com.devicehive.configuration.Constants.OAUTH_AUTH_SCEME;
+import static com.devicehive.configuration.Constants.TOKEN_SCHEME;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
@@ -53,7 +53,7 @@ public class OAuthTokenResourceImpl implements OAuthTokenResource {
                 return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(), Messages.INVALID_GRANT_TYPE));
         }
         AccessToken token = new AccessToken();
-        token.setTokenType(OAUTH_AUTH_SCEME);
+        token.setTokenType(TOKEN_SCHEME);
         token.setAccessToken(key.getKey());
         Long expiresIn = key.getExpirationDate() == null
                          ? null

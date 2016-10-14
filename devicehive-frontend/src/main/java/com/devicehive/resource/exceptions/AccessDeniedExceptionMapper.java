@@ -24,7 +24,7 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
     public Response toResponse(AccessDeniedException exception) {
         String realm = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
                 .map(authHeader -> {
-                    if (authHeader.startsWith(Constants.OAUTH_AUTH_SCEME)) {
+                    if (authHeader.startsWith(Constants.TOKEN_SCHEME)) {
                         return Messages.OAUTH_REALM;
                     } else {
                         return Messages.BASIC_REALM;

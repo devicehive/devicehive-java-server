@@ -1,20 +1,42 @@
 package com.devicehive.security.jwt;
 
-import com.devicehive.auth.HiveAction;
 import com.devicehive.configuration.Constants;
+import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
 /**
  * Common JWT entity
+ * Structure must be as provided below:
+ * {
+ *     "user_id": user_id,
+ *     "actions": ["action1","action2","actionN"],
+ *     "network_ids": ["id1","id2","idN"],
+ *     "device_guids": ["guid1","guid2","guidN"],
+ *     "exp": "2016-10-13T14:56:24.067Z"
+ * }
+ *
+ * To get admin permissions (to all actions, networks, etc) you have to specify "*" for string parameters:
+ * {
+ *     "user_id": user_id,
+ *     "actions": ["*"],
+ *     "network_ids": ["*"],
+ *     "device_guids": ["*"],
+ *     "exp": "2099-01-01T11:00:00.000Z"
+ * }
  */
-public class JwtPayload implements Serializable {
+public class JwtPayload implements HiveEntity {
 
     private static final long serialVersionUID = -6904689203121394308L;
     public static final String JWT_CLAIM_KEY = "payload";
+
+    public final static String USER_ID = "userId";
+    public final static String ACTIONS = "actions";
+    public final static String NETWORK_IDS = "networkIds";
+    public final static String DEVICE_GUIDS = "deviceGuids";
+    public final static String EXPIRATION = "expiration";
 
     //Public claims
 
@@ -22,36 +44,24 @@ public class JwtPayload implements Serializable {
     private Long userId;
 
     @SerializedName("actions")
-    private Set<HiveAction> actions;
-
-    @SerializedName("subnets")
-    private Set<String> subnets;
-
-    @SerializedName("domains")
-    private Set<String> domains;
+    private Set<String> actions;
 
     @SerializedName("network_ids")
-    private Set<Long> networkIds;
+    private Set<String> networkIds;
 
     @SerializedName("device_guids")
     private Set<String> deviceGuids;
-
-    @SerializedName("type")
-    private TokenType type;
 
     //Registered claims
     @SerializedName("exp")
     private Date expiration;
 
-    private JwtPayload(Long userId, Set<HiveAction> actions, Set<String> subnets, Set<String> domains,
-                      Set<Long> networkIds, Set<String> deviceGuids, TokenType type, Date expiration) {
+    private JwtPayload(Long userId, Set<String> actions, Set<String> networkIds,
+                       Set<String> deviceGuids, Date expiration) {
         this.userId = userId;
         this.actions = actions;
-        this.subnets = subnets;
-        this.domains = domains;
         this.networkIds = networkIds;
         this.deviceGuids = deviceGuids;
-        this.type = type;
         this.expiration = expiration;
     }
 
@@ -63,35 +73,19 @@ public class JwtPayload implements Serializable {
         this.userId = userId;
     }
 
-    public Set<HiveAction> getActions() {
+    public Set<String> getActions() {
         return actions;
     }
 
-    public void setActions(Set<HiveAction> actions) {
+    public void setActions(Set<String> actions) {
         this.actions = actions;
     }
 
-    public Set<String> getSubnets() {
-        return subnets;
-    }
-
-    public void setSubnets(Set<String> subnets) {
-        this.subnets = subnets;
-    }
-
-    public Set<String> getDomains() {
-        return domains;
-    }
-
-    public void setDomains(Set<String> domains) {
-        this.domains = domains;
-    }
-
-    public Set<Long> getNetworkIds() {
+    public Set<String> getNetworkIds() {
         return networkIds;
     }
 
-    public void setNetworkIds(Set<Long> networkIds) {
+    public void setNetworkIds(Set<String> networkIds) {
         this.networkIds = networkIds;
     }
 
@@ -101,14 +95,6 @@ public class JwtPayload implements Serializable {
 
     public void setDeviceGuids(Set<String> deviceGuids) {
         this.deviceGuids = deviceGuids;
-    }
-
-    public TokenType getType() {
-        return type;
-    }
-
-    public void setType(TokenType type) {
-        this.type = type;
     }
 
     public Date getExpiration() {
@@ -125,20 +111,15 @@ public class JwtPayload implements Serializable {
 
     public static class Builder {
         private Long userId;
-        private Set<HiveAction> actions;
-        private Set<String> subnets;
-        private Set<String> domains;
-        private Set<Long> networkIds;
+        private Set<String> actions;
+        private Set<String> networkIds;
         private Set<String> deviceGuids;
-        private TokenType type;
         private Date expiration;
 
-        public Builder withPublicClaims(Long userId, Set<HiveAction> actions, Set<String> subnets, Set<String> domains,
-                       Set<Long> networkIds, Set<String> deviceGuids) {
+        public Builder withPublicClaims(Long userId, Set<String> actions,
+                                        Set<String> networkIds, Set<String> deviceGuids) {
             this.userId = userId;
             this.actions = actions;
-            this.subnets = subnets;
-            this.domains = domains;
             this.networkIds = networkIds;
             this.deviceGuids = deviceGuids;
             return this;
@@ -149,22 +130,12 @@ public class JwtPayload implements Serializable {
             return this;
         }
 
-        public Builder withActions(Set<HiveAction> actions) {
+        public Builder withActions(Set<String> actions) {
             this.actions = actions;
             return this;
         }
 
-        public Builder withSubnets(Set<String> subnets) {
-            this.subnets = subnets;
-            return this;
-        }
-
-        public Builder withDomains(Set<String> domains) {
-            this.domains = domains;
-            return this;
-        }
-
-        public Builder withNetworkIds(Set<Long> networkIds) {
+        public Builder withNetworkIds(Set<String> networkIds) {
             this.networkIds = networkIds;
             return this;
         }
@@ -180,21 +151,19 @@ public class JwtPayload implements Serializable {
         }
 
         public JwtPayload buildRefreshToken() {
-            type = TokenType.REFRESH;
             if (expiration == null) {
                 expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE);
             }
 
-            return new JwtPayload(userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
+            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration);
         }
 
-        public JwtPayload buildAccessToken() {
-            type = TokenType.ACCESS;
+        public JwtPayload buildPayload() {
             if (expiration == null) {
                 expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE);
             }
 
-            return new JwtPayload(userId, actions, subnets, domains, networkIds, deviceGuids, type, expiration);
+            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration);
         }
     }
 }

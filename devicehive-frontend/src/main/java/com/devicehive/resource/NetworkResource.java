@@ -89,7 +89,7 @@ public interface NetworkResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'GET_NETWORK')")
     @ApiOperation(value = "Get network", notes = "Gets information about device network and its devices.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),

@@ -51,7 +51,6 @@ public class NetworkService {
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public NetworkWithUsersAndDevicesVO getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
-        HiveAuthentication.HiveAuthDetails details = (HiveAuthentication.HiveAuthDetails) hiveAuthentication.getDetails();
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
         Set<Long> permittedNetworks = principal.getNetworkIds();

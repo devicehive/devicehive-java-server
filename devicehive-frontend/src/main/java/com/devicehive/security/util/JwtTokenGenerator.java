@@ -33,7 +33,7 @@ public class JwtTokenGenerator {
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS512, secret)
+                .signWith(SignatureAlgorithm.HS256, secret)
                 .compact();
     }
 }

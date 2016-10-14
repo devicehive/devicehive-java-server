@@ -137,10 +137,9 @@ public class CommonHandlers {
                 UserVO userVO = userService.findById(jwtPayload.getUserId());
                 principal.setUser(userVO);
             }
-            principal.setActions(jwtPayload.getActions());
-            principal.setDomains(jwtPayload.getDomains());
-            principal.setSubnets(jwtPayload.getSubnets());
-            principal.setNetworkIds(jwtPayload.getNetworkIds());
+            // TODO: Ad checks similar to JwtTokenAuthenticationProvider.java
+//            principal.setActions(jwtPayload.getActions());
+//            principal.setNetworkIds(jwtPayload.getNetworkIds());
             principal.setDeviceGuids(jwtPayload.getDeviceGuids());
             authentication.setHivePrincipal(principal);
         } else if (deviceId != null) {
