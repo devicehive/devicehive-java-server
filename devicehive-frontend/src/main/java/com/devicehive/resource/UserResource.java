@@ -202,7 +202,7 @@ public interface UserResource {
      */
     @GET
     @Path("/{id}/network/{networkId}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_USER_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get user's network", notes = "Gets information about user/network association.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
