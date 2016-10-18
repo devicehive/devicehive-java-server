@@ -22,8 +22,8 @@ public class HivePrincipal implements Principal {
     private Set<String> domains;
     private Set<Long> networkIds;
     private Set<String> deviceGuids;
-    private Boolean allNetworksAvailable;
-    private Boolean allDevicesAvailable;
+    private Boolean allNetworksAvailable = false;
+    private Boolean allDevicesAvailable = false;
 
     public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceGuids, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
         this.user = user;
@@ -32,8 +32,12 @@ public class HivePrincipal implements Principal {
         this.domains = domains;
         this.networkIds = networkIds;
         this.deviceGuids = deviceGuids;
-        this.allNetworksAvailable = allNetworksAvailable != null;
-        this.allDevicesAvailable = allDevicesAvailable != null;
+        if (allNetworksAvailable != null) {
+            this.allNetworksAvailable = allNetworksAvailable;
+        }
+        if (allDevicesAvailable != null) {
+            this.allDevicesAvailable = allDevicesAvailable;
+        }
     }
 
     public HivePrincipal(Set<HiveAction> actions) {

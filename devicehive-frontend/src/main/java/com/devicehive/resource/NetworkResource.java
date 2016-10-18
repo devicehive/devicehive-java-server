@@ -160,7 +160,7 @@ public interface NetworkResource {
      */
     @PUT
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Update network", notes = "Updates an existing device network.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
@@ -182,7 +182,7 @@ public interface NetworkResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Delete network", notes = "Deletes an existing device network.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),

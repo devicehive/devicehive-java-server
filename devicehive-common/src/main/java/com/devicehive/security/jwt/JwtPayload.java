@@ -11,20 +11,20 @@ import java.util.Set;
  * Common JWT entity
  * Structure must be as provided below:
  * {
- *     "user_id": user_id,
+ *     "userId": user_id,
  *     "actions": ["action1","action2","actionN"],
- *     "network_ids": ["id1","id2","idN"],
- *     "device_guids": ["guid1","guid2","guidN"],
- *     "exp": "2016-10-13T14:56:24.067Z"
+ *     "networkIds": ["id1","id2","idN"],
+ *     "deviceGuids": ["guid1","guid2","guidN"],
+ *     "expiration": "2016-10-13T14:56:24.067Z"
  * }
  *
  * To get admin permissions (to all actions, networks, etc) you have to specify "*" for string parameters:
  * {
- *     "user_id": user_id,
+ *     "userId": user_id,
  *     "actions": ["*"],
- *     "network_ids": ["*"],
- *     "device_guids": ["*"],
- *     "exp": "2099-01-01T11:00:00.000Z"
+ *     "networkIds": ["*"],
+ *     "deviceGuids": ["*"],
+ *     "expiration": "2099-01-01T11:00:00.000Z"
  * }
  */
 public class JwtPayload implements HiveEntity {
@@ -40,20 +40,20 @@ public class JwtPayload implements HiveEntity {
 
     //Public claims
 
-    @SerializedName("user_id")
+    @SerializedName("userId")
     private Long userId;
 
     @SerializedName("actions")
     private Set<String> actions;
 
-    @SerializedName("network_ids")
+    @SerializedName("networkIds")
     private Set<String> networkIds;
 
-    @SerializedName("device_guids")
+    @SerializedName("deviceGuids")
     private Set<String> deviceGuids;
 
     //Registered claims
-    @SerializedName("exp")
+    @SerializedName("expiration")
     private Date expiration;
 
     private JwtPayload(Long userId, Set<String> actions, Set<String> networkIds,
