@@ -1,8 +1,6 @@
 package com.devicehive.shim.kafka.client;
 
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.kafka.serializer.ResponseSerializer;
-import com.google.gson.Gson;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;

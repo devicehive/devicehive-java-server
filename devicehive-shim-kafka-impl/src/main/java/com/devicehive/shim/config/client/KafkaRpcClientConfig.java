@@ -10,6 +10,12 @@ import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.google.gson.Gson;
+import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.ZkConnection;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -63,6 +69,9 @@ public class KafkaRpcClientConfig {
     @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
+    @Value("${zookeeper.servers:127.0.0.1:2181}")
+    private String zookeeperConnect;
+
     @Bean
     public RequestResponseMatcher requestResponseMatcher() {
         return new RequestResponseMatcher();
@@ -98,6 +107,7 @@ public class KafkaRpcClientConfig {
 
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
+        createTopic(zookeeperConnect, RESPONSE_TOPIC);
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
         return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
@@ -116,5 +126,21 @@ public class KafkaRpcClientConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
+    }
+
+    private void createTopic(String zookeeperConnect, String topic) {
+        int sessionTimeoutMs = 10 * 1000;
+        int connectionTimeoutMs = 8 * 1000;
+        ZkClient zkClient = new ZkClient(
+                zookeeperConnect,
+                sessionTimeoutMs,
+                connectionTimeoutMs,
+                ZKStringSerializer$.MODULE$);
+        ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
+        Integer partitions = 1;
+        Integer replication = 1;
+        Properties topicConfig = new Properties();
+        AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+        zkClient.close();
     }
 }
