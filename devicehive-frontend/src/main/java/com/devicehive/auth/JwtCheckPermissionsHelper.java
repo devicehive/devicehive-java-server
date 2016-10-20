@@ -26,7 +26,7 @@ public class JwtCheckPermissionsHelper {
     private static boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
         if (principal.areAllNetworksAvailable()) return true;
         else if (targetDomainObject instanceof Long) {
-            return principal.getNetworkIds() != null || principal.getNetworkIds().contains((Long) targetDomainObject);
+            return principal.getNetworkIds() != null && principal.getNetworkIds().contains((Long) targetDomainObject);
         }
         return true;
     }
@@ -34,7 +34,7 @@ public class JwtCheckPermissionsHelper {
     private static boolean checkDeviceGuidsAllowed(HivePrincipal principal, Object targetDomainObject) {
         if (principal.areAllDevicesAvailable()) return true;
         else if (targetDomainObject instanceof String) {
-            return principal.getDeviceGuids() != null || principal.getDeviceGuids().contains((String) targetDomainObject);
+            return principal.getDeviceGuids() != null && principal.getDeviceGuids().contains((String) targetDomainObject);
         }
         return true;
     }

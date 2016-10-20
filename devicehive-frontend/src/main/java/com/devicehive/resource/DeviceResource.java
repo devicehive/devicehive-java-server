@@ -129,7 +129,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
             response = DeviceVO.class)
     @ApiResponses({
@@ -153,7 +153,7 @@ public interface DeviceResource {
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
