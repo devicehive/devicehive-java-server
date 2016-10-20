@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
-    public static String RESPONSE_TOPIC;
+    private static String RESPONSE_TOPIC;
 
     static {
         try {
@@ -136,11 +136,16 @@ public class KafkaRpcClientConfig {
                 sessionTimeoutMs,
                 connectionTimeoutMs,
                 ZKStringSerializer$.MODULE$);
-        ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-        Integer partitions = 1;
-        Integer replication = 1;
-        Properties topicConfig = new Properties();
-        AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
-        zkClient.close();
+        try {
+            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
+            Integer partitions = 1;
+            Integer replication = 1;
+            Properties topicConfig = new Properties();
+            if (!AdminUtils.topicExists(zkUtils, topic)) {
+                AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+            }
+        } finally {
+            zkClient.close();
+        }
     }
 }
