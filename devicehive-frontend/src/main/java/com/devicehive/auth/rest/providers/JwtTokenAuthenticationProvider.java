@@ -6,6 +6,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
@@ -44,7 +45,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             JwtPayload jwtPayload = jwtClientService.getPayload(token);
 
             if (jwtPayload == null ||
-                    (jwtPayload.getExpiration() != null && jwtPayload.getExpiration().before(timestampService.getDate()))) {
+                    (jwtPayload.getExpiration() != null
+                            && jwtPayload.getExpiration().before(timestampService.getDate())
+                            && jwtPayload.getTokenType().equals(TokenType.REFRESH))) {
                 throw new BadCredentialsException("Unauthorized");
             }
             logger.debug("Jwt token authentication successful");
@@ -56,7 +59,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             }
 
             Set<String> networkIds = jwtPayload.getNetworkIds();
-            if (networkIds != null ) {
+            if (networkIds != null) {
                 if (networkIds.contains("*")) {
                     principal.setAllNetworksAvailable(true);
                 } else {

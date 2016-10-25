@@ -17,6 +17,7 @@ import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,7 +94,12 @@ public class CommonHandlers {
         JwtPayload jwtPayload = null;
         if (request.get("token") != null) {
             jwtToken = request.get("token").getAsString();
-            jwtPayload = jwtClientService.getPayload(jwtToken);
+            try {
+                jwtPayload = jwtClientService.getPayload(jwtToken);
+            } catch (MalformedJwtException e) {
+                logger.error(e.getMessage(), e);
+                throw new BadCredentialsException("Unauthorized");
+            }
         }
 
 //        logger.debug("authenticate action for {} ", login);
