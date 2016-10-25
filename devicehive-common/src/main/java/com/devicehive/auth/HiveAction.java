@@ -23,6 +23,7 @@ public enum HiveAction {
     MANAGE_DEVICE_CLASS(AvailableActions.MANAGE_DEVICE_CLASS),
     MANAGE_NETWORK(AvailableActions.MANAGE_NETWORK),
     MANAGE_OAUTH_CLIENT(AvailableActions.MANAGE_OAUTH_CLIENT),
+    MANAGE_TOKEN(AvailableActions.MANAGE_TOKEN),
     NONE(null);
 
     private String value;

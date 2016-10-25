@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.CREATED;
 
 @Service
 public class JwtTokenResourceImpl implements JwtTokenResource {
@@ -47,6 +47,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         tokenVO.setToken(tokenService.generateJwtAccessToken(payload));
 
-        return ResponseFactory.response(OK, tokenVO, JsonPolicyDef.Policy.JWT_TOKEN_SUBMITTED);
+        return ResponseFactory.response(CREATED, tokenVO, JsonPolicyDef.Policy.JWT_TOKEN_SUBMITTED);
     }
 }

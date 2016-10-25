@@ -21,10 +21,10 @@ public interface JwtTokenResource {
 
     @POST
     @Consumes(APPLICATION_JSON)
-    @PreAuthorize("permitAll")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     @ApiOperation(value = "JWT token request")
     @ApiResponses({
-            @ApiResponse(code = 200,
+            @ApiResponse(code = 201,
                     message = "If successful, this method returns a JWT token in the response body.",
                     response = JwtTokenVO.class),
         @ApiResponse(code = 404, message = "If access token not found")

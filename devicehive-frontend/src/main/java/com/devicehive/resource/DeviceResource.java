@@ -182,7 +182,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}/equipment")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_STATE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
     @ApiOperation(value = "Get device's equipment", notes = "Gets current state of device equipment.\n" +
             "The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:\n" +
             "equipment: equipment code\n" +
@@ -212,7 +212,7 @@ public interface DeviceResource {
      */
     @GET
     @Path("/{id}/equipment/{code}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_STATE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
     @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",
