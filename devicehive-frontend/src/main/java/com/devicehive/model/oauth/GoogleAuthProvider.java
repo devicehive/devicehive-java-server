@@ -4,14 +4,11 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
+import com.devicehive.service.OAuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.configuration.ConfigurationService;
-import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.IdentityProviderVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.*;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonElement;
@@ -52,7 +49,7 @@ public class GoogleAuthProvider extends AuthProvider {
     @Autowired
     private UserService userService;
     @Autowired
-    private AccessKeyService accessKeyService;
+    private OAuthTokenService tokenService;
     @Autowired
     private IdentityProviderUtils identityProviderUtils;
 
@@ -67,12 +64,12 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKeyVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (isIdentityProviderAllowed()) {
             final String accessToken = request.getAccessToken() == null ? getAccessToken(request.getCode(), request.getRedirectUri()) : request.getAccessToken();
             final String userEmail = getIdentityProviderEmail(accessToken);
             final UserVO user = findUser(userEmail);
-            return accessKeyService.authenticate(user);
+            return tokenService.authenticate(user);
         }
         logger.error(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GOOGLE_PROVIDER_NAME));
         throw new HiveException(String.format(Messages.IDENTITY_PROVIDER_NOT_ALLOWED, GOOGLE_PROVIDER_NAME),

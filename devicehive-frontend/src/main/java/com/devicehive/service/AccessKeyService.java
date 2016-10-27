@@ -165,36 +165,6 @@ public class AccessKeyService {
         return accessKey;
     }
 
-    public AccessKeyVO createAccessKey(@NotNull AccessKeyRequestVO request, IdentityProviderEnum identityProviderEnum) {
-        switch (identityProviderEnum) {
-            case GOOGLE:
-                return googleAuthProvider.createAccessKey(request);
-            case FACEBOOK:
-                return facebookAuthProvider.createAccessKey(request);
-            case GITHUB:
-                return githubAuthProvider.createAccessKey(request);
-            case PASSWORD:
-            default:
-                return passwordIdentityProvider.createAccessKey(request);
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public AccessKeyVO authenticate(@NotNull UserVO user) {
-        userService.refreshUserLoginData(user);
-
-        AccessKeyVO accessKey = authenticationUtils.prepareAccessKey(user);
-
-        Set<AccessKeyPermissionVO> permissions = new HashSet<>();
-        final AccessKeyPermissionVO permission = authenticationUtils.preparePermission(user.getRole());
-        permissions.add(permission);
-        accessKey.setPermissions(permissions);
-        accessKeyDao.persist(accessKey);
-
-        accessKeyDao.persist(accessKey, permission);
-        return accessKey;
-    }
-
     @Transactional(propagation = Propagation.SUPPORTS)
     public AccessKeyVO find(@NotNull Long keyId, @NotNull Long userId) {
         return accessKeyDao.getById(keyId, userId);

@@ -309,59 +309,6 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_create_external_access_key_for_admin() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
-
-        AccessKeyVO accessKey = accessKeyService.authenticate(user);
-        assertThat(accessKey, notNullValue());
-        assertThat(accessKey.getId(), notNullValue());
-        assertThat(accessKey.getLabel(), notNullValue());
-        assertThat(accessKey.getKey(), notNullValue());
-        assertThat(accessKey.getUser(), notNullValue());
-        assertThat(accessKey.getUser().getId(), equalTo(user.getId()));
-        assertThat(accessKey.getExpirationDate(), notNullValue());
-        assertThat(accessKey.getType(), equalTo(AccessKeyType.SESSION));
-
-        assertThat(accessKey.getPermissions(), hasSize(1));
-        AccessKeyPermissionVO permission = accessKey.getPermissions().stream().findFirst().get();
-        assertThat(permission.getActions(), nullValue());
-        assertThat(permission.getDeviceGuids(), nullValue());
-        assertThat(permission.getNetworkIds(), nullValue());
-        assertThat(permission.getDomains(), nullValue());
-        assertThat(permission.getSubnets(), nullValue());
-    }
-
-    @Test
-    public void should_create_external_access_key_for_client() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        AccessKeyVO accessKey = accessKeyService.authenticate(user);
-        assertThat(accessKey, notNullValue());
-        assertThat(accessKey.getId(), notNullValue());
-        assertThat(accessKey.getLabel(), notNullValue());
-        assertThat(accessKey.getKey(), notNullValue());
-        assertThat(accessKey.getUser(), notNullValue());
-        assertThat(accessKey.getUser().getId(), equalTo(user.getId()));
-        assertThat(accessKey.getExpirationDate(), notNullValue());
-        assertThat(accessKey.getType(), equalTo(AccessKeyType.SESSION));
-
-        assertThat(accessKey.getPermissions(), hasSize(1));
-        AccessKeyPermissionVO permission = accessKey.getPermissions().stream().findFirst().get();
-        assertThat(permission.getActionsAsSet(), Matchers.hasSize(AvailableActions.getClientActions().length));
-        assertThat(permission.getActionsAsSet(), Matchers.hasItems(AvailableActions.getClientActions()));
-        assertThat(permission.getDeviceGuids(), nullValue());
-        assertThat(permission.getNetworkIds(), nullValue());
-        assertThat(permission.getDomains(), nullValue());
-        assertThat(permission.getSubnets(), nullValue());
-    }
-
-    @Test
     public void should_return_access_key_by_user_id_and_key_id() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));

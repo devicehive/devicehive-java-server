@@ -4,14 +4,11 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.service.AccessKeyService;
 import com.devicehive.service.IdentityProviderService;
+import com.devicehive.service.OAuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.configuration.ConfigurationService;
-import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.vo.AccessKeyVO;
-import com.devicehive.vo.IdentityProviderVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.*;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.gson.JsonArray;
@@ -56,7 +53,7 @@ public class GithubAuthProvider extends AuthProvider {
     @Autowired
     private UserService userService;
     @Autowired
-    private AccessKeyService accessKeyService;
+    private OAuthTokenService tokenService;
     @Autowired
     private IdentityProviderUtils identityProviderUtils;
 
@@ -71,13 +68,13 @@ public class GithubAuthProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKeyVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (isIdentityProviderAllowed()) {
             if (request.getCode() != null) {
                 final String accessToken = getAccessToken(request.getCode());
                 final String email = getIdentityProviderEmail(accessToken);
                 final UserVO user = findUser(email);
-                return accessKeyService.authenticate(user);
+                return tokenService.authenticate(user);
             }
             logger.error(Messages.INVALID_AUTH_CODE);
             throw new HiveException(Messages.INVALID_AUTH_CODE, Response.Status.BAD_REQUEST.getStatusCode());

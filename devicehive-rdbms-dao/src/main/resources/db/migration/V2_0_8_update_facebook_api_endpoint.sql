@@ -1,0 +1,1 @@
+UPDATE identity_provider SET api_endpoint = 'https://graph.facebook.com/me?fields=email' WHERE name = 'facebook';

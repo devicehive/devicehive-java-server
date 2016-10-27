@@ -2,10 +2,10 @@ package com.devicehive.model.oauth;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.service.AccessKeyService;
+import com.devicehive.service.OAuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class PasswordIdentityProvider extends AuthProvider {
     @Autowired
     private UserService userService;
     @Autowired
-    private AccessKeyService accessKeyService;
+    private OAuthTokenService tokenService;
 
     @Override
     public boolean isIdentityProviderAllowed() {
@@ -36,13 +36,13 @@ public class PasswordIdentityProvider extends AuthProvider {
     }
 
     @Override
-    public AccessKeyVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
         final UserVO user = findUser(request.getLogin(), request.getPassword());
-        return accessKeyService.authenticate(user);
+        return tokenService.authenticate(user);
     }
 
     private UserVO findUser(String login, String password) {
