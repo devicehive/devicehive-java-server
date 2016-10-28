@@ -22,16 +22,30 @@ public interface JwtTokenResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
-    @ApiOperation(value = "JWT token request")
+    @ApiOperation(value = "JWT access and refresh token request")
     @ApiResponses({
             @ApiResponse(code = 201,
-                    message = "If successful, this method returns a JWT token in the response body.",
+                    message = "If successful, this method returns a JWT access and refresh token in the response body.",
                     response = JwtTokenVO.class),
-        @ApiResponse(code = 404, message = "If access token not found")
+            @ApiResponse(code = 404, message = "If access token not found")
     })
     Response tokenRequest(
-            @ApiParam(name = "grant_type", value = "Grant type", required = true)
+            @ApiParam(name = "payload", value = "Payload", required = true)
             JwtPayload payload);
-}
 
+    @POST
+    @Path("/refresh")
+    @Consumes(APPLICATION_JSON)
+    @PreAuthorize("permitAll")
+    @ApiOperation(value = "JWT access token request with refresh token")
+    @ApiResponses({
+            @ApiResponse(code = 201,
+                    message = "If successful, this method returns a JWT access token in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 404, message = "If access token not found")
+    })
+    Response refreshTokenRequest(
+            @ApiParam(name = "refresh_token", value = "Refresh token", required = true)
+            String token);
+}
 

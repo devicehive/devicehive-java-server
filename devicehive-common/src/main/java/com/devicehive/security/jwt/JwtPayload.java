@@ -1,8 +1,8 @@
 package com.devicehive.security.jwt;
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
 import java.util.Set;
@@ -14,8 +14,7 @@ import java.util.Set;
  *     "userId": user_id,
  *     "actions": ["action1","action2","actionN"],
  *     "networkIds": ["id1","id2","idN"],
- *     "deviceGuids": ["guid1","guid2","guidN"],
- *     "expiration": "2016-10-13T14:56:24.067Z"
+ *     "deviceGuids": ["guid1","guid2","guidN"]
  * }
  *
  * To get admin permissions (to all actions, networks, etc) you have to specify "*" for string parameters:
@@ -23,8 +22,7 @@ import java.util.Set;
  *     "userId": user_id,
  *     "actions": ["*"],
  *     "networkIds": ["*"],
- *     "deviceGuids": ["*"],
- *     "expiration": "2099-01-01T11:00:00.000Z"
+ *     "deviceGuids": ["*"]
  * }
  */
 public class JwtPayload implements HiveEntity {
@@ -37,6 +35,7 @@ public class JwtPayload implements HiveEntity {
     public final static String NETWORK_IDS = "networkIds";
     public final static String DEVICE_GUIDS = "deviceGuids";
     public final static String EXPIRATION = "expiration";
+    public final static String TOKEN_TYPE = "tokenType";
 
     //Public claims
 
@@ -53,16 +52,23 @@ public class JwtPayload implements HiveEntity {
     private Set<String> deviceGuids;
 
     //Registered claims
+
     @SerializedName("expiration")
+    @ApiModelProperty(hidden = true)
     private Date expiration;
 
+    @SerializedName("tokenType")
+    @ApiModelProperty(hidden = true)
+    private TokenType tokenType;
+
     private JwtPayload(Long userId, Set<String> actions, Set<String> networkIds,
-                       Set<String> deviceGuids, Date expiration) {
+                       Set<String> deviceGuids, Date expiration, TokenType tokenType) {
         this.userId = userId;
         this.actions = actions;
         this.networkIds = networkIds;
         this.deviceGuids = deviceGuids;
         this.expiration = expiration;
+        this.tokenType = tokenType;
     }
 
     public Long getUserId() {
@@ -100,9 +106,17 @@ public class JwtPayload implements HiveEntity {
     public Date getExpiration() {
         return expiration;
     }
-
+    
     public void setExpiration(Date expiration) {
         this.expiration = expiration;
+    }
+
+    public TokenType getTokenType() {
+        return tokenType;
+    }
+    
+    public void setTokenType(TokenType tokenType) {
+        this.tokenType = tokenType;
     }
 
     public static Builder newBuilder() {
@@ -115,6 +129,7 @@ public class JwtPayload implements HiveEntity {
         private Set<String> networkIds;
         private Set<String> deviceGuids;
         private Date expiration;
+        private TokenType tokenType;
 
         public Builder withPublicClaims(Long userId, Set<String> actions,
                                         Set<String> networkIds, Set<String> deviceGuids) {
@@ -145,25 +160,18 @@ public class JwtPayload implements HiveEntity {
             return this;
         }
 
+        public Builder withTokenType(TokenType tokenType) {
+            this.tokenType = tokenType;
+            return this;
+        }
+
         public Builder withExpirationDate(Date expiration) {
             this.expiration = expiration;
             return this;
         }
 
-        public JwtPayload buildRefreshToken() {
-            if (expiration == null) {
-                expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_REFRESH_TOKEN_MAX_AGE);
-            }
-
-            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration);
-        }
-
         public JwtPayload buildPayload() {
-            if (expiration == null) {
-                expiration = new Date(System.currentTimeMillis() + Constants.DEFAULT_JWT_ACCESS_TOKEN_MAX_AGE);
-            }
-
-            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration);
+            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration, tokenType);
         }
     }
 }
