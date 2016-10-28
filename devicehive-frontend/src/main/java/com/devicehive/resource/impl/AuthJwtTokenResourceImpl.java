@@ -24,6 +24,6 @@ public class AuthJwtTokenResourceImpl implements AuthJwtTokenResource {
     public Response login(AccessKeyRequestVO request) {
         final IdentityProviderEnum identityProviderEnum = IdentityProviderEnum.forName(request.getProviderName());
         JwtTokenVO jwtToken = tokenService.createAccessKey(request, identityProviderEnum);
-        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_TOKEN_SUBMITTED);
+        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }

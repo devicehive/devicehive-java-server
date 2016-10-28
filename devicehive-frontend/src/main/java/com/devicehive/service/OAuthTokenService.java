@@ -78,7 +78,7 @@ public class OAuthTokenService {
                 .withDeviceGuids(deviceGuids)
                 .buildPayload();
 
-        tokenVO.setToken(tokenService.generateJwtAccessToken(payload));
+        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
         return tokenVO;
     }
 }
