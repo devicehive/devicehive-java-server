@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -55,7 +56,7 @@ public class NotificationHandlers {
     private Gson gson;
 
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -116,7 +117,7 @@ public class NotificationHandlers {
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
      * {object} } </code>
      */
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -150,7 +151,7 @@ public class NotificationHandlers {
         return new WebSocketResponse();
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'CLIENT', 'KEY') and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public WebSocketResponse processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

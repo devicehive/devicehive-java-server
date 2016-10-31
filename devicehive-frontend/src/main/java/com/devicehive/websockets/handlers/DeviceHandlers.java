@@ -39,7 +39,7 @@ public class DeviceHandlers {
     private Gson gson;
 
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY')")
+    @PreAuthorize("isAuthenticated()")
     public WebSocketResponse processDeviceGet(JsonObject request) {
         final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
                 .map(JsonElement::getAsString)
@@ -60,7 +60,7 @@ public class DeviceHandlers {
         }
     }
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceSave(JsonObject request,
                                                WebSocketSession session) {
         String deviceId = request.get(Constants.DEVICE_ID).getAsString();

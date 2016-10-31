@@ -53,7 +53,7 @@ public class CommandHandlers {
     @Autowired
     private DeviceCommandService commandService;
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -105,7 +105,7 @@ public class CommandHandlers {
         return response;
     }
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Optional<String> subscriptionId = Optional.ofNullable(request.get(SUBSCRIPTION_ID))
@@ -132,7 +132,7 @@ public class CommandHandlers {
         return new WebSocketResponse();
     }
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandInsert(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String deviceGuid = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
@@ -177,7 +177,7 @@ public class CommandHandlers {
         return response;
     }
 
-    @PreAuthorize("hasAnyAuthority('CLIENT', 'ADMIN', 'KEY') and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public WebSocketResponse processCommandUpdate(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String guid = request.get(DEVICE_GUID).getAsString();
