@@ -67,9 +67,21 @@ public class DeviceClass implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
+    @Version
+    @Column(name = "entity_version")
+    private Long entityVersion;
+
     @OneToMany(mappedBy = "deviceClass", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
     private Set<DeviceClassEquipment> equipment;
+
+    public Long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(Long entityVersion) {
+        this.entityVersion = entityVersion;
+    }
 
     public Long getId() {
         return id;
@@ -148,7 +160,7 @@ public class DeviceClass implements HiveEntity {
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
             vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
-
+            vo.setEntityVersion(deviceClass.getEntityVersion());
             if (deviceClass.getEquipment() != null) {
                 Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipment);
                 vo.setEquipment(eqVos.collect(Collectors.toSet()));
@@ -166,6 +178,7 @@ public class DeviceClass implements HiveEntity {
             en.setName(vo.getName());
             en.setOfflineTimeout(vo.getOfflineTimeout());
             en.setPermanent(vo.getIsPermanent());
+            en.setEntityVersion(vo.getEntityVersion());
         }
         return en;
     }

@@ -31,6 +31,8 @@ public class DeviceClassVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
+    private long entityVersion;
+
     public Long getId() {
         return id;
     }
@@ -69,5 +71,13 @@ public class DeviceClassVO implements HiveEntity {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
+    }
+
+    public long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 }
