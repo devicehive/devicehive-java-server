@@ -5,46 +5,90 @@ import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.server.NotRunning;
 import kafka.utils.*;
-import kafka.zk.EmbeddedZookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.protocol.SecurityProtocol;
+import org.apache.kafka.common.utils.Utils;
+import org.apache.zookeeper.server.NIOServerCnxnFactory;
+import org.apache.zookeeper.server.ZooKeeperServer;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.Properties;
+
 
 public class KafkaEmbeddedRule extends ExternalResource {
 
     private static final int KAFKA_DEFAULT_PORT = 9092;
+    private static final int ZOOKEEPER_DEFAULT_PORT = 2181;
 
     private boolean controlledShutdown;
     private int partitions;
     private String[] topics;
 
     private String zkConnect;
-    private EmbeddedZookeeper zookeeper;
+    private EmbeddedZookeeperInternal zookeeper;
     private ZkClient zookeeperClient;
 
     private KafkaServer kafkaServer;
 
-    public KafkaEmbeddedRule(boolean controlledShutdown, int partitions, String ... topics) {
+    public KafkaEmbeddedRule(boolean controlledShutdown, int partitions, String... topics) {
         this.controlledShutdown = controlledShutdown;
         this.partitions = partitions;
         this.topics = topics;
     }
 
+    static class EmbeddedZookeeperInternal {
+
+        private final ZooKeeperServer zooKeeperServer;
+        private final NIOServerCnxnFactory nioServerCnxnFactory;
+        private final java.io.File logDir;
+        private final java.io.File snapshotDir;
+
+        private final int port;
+
+        public EmbeddedZookeeperInternal(int port) throws IOException, InterruptedException {
+            this.port = port;
+            logDir = TestUtils.tempDir();
+            snapshotDir = TestUtils.tempDir();
+            zooKeeperServer = new ZooKeeperServer(snapshotDir, logDir, 500);
+            nioServerCnxnFactory = new NIOServerCnxnFactory();
+            InetSocketAddress inetSocketAddress = new InetSocketAddress("127.0.0.1", port);
+            nioServerCnxnFactory.configure(inetSocketAddress, 0);
+            nioServerCnxnFactory.startup(zooKeeperServer);
+        }
+
+        public void shutdown() {
+            zooKeeperServer.shutdown();
+            nioServerCnxnFactory.shutdown();
+            Utils.delete(logDir);
+            Utils.delete(snapshotDir);
+        }
+
+        public int getPort() {
+            return port;
+        }
+        
+    }
+
     @Override
     protected void before() throws Throwable {
-        this.zookeeper = new EmbeddedZookeeper();
+        
 
         int zkConnectionTimeout = 6000;
         int zkSessionTimeout = 6000;
 
-        this.zkConnect = "127.0.0.1:" + this.zookeeper.port();
+        int zookeeperPort = Optional.ofNullable(System.getProperty("zookeeper.port"))
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .orElse(ZOOKEEPER_DEFAULT_PORT);
+        this.zookeeper = new EmbeddedZookeeperInternal(zookeeperPort);
+        this.zkConnect = "127.0.0.1:" + this.zookeeper.getPort();
         this.zookeeperClient = new ZkClient(this.zkConnect, zkSessionTimeout, zkConnectionTimeout,
                 ZKStringSerializer$.MODULE$);
 
