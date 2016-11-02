@@ -7,7 +7,6 @@ import com.devicehive.auth.HiveRoles;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.UserVO;
@@ -21,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,9 +32,6 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private OAuthClientService clientService;
 
     @SuppressWarnings("unchecked")
     @Override
@@ -72,17 +67,6 @@ public class BasicAuthenticationProvider implements AuthenticationProvider {
             return new HiveAuthentication(principal,
                     AuthorityUtils.createAuthorityList(role));
 
-        } else {
-            OAuthClientVO client = clientService.authenticate(key, pass);
-            logger.info("oAuth client {} authenticated", key);
-            if (client != null) {
-                HivePrincipal principal = new HivePrincipal();
-                principal.setDomains(Collections.singleton(client.getDomain()));
-                principal.setSubnets(Collections.singleton(client.getSubnet()));
-
-                return new HiveAuthentication(principal,
-                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-            }
         }
         logger.warn("Basic auth for {} failed", key);
         throw new BadCredentialsException("Invalid credentials");

@@ -7,7 +7,6 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.AccessKeyService;
-import com.devicehive.service.OAuthClientService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
@@ -39,9 +38,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Autowired
     private TimestampService timestampService;
-
-    @Autowired
-    private OAuthClientService clientService;
 
     @Override
     public Response tokenRequest(JwtPayload payload) {

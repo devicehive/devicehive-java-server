@@ -115,41 +115,6 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
-    public static Predicate[] oAuthGrantsListPredicates(CriteriaBuilder cb, Root<OAuthGrant> from, UserVO user, Optional<Date> startOpt, Optional<Date> endOpt, Optional<String> oAuthIdOpt,
-                                                        Optional<Integer> typeOpt, Optional<String> scopeOpt, Optional<String> redirectUri, Optional<Integer> accessType) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        if (!user.isAdmin()) {
-            User u = User.convertToEntity(user);
-            predicates.add(from.join("user").in(u));
-        }
-
-        startOpt.ifPresent(start -> predicates.add(cb.greaterThan(from.get("timestamp"), start)));
-        endOpt.ifPresent(end -> predicates.add(cb.lessThan(from.get("timestamp"), end)));
-        oAuthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.join("client").get("oauthId"), id)));
-        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
-        scopeOpt.ifPresent(scope -> predicates.add(cb.equal(from.get("scope"), scope)));
-        redirectUri.ifPresent(uri -> predicates.add(cb.equal(from.get("redirectUri"), uri)));
-        accessType.ifPresent(at -> predicates.add(cb.equal(from.get("accessType"), at)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] oAuthClientListPredicates(CriteriaBuilder cb, Root<OAuthClient> from, Optional<String> nameOpt, Optional<String> namePattern, Optional<String> domainOpt,
-                                                        Optional<String> oauthIdOpt) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        if (namePattern.isPresent()) {
-            namePattern.ifPresent(pattern -> predicates.add(cb.like(from.get("name"), pattern)));
-        } else {
-            nameOpt.ifPresent(name -> predicates.add(cb.equal(from.get("name"), name)));
-        }
-        domainOpt.ifPresent(domain -> predicates.add(cb.equal(from.get("domain"), domain)));
-        oauthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.get("oauthId"), id)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
     public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
                                                    Root<Device> from,
                                                    List<String> guids,

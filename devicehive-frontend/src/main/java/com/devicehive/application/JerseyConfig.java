@@ -30,9 +30,6 @@ public class JerseyConfig extends ResourceConfig {
                 DeviceResourceImpl.class,
                 EquipmentResourceImpl.class,
                 NetworkResourceImpl.class,
-                OAuthClientResourceImpl.class,
-                OAuthGrantResourceImpl.class,
-                OAuthTokenResourceImpl.class,
                 WelcomeResourceImpl.class,
                 UserResourceImpl.class,
                 JwtTokenResourceImpl.class);
