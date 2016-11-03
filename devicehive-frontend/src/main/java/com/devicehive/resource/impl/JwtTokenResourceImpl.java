@@ -51,12 +51,12 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     }
 
     @Override
-    public Response refreshTokenRequest(String refreshToken) {
-        JwtTokenVO tokenVO = new JwtTokenVO();
+    public Response refreshTokenRequest(JwtTokenVO requestTokenVO) {
+        JwtTokenVO responseTokenVO = new JwtTokenVO();
         JwtPayload payload;
 
         try {
-            payload = tokenService.getPayload(refreshToken);
+            payload = tokenService.getPayload(requestTokenVO.getRefreshToken());
         } catch (MalformedJwtException e) {
             logger.error(e.getMessage(), e);
             return ResponseFactory.response(UNAUTHORIZED);
@@ -80,8 +80,8 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             return ResponseFactory.response(UNAUTHORIZED);
         }
 
-        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
+        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
         logger.debug("JwtToken: access token successfully generated with refresh token");
-        return ResponseFactory.response(CREATED, tokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
+        return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
     }
 }

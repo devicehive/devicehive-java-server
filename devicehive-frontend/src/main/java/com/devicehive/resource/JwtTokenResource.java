@@ -46,6 +46,6 @@ public interface JwtTokenResource {
     })
     Response refreshTokenRequest(
             @ApiParam(name = "refresh_token", value = "Refresh token", required = true)
-            String token);
+            JwtTokenVO jwtTokenVO);
 }
 
