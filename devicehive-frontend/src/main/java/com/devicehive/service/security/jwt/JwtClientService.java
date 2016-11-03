@@ -51,15 +51,19 @@ public class JwtClientService {
         if (networkIds.isPresent()) builder.withNetworkIds(new HashSet<>((ArrayList) networkIds.get()));
         if (actions.isPresent()) builder.withActions(new HashSet<>((ArrayList) actions.get()));
         if (deviceGuids.isPresent()) builder.withDeviceGuids(new HashSet<>((ArrayList) deviceGuids.get()));
-        if (tokenType.isPresent())
-            builder.withTokenType(TokenType.valueOf((String)tokenType.get()));
-        else
-            throw new MalformedJwtException("Token type should be provided in the token");
-        if (expiration.isPresent())
-            builder.withExpirationDate(new Date((Long)expiration.get()));
-        else
-            throw new MalformedJwtException("Expiration date should be provided in the token");
-        return builder.buildPayload();
+        if (!tokenType.isPresent() && !expiration.isPresent()) {
+            throw new MalformedJwtException("Token type and expiration date should be provided in the token");
+        } else {
+            if (tokenType.isPresent())
+                builder.withTokenType(TokenType.valueOf((String)tokenType.get()));
+            else
+                throw new MalformedJwtException("Token type should be provided in the token");
+            if (expiration.isPresent())
+                builder.withExpirationDate(new Date((Long)expiration.get()));
+            else
+                throw new MalformedJwtException("Expiration date should be provided in the token");
+            return builder.buildPayload();
+        }
     }
 
 }
