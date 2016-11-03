@@ -175,7 +175,7 @@ public class NotificationHandlers {
         } else {
             devices.add(deviceService.findByGuidWithPermissionsCheck(deviceGuid, principal));
         }
-        if (devices.isEmpty()) {
+        if (devices.isEmpty() || StreamSupport.stream(devices.spliterator(), true).allMatch(o -> o == null)) {
             logger.debug("notification/insert canceled for session: {}. Guid is not provided", session);
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_FORBIDDEN);
         }
