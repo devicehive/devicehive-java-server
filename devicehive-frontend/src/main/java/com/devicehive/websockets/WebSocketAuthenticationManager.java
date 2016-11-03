@@ -44,20 +44,6 @@ public class WebSocketAuthenticationManager {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-    public HiveAuthentication authenticateUser(String login, String password, HiveAuthentication.HiveAuthDetails details) {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(login, password);
-        HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
-        authentication.setDetails(details);
-        return authentication;
-    }
-
-    public HiveAuthentication authenticateKey(String key, HiveAuthentication.HiveAuthDetails details) {
-        PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(key, null);
-        HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
-        authentication.setDetails(details);
-        return authentication;
-    }
-
     public HiveAuthentication authenticateJWT(String token, HiveAuthentication.HiveAuthDetails details) {
         PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(token, null);
         HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
