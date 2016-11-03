@@ -14,6 +14,7 @@
     <name>DeviceHive Dao Riak Implementation</name>
     <properties>
         <skipTests>true</skipTests>
+        <project.rootdir>${project.parent.basedir}</project.rootdir>
     </properties>
     <dependencies>
         <dependency>
