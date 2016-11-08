@@ -19,18 +19,14 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.indexes.IntIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.devicehive.application.RiakQuorum;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.dao.riak.model.NetworkDevice;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -41,11 +37,8 @@ public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
 
     private static final Namespace NETWORK_DEVICE_NS = new Namespace("network_device");
 
-    @Autowired
-    private RiakClient client;
-
-    @Autowired
-    private RiakQuorum quorum;
+    public NetworkDeviceDaoRiakImpl() {
+    }
 
     public void saveOrUpdate(NetworkDevice networkDevice) {
         try {
@@ -96,7 +89,7 @@ public class NetworkDeviceDaoRiakImpl extends RiakGenericDao {
             BinIndexQuery.Response response = client.execute(biq);
             List<NetworkDevice> nds = fetchMultiple(response, NetworkDevice.class);
             Set<Long> networks = new HashSet<>();
-            nds.forEach(networkDevice ->  networks.add(networkDevice.getNetworkId()));
+            nds.forEach(networkDevice -> networks.add(networkDevice.getNetworkId()));
             return networks;
         } catch (ExecutionException | InterruptedException e) {
             throw new HivePersistenceLayerException("Cannot find networks for device.", e);

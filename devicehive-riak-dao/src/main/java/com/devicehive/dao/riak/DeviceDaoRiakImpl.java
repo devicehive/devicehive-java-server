@@ -19,22 +19,15 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.functions.Function;
-import com.basho.riak.client.core.util.BinaryValue;
-import com.devicehive.application.RiakQuorum;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
@@ -49,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -57,14 +49,11 @@ import java.util.stream.Collectors;
 @Repository
 public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
 
     private static final Namespace DEVICE_NS = new Namespace("device");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceCounter");
-
-    @Autowired
-    private RiakClient client;
 
     @Autowired
     private NetworkDao networkDao;
@@ -78,19 +67,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     @Autowired
     private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
-    @Autowired
-    private RiakQuorum quorum;
-
-    private final Map<String, String> sortMap = new HashMap<>();
-
     public DeviceDaoRiakImpl() {
-        sortMap.put("id", "function(a,b){ return a.id %s b.id; }");
-        sortMap.put("name", "function(a,b){ return a.name %s b.name; }");
-        sortMap.put("guid", "function(a,b){ return a.guid %s b.guid; }");
-        sortMap.put("status", "function(a,b){ return a.status %s b.status; }");
-        sortMap.put("network", "function(a,b){ return a.network.name %s b.network.name; }");
-        sortMap.put("deviceClass", "function(a,b){ return a.deviceClass.name %s b.deviceClass.name; }");
-        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
     }
 
     @PostConstruct
@@ -102,8 +79,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
      * Method change statuses for devices with guids that consists in the list
      *
      * @param status new status
-     * @param guids  list of guids
+     * @param guids list of guids
      */
+    @Override
     public void changeStatusForDevices(String status, List<String> guids) {
         for (String guid : guids) {
             DeviceVO device = findByUUID(guid);
@@ -115,11 +93,12 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     /**
-     * Method return a Map where KEY is a device guid from guids list and
-     * VALUE is OfflineTimeout from deviceClass for device with current guid.
+     * Method return a Map where KEY is a device guid from guids list and VALUE
+     * is OfflineTimeout from deviceClass for device with current guid.
      *
      * @param guids list of guids
      */
+    @Override
     public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
         final Map<String, Integer> deviceInfo = new HashMap<>();
         for (String guid : guids) {
@@ -131,7 +110,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         }
         return deviceInfo;
     }
-
 
     @Override
     public DeviceVO findByUUID(String uuid) {
@@ -155,7 +133,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             refreshRefs(deviceVO);
             return deviceVO;
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Exception accessing Riak Storage.", e);
+            LOGGER.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot find device by UUID.", e);
         }
     }
@@ -178,15 +156,15 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             client.execute(storeOp);
             vo.setId(device.getId());
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Exception accessing Riak Storage.", e);
+            LOGGER.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot persist device.", e);
         }
 
         RiakNetwork network = device.getNetwork();
         if (network != null && network.getId() != null) {
-            logger.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
+            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
             networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
-            logger.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
+            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
         }
     }
 
@@ -210,7 +188,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             client.execute(deleteOp);
             return 1;
         } catch (ExecutionException | InterruptedException e) {
-            logger.error("Exception accessing Riak Storage.", e);
+            LOGGER.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot delete device by UUID.", e);
         }
     }
@@ -259,170 +237,46 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     @Override
     public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
-                                Long deviceClassId, String deviceClassName, String sortField,
-                                @NotNull Boolean sortOrderAsc, Integer take,
-                                Integer skip, HivePrincipal principal) {
+            Long deviceClassId, String deviceClassName, String sortField,
+            Boolean isSortOrderAsc, Integer take,
+            Integer skip, HivePrincipal principal) {
         //TODO [rafa] when filtering by device class name we have to instead query DeviceClass bucket for ids, and then use ids.
         // here is what happens, since device class is not embeddable in case of Riak we need to either keep id only and perform the logic above.
         // or we need to update device class embedded data in every device corresponding to the class, which is nighmare.
 
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                .withNamespace(DEVICE_NS);
+        addMapValues(builder);
+        if (name != null) {
+            addReduceFilter(builder, "name", FilterOperator.EQUAL, name);
+        } else if (namePattern != null) {
+            namePattern = namePattern.replace("%", "");
+            addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
+        }
+        addReduceFilter(builder, "status", FilterOperator.EQUAL, status);
+        addReduceFilter(builder, "network.id", FilterOperator.EQUAL, networkId);
+        addReduceFilter(builder, "network.name", FilterOperator.EQUAL, networkName);
+        addReduceFilter(builder, "deviceClass.id", FilterOperator.EQUAL, deviceClassId);
+        addReduceFilter(builder, "deviceClass.name", FilterOperator.EQUAL, deviceClassName);
+        if (principal != null) {
+            UserVO user = principal.getUser();
+            if (user != null && !user.isAdmin()) {
+                Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+                addReduceFilter(builder, "network.id", FilterOperator.IN, networks);
+            }
+            if (principal.getDeviceGuids() != null) {
+                Set<String> deviceGuids = principal.getDeviceGuids();
+                addReduceFilter(builder, "guid", FilterOperator.IN, deviceGuids);
+            }
+        }
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
         try {
-            String sortFunction = sortMap.get(sortField);
-            if (sortFunction == null) {
-                sortFunction = sortMap.get("id");
-            }
-            if (sortOrderAsc == null) {
-                sortOrderAsc = true;
-            }
-            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                    .withNamespace(DEVICE_NS)
-                    .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
-                            "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
-                            "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
-                    .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
-                            "return values.filter(function(v) {" +
-                            "if (v === [] || v.name === null) { return false; }" +
-                            "return true;" +
-                            "})" +
-                            "}"));
-
-            if (name != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var name = v.name;" +
-                                "return name == '%s';" +
-                                "})" +
-                                "}", name);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            } else if (namePattern != null) {
-                namePattern = namePattern.replace("%", "");
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var name = v.name;" +
-                                "var match = name.indexOf('%s');" +
-                                "return match > -1;" +
-                                "})" +
-                                "}", namePattern);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (status != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var status = v.status;" +
-                                "return status == '%s';" +
-                                "})" +
-                                "}", status);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (networkId != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "if (v.network == null) return false;" +
-                                "var networkId = v.network.id;" +
-                                "return networkId == %s;" +
-                                "})" +
-                                "}", networkId);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (networkName != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "if (v.network == null) return false;" +
-                                "var networkName = v.network.name;" +
-                                "return networkName == '%s';" +
-                                "})" +
-                                "}", networkName);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (deviceClassId != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var deviceClassId = v.deviceClass.id;" +
-                                "return deviceClassId == %s;" +
-                                "})" +
-                                "}", deviceClassId);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (deviceClassName != null) {
-                String functionString = String.format(
-                        "function(values, arg) {" +
-                                "return values.filter(function(v) {" +
-                                "var deviceClassName = v.deviceClass.name;" +
-                                "return deviceClassName == '%s';" +
-                                "})" +
-                                "}", deviceClassName);
-                Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                builder.withReducePhase(reduceFunction);
-            }
-
-            if (principal != null) {
-                UserVO user = principal.getUser();
-
-                if (user != null && !user.isAdmin()) {
-                    Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
-                    String functionString =
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "if (v.network == null) return false;" +
-                                    "var networkId = v.network.id;" +
-                                    "return arg.indexOf(networkId) > -1;" +
-                                    "})" +
-                                    "}";
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction, networks);
-                }
-
-                if (principal.getDeviceGuids() != null) {
-                    Set<String> deviceGuids = principal.getDeviceGuids();
-                    String functionString =
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "if (v.guid == null) return false;" +
-                                    "var guid = v.guid;" +
-                                    "return arg.indexOf(guid) > -1;" +
-                                    "})" +
-                                    "}";
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    if (!deviceGuids.isEmpty()) builder.withReducePhase(reduceFunction, deviceGuids);
-                }
-            }
-            builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                    String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                    true);
-
-            if (take == null)
-                take = Constants.DEFAULT_TAKE;
-            if (skip == null)
-                skip = 0;
-
-            BucketMapReduce bmr = builder.build();
-            RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-            future.await();
-            MapReduce.Response response = future.get();
+            MapReduce.Response response = client.execute(builder.build());
             return response.getResultsFromAllPhases(RiakDevice.class).stream()
-                    .skip(skip)
-                    .limit(take)
-                    .map(RiakDevice::convertToVo)
-                    .collect(Collectors.toList());
+                    .map(RiakDevice::convertToVo).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("Exception accessing Riak Storage.", e);
+            LOGGER.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot get list of devices.", e);
         }
     }

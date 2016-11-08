@@ -70,7 +70,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
 
 
-public class NetworkServiceTest extends AbstractResourceTest {
+public class NetworkServiceTest {
 /*
     @Autowired
     private NetworkService networkService;
