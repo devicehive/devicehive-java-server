@@ -25,10 +25,8 @@ import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +56,7 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ACCESS_KEY = "1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=";
+    public static final String ACCESS_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTQzMzExNzI2MzgsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.9ONdK2wKHmRxwNVXz3jJx076wddjP-nO_T2VnjhhZ88";
     public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
 
     @Value("${local.server.port}")
