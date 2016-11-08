@@ -19,8 +19,6 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.indexes.IntIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
@@ -28,16 +26,8 @@ import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.api.commands.mapreduce.filters.SetMemberFilter;
-import com.basho.riak.client.api.convert.ConverterFactory;
-import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.functions.Function;
-import com.basho.riak.client.core.util.BinaryValue;
-import com.devicehive.application.RiakQuorum;
-import com.devicehive.configuration.Constants;
-import com.devicehive.dao.riak.converters.GsonConverter;
 import com.devicehive.dao.AccessKeyDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakAccessKey;
@@ -62,24 +52,10 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
             "accessKeyCounter");
 
     @Autowired
-    RiakClient client;
-
-    @Autowired
     UserDao userDao;
 
-    @Autowired
-    RiakQuorum quorum;
-
-    private final Map<String, String> sortMap = new HashMap<>();
-
     public AccessKeyDaoRiakImpl() {
-        sortMap.put("label", "function(a,b){ return a.label %s b.label; }");
-        sortMap.put("expirationDate", "function(a,b){ return a.expirationDate %s b.expirationDate; }");
-        sortMap.put("type", "function(a,b){ return a.type %s b.type; }");
-        sortMap.put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
-        //ConverterFactory.getInstance().registerConverterForClass(RiakAccessKey.class, new GsonConverter<>(RiakAccessKey.class));
     }
-
 
     @Override
     public AccessKeyVO getById(Long keyId, Long userId) {
@@ -273,94 +249,29 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
     @Override
     public List<AccessKeyVO> list(Long userId, String label,
-                                  String labelPattern, Integer type,
-                                  String sortField, Boolean sortOrderAsc,
-                                  Integer take, Integer skip) {
+            String labelPattern, Integer type,
+            String sortField, Boolean isSortOrderAsc,
+            Integer take, Integer skip) {
+        BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
+                .withNamespace(ACCESS_KEY_NS);
+        addMapValues(builder);
+        addReduceFilter(builder, "userId", FilterOperator.EQUAL, userId);
+        if (label != null) {
+            addReduceFilter(builder, "label", FilterOperator.EQUAL, label);
+        } else if (labelPattern != null) {
+            labelPattern = labelPattern.replace("%", "");
+            addReduceFilter(builder, "label", FilterOperator.REGEX, labelPattern);
+        }
+        if (type != null) {
+            String typeString = AccessKeyType.getValueForIndex(type).toString();
+            addReduceFilter(builder, "type", FilterOperator.EQUAL, typeString);
+        }
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
         try {
-            String sortFunction = sortMap.get(sortField);
-            if (sortFunction == null) {
-                sortFunction = sortMap.get("label");
-            }
-            if (sortOrderAsc == null) {
-                sortOrderAsc = true;
-            }
-            BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                    .withNamespace(ACCESS_KEY_NS)
-                    .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
-                            "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
-                            "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
-                    .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
-                            "return values.filter(function(v) {" +
-                            "if (v === []) { return false; }" +
-                            "return true;" +
-                            "})" +
-                            "}"));
-
-            if (userId != null) {
-                IntIndexQuery iiq = new IntIndexQuery.Builder(ACCESS_KEY_NS, "userId", userId).build();
-
-                IntIndexQuery.Response response = client.execute(iiq);
-                List<IntIndexQuery.Response.Entry> entries = response.getEntries();
-                Set<String> keys = new HashSet<>();
-                if (entries.isEmpty()) {
-                    return Collections.emptyList();
-                } else {
-                    for (IntIndexQuery.Response.Entry entry : entries) {
-                        Location location = entry.getRiakObjectLocation();
-                        keys.add(location.getKeyAsString());
-                    }
-                }
-                builder = builder.withKeyFilter(new SetMemberFilter<>(keys));
-            }
-            if (labelPattern != null) {
-                String functionBody = String.format(
-                        "function(values, arg) {" +
-                                "  return values.filter(function(v) {" +
-                                "    if (v.label === null) { return false; }" +
-                                "    return v.label.indexOf('%s') > -1;" +
-                                "  })" +
-                                "}", labelPattern);
-                builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody),
-                        take == null && label == null && type == null);
-            }
-            if (label != null) {
-                String functionBody = String.format(
-                        "function(values, arg) {" +
-                                "  return values.filter(function(v) {" +
-                                "    return v.label == '%s';" +
-                                "  })" +
-                                "}", label);
-                builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null && type == null);
-            }
-            if (type != null) {
-                String typeString = AccessKeyType.getValueForIndex(type).toString();
-                String functionBody = String.format(
-                        "function(values, arg) {" +
-                                "  return values.filter(function(v) {" +
-                                "    return v.type == '%s';" +
-                                "  })" +
-                                "}", typeString);
-                builder = builder.withReducePhase(Function.newAnonymousJsFunction(functionBody), take == null);
-            }
-
-            builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                    String.format(sortFunction, sortOrderAsc ? ">" : "<"),
-                    true);
-
-            if (take == null)
-                take = Constants.DEFAULT_TAKE;
-            if (skip == null)
-                skip = 0;
-
-            BucketMapReduce bmr = builder.build();
-            RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
-            future.await();
-            MapReduce.Response response = future.get();
-            List<RiakAccessKey> keys = response.getResultsFromAllPhases(RiakAccessKey.class).stream()
-                    .skip(skip)
-                    .limit(take)
-                    .collect(Collectors.toList());
-            return keys.stream().map(RiakAccessKey::convert).collect(Collectors.toList());
+            MapReduce.Response response = client.execute(builder.build());
+            return response.getResultsFromAllPhases(RiakAccessKey.class).stream()
+                    .map(RiakAccessKey::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new HivePersistenceLayerException("Cannot perform search access key.", e);
         }
@@ -376,6 +287,5 @@ public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao
 
         return vo;
     }
-
 
 }

@@ -19,20 +19,16 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.devicehive.application.RiakQuorum;
 import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.dao.riak.model.RiakDeviceEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -45,12 +41,6 @@ public class DeviceEquipmentDaoRiakImpl extends RiakGenericDao implements Device
     private static final Namespace DEVICE_EQUIPMENT_NS = new Namespace("device_equipment");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
             "deviceEquipmentCounter");
-
-    @Autowired
-    private RiakClient client;
-
-    @Autowired
-    private RiakQuorum quorum;
 
     @Override
     public List<DeviceEquipmentVO> getByDevice(DeviceVO device) {
