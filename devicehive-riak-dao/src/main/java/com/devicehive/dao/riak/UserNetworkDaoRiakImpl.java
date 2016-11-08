@@ -19,18 +19,13 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.IntIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.devicehive.application.RiakQuorum;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.dao.riak.model.UserNetwork;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashSet;
@@ -42,12 +37,6 @@ import java.util.concurrent.ExecutionException;
 public class UserNetworkDaoRiakImpl extends RiakGenericDao {
 
     private static final Namespace USER_NETWORK_NS = new Namespace("user_network");
-
-    @Autowired
-    private RiakClient client;
-
-    @Autowired
-    private RiakQuorum quorum;
 
     public void persist(UserNetwork userNetwork) {
         try {

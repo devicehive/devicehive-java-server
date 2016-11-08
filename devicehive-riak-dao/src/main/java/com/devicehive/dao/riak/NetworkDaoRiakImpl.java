@@ -19,23 +19,15 @@ package com.devicehive.dao.riak;
  * limitations under the License.
  * #L%
  */
-
-
-import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
 import com.basho.riak.client.api.commands.kv.StoreValue;
 import com.basho.riak.client.api.commands.mapreduce.BucketMapReduce;
 import com.basho.riak.client.api.commands.mapreduce.MapReduce;
-import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
-import com.basho.riak.client.core.query.functions.Function;
-import com.basho.riak.client.core.util.BinaryValue;
-import com.devicehive.application.RiakQuorum;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
@@ -61,25 +53,16 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             "networkCounter");
 
     @Autowired
-    private RiakClient client;
-
-    @Autowired
     private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
     private NetworkDeviceDaoRiakImpl networkDeviceDao;
 
-    @Autowired
-    private RiakQuorum quorum;
-
     private DeviceDao deviceDao;
     private UserDao userDao;
 
-    private final Map<String, String> sortMap = new HashMap<String, String>() {{
-        put("name", "function(a,b){ return a.name %s b.name; }");
-        put("description", "function(a,b){ return a.description %s b.description; }");
-        put("entityVersion", "function(a,b){ return a.entityVersion %s b.entityVersion; }");
-    }};
+    public NetworkDaoRiakImpl() {
+    }
 
     void setUserDao(UserDao userDao) {
         this.userDao = userDao;
@@ -160,7 +143,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         return RiakNetwork.convert(vo);
     }
 
-    private RiakNetwork get(@NotNull  Long networkId) {
+    private RiakNetwork get(@NotNull Long networkId) {
         Location location = new Location(NETWORK_NS, String.valueOf(networkId));
         FetchValue fetchOp = new FetchValue.Builder(location)
                 .withOption(quorum.getReadQuorumOption(), quorum.getReadQuorum())
@@ -206,47 +189,17 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
     }
 
     @Override
-    public List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
-                              Integer skip, Optional<HivePrincipal> principalOptional) {
-        String sortFunc = sortMap.get(sortField);
-        if (sortFunc == null) {
-            sortFunc = sortMap.get("name");
-        }
-
+    public List<NetworkVO> list(String name, String namePattern, String sortField, boolean isSortOrderAsc, Integer take,
+            Integer skip, Optional<HivePrincipal> principalOptional) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
-                .withNamespace(NETWORK_NS)
-                .withMapPhase(Function.newAnonymousJsFunction("function(riakObject, keyData, arg) { " +
-                        "                if(riakObject.values[0].metadata['X-Riak-Deleted']){ return []; } " +
-                        "                else { return Riak.mapValuesJson(riakObject, keyData, arg); }}"))
-                .withReducePhase(Function.newAnonymousJsFunction("function(values, arg) {" +
-                        "return values.filter(function(v) {" +
-                        "if (v === [] || v.name === null) { return false; }" +
-                        "return true;" +
-                        "})" +
-                        "}"));
+                .withNamespace(NETWORK_NS);
+        addMapValues(builder);
 
         if (name != null) {
-            String func = String.format(
-                    "function(values, arg) {" +
-                            "return values.filter(function(v) {" +
-                            "var name = v.name;" +
-                            "return name == '%s';" +
-                            "})" +
-                            "}", name);
-            Function function = Function.newAnonymousJsFunction(func);
-            builder.withReducePhase(function);
+            addReduceFilter(builder, "name", FilterOperator.EQUAL, name);
         } else if (namePattern != null) {
             namePattern = namePattern.replace("%", "");
-            String func = String.format(
-                    "function(values, arg) {" +
-                            "return values.filter(function(v) {" +
-                            "var name = v.name;" +
-                            "if (name === null) { return false; }" +
-                            "return name.indexOf('%s') > -1;" +
-                            "})" +
-                            "}", namePattern);
-            Function function = Function.newAnonymousJsFunction(func);
-            builder.withReducePhase(function);
+            addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
         }
 
         if (principalOptional.isPresent()) {
@@ -256,51 +209,25 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
                 if (user != null && !user.isAdmin()) {
                     Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
-                    String functionString =
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "var networkId = v.id;" +
-                                    "return arg.indexOf(networkId) > -1;" +
-                                    "})" +
-                                    "}";
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    builder.withReducePhase(reduceFunction, networks);
+                    addReduceFilter(builder, "id", FilterOperator.IN, networks);
                 }
 
                 if (principal.getNetworkIds() != null) {
                     Set<Long> ids = principal.getNetworkIds();
-
-                    String functionString =
-                            "function(values, arg) {" +
-                                    "return values.filter(function(v) {" +
-                                    "return arg.indexOf(v.id) > -1;" +
-                                    "})" +
-                                    "}";
-                    Function reduceFunction = Function.newAnonymousJsFunction(functionString);
-                    if (!ids.isEmpty()) builder.withReducePhase(reduceFunction, ids);
+                    if (!ids.isEmpty()) {
+                        addReduceFilter(builder, "id", FilterOperator.IN, ids);
+                    }
                 }
             }
         }
 
-        builder.withReducePhase(Function.newNamedJsFunction("Riak.reduceSort"),
-                String.format(sortFunc, sortOrderAsc ? ">" : "<"),
-                true);
-
-        if (take == null)
-            take = Constants.DEFAULT_TAKE;
-        if (skip == null)
-            skip = 0;
-
-        BucketMapReduce bmr = builder.build();
-        RiakFuture<MapReduce.Response, BinaryValue> future = client.executeAsync(bmr);
+        addReduceSort(builder, sortField, isSortOrderAsc);
+        addReducePaging(builder, true, take, skip);
         try {
-            MapReduce.Response response = future.get();
+            MapReduce.Response response = client.execute(builder.build());
 
-            List<RiakNetwork> result = response.getResultsFromAllPhases(RiakNetwork.class).stream()
-                    .skip(skip)
-                    .limit(take)
-                    .collect(Collectors.toList());
-            return result.stream().map(RiakNetwork::convert).collect(Collectors.toList());
+            return response.getResultsFromAllPhases(RiakNetwork.class).stream()
+                    .map(RiakNetwork::convert).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
             throw new HivePersistenceLayerException("Cannot get list of networks.", e);
         }
