@@ -74,7 +74,7 @@ public class AccessKeyPermission implements HiveEntity {
 
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(name = "jsonString", column = @Column(name = "actions"))
+            @AttributeOverride(name = "jsonString", column = @Column(name = "actions", length = 350))
     })
     @JsonPolicyDef({ACCESS_KEY_LISTED, ACCESS_KEY_PUBLISHED, OAUTH_GRANT_LISTED_ADMIN, OAUTH_GRANT_LISTED})
     private JsonStringWrapper actions;
