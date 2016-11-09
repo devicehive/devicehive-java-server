@@ -535,7 +535,7 @@
                     <useJavaNoReformatCommentStartTag>false</useJavaNoReformatCommentStartTag>
                     <failIfWarning>true</failIfWarning>
                     <failOnMissingHeader>true</failOnMissingHeader>
-                    <outputDirectory>${project.rootdir}/target</outputDirectory>
+                    <outputDirectory>${project.rootdir}/target/license</outputDirectory>
                     <thirdPartyFilename>${project.artifactId}_THIRD-PARTY.txt</thirdPartyFilename>
                     <verbose>false</verbose>
                     <!-- These dependencies are ignored because they don't have licence information inside artifact-->
