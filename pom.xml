@@ -586,13 +586,6 @@
                             <goal>update-file-header</goal>
                         </goals>
                     </execution>
-                    <execution>
-                        <id>check-third-party</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>aggregate-add-third-party</goal>
-                        </goals>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
