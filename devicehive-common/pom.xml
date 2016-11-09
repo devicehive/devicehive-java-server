@@ -13,6 +13,10 @@
     <packaging>jar</packaging>
     <name>DeviceHive Common Module</name>
 
+    <properties>
+        <project.rootdir>${project.parent.basedir}</project.rootdir>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>

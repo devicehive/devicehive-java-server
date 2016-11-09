@@ -11,8 +11,8 @@ services:
 before_script:
   sh -c "if [ $DB = 'riak' ]; then sudo bash -x devicehive-riak-dao/src/main/resources/map-reduce/install.sh; sh devicehive-riak-dao/src/main/resources/riak-initial-data.sh; fi"
 script:
+ - mvn clean license:check-file-header
  - mvn clean install -P undertow,booted-${DB}
- - mvn license:aggregate-add-third-party
 deploy:
   provider: releases
   api_key:
