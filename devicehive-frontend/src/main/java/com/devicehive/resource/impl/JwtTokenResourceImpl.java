@@ -51,9 +51,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     private JwtClientService tokenService;
 
     @Autowired
-    private AccessKeyService accessKeyService;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -61,13 +58,27 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Override
     public Response tokenRequest(JwtPayload payload) {
-        JwtTokenVO tokenVO = new JwtTokenVO();
+        JwtTokenVO responseTokenVO = new JwtTokenVO();
+
+        UserVO user = userService.findById(payload.getUserId());
+        if (user == null) {
+            logger.warn("JwtToken: User not found");
+            return ResponseFactory.response(UNAUTHORIZED);
+        }
+        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            logger.warn("JwtToken: User is not active");
+            return ResponseFactory.response(UNAUTHORIZED);
+        }
+        if (!payload.getTokenType().equals(TokenType.ACCESS)) {
+            logger.warn("JwtToken: refresh token is not valid");
+            return ResponseFactory.response(BAD_REQUEST);
+        }
 
         logger.debug("JwtToken: generate access and refresh token");
-        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
-        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload));
+        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
+        responseTokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload));
 
-        return ResponseFactory.response(CREATED, tokenVO, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+        return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 
     @Override
