@@ -100,7 +100,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(response);
 
         // get device
-        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, OK, DeviceVO.class);
+        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
