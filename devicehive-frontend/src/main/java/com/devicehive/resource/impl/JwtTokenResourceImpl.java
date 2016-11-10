@@ -69,10 +69,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             logger.warn("JwtToken: User is not active");
             return ResponseFactory.response(UNAUTHORIZED);
         }
-        if (!payload.getTokenType().equals(TokenType.ACCESS)) {
-            logger.warn("JwtToken: refresh token is not valid");
-            return ResponseFactory.response(BAD_REQUEST);
-        }
 
         logger.debug("JwtToken: generate access and refresh token");
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));

@@ -20,11 +20,22 @@ package com.devicehive.auth;
  * #L%
  */
 
+import com.devicehive.service.DeviceService;
+import com.devicehive.service.NetworkService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
 import java.util.Set;
 
 /**
  */
 public class JwtCheckPermissionsHelper {
+
+    @Autowired
+    private static NetworkService networkService;
+
+    @Autowired
+    private static DeviceService deviceService;
 
     public static boolean checkPermissions(
             HivePrincipal hivePrincipal,
@@ -52,10 +63,25 @@ public class JwtCheckPermissionsHelper {
     }
 
     private static boolean checkDeviceGuidsAllowed(HivePrincipal principal, Object targetDomainObject) {
-        if (principal.areAllDevicesAvailable()) return true;
-        else if (targetDomainObject instanceof String) {
-            return principal.getDeviceGuids() != null && principal.getDeviceGuids().contains((String) targetDomainObject);
+
+        if (targetDomainObject instanceof String) {
+
+            Set<Long> networks = principal.getNetworkIds() != null ? principal.getNetworkIds() : new HashSet<>();
+            Set<String> devices = principal.getDeviceGuids() != null ? principal.getDeviceGuids() : new HashSet<>();
+
+            if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
+                return true;
+            }
+            else if (networks != null && principal.areAllDevicesAvailable()){
+                networks.forEach(n -> deviceService.list(null, null, null, n, null, null, null, null, false, null, null, null)
+                        .thenAccept(ds -> ds
+                                .forEach(d -> devices.add(d.getGuid()))));
+                return devices != null && devices.contains(targetDomainObject);
+            }
+            else
+                return networks != null && devices != null && devices.contains(targetDomainObject);
         }
+
         return true;
     }
 
