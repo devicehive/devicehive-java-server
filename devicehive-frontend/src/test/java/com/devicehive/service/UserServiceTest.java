@@ -404,6 +404,7 @@ public class UserServiceTest extends AbstractResourceTest {
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 20000); //login timeout 20 sec
 
         UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        TimeUnit.SECONDS.sleep(1);
         UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
@@ -427,6 +428,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
         UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        TimeUnit.SECONDS.sleep(1);
         UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
@@ -569,6 +571,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
         UserVO authenticated1 = userService.findUser(user.getLogin(), "123");
+        TimeUnit.SECONDS.sleep(1);
         UserVO authenticated2 = userService.findUser(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
@@ -962,6 +965,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
+        TimeUnit.SECONDS.sleep(1);
 
         user = userService.authenticate(user.getLogin(), "123");
         assertThat(user, notNullValue());
@@ -971,6 +975,7 @@ public class UserServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             try {
                 userService.authenticate(user.getLogin(), "wrong_password");
+                TimeUnit.SECONDS.sleep(1);
                 fail("should throw ActionNotAllowedException");
             } catch (ActionNotAllowedException e) { }
         }

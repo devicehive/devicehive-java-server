@@ -27,9 +27,7 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
@@ -37,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class MockCommandHandler {
 
-    private Set<DeviceCommand> commandSet = new HashSet<>();
+    private Map<Long, DeviceCommand> commandMap = new HashMap<>();
 
     public void handle (RequestHandler handler) {
         when(handler.handle(any(Request.class))).thenAnswer(invocation -> {
@@ -45,7 +43,7 @@ public class MockCommandHandler {
             if (request.getBody() instanceof CommandInsertRequest) {
                 DeviceCommand command = ((CommandInsertRequest) request.getBody()).getDeviceCommand();
 
-                commandSet.add(command);
+                commandMap.put(command.getId(), command);
 
                 CommandInsertResponse payload = new CommandInsertResponse(command);
                 return com.devicehive.shim.api.Response.newBuilder()
@@ -54,12 +52,12 @@ public class MockCommandHandler {
             } else if (request.getBody() instanceof CommandUpdateRequest) {
                 final DeviceCommand command = request.getBody().cast(CommandUpdateRequest.class).getDeviceCommand();
 
-                commandSet.add(command);
+                commandMap.put(command.getId(), command);
 
                 return com.devicehive.shim.api.Response.newBuilder().buildSuccess();
             } else if (request.getBody() instanceof CommandSubscribeRequest) {
                 CommandSubscribeRequest body = (CommandSubscribeRequest) request.getBody();
-                Set<DeviceCommand> commands = commandSet
+                Set<DeviceCommand> commands = commandMap.values()
                         .stream()
                         .filter(n -> n.getDeviceGuid().equals(body.getDevice()))
                         .collect(Collectors.toSet());
@@ -74,7 +72,7 @@ public class MockCommandHandler {
                 CommandSearchRequest body = (CommandSearchRequest) request.getBody();
 
                 final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
-                final List<DeviceCommand> commands =  commandSet
+                final List<DeviceCommand> commands =  commandMap.values()
                         .stream()
                         .filter(command -> command.getId().equals(body.getId()) || command.getDeviceGuid().equals(body.getGuid()))
                         .collect(Collectors.toList());
@@ -86,7 +84,7 @@ public class MockCommandHandler {
                         .buildSuccess();
             } else if (request.getBody() instanceof CommandUpdateSubscribeRequest) {
                 final CommandUpdateSubscribeRequest body = request.getBody().cast(CommandUpdateSubscribeRequest.class);
-                final DeviceCommand deviceCommand = commandSet
+                final DeviceCommand deviceCommand = commandMap.values()
                         .stream()
                         .filter(command -> command.getDeviceGuid().equals(body.getGuid()))
                         .findFirst()
