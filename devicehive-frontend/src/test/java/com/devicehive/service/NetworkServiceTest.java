@@ -71,7 +71,7 @@ import static org.mockito.Matchers.any;
 
 
 public class NetworkServiceTest {
-/*
+
     @Autowired
     private NetworkService networkService;
     @Autowired
@@ -1136,5 +1136,4 @@ public class NetworkServiceTest {
                     .buildSuccess();
         });
     }
-    */
 }
