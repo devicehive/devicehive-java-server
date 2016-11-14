@@ -7,3 +7,4 @@ This document tracks changes to the API between versions.
 * OAuth providers (Github, Facebook, Google, etc) now support JWT instead of Access Key (`/auth/accesskey` endpoint renamed to `/oauth/token` and it returns JWT)
 
 ## WebSocket API
+* Added JWT authentication support (`accessKey` request parameter renamed to `token`)
