@@ -20,23 +20,22 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
-import com.devicehive.model.rpc.ListNetworkRequest;
-import com.devicehive.model.rpc.ListNetworkResponse;
-import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.rpc.ListNetworkRequest;
+import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -62,13 +61,12 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 
 public class NetworkServiceTest extends AbstractResourceTest {
@@ -215,7 +213,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 10, 0, null)
-                .thenAccept(networks ->  assertThat(networks, hasSize(10))).get(5, TimeUnit.SECONDS);
+                .thenAccept(networks -> assertThat(networks, hasSize(10))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -236,7 +234,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         Pair<Long, String> randomNetwork = names.get(index);
         handleListNetworkRequest();
         networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null)
-                .thenAccept(networks ->  {
+                .thenAccept(networks -> {
                     assertThat(networks, hasSize(1));
                     assertThat(networks.get(0).getId(), equalTo(randomNetwork.getKey()));
                     assertThat(networks.get(0).getName(), equalTo(randomNetwork.getRight()));
@@ -347,14 +345,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         verify(requestHandler, times(2)).handle(argument.capture());
     }
 
-    @Test
-    public void should_not_return_list_of_networks_for_device() throws Exception {
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
-
-        HivePrincipal principal = new HivePrincipal();
-        networkService.list(null, null, null, true, 100, 0, principal);
-    }
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -423,7 +413,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         handleListNetworkRequest();
         HivePrincipal principal = new HivePrincipal(user1);
         networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
-                .thenAccept(networks ->  assertThat(networks, hasSize(20))).get(5, TimeUnit.SECONDS);
+                .thenAccept(networks -> assertThat(networks, hasSize(20))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -449,10 +439,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             }
         }
 
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setNetworkIdsCollection(allowedIds);
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        accessKey.setPermissions(Collections.singleton(permission));
         handleListNetworkRequest();
         HivePrincipal principal = new HivePrincipal();
         principal.setNetworkIds(allowedIds);
@@ -497,7 +483,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         HivePrincipal principal = new HivePrincipal(user);
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 200, 0, principal)
-                .thenAccept(networks-> assertThat(networks, hasSize(assignedToUserCount))).get(5, TimeUnit.SECONDS);
+                .thenAccept(networks -> assertThat(networks, hasSize(assignedToUserCount))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -621,10 +607,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
+
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -661,10 +644,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -713,46 +692,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork, nullValue());
     }
 
-    @Test
-    public void should_return_network_without_devices_if_access_key_does_not_have_permissions() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        NetworkVO created = networkService.create(network);
-        assertThat(created.getId(), notNullValue());
-        userService.assignNetwork(user.getId(), network.getId());
-
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
-        }
-
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setActionsArray("do nothing");
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
-        Set<HiveAction> actionsSet =  new HashSet<>();
-        actionsSet.add(HiveAction.NONE);
-        HivePrincipal principal = new HivePrincipal(user);
-        principal.setActions(actionsSet);
-        HiveAuthentication authentication = new HiveAuthentication(principal);
-        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
-
-        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
-        assertThat(returnedNetwork, notNullValue());
-        assertThat(returnedNetwork.getDevices(), is(empty()));
-    }
 
     @Test
     public void should_not_return_network_with_devices_if_access_key_does_not_have_permissions() throws Exception {
@@ -768,11 +707,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setNetworkIdsCollection(Arrays.asList(-1L, -2L));
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Arrays.asList(-1L, -2L)));
         HiveAuthentication authentication = new HiveAuthentication(principal);
@@ -813,13 +747,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         device.setDeviceClass(Optional.ofNullable(dc));
         device.setNetwork(Optional.ofNullable(created));
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
-
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setNetworkIdsCollection(Collections.singleton(created.getId()));
-//        permission.setDeviceGuidsCollection(Collections.singleton(notification.getDeviceGuid()));
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
@@ -863,12 +790,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setDeviceGuidsCollection(Collections.singleton("-1"));
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
-
         HivePrincipal principal = new HivePrincipal(user);
         principal.setDeviceGuids(new HashSet<>(Collections.singleton("-1")));
         HiveAuthentication authentication = new HiveAuthentication(principal);
@@ -898,11 +819,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(second.getId(), notNullValue());
         userService.assignNetwork(user.getId(), second.getId());
 
-//        AccessKeyVO accessKey = new AccessKeyVO();
-//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-//        permission.setNetworkIdsCollection(Arrays.asList(first.getId(), -1L, -2L));
-//        accessKey.setPermissions(Collections.singleton(permission));
-//        accessKey.setUser(user);
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Arrays.asList(first.getId(), -1L, -2L)));
         HiveAuthentication authentication = new HiveAuthentication(principal);

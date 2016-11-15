@@ -36,6 +36,7 @@ import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.annotation.DirtiesContext;
 
 import javax.ws.rs.core.HttpHeaders;
 import java.util.*;
@@ -52,15 +53,32 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     private JwtClientService jwtClientService;
 
     @Autowired
+    private JwtClientService tokenService;
+
+    @Autowired
     private UserService userService;
 
     @Value("${jwt.secret}")
     String secret;
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_access_and_refresh_tokens_for_basic_authorized_user() throws Exception {
+        // Create test user
+        UserVO testUser = new UserVO();
+        testUser.setLogin("string_1");
+        testUser.setRole(UserRole.CLIENT);
+        testUser.setPasswordHash("string_1");
+        testUser.setFacebookLogin("string_1");
+        testUser.setGithubLogin("string_1");
+        testUser.setGoogleLogin("string_1");
+        testUser.setStatus(UserStatus.ACTIVE);
+
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        final long userId = user.getId();
+
         // Create payload
-        Long userId = RandomUtils.nextLong(10, 1000);
+//        Long userId = RandomUtils.nextLong(10, 1000);
         Set<String> actions = new HashSet<>();
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
@@ -70,7 +88,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), payload, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
         assertNotNull(jwtTokenVO.getAccessToken());
         assertNotNull(jwtTokenVO.getRefreshToken());
     }
@@ -121,9 +139,9 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), payload, CREATED, JwtTokenVO.class);
         JwtTokenVO token = new JwtTokenVO();
-        token.setRefreshToken(jwtTokenVO.getRefreshToken());
+        String refreshToken = tokenService.generateJwtAccessToken(payload);
+        token.setRefreshToken(refreshToken);
 
         JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), token, UNAUTHORIZED, JwtTokenVO.class);
         assertNull(jwtToken.getAccessToken());
