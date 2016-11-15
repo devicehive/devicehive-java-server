@@ -20,6 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
@@ -70,7 +71,10 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Matchers.any;
 
 
-public class NetworkServiceTest {
+public class NetworkServiceTest extends AbstractResourceTest {
+
+    @Autowired
+    private RequestDispatcherProxy requestDispatcherProxy;
 
     @Autowired
     private NetworkService networkService;
@@ -83,9 +87,6 @@ public class NetworkServiceTest {
     @Autowired
     private NetworkDao networkDao;
 
-    @Autowired
-    private RequestDispatcherProxy requestDispatcherProxy;
-
     @Mock
     private RequestHandler requestHandler;
 
@@ -94,6 +95,7 @@ public class NetworkServiceTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        System.out.println("requestDispatcherProxy " + requestDispatcherProxy);
         requestDispatcherProxy.setRequestHandler(requestHandler);
         namePrefix = RandomStringUtils.randomAlphabetic(10);
     }
@@ -351,7 +353,7 @@ public class NetworkServiceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
-        HivePrincipal principal = new HivePrincipal(new DeviceVO());
+        HivePrincipal principal = new HivePrincipal();
         networkService.list(null, null, null, true, 100, 0, principal);
     }
 
@@ -448,12 +450,13 @@ public class NetworkServiceTest {
             }
         }
 
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setNetworkIdsCollection(allowedIds);
-        AccessKeyVO accessKey = new AccessKeyVO();
-        accessKey.setPermissions(Collections.singleton(permission));
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setNetworkIdsCollection(allowedIds);
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        accessKey.setPermissions(Collections.singleton(permission));
         handleListNetworkRequest();
-        HivePrincipal principal = new HivePrincipal(accessKey);
+        HivePrincipal principal = new HivePrincipal();
+        principal.setNetworkIds(allowedIds);
         networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(allowedIds.size()));
@@ -487,12 +490,12 @@ public class NetworkServiceTest {
             userService.assignNetwork(user.getId(), created.getId());
         }
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
 
-        HivePrincipal principal = new HivePrincipal(accessKey);
+        HivePrincipal principal = new HivePrincipal(user);
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 200, 0, principal)
                 .thenAccept(networks-> assertThat(networks, hasSize(assignedToUserCount))).get(5, TimeUnit.SECONDS);
@@ -619,11 +622,11 @@ public class NetworkServiceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -659,11 +662,11 @@ public class NetworkServiceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -704,7 +707,7 @@ public class NetworkServiceTest {
         AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
         accessKey.setPermissions(Collections.singleton(permission));
         accessKey.setUser(user);
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -735,12 +738,16 @@ public class NetworkServiceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setActionsArray("do nothing");
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setActionsArray("do nothing");
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
+        Set<HiveAction> actionsSet =  new HashSet<>();
+        actionsSet.add(HiveAction.NONE);
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setActions(actionsSet);
+        HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -762,13 +769,14 @@ public class NetworkServiceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setNetworkIdsCollection(Arrays.asList(-1L, -2L));
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setNetworkIdsCollection(Arrays.asList(-1L, -2L));
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setNetworkIds(new HashSet<>(Arrays.asList(-1L, -2L)));
+        HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -807,14 +815,17 @@ public class NetworkServiceTest {
         device.setNetwork(Optional.ofNullable(created));
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setNetworkIdsCollection(Collections.singleton(created.getId()));
-        permission.setDeviceGuidsCollection(Collections.singleton(notification.getDeviceGuid()));
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setNetworkIdsCollection(Collections.singleton(created.getId()));
+//        permission.setDeviceGuidsCollection(Collections.singleton(notification.getDeviceGuid()));
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
 
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
+        principal.setDeviceGuids(new HashSet<>(Collections.singleton(notification.getDeviceGuid())));
+        HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -853,13 +864,15 @@ public class NetworkServiceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setDeviceGuidsCollection(Collections.singleton("-1"));
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setDeviceGuidsCollection(Collections.singleton("-1"));
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
 
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setDeviceGuids(new HashSet<>(Collections.singleton("-1")));
+        HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -886,13 +899,14 @@ public class NetworkServiceTest {
         assertThat(second.getId(), notNullValue());
         userService.assignNetwork(user.getId(), second.getId());
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setNetworkIdsCollection(Arrays.asList(first.getId(), -1L, -2L));
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(accessKey));
+//        AccessKeyVO accessKey = new AccessKeyVO();
+//        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
+//        permission.setNetworkIdsCollection(Arrays.asList(first.getId(), -1L, -2L));
+//        accessKey.setPermissions(Collections.singleton(permission));
+//        accessKey.setUser(user);
+        HivePrincipal principal = new HivePrincipal(user);
+        principal.setNetworkIds(new HashSet<>(Arrays.asList(first.getId(), -1L, -2L)));
+        HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(first.getId(), authentication);

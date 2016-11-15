@@ -241,20 +241,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
-        AccessKeyVO accessKey = new AccessKeyVO();
-        accessKey.setKey(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-        accessKey.setType(AccessKeyType.SESSION);
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        permission.setActionsArray(AccessKeyAction.GET_DEVICE.getValue(), AccessKeyAction.GET_DEVICE_COMMAND.getValue());
-        permission.setDeviceGuidsCollection(Arrays.asList("1", "2", "3"));
-        permission.setDomainArray("domain1", "domain2");
-        permission.setNetworkIdsCollection(Arrays.asList(1L, 2L));
-        permission.setSubnetsArray("localhost");
-        accessKey.setPermissions(singleton(permission));
-        AccessKeyVO createdkey = accessKeyService.create(user, accessKey);
-
-        final HivePrincipal principal = new HivePrincipal(createdkey);
+        final HivePrincipal principal = new HivePrincipal(user);
+        principal.setNetworkIds(new HashSet<>(Arrays.asList(1L, 2L)));
+        principal.setDeviceGuids(new HashSet<>(Arrays.asList("1", "2", "3")));
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
@@ -266,6 +255,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
      * using Key role.
      */
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_notify_role_key() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
@@ -282,12 +272,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetwork(Optional.ofNullable(created));
-
-        final AccessKeyVO accessKey = new AccessKeyVO();
-        final AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        final HivePrincipal principal = new HivePrincipal(accessKey);
+        final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -309,7 +294,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertEquals(existingDevice.getName(), deviceUpdate.getName().get());
 
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
-        Mockito.verify(requestHandler).handle(requestCaptor.capture());
+        Mockito.verify(requestHandler, times(1)).handle(requestCaptor.capture());
 
         Request request = requestCaptor.getValue();
         assertNotNull(request.getBody());
@@ -400,12 +385,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
-
-        final AccessKeyVO accessKey = new AccessKeyVO();
-        final AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        final HivePrincipal principal = new HivePrincipal(accessKey);
+        
+        final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -464,10 +445,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        
+        Set<String> allowedDeviceGuids = new HashSet<>();
+        allowedDeviceGuids.add(device.getGuid());
 
-        final DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
-
-        HivePrincipal principal = new HivePrincipal(existingDevice);
+        HivePrincipal principal = new HivePrincipal();
+        principal.setDeviceGuids(allowedDeviceGuids);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
