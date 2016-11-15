@@ -108,7 +108,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command/{commandId}/poll")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceGuid, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Waits for a command to be processed.",
             notes = "Waits for a command to be processed.<br>" +
                     "<br>" +
@@ -138,7 +138,7 @@ public interface DeviceCommandResource {
 
     @GET
     @Path("/{deviceGuid}/command")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Query commands.",
             notes = "Gets list of commands that has been received in specified time range.",
             response = DeviceCommand.class,
@@ -186,7 +186,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceGuid}/command/{commandId}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Get command ",
             notes = "Gets command by device GUID and command id",
             response = DeviceCommand.class)
@@ -216,7 +216,7 @@ public interface DeviceCommandResource {
     @POST
     @Path("/{deviceGuid}/command")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'CREATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Creates new device command.",
             notes = "Creates new device command, stores and returns command with generated id.",
             response = DeviceCommand.class)
@@ -249,7 +249,7 @@ public interface DeviceCommandResource {
     @PUT
     @Path("/{deviceGuid}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'UPDATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Updates an existing device command.",
             notes = "Updates an existing device command.",
             response = DeviceCommand.class)

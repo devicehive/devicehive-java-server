@@ -78,11 +78,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                       String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device notification query requested for device {}", guid);
 
-        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Date timestampSt = TimestampQueryParamParser.parse(startTs);
         final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
-        DeviceVO byGuidWithPermissionsCheck = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO byGuidWithPermissionsCheck = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
         if (byGuidWithPermissionsCheck == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
@@ -110,9 +109,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public void get(String guid, Long notificationId, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
 
-        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
 
         if (device == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
@@ -235,8 +232,6 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
 
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         if (notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
@@ -244,7 +239,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
             asyncResponse.resume(response);
         }
-        DeviceVO device = deviceService.findByGuidWithPermissionsCheck(guid, principal);
+        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
         if (device == null) {
             logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
             Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

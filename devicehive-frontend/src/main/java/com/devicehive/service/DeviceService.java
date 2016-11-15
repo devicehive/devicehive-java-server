@@ -309,14 +309,7 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public DeviceVO getDeviceWithNetworkAndDeviceClass(String deviceId, HivePrincipal principal) {
-
-        if (getAllowedDevicesCount(principal, Collections.singletonList(deviceId)) == 0) {
-            logger.error("Allowed device count is equal to 0");
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
-        }
-
-        //TODO with network and device class
+    public DeviceVO getDeviceWithNetworkAndDeviceClass(String deviceId) {
         DeviceVO device = deviceDao.findByUUID(deviceId);
 
         if (device == null) {
@@ -328,9 +321,8 @@ public class DeviceService {
 
     //TODO: only migrated to genericDAO, need to migrate Device PK to guid and use directly GenericDAO#remove
     @Transactional
-    public boolean deleteDevice(@NotNull String guid, HivePrincipal principal) {
-        List<DeviceVO> existing = getDeviceList(Collections.singletonList(guid), principal);
-        return existing.isEmpty() || deviceDao.deleteByUUID(guid) != 0;
+    public boolean deleteDevice(@NotNull String guid) {
+        return deviceDao.deleteByUUID(guid) != 0;
     }
 
     //@Transactional(readOnly = true)

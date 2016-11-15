@@ -66,8 +66,8 @@ public class JwtCheckPermissionsHelper {
 
         if (targetDomainObject instanceof String) {
 
-            Set<Long> networks = principal.getNetworkIds() != null ? principal.getNetworkIds() : new HashSet<>();
-            Set<String> devices = principal.getDeviceGuids() != null ? principal.getDeviceGuids() : new HashSet<>();
+            Set<Long> networks = principal.getNetworkIds();
+            Set<String> devices = principal.getDeviceGuids();
 
             if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;

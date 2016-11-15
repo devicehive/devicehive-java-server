@@ -69,7 +69,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceGuid}/notification")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
             response = DeviceNotification.class)
     void query(
@@ -118,7 +118,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceGuid}/notification/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Returned notification by device guid and notification id",
@@ -231,7 +231,7 @@ public interface DeviceNotificationResource {
     @POST
     @Path("/{deviceGuid}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "notification sent", response = DeviceNotification.class),
