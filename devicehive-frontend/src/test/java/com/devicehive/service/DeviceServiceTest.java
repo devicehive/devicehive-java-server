@@ -183,7 +183,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
 
-        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
         assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
@@ -288,7 +288,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
                 });
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
-        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid(), principal);
+        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(existingDevice.getGuid(), deviceUpdate.getGuid().get());
         assertEquals(existingDevice.getName(), deviceUpdate.getName().get());
@@ -648,7 +648,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
 
-        deviceService.deleteDevice(device.getGuid(), null);
+        deviceService.deleteDevice(device.getGuid());
         existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNull(existingDevice);
     }
