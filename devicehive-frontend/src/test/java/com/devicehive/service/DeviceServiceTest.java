@@ -152,7 +152,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
      * using Admin role.
      */
     @Test
-    public void should_save_and_notify_role_admin() {
+    public void should_save_and_notify_role_admin() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
@@ -182,7 +182,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
-
+        TimeUnit.SECONDS.sleep(1);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
@@ -288,13 +288,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
                 });
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        TimeUnit.SECONDS.sleep(1);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(existingDevice.getGuid(), deviceUpdate.getGuid().get());
         assertEquals(existingDevice.getName(), deviceUpdate.getName().get());
 
         ArgumentCaptor<Request> requestCaptor = ArgumentCaptor.forClass(Request.class);
-        Mockito.verify(requestHandler, times(1)).handle(requestCaptor.capture());
+        Mockito.verify(requestHandler).handle(requestCaptor.capture());
 
         Request request = requestCaptor.getValue();
         assertNotNull(request.getBody());

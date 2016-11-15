@@ -95,7 +95,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        System.out.println("requestDispatcherProxy " + requestDispatcherProxy);
         requestDispatcherProxy.setRequestHandler(requestHandler);
         namePrefix = RandomStringUtils.randomAlphabetic(10);
     }
