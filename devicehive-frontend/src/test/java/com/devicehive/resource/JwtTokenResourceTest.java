@@ -66,12 +66,12 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     public void should_return_access_and_refresh_tokens_for_basic_authorized_user() throws Exception {
         // Create test user
         UserVO testUser = new UserVO();
-        testUser.setLogin("string_1");
+        testUser.setLogin("string_0");
         testUser.setRole(UserRole.CLIENT);
-        testUser.setPasswordHash("string_1");
-        testUser.setFacebookLogin("string_1");
-        testUser.setGithubLogin("string_1");
-        testUser.setGoogleLogin("string_1");
+        testUser.setPasswordHash("string_0");
+        testUser.setFacebookLogin("string_0");
+        testUser.setGithubLogin("string_0");
+        testUser.setGoogleLogin("string_0");
         testUser.setStatus(UserStatus.ACTIVE);
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
@@ -94,6 +94,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_refresh_token_of_unexisting_user() throws Exception {
         // Create payload
         Long userId = RandomUtils.nextLong(10, 1000);
@@ -115,6 +116,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_refresh_token_of_inactive_user() throws Exception {
         // Create test user
         UserVO testUser = new UserVO();
@@ -148,6 +150,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_400_after_providing_invalid_refresh_token() throws Exception {
         // Create test user
         UserVO testUser = new UserVO();
@@ -179,6 +182,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_expired_refresh_token() throws Exception {
         // Create test user
         UserVO testUser = new UserVO();

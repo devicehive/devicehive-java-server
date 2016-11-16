@@ -574,41 +574,5 @@ public class AccessKeyServiceTest extends AbstractResourceTest {
 
         assertFalse(accessKeyService.hasAccessToDevice(accessKey, device.getGuid().orElse(null)));
     }
-
-    @Test
-    public void should_list_access_keys_by_user() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, RandomStringUtils.random(10));
-
-        for (int i = 0; i < 50; i++) {
-            AccessKeyVO accessKey = new AccessKeyVO();
-            accessKey.setLabel(RandomStringUtils.randomAlphabetic(10));
-            accessKey.setPermissions(singleton(new AccessKeyPermissionVO()));
-            accessKey.setType(AccessKeyType.DEFAULT);
-            accessKeyService.create(user, accessKey);
-        }
-
-        when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
-            Request request = invocation.getArgumentAt(0, Request.class);
-            ListAccessKeyRequest req = request.getBody().cast(ListAccessKeyRequest.class);
-            final List<AccessKeyVO> accessKeys =
-                    accessKeyDao.list(req.getUserId(), req.getLabel(),
-                            req.getLabelPattern(), req.getType(),
-                            req.getSortField(), req.getSortOrderAsc(),
-                            req.getTake(), req.getSkip());
-
-            return Response.newBuilder()
-                    .withBody(new ListAccessKeyResponse(accessKeys))
-                    .buildSuccess();
-        });
-
-        accessKeyService.list(user.getId(), null, null, AccessKeyType.DEFAULT.getValue(), null, false, 50, 0)
-                .thenAccept(accessKeys -> {
-                    assertThat(accessKeys, not(empty()));
-                    assertThat(accessKeys, hasSize(50));
-                }).get(2, TimeUnit.SECONDS);
-
-        verify(requestHandler, times(1)).handle(argument.capture());
-    }
+    
 }
