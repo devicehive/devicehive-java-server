@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Optional.ofNullable;
 
+@Deprecated
 @Component
 public class AccessKeyService {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AccessKeyService.class);

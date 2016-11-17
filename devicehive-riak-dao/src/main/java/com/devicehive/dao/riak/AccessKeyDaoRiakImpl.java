@@ -43,6 +43,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Repository
 public class AccessKeyDaoRiakImpl extends RiakGenericDao implements AccessKeyDao {
 

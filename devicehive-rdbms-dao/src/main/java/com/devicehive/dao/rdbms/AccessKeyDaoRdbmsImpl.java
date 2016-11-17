@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
+@Deprecated
 @Repository
 public class AccessKeyDaoRdbmsImpl extends RdbmsGenericDao implements AccessKeyDao {
 

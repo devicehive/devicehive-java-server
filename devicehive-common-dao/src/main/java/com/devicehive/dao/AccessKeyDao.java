@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+@Deprecated
 public interface AccessKeyDao {
     AccessKeyVO getById(Long keyId, Long userId);
 
