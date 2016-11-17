@@ -262,6 +262,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             UserVO user = principal.getUser();
             if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+                if (principal.getNetworkIds() != null) {
+                    networks.retainAll(principal.getNetworkIds());
+                }
                 addReduceFilter(builder, "network.id", FilterOperator.IN, networks);
             }
             if (principal.getDeviceGuids() != null) {
