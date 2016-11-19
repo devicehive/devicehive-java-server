@@ -66,8 +66,6 @@ public class DeviceService {
     @Autowired
     private DeviceActivityService deviceActivityService;
     @Autowired
-    private AccessKeyService accessKeyService;
-    @Autowired
     private TimestampService timestampService;
     @Autowired
     private HiveValidator hiveValidator;

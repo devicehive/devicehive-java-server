@@ -84,7 +84,7 @@ public class GoogleAuthProvider extends AuthProvider {
     }
 
     @Override
-    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO request) {
         if (isIdentityProviderAllowed()) {
             final String accessToken = request.getAccessToken() == null ? getAccessToken(request.getCode(), request.getRedirectUri()) : request.getAccessToken();
             final String userEmail = getIdentityProviderEmail(accessToken);

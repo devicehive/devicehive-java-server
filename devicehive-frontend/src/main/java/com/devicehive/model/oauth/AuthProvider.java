@@ -20,7 +20,7 @@ package com.devicehive.model.oauth;
  * #L%
  */
 
-import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 
 import javax.validation.constraints.NotNull;
@@ -32,5 +32,5 @@ public abstract class AuthProvider {
 
     public abstract boolean isIdentityProviderAllowed();
 
-    public abstract JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO accessKeyRequest);
+    public abstract JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO accessKeyRequest);
 }

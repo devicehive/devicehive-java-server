@@ -28,7 +28,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.UserService;
-import com.devicehive.vo.OAuthClientVO;
 import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 

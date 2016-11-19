@@ -22,7 +22,7 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.service.OAuthTokenService;
-import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import com.devicehive.model.oauth.IdentityProviderEnum;
 import com.devicehive.resource.AuthJwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -41,9 +41,9 @@ public class AuthJwtTokenResourceImpl implements AuthJwtTokenResource {
     private OAuthTokenService tokenService;
 
     @Override
-    public Response login(AccessKeyRequestVO request) {
+    public Response login(OauthJwtRequestVO request) {
         final IdentityProviderEnum identityProviderEnum = IdentityProviderEnum.forName(request.getProviderName());
-        JwtTokenVO jwtToken = tokenService.createAccessKey(request, identityProviderEnum);
+        JwtTokenVO jwtToken = tokenService.createToken(request, identityProviderEnum);
         return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }

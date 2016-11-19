@@ -659,41 +659,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_not_return_network_with_devices_and_device_classes_for_unassigned_user_access_key() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        NetworkVO created = networkService.create(network);
-        assertThat(created.getId(), notNullValue());
-
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
-        }
-
-        AccessKeyVO accessKey = new AccessKeyVO();
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        accessKey.setPermissions(Collections.singleton(permission));
-        accessKey.setUser(user);
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
-        authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
-
-        NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
-        assertThat(returnedNetwork, nullValue());
-    }
-
-
-    @Test
     public void should_not_return_network_with_devices_if_access_key_does_not_have_permissions() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -999,56 +964,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
         networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
-    }
-
-    @Test
-    public void should_verify_network_key_if_access_key_has_access_to_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
-
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.create(network);
-        assertThat(created.getId(), notNullValue());
-
-        userService.assignNetwork(user.getId(), created.getId());
-
-        AccessKeyVO accessKey = new AccessKeyVO();
-        accessKey.setUser(user);
-        accessKey.setPermissions(Collections.singleton(new AccessKeyPermissionVO()));
-
-        NetworkVO stored = networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
-        assertThat(created.getId(), equalTo(stored.getId()));
-    }
-
-    @Test
-    public void should_throw_ActionNotAllowedException_if_access_key_does_not_have_access_to_network_when_verifies() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
-
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.create(network);
-        assertThat(created.getId(), notNullValue());
-
-        AccessKeyVO accessKey = new AccessKeyVO();
-        accessKey.setUser(user);
-        accessKey.setPermissions(Collections.singleton(new AccessKeyPermissionVO()));
-
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
-
-        networkService.createOrVerifyNetworkByKey(Optional.ofNullable(created), accessKey);
     }
 
     private void handleListNetworkRequest() {

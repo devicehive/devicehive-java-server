@@ -41,7 +41,6 @@ public class JerseyConfig extends ResourceConfig {
                 "com.devicehive.resource.filter");
 
         registerClasses(ApiInfoResourceImpl.class,
-                AccessKeyResourceImpl.class,
                 ConfigurationResourceImpl.class,
                 AuthJwtTokenResourceImpl.class,
                 DeviceClassResourceImpl.class,

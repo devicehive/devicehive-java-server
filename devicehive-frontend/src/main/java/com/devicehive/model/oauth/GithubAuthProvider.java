@@ -88,7 +88,7 @@ public class GithubAuthProvider extends AuthProvider {
     }
 
     @Override
-    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO request) {
         if (isIdentityProviderAllowed()) {
             if (request.getCode() != null) {
                 final String accessToken = getAccessToken(request.getCode());

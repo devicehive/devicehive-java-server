@@ -138,22 +138,6 @@ public class RpcClientActionTest extends AbstractSpringTest {
     }
 
     @Test
-    public void testListAccessKeyAction() throws Exception {
-        ListAccessKeyRequest listAccessKeyRequest = new ListAccessKeyRequest();
-        listAccessKeyRequest.setUserId(UUID.randomUUID().getMostSignificantBits()); // nonexistent id
-
-        Request request = Request.newBuilder()
-                .withBody(listAccessKeyRequest)
-                .build();
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        client.call(request, future::complete);
-
-        Response response = future.get(10, TimeUnit.SECONDS);
-        ListAccessKeyResponse responseBody = (ListAccessKeyResponse) response.getBody();
-        assertNotNull(responseBody.getAccessKeys().isEmpty());
-    }
-
-    @Test
     public void testListUserAction() throws Exception {
         ListUserRequest listUserRequest = new ListUserRequest();
         listUserRequest.setLogin(UUID.randomUUID().toString()); // nonexistent login

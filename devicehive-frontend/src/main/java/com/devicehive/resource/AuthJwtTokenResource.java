@@ -20,8 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.vo.AccessKeyRequestVO;
-import com.devicehive.vo.AccessKeyVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,5 +46,5 @@ public interface AuthJwtTokenResource {
     })
     Response login(
             @ApiParam(value = "Access key request", required = true)
-            AccessKeyRequestVO request);
+                    OauthJwtRequestVO request);
 }

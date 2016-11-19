@@ -24,7 +24,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.service.OAuthTokenService;
 import com.devicehive.service.UserService;
-import com.devicehive.vo.AccessKeyRequestVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,7 @@ public class PasswordIdentityProvider extends AuthProvider {
     }
 
     @Override
-    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO request) {
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());

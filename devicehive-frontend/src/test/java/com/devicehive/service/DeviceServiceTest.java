@@ -20,7 +20,6 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.AccessKeyAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
@@ -86,9 +85,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Autowired
     private DeviceClassService deviceClassService;
-
-    @Autowired
-    private AccessKeyService accessKeyService;
 
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;

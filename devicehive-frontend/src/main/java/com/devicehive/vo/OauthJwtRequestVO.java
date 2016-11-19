@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * Created by tmatvienko on 1/13/15.
  */
-public class AccessKeyRequestVO implements HiveEntity {
+public class OauthJwtRequestVO implements HiveEntity {
     private static final long serialVersionUID = -3876398635939615946L;
 
     private String providerName;
@@ -45,7 +45,7 @@ public class AccessKeyRequestVO implements HiveEntity {
 
     private String password;
 
-    public AccessKeyRequestVO() {
+    public OauthJwtRequestVO() {
     }
 
     public String getProviderName() {

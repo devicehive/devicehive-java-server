@@ -21,9 +21,7 @@ package com.devicehive.dao.rdbms;
  */
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
-import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
@@ -75,18 +73,6 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
-    public static Predicate[] networkPermissionsPredicates(CriteriaBuilder cb, Root<?> from, Set<AccessKeyPermissionVO> permissions) {
-        List<Predicate> predicates = new ArrayList<>();
-        for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(permissions)) {
-            List<Predicate> filter = new ArrayList<>();
-            if (extraFilter.getNetworkIds() != null) {
-                filter.add(from.get("id").in(extraFilter.getNetworkIds()));
-            }
-            predicates.add(cb.and(filter.toArray(new Predicate[filter.size()])));
-        }
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
     /**
      * Adds ORDER BY ... ASC/DESC to query
      * Mutates provided criteria query
@@ -113,24 +99,6 @@ public class CriteriaHelper {
 
         roleOpt.ifPresent(role -> predicates.add(cb.equal(from.get("role"), role)));
         statusOpt.ifPresent(status -> predicates.add(cb.equal(from.get("status"), status)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] accessKeyListPredicates(CriteriaBuilder cb, Root<AccessKey> from, Long userId, Optional<String> labelOpt, Optional<String> labelPatten,
-                                                      Optional<Integer> typeOpt) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        Join user = (Join) from.fetch("user", JoinType.LEFT);
-        predicates.add(cb.equal(user.get("id"), userId));
-
-        if (labelPatten.isPresent()) {
-            labelPatten.ifPresent(pattern -> predicates.add(cb.like(from.get("label"), pattern)));
-        } else {
-            labelOpt.ifPresent(label -> predicates.add(cb.equal(from.get("label"), label)));
-        }
-
-        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }

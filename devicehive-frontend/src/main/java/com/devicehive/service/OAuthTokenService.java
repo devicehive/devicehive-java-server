@@ -40,7 +40,7 @@ import java.util.Set;
 
 @Component
 public class OAuthTokenService {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AccessKeyService.class);
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(OAuthTokenService.class);
 
     @Autowired
     private UserService userService;
@@ -59,7 +59,7 @@ public class OAuthTokenService {
     @Autowired
     private NetworkDao networkDao;
 
-    public JwtTokenVO createAccessKey(@NotNull AccessKeyRequestVO request, IdentityProviderEnum identityProviderEnum) {
+    public JwtTokenVO createToken(@NotNull OauthJwtRequestVO request, IdentityProviderEnum identityProviderEnum) {
         switch (identityProviderEnum) {
             case GOOGLE:
                 return googleAuthProvider.createAccessKey(request);

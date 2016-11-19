@@ -59,8 +59,6 @@ public class NetworkService {
     @Autowired
     private UserService userService;
     @Autowired
-    private AccessKeyService accessKeyService;
-    @Autowired
     private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
@@ -229,38 +227,6 @@ public class NetworkService {
             }
             boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
             if (user.isAdmin() || allowed) {
-                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
-                networkDao.persist(newNetwork);
-                network.setId(newNetwork.getId());
-            } else {
-                throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
-            }
-            return network;
-        }
-    }
-
-    @Transactional
-    public NetworkVO createOrVerifyNetworkByKey(Optional<NetworkVO> networkNullable, AccessKeyVO key) {
-        //case network is not defined
-        if (networkNullable == null || networkNullable.orElse(null) == null) {
-            return null;
-        }
-
-        NetworkVO network = networkNullable.orElse(null);
-
-        Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
-        if (storedOpt.isPresent()) {
-            NetworkVO stored = validateNetworkKey(storedOpt.get(), network);
-            if (stored.getKey() != null && !accessKeyService.hasAccessToNetwork(key, stored)) {
-                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-            }
-            return stored;
-        } else {
-            if (network.getId() != null) {
-                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
-            }
-            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (allowed) {
                 NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
                 networkDao.persist(newNetwork);
                 network.setId(newNetwork.getId());

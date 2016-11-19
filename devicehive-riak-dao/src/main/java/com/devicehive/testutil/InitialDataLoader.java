@@ -45,9 +45,6 @@ public class InitialDataLoader {
     UserDao userDao;
 
     @Autowired
-    AccessKeyDao accessKeyDao;
-
-    @Autowired
     ConfigurationDao configurationDao;
 
     @Autowired
@@ -68,18 +65,6 @@ public class InitialDataLoader {
         user.setStatus(UserStatus.ACTIVE);
         user.setLoginAttempts(0);
         userDao.persist(user);
-
-        AccessKeyVO key = new AccessKeyVO();
-        key.setId(1L);
-        key.setLabel("Access Key for dhadmin");
-        key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
-        key.setExpirationDate(null);
-        key.setUser(user);
-        key.setEntityVersion(1);
-        key.setPermissions(new HashSet<>());
-        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
-        key.getPermissions().add(permission);
-        accessKeyDao.persist(key);
 
         ConfigurationVO cfg;
         cfg = new ConfigurationVO("google.identity.allowed", "true");
@@ -137,19 +122,6 @@ public class InitialDataLoader {
         user2.setStatus(UserStatus.ACTIVE);
         user2.setLoginAttempts(0);
         userDao.persist(user2);
-
-        key = new AccessKeyVO();
-        key.setId(2L);
-        key.setLabel("Access Key for dhadmin");
-        key.setKey("1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=");
-        key.setExpirationDate(null);
-        key.setUser(user2);
-        key.setType(AccessKeyType.DEFAULT);
-        key.setEntityVersion(1);
-        key.setPermissions(new HashSet<>());
-        AccessKeyPermissionVO permission2 = new AccessKeyPermissionVO();
-        key.getPermissions().add(permission2);
-        accessKeyDao.persist(key);
 
         cfg = new ConfigurationVO("websocket.ping.timeout", "120000");
         configurationDao.persist(cfg);

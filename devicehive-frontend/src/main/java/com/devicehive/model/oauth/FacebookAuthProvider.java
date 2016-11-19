@@ -84,7 +84,7 @@ public class FacebookAuthProvider extends AuthProvider {
     }
 
     @Override
-    public JwtTokenVO createAccessKey(@NotNull final AccessKeyRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO request) {
         if (isIdentityProviderAllowed()) {
             String accessToken;
             if (request.getCode() != null) {
