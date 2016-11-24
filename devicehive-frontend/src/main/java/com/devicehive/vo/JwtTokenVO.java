@@ -37,11 +37,11 @@ public class JwtTokenVO implements HiveEntity {
 
     @JsonPolicyDef({JWT_REFRESH_TOKEN_SUBMITTED, JWT_ACCESS_TOKEN_SUBMITTED})
     @ApiModelProperty(hidden = true)
-    @SerializedName("access_token")
+    @SerializedName("accessToken")
     private String accessToken; 
 
     @JsonPolicyDef({JWT_REFRESH_TOKEN_SUBMITTED})
-    @SerializedName("refresh_token")
+    @SerializedName("refreshToken")
     private String refreshToken;
 
     public JwtTokenVO() {
