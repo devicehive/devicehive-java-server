@@ -28,7 +28,7 @@ is included. This also means you don't have to contribute the end product or
 modified sources back to Open Source, but if you feel like sharing, you are
 highly encouraged to do so!
 
-&copy; Copyright 2013 DataArt Apps &copy; All Rights Reserved
+&copy; Copyright 2013-2016 DataArt Apps &copy; All Rights Reserved
 
 Docker Container
 =========================================
