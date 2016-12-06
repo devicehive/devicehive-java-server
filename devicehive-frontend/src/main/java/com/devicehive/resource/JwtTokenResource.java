@@ -65,7 +65,7 @@ public interface JwtTokenResource {
             @ApiResponse(code = 404, message = "If access token not found")
     })
     Response refreshTokenRequest(
-            @ApiParam(name = "refresh_token", value = "Refresh token", required = true)
+            @ApiParam(name = "refreshToken", value = "Refresh token", required = true)
             JwtTokenVO jwtTokenVO);
 }
 
