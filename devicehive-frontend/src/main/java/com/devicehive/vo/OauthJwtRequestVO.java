@@ -35,10 +35,10 @@ public class OauthJwtRequestVO implements HiveEntity {
 
     private String code;
 
-    @SerializedName("redirect_uri")
+    @SerializedName("redirectUri")
     private String redirectUri;
 
-    @SerializedName("access_token")
+    @SerializedName("accessToken")
     private String accessToken;
 
     private String login;
