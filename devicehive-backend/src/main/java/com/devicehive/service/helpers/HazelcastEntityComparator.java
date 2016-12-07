@@ -35,6 +35,6 @@ public class HazelcastEntityComparator implements Comparator<Map.Entry>, Seriali
         final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
         final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
 
-        return o2Time.compareTo(o1Time);
+        return o1Time.compareTo(o2Time);
     }
 }

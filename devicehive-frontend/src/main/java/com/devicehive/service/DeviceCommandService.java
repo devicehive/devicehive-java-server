@@ -196,8 +196,6 @@ public class DeviceCommandService {
         }
         if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
             cmd.setTimestamp(commandWrapper.getTimestamp().get());
-        } else {
-            cmd.setTimestamp(timestampService.getDate());
         }
         if (commandWrapper.getParameters() != null) {
             cmd.setParameters(commandWrapper.getParameters().orElse(null));
