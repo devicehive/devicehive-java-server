@@ -77,7 +77,7 @@ public class CommandHandlers {
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final Date timestamp = gson.fromJson(request.getAsJsonObject(TIMESTAMP), Date.class);
+        final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
         final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_GUID))
                 .map(JsonElement::getAsString)
                 .orElse(null);
