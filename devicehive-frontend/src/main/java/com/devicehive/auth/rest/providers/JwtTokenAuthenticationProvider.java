@@ -67,7 +67,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             if (jwtPayload == null ||
                     (jwtPayload.getExpiration() != null
                             && jwtPayload.getExpiration().before(timestampService.getDate())
-                            && jwtPayload.getTokenType().equals(TokenType.REFRESH))) {
+                            || jwtPayload.getTokenType().equals(TokenType.REFRESH))) {
                 throw new BadCredentialsException("Unauthorized");
             }
             logger.debug("Jwt token authentication successful");
