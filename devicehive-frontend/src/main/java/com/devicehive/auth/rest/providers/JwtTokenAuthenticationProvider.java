@@ -111,7 +111,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             return new HiveAuthentication(principal,
                     AuthorityUtils.createAuthorityList(HiveRoles.JWT));
 
-        } catch (MalformedJwtException e) {
+        } catch (Exception e) {
             throw new BadCredentialsException("Unauthorized");
         }
     }

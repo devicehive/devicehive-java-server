@@ -23,19 +23,24 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
-import com.devicehive.service.DeviceService;
+import com.devicehive.model.enums.UserStatus;
+import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
+import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -49,6 +54,12 @@ public class CommonHandlers {
 
     @Autowired
     private WebSocketAuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtClientService tokenService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private TimestampService timestampService;
@@ -91,5 +102,48 @@ public class CommonHandlers {
         state.setHivePrincipal(principal);
 
         return new WebSocketResponse();
+    }
+
+    @PreAuthorize("permitAll")
+    public WebSocketResponse processRefresh(JsonObject request, WebSocketSession session) {
+        String refreshToken = null;
+        if (request.get("refreshToken") != null) {
+            refreshToken = request.get("refreshToken").getAsString();
+        }
+
+        JwtPayload payload;
+
+        try {
+            payload = tokenService.getPayload(refreshToken);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new BadCredentialsException(e.getMessage());
+        }
+
+        UserVO user = userService.findById(payload.getUserId());
+        if (user == null) {
+            String msg = "JwtToken: User not found";
+            logger.warn(msg);
+            throw new BadCredentialsException(msg);
+        }
+        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            String msg = "JwtToken: User is not active";
+            logger.warn(msg);
+            throw new BadCredentialsException(msg);
+        }
+        if (!payload.getTokenType().equals(TokenType.REFRESH)) {
+            String msg = "JwtToken: refresh token is not valid";
+            logger.warn(msg);
+            throw new BadCredentialsException(msg);
+        }
+        if (payload.getExpiration().before(timestampService.getDate())) {
+            String msg = "JwtToken: refresh token has expired";
+            logger.warn(msg);
+            throw new BadCredentialsException(msg);
+        }
+
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload));
+        return response;
     }
 }

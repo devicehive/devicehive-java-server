@@ -41,6 +41,10 @@ public class WebSocketResponse {
         policyMap.put(key, policy);
     }
 
+    public void addValue(String key, Object object) {
+        dataMap.put(key, object);
+    }
+
     public JsonObject getResponseAsJson() {
         JsonMessageBuilder messageBuilder = JsonMessageBuilder.createSuccessResponseBuilder();
         for (String currentKey : dataMap.keySet()) {

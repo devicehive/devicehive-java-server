@@ -58,6 +58,9 @@ public class WebSocketRequestProcessor {
             case AUTHENTICATE:
                 response = commonHandlers.processAuthenticate(request, session);
                 break;
+            case TOKEN_REFRESH:
+                response = commonHandlers.processRefresh(request, session);
+                break;
             case NOTIFICATION_INSERT:
                 response = notificationHandlers.processNotificationInsert(request, session);
                 break;
@@ -102,6 +105,7 @@ public class WebSocketRequestProcessor {
     public enum WebsocketAction {
         SERVER_INFO("server/info"),
         AUTHENTICATE("authenticate"),
+        TOKEN_REFRESH("token/refresh"),
         NOTIFICATION_INSERT("notification/insert"),
         NOTIFICATION_SUBSCRIBE("notification/subscribe"),
         NOTIFICATION_UNSUBSCRIBE("notification/unsubscribe"),

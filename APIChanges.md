@@ -14,3 +14,4 @@ This document tracks changes to the API between versions.
 
 ## WebSocket API
 * Added JWT authentication support (`accessKey` request parameter renamed to `token`)
+* Added `token/refresh` action (takes `refreshToken` parameter and responses new access token in `accessToken` parameter)
