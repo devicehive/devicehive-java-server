@@ -641,6 +641,9 @@
                                 -Dport=${server.test.port} -Dzk.port=${zk.test.port}
                                 -Dkafka.port=${kafka.test.port}
                             </argLine>
+                            <excludes>
+                                <exclude>**/*DeviceCommandResourceTest.java</exclude>
+                            </excludes>
                         </configuration>
                     </plugin>
                 </plugins>
