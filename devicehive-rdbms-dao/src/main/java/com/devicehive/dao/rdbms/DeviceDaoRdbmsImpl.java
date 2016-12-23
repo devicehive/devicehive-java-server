@@ -1,5 +1,25 @@
 package com.devicehive.dao.rdbms;
 
+/*
+ * #%L
+ * DeviceHive Dao RDBMS Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
@@ -7,7 +27,6 @@ import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Network;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -28,7 +47,6 @@ import java.util.stream.Collectors;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
@@ -136,7 +154,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
                                 Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();

@@ -1,9 +1,27 @@
 package com.devicehive.dao.rdbms;
 
+/*
+ * #%L
+ * DeviceHive Dao RDBMS Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.model.*;
-import com.devicehive.vo.AccessKeyPermissionVO;
 import com.devicehive.vo.UserVO;
 
 import javax.persistence.criteria.*;
@@ -22,7 +40,7 @@ public class CriteriaHelper {
      * 4) if principal is key which has permissions only to specific networks adds 'network.id in (allowed_networks)' predicates
      *
      * @return array of above predicates
-     * @see {@link com.devicehive.service.NetworkService#list(String, String, String, boolean, Integer, Integer, HivePrincipal)}
+     * @see {com.devicehive.service.NetworkService#list(String, String, String, boolean, Integer, Integer, HivePrincipal)}
      */
     public static Predicate[] networkListPredicates(CriteriaBuilder cb, Root<Network> from, Optional<String> nameOpt, Optional<String> namePatternOpt, Optional<HivePrincipal> principalOpt) {
         List<Predicate> predicates = new LinkedList<>();
@@ -35,9 +53,7 @@ public class CriteriaHelper {
 
         principalOpt.flatMap(principal -> {
             UserVO user = principal.getUser();
-            if (user == null && principal.getKey() != null) {
-                user = principal.getKey().getUser();
-            }
+
             return ofNullable(user);
         }).ifPresent(user -> {
             if (!user.isAdmin()) {
@@ -46,22 +62,14 @@ public class CriteriaHelper {
             }
         });
 
-        principalOpt.map(HivePrincipal::getKey).ifPresent(key ->
-                        predicates.add(cb.or(networkPermissionsPredicates(cb, from, key.getPermissions())))
-        );
+        principalOpt.flatMap(principal -> {
+            Set<Long> networks = principal.getNetworkIds();
 
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
+            return ofNullable(networks);
+        }).ifPresent(networks -> {
+            predicates.add(from.<Long>get("id").in(networks));
+        });
 
-    public static Predicate[] networkPermissionsPredicates(CriteriaBuilder cb, Root<?> from, Set<AccessKeyPermissionVO> permissions) {
-        List<Predicate> predicates = new ArrayList<>();
-        for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(permissions)) {
-            List<Predicate> filter = new ArrayList<>();
-            if (extraFilter.getNetworkIds() != null) {
-                filter.add(from.get("id").in(extraFilter.getNetworkIds()));
-            }
-            predicates.add(cb.and(filter.toArray(new Predicate[filter.size()])));
-        }
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
@@ -91,59 +99,6 @@ public class CriteriaHelper {
 
         roleOpt.ifPresent(role -> predicates.add(cb.equal(from.get("role"), role)));
         statusOpt.ifPresent(status -> predicates.add(cb.equal(from.get("status"), status)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] accessKeyListPredicates(CriteriaBuilder cb, Root<AccessKey> from, Long userId, Optional<String> labelOpt, Optional<String> labelPatten,
-                                                      Optional<Integer> typeOpt) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        Join user = (Join) from.fetch("user", JoinType.LEFT);
-        predicates.add(cb.equal(user.get("id"), userId));
-
-        if (labelPatten.isPresent()) {
-            labelPatten.ifPresent(pattern -> predicates.add(cb.like(from.get("label"), pattern)));
-        } else {
-            labelOpt.ifPresent(label -> predicates.add(cb.equal(from.get("label"), label)));
-        }
-
-        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] oAuthGrantsListPredicates(CriteriaBuilder cb, Root<OAuthGrant> from, UserVO user, Optional<Date> startOpt, Optional<Date> endOpt, Optional<String> oAuthIdOpt,
-                                                        Optional<Integer> typeOpt, Optional<String> scopeOpt, Optional<String> redirectUri, Optional<Integer> accessType) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        if (!user.isAdmin()) {
-            User u = User.convertToEntity(user);
-            predicates.add(from.join("user").in(u));
-        }
-
-        startOpt.ifPresent(start -> predicates.add(cb.greaterThan(from.get("timestamp"), start)));
-        endOpt.ifPresent(end -> predicates.add(cb.lessThan(from.get("timestamp"), end)));
-        oAuthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.join("client").get("oauthId"), id)));
-        typeOpt.ifPresent(type -> predicates.add(cb.equal(from.get("type"), type)));
-        scopeOpt.ifPresent(scope -> predicates.add(cb.equal(from.get("scope"), scope)));
-        redirectUri.ifPresent(uri -> predicates.add(cb.equal(from.get("redirectUri"), uri)));
-        accessType.ifPresent(at -> predicates.add(cb.equal(from.get("accessType"), at)));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] oAuthClientListPredicates(CriteriaBuilder cb, Root<OAuthClient> from, Optional<String> nameOpt, Optional<String> namePattern, Optional<String> domainOpt,
-                                                        Optional<String> oauthIdOpt) {
-        List<Predicate> predicates = new LinkedList<>();
-
-        if (namePattern.isPresent()) {
-            namePattern.ifPresent(pattern -> predicates.add(cb.like(from.get("name"), pattern)));
-        } else {
-            nameOpt.ifPresent(name -> predicates.add(cb.equal(from.get("name"), name)));
-        }
-        domainOpt.ifPresent(domain -> predicates.add(cb.equal(from.get("domain"), domain)));
-        oauthIdOpt.ifPresent(id -> predicates.add(cb.equal(from.get("oauthId"), id)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
@@ -210,26 +165,17 @@ public class CriteriaHelper {
         from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
-            if (user == null && p.getKey() != null) {
-                user = p.getKey().getUser();
-            }
+
             if (user != null && !user.isAdmin()) {
                 predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
             }
 
-            if (p.getDevice() != null) {
-                predicates.add(cb.equal(from.<Long>get("id"), p.getDevice().getId()));
+            if (p.getNetworkIds() != null) {
+                predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
             }
 
-            if (p.getKey() != null) {
-                for (AccessKeyBasedFilterForDevices extraFilter : AccessKeyBasedFilterForDevices.createExtraFilters(p.getKey().getPermissions())) {
-                    if (extraFilter.getDeviceGuids() != null) {
-                        predicates.add(from.<String>get("guid").in(extraFilter.getDeviceGuids()));
-                    }
-                    if (extraFilter.getNetworkIds() != null) {
-                        predicates.add(networkJoin.<Long>get("id").in(extraFilter.getNetworkIds()));
-                    }
-                }
+            if (p.getDeviceGuids() != null) {
+                predicates.add(from.<String>get("guid").in(p.getDeviceGuids()));
             }
         });
 

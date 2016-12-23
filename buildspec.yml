@@ -1,0 +1,10 @@
+version: 0.1
+
+phases:
+  build:
+    commands:
+      - mvn test
+artifacts:
+  files:
+    - buildspec.yml
+  discard-paths: yes

@@ -1,5 +1,24 @@
 package com.devicehive.dao.riak;
 
+/*
+ * #%L
+ * DeviceHive Dao Riak Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -9,11 +28,9 @@ import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
-import com.devicehive.dao.filter.AccessKeyBasedFilterForDevices;
 import com.devicehive.dao.riak.model.NetworkDevice;
 import com.devicehive.dao.riak.model.RiakDevice;
 import com.devicehive.dao.riak.model.RiakNetwork;
@@ -22,7 +39,6 @@ import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -30,7 +46,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Profile({"riak"})
 @Repository
 public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
@@ -82,7 +97,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
      * is OfflineTimeout from deviceClass for device with current guid.
      *
      * @param guids list of guids
-     * @return
      */
     @Override
     public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
@@ -181,13 +195,16 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     @Override
     public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
+        if (guids.isEmpty()) {
+            return list(null, null, null, null, null,
+                    null, null, null,
+                    true, null,
+                    null, principal);
+        }
         List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
 
         if (principal != null) {
             UserVO user = principal.getUser();
-            if (user == null && principal.getKey() != null) {
-                user = principal.getKey().getUser();
-            }
 
             if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
@@ -197,24 +214,15 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                         .collect(Collectors.toList());
             }
 
-            if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                for (AccessKeyBasedFilterForDevices extraFilter
-                        : AccessKeyBasedFilterForDevices.createExtraFilters(principal.getKey().getPermissions())) {
-                    if (extraFilter.getDeviceGuids() != null) {
-                        deviceList = deviceList.stream()
-                                .filter(d -> extraFilter.getDeviceGuids().contains(d.getGuid()))
-                                .collect(Collectors.toList());
-                    }
-                    if (extraFilter.getNetworkIds() != null) {
-                        deviceList = deviceList.stream()
-                                .filter(d -> extraFilter.getNetworkIds().contains(d.getNetwork().getId()))
-                                .collect(Collectors.toList());
-                    }
-                }
-            } else if (principal.getDevice() != null) {
-                Long networkId = principal.getDevice().getNetwork().getId();
+            if (principal.getDeviceGuids() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> d.getNetwork().getId().equals(networkId))
+                        .filter(d -> principal.getDeviceGuids().contains(d.getGuid()))
+                        .collect(Collectors.toList());
+            }
+
+            if (principal.getNetworkIds() != null) {
+                deviceList = deviceList.stream()
+                        .filter(d -> principal.getNetworkIds().contains(d.getNetwork().getId()))
                         .collect(Collectors.toList());
             }
         }
@@ -228,7 +236,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> getList(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
             Long deviceClassId, String deviceClassName, String sortField,
             Boolean isSortOrderAsc, Integer take,
             Integer skip, HivePrincipal principal) {
@@ -250,37 +258,24 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         addReduceFilter(builder, "network.name", FilterOperator.EQUAL, networkName);
         addReduceFilter(builder, "deviceClass.id", FilterOperator.EQUAL, deviceClassId);
         addReduceFilter(builder, "deviceClass.name", FilterOperator.EQUAL, deviceClassName);
-
-        if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+        if (principal != null) {
             UserVO user = principal.getUser();
-            if (user == null && principal.getKey() != null) {
-                user = principal.getKey().getUser();
-            }
-
             if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
+                if (principal.getNetworkIds() != null) {
+                    networks.retainAll(principal.getNetworkIds());
+                }
                 addReduceFilter(builder, "network.id", FilterOperator.IN, networks);
             }
-
-            if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                Set<String> deviceGuids = new HashSet<>();
-                permissions.stream()
-                        .map(permission -> permission.getDeviceGuidsAsSet())
-                        .filter(guid -> (guid != null))
-                        .forEach(guid -> deviceGuids.addAll(guid));
-                if (!deviceGuids.isEmpty()) {
-                    addReduceFilter(builder, "guid", FilterOperator.IN, deviceGuids);
-                }
-            } else if (principal.getDevice() != null) {
-                addReduceFilter(builder, "id", FilterOperator.EQUAL, principal.getDevice().getId());
+            if (principal.getDeviceGuids() != null) {
+                Set<String> deviceGuids = principal.getDeviceGuids();
+                addReduceFilter(builder, "guid", FilterOperator.IN, deviceGuids);
             }
         }
         addReduceSort(builder, sortField, isSortOrderAsc);
         addReducePaging(builder, true, take, skip);
         try {
             MapReduce.Response response = client.execute(builder.build());
-
             return response.getResultsFromAllPhases(RiakDevice.class).stream()
                     .map(RiakDevice::convertToVo).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {

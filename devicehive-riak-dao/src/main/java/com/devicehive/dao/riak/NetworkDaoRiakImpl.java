@@ -1,5 +1,24 @@
 package com.devicehive.dao.riak;
 
+/*
+ * #%L
+ * DeviceHive Dao Riak Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -9,7 +28,6 @@ import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.auth.HiveRoles;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
@@ -18,7 +36,6 @@ import com.devicehive.dao.riak.model.UserNetwork;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -27,7 +44,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Profile({"riak"})
 @Repository
 public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
@@ -185,30 +201,22 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             namePattern = namePattern.replace("%", "");
             addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
         }
+
         if (principalOptional.isPresent()) {
             HivePrincipal principal = principalOptional.get();
-            if (principal != null && !principal.getRole().equals(HiveRoles.ADMIN)) {
+            if (principal != null) {
                 UserVO user = principal.getUser();
-                if (user == null && principal.getKey() != null) {
-                    user = principal.getKey().getUser();
-                }
 
                 if (user != null && !user.isAdmin()) {
                     Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                     addReduceFilter(builder, "id", FilterOperator.IN, networks);
                 }
 
-                if (principal.getKey() != null && principal.getKey().getPermissions() != null) {
-                    Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                    Set<Long> ids = new HashSet<>();
-                    permissions.stream().map((permission) -> permission.getNetworkIdsAsSet()).filter((id) -> (id != null)).forEach((id) -> {
-                        ids.addAll(id);
-                    });
+                if (principal.getNetworkIds() != null) {
+                    Set<Long> ids = principal.getNetworkIds();
                     if (!ids.isEmpty()) {
                         addReduceFilter(builder, "id", FilterOperator.IN, ids);
                     }
-                } else if (principal.getDevice() != null) {
-                    addReduceFilter(builder, "devices", FilterOperator.CONTAINS, principal.getDevice());
                 }
             }
         }

@@ -1,5 +1,24 @@
 package com.devicehive.dao.riak;
 
+/*
+ * #%L
+ * DeviceHive Dao Riak Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 import com.basho.riak.client.api.RiakClient;
 import com.basho.riak.client.api.cap.Quorum;
 import com.basho.riak.client.api.cap.UnresolvedConflictException;
@@ -15,18 +34,18 @@ import com.basho.riak.client.core.RiakFuture;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.basho.riak.client.core.query.functions.Function;
+import com.devicehive.application.RiakQuorum;
 import com.devicehive.configuration.Constants;
 import com.devicehive.exceptions.HivePersistenceLayerException;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-@Profile({"riak"})
 @Repository
 public class RiakGenericDao {
 
@@ -175,7 +194,7 @@ public class RiakGenericDao {
         return 1;
     }
 
-    protected <T> T findBySecondaryIndex(String indexName, String value, 
+    protected <T> T findBySecondaryIndex(String indexName, String value,
             Namespace namespace, Class<T> clazz) {
         if ((indexName == null) || (value == null)) {
             return null;
@@ -189,7 +208,7 @@ public class RiakGenericDao {
         }
     }
 
-    protected <T> List<T> findAllBySecondaryIndex(String indexName, String value, 
+    protected <T> List<T> findAllBySecondaryIndex(String indexName, String value,
             Namespace namespace, Class<T> clazz) {
         if ((indexName == null) || (value == null)) {
             return null;

@@ -1,5 +1,24 @@
 package com.devicehive.dao.riak;
 
+/*
+ * #%L
+ * DeviceHive Dao Riak Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 import com.basho.riak.client.api.commands.indexes.BinIndexQuery;
 import com.basho.riak.client.api.commands.kv.DeleteValue;
 import com.basho.riak.client.api.commands.kv.FetchValue;
@@ -14,7 +33,6 @@ import com.devicehive.dao.riak.model.RiakDeviceClassEquipment;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -22,7 +40,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-@Profile({"riak"})
 @Repository
 public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClassDao {
 
@@ -94,7 +111,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
     }
 
     @Override
-    public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField,
+    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField,
             Boolean isSortOrderAsc, Integer take, Integer skip) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                 .withNamespace(DEVICE_CLASS_NS);
@@ -118,9 +135,6 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
 
     @Override
     public DeviceClassWithEquipmentVO findByName(@NotNull String name) {
-        if (name == null) {
-            return null;
-        }
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_CLASS_NS, "name", name).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);

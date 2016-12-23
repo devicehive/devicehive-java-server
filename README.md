@@ -22,13 +22,13 @@ DeviceHive license
 ------------------
 
 [DeviceHive] is developed by [DataArt] Apps and distributed under Open Source
-[MIT license](http://en.wikipedia.org/wiki/MIT_License). This basically means
+[Apache 2.0](https://en.wikipedia.org/wiki/Apache_License). This basically means
 you can do whatever you want with the software as long as the copyright notice
 is included. This also means you don't have to contribute the end product or
 modified sources back to Open Source, but if you feel like sharing, you are
 highly encouraged to do so!
 
-&copy; Copyright 2013 DataArt Apps &copy; All Rights Reserved
+&copy; Copyright 2013-2016 DataArt Apps &copy; All Rights Reserved
 
 Docker Container
 =========================================
@@ -69,7 +69,7 @@ Running Apache Kafka
 -----------------------
 Start Zookeeper and Apache Kafka brokers as explained at official documentation (`http://kafka.apache.org/documentation.html#quickstart`).
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
-You need to update zookeeper.connect (zookeeper's contactpoint) and metadata.broker.list (list of brokers) properties.
+You need to update zookeeper.connect (zookeeper's contactpoint) and bootstrap.servers (list of brokers) properties.
 
 Starting database
 ---------------------

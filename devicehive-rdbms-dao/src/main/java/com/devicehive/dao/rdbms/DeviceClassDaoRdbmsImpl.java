@@ -1,11 +1,31 @@
 package com.devicehive.dao.rdbms;
 
+/*
+ * #%L
+ * DeviceHive Dao RDBMS Implementation
+ * %%
+ * Copyright (C) 2016 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
 import com.devicehive.model.DeviceClassEquipment;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -20,7 +40,6 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;
 
-@Profile({"rdbms"})
 @Repository
 public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceClassDao {
 
@@ -74,7 +93,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     }
 
     @Override
-    public List<DeviceClassWithEquipmentVO> getDeviceClassList(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
+    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<DeviceClass> criteria = cb.createQuery(DeviceClass.class);
         final Root<DeviceClass> from = criteria.from(DeviceClass.class);
