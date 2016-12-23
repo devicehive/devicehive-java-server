@@ -642,7 +642,8 @@
                                 -Dkafka.port=${kafka.test.port}
                             </argLine>
                             <excludes>
-                                <exclude>**/*DeviceCommandResourceTest.java</exclude>
+                                <exclude>**/*Defect157CommandTest.java</exclude>
+                                <exclude>**/*Defect157NotificationTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
