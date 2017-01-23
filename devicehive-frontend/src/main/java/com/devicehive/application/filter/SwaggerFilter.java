@@ -49,7 +49,7 @@ public class SwaggerFilter extends OncePerRequestFilter {
         String swaggerJsonUrl = String.format("%s://%s:%s%s%s/swagger.json",
                 requestUrl.getProtocol(),
                 requestUrl.getHost(),
-                requestUrl.getPort(),
+                requestUrl.getPort() == -1 ? requestUrl.getDefaultPort() : requestUrl.getPort(),
                 request.getContextPath(),
                 JerseyConfig.REST_PATH);
         String url = request.getContextPath() + "/swagger.html?url=" + swaggerJsonUrl;
