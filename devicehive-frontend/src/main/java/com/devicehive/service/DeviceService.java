@@ -96,6 +96,7 @@ public class DeviceService {
         deviceActivityService.update(device.getGuid().orElse(null));
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
