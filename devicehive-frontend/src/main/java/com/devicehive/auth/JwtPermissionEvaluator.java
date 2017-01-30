@@ -22,16 +22,18 @@ package com.devicehive.auth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 
 import java.io.Serializable;
 
-/**
- */
+
 public class JwtPermissionEvaluator implements PermissionEvaluator {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtPermissionEvaluator.class);
+    @Autowired
+    private JwtCheckPermissionsHelper jwtCheckPermissionsHelper;
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
@@ -40,7 +42,7 @@ public class JwtPermissionEvaluator implements PermissionEvaluator {
             HivePrincipal hivePrincipal = (HivePrincipal) hiveAuthentication.getPrincipal();
             HiveAction action = HiveAction.valueOf(permission.toString().trim());
             logger.debug("Checking {} for permissions {}", authentication.getName(), hivePrincipal.getActions());
-            boolean permissionAllowed = JwtCheckPermissionsHelper.checkPermissions(
+            boolean permissionAllowed = jwtCheckPermissionsHelper.checkPermissions(
                     hivePrincipal, action, targetDomainObject);
             if (!permissionAllowed) {
                 logger.warn("Principal doesn't have required permission {}. Access denied", permission);
