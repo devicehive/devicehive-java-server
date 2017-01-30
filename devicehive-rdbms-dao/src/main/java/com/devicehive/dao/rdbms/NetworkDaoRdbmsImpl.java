@@ -36,6 +36,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -105,6 +106,9 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
         assert user != null && user.getId() != null;
         Network existing = find(Network.class, network.getId());
         User userReference = reference(User.class, user.getId());
+        if (existing.getUsers() == null){
+            existing.setUsers(new HashSet<>());
+        }
         existing.getUsers().add(userReference);
         super.merge(existing);
     }

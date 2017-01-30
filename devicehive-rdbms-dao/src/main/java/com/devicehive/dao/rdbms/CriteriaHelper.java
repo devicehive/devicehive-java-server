@@ -161,12 +161,14 @@ public class CriteriaHelper {
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
-        final Join<Device, Network> usersJoin = (Join) networkJoin.fetch("users", JoinType.LEFT);
         from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
 
             if (user != null && !user.isAdmin()) {
+
+                // Joining after check to prevent duplicate objects
+                final Join<Device, Network> usersJoin = (Join) networkJoin.fetch("users", JoinType.LEFT);
                 predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
             }
 
