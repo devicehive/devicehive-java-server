@@ -35,7 +35,10 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -52,10 +56,8 @@ import static java.util.Optional.*;
 
 @Component
 public class NetworkService {
-    private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
-
     public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
-
+    private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
     @Autowired
     private UserService userService;
     @Autowired
@@ -156,12 +158,12 @@ public class NetworkService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<NetworkVO>> list(String name,
-                                                  String namePattern,
-                                                  String sortField,
-                                                  boolean sortOrderAsc,
-                                                  Integer take,
-                                                  Integer skip,
-                                                  HivePrincipal principal) {
+                                                   String namePattern,
+                                                   String sortField,
+                                                   boolean sortOrderAsc,
+                                                   Integer take,
+                                                   Integer skip,
+                                                   HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListNetworkRequest request = new ListNetworkRequest();
@@ -230,6 +232,7 @@ public class NetworkService {
                 NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
                 networkDao.persist(newNetwork);
                 network.setId(newNetwork.getId());
+                userService.assignNetwork(user.getId(), network.getId()); // Assign created network to user
             } else {
                 throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
             }

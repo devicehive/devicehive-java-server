@@ -21,23 +21,19 @@ package com.devicehive.auth;
  */
 
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.Set;
 
-/**
- */
+@Service
 public class JwtCheckPermissionsHelper {
 
     @Autowired
-    private static NetworkService networkService;
+    private DeviceService deviceService;
 
-    @Autowired
-    private static DeviceService deviceService;
-
-    public static boolean checkPermissions(
+    public boolean checkPermissions(
             HivePrincipal hivePrincipal,
             HiveAction action,
             Object targetDomainObject) {
@@ -48,13 +44,13 @@ public class JwtCheckPermissionsHelper {
                 && checkDeviceGuidsAllowed(hivePrincipal, targetDomainObject);
     }
 
-    private static boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
+    private boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
         boolean result = false;
         if (permissions != null) result = permissions.contains(hiveAction);
         return result;
     }
 
-    private static boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
+    private boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
         if (principal.areAllNetworksAvailable()) return true;
         else if (targetDomainObject instanceof Long) {
             return principal.getNetworkIds() != null && principal.getNetworkIds().contains((Long) targetDomainObject);
@@ -62,7 +58,7 @@ public class JwtCheckPermissionsHelper {
         return true;
     }
 
-    private static boolean checkDeviceGuidsAllowed(HivePrincipal principal, Object targetDomainObject) {
+    private boolean checkDeviceGuidsAllowed(HivePrincipal principal, Object targetDomainObject) {
 
         if (targetDomainObject instanceof String) {
 
@@ -71,14 +67,11 @@ public class JwtCheckPermissionsHelper {
 
             if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
-            }
-            else if (networks != null && principal.areAllDevicesAvailable()){
-                networks.forEach(n -> deviceService.list(null, null, null, n, null, null, null, null, false, null, null, null)
-                        .thenAccept(ds -> ds
-                                .forEach(d -> devices.add(d.getGuid()))));
-                return devices != null && devices.contains(targetDomainObject);
-            }
-            else
+            } else if (networks != null && principal.areAllDevicesAvailable()) {
+                return networks.stream().flatMap(n -> deviceService.list(null, null, null, n, null, null, null, null, false, null, null, null)
+                        .thenApply(Collection::stream).join())
+                        .anyMatch(deviceVO -> deviceVO.getGuid().equals(targetDomainObject));
+            } else
                 return networks != null && devices != null && devices.contains(targetDomainObject);
         }
 
