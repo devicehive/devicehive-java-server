@@ -1,4 +1,4 @@
-[![Build Status](https://img.shields.io/travis/devicehive/devicehive-java-server/development.svg?style=flat-square)](https://travis-ci.org/devicehive/devicehive-java-server) [![License](https://img.shields.io/github/license/devicehive/devicehive-java-server.svg?style=flat-square)](LICENSE)
+[![Build Status](https://img.shields.io/travis/devicehive/devicehive-java-server/development.svg?style=flat-square)](https://travis-ci.org/devicehive/devicehive-java-server) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 DeviceHive Java server
 ======================
@@ -22,17 +22,17 @@ DeviceHive license
 ------------------
 
 [DeviceHive] is developed by [DataArt] Apps and distributed under Open Source
-[MIT license](http://en.wikipedia.org/wiki/MIT_License). This basically means
+[Apache 2.0](https://en.wikipedia.org/wiki/Apache_License). This basically means
 you can do whatever you want with the software as long as the copyright notice
 is included. This also means you don't have to contribute the end product or
 modified sources back to Open Source, but if you feel like sharing, you are
 highly encouraged to do so!
 
-&copy; Copyright 2013 DataArt Apps &copy; All Rights Reserved
+&copy; Copyright 2013-2016 DataArt Apps &copy; All Rights Reserved
 
 Docker Container
 =========================================
-We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out docker [DeviceHive on Docker Hub](https://registry.hub.docker.com/u/devicehive/devicehive-java/) with the instructions on how to use it. You can check dockerfile implemetation as well as the script for setting up a new instance running under nginx on [DeviceHive Java Docker](https://github.com/devicehive/devicehive-java-docker) 
+We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out docker [DeviceHive on Docker Hub](https://hub.docker.com/r/devicehive/devicehive/) with the instructions on how to use it. You can check dockerfile implemetation as well as the script for setting up a new instance running under nginx on [DeviceHive Java Docker](https://github.com/devicehive/devicehive-java-docker) 
 
 DeviceHive Java installation instructions
 =========================================
@@ -69,7 +69,7 @@ Running Apache Kafka
 -----------------------
 Start Zookeeper and Apache Kafka brokers as explained at official documentation (`http://kafka.apache.org/documentation.html#quickstart`).
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
-You need to update zookeeper.connect (zookeeper's contactpoint) and metadata.broker.list (list of brokers) properties.
+You need to update zookeeper.connect (zookeeper's contactpoint) and bootstrap.servers (list of brokers) properties.
 
 Starting database
 ---------------------
