@@ -36,6 +36,7 @@ import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -232,6 +233,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     }
 
     @Test
+    @Ignore
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)
