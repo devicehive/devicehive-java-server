@@ -22,8 +22,6 @@ package com.devicehive.testutil;
 
 
 import com.devicehive.dao.*;
-import com.devicehive.model.enums.AccessKeyType;
-import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +30,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashSet;
 
 @Profile("test")
 @Component
@@ -61,7 +58,6 @@ public class InitialDataLoader {
         user.setLogin("test_admin");
         user.setPasswordHash("+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=");
         user.setPasswordSalt("9KynX3ShWnFym4y8Dla039py");
-        user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
         user.setLoginAttempts(0);
         userDao.persist(user);
@@ -118,7 +114,6 @@ public class InitialDataLoader {
         user2.setLogin("dhadmin");
         user2.setPasswordHash("DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=");
         user2.setPasswordSalt("sjQbZgcCmFxqTV4CCmGwpIHO");
-        user2.setRole(UserRole.ADMIN);
         user2.setStatus(UserStatus.ACTIVE);
         user2.setLoginAttempts(0);
         userDao.persist(user2);

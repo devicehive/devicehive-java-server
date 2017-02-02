@@ -82,7 +82,7 @@ public class DeviceService {
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
             if (principal.getUser() != null) {
-                dn = deviceSaveByUser(device, principal.getUser());
+                dn = deviceSaveByUser(device, principal);
             } else if (principal.getNetworkIds() != null && principal.getDeviceGuids() != null) {
                 dn = deviceSaveByPrincipalPermissions(device, principal);
             } else {
@@ -97,11 +97,12 @@ public class DeviceService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
+    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, HivePrincipal principal) {
+        UserVO user = principal.getUser();
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
         NetworkVO vo = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
+        NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), principal);
         NetworkVO network = nwVo != null ? findNetworkForAuth(nwVo) : null;
         network = findNetworkForAuth(network);
         DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
@@ -126,7 +127,7 @@ public class DeviceService {
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
+            if (!userService.hasAccessToDevice(principal, existingDevice.getGuid())) {
                 logger.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }

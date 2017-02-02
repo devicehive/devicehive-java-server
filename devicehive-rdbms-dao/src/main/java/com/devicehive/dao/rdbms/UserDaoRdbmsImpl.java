@@ -174,14 +174,14 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
 
     @Override
     public List<UserVO> list(String login, String loginPattern,
-                              Integer role, Integer status,
+                              Integer status,
                               String sortField, Boolean sortOrderAsc,
                               Integer take, Integer skip) {
         CriteriaBuilder cb = criteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);
         Root<User> from = cq.from(User.class);
 
-        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
+        Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from, ofNullable(login), ofNullable(loginPattern), ofNullable(status));
         cq.where(predicates);
         CriteriaHelper.order(cb, cq, from, ofNullable(sortField), Boolean.TRUE.equals(sortOrderAsc));
 

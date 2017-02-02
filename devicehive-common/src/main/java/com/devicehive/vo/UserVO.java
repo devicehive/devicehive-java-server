@@ -23,9 +23,7 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,10 +53,6 @@ public class UserVO implements HiveEntity {
 
     private Integer loginAttempts;
 
-    @SerializedName("role")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
-    private UserRole role;
-
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
@@ -83,13 +77,6 @@ public class UserVO implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private JsonStringWrapper data;
 
-    /**
-     * @return true, if user is admin
-     */
-    public boolean isAdmin() {
-        return UserRole.ADMIN.equals(role);
-    }
-
     public Long getId() {
         return id;
     }
@@ -105,15 +92,7 @@ public class UserVO implements HiveEntity {
     public void setLogin(String login) {
         this.login = login;
     }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
-
+    
     public UserStatus getStatus() {
         return status;
     }
