@@ -233,7 +233,6 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    @Ignore
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithResponse() throws Exception {
         final List<String> guids = IntStream.range(0, 5)

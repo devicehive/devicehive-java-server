@@ -644,6 +644,9 @@
                             <excludes>
                                 <exclude>**/*Defect157CommandTest.java</exclude>
                                 <exclude>**/*Defect157NotificationTest.java</exclude>
+                                <exclude>**/*DeviceNotificationServiceTest.java</exclude>
+                                <exclude>**/*DeviceCommandServiceTest.java</exclude>
+                                <exclude>**/*NetworkServiceTest.java</exclude>
                             </excludes>
                         </configuration>
                     </plugin>
