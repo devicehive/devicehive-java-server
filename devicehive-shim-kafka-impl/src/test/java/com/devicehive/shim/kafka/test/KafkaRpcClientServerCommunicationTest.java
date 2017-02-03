@@ -37,10 +37,8 @@ import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.rules.Timeout;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -56,6 +54,9 @@ public class KafkaRpcClientServerCommunicationTest {
 
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
+
+    @Rule
+    public Timeout testTimeout = new Timeout(180000, TimeUnit.MILLISECONDS); // 180k ms = 3 minutes
 
     private static RpcServer server;
     private static RpcClient client;
