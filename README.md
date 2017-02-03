@@ -1,4 +1,4 @@
-[![Build Status](https://img.shields.io/travis/devicehive/devicehive-java-server/development.svg?style=flat-square)](https://travis-ci.org/devicehive/devicehive-java-server) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+[![Build Status](http://54.147.231.176:8080/job/DeviceHiveBuild/badge/icon)](http://54.147.231.176:8080/job/DeviceHiveBuild/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 DeviceHive Java server
 ======================

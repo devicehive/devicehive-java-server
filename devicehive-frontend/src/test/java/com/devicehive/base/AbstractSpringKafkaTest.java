@@ -25,6 +25,8 @@ import com.devicehive.test.rule.KafkaEmbeddedRule;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -70,6 +72,9 @@ public abstract class AbstractSpringKafkaTest {
     }
     @ClassRule
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 5, REQUEST_TOPIC, RESPONSE_TOPIC);
+
+    @Rule
+    public Timeout testTimeout = new Timeout(180000, TimeUnit.MILLISECONDS); // 180k ms = 3 minutes
 
     @Before
     public void setUp() throws Exception {
