@@ -28,7 +28,6 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -104,34 +103,5 @@ public class ServerResponsesFactory {
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
         return notification;
-    }
-
-    public static DeviceEquipmentVO parseDeviceEquipmentNotification(DeviceNotification notification, DeviceVO device) {
-        final String notificationParameters = notification.getParameters().getJsonString();
-        if (notificationParameters == null) {
-            throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(notificationParameters, JsonElement.class);
-        JsonObject jsonEquipmentObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            jsonEquipmentObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        return constructDeviceEquipmentObject(jsonEquipmentObject, device);
-    }
-
-    private static DeviceEquipmentVO constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, DeviceVO device) {
-        DeviceEquipmentVO result = new DeviceEquipmentVO();
-        final JsonElement jsonElement = jsonEquipmentObject.get(Constants.EQUIPMENT);
-        if (jsonElement == null) {
-            throw new HiveException(Messages.NO_EQUIPMENT_IN_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        String deviceEquipmentCode = jsonElement.getAsString();
-        result.setCode(deviceEquipmentCode);
-        jsonEquipmentObject.remove(Constants.EQUIPMENT);
-        result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
-        return result;
     }
 }

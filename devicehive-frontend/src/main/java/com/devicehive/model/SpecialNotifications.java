@@ -32,10 +32,6 @@ public final class SpecialNotifications {
      */
     public static final String DEVICE_UPDATE = "$device-update";
     /**
-     * Device originated notification about equipment state change
-     */
-    public static final String EQUIPMENT = "equipment";
-    /**
      * Device originated notification about device status change
      */
     public static final String DEVICE_STATUS = "device-status";
