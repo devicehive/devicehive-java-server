@@ -110,7 +110,6 @@ public class GsonFactory {
                 .registerTypeAdapterFactory(new OptionalAdapterFactory())
                 .registerTypeAdapterFactory(new JsonStringWrapperAdapterFactory())
                 .registerTypeAdapter(Date.class, new TimestampAdapter())
-                .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
                 .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
                 .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
                 .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())

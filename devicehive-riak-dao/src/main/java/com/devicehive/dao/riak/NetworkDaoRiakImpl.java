@@ -207,7 +207,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             if (principal != null) {
                 UserVO user = principal.getUser();
 
-                if (user != null && !user.isAdmin()) {
+                if (user != null && !principal.hasFullAccess()) {
                     Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                     addReduceFilter(builder, "id", FilterOperator.IN, networks);
                 }

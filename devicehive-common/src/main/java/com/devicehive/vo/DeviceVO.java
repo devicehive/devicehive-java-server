@@ -30,10 +30,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceVO implements HiveEntity {
 
-    @SerializedName("sid")
+    @SerializedName("id")
     private Long id;
 
-    @SerializedName("id")
+    @SerializedName("guid")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String guid;
 
