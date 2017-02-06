@@ -94,6 +94,7 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
+        <module>devicehive-graph-dao</module>
     </modules>
 
     <dependencies>
