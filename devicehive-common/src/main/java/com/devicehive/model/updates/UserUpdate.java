@@ -22,7 +22,6 @@ package com.devicehive.model.updates;
 
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
 
@@ -32,7 +31,6 @@ public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
     private Optional<String> login;
-    private Optional<Integer> role;
     private Optional<Integer> status;
     private Optional<String> password;
     private Optional<String> oldPassword;
@@ -47,14 +45,6 @@ public class UserUpdate implements HiveEntity {
 
     public void setLogin(Optional<String> login) {
         this.login = login;
-    }
-
-    public Optional<Integer> getRole() {
-        return role;
-    }
-
-    public void setRole(Optional<Integer> role) {
-        this.role = role;
     }
 
     public Optional<Integer> getStatus() {
@@ -113,13 +103,6 @@ public class UserUpdate implements HiveEntity {
         this.data = data;
     }
 
-    public UserRole getRoleEnum() {
-        if(role != null) {
-            return role.map(UserRole::getValueForIndex).orElse(null);
-        }
-        return null;
-    }
-
     public UserStatus getStatusEnum() {
         if(status != null) {
             return status.map(UserStatus::getValueForIndex).orElse(null);
@@ -145,7 +128,6 @@ public class UserUpdate implements HiveEntity {
             result.setData(data.orElse(null));
         }
         result.setStatus(getStatusEnum());
-        result.setRole(getRoleEnum());
         return result;
     }
 }

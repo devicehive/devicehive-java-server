@@ -51,14 +51,11 @@ public class CriteriaHelper {
         namePatternOpt.ifPresent(pattern ->
                 predicates.add(cb.like(from.get("name"), pattern)));
 
-        principalOpt.flatMap(principal -> {
-            UserVO user = principal.getUser();
-
-            return ofNullable(user);
-        }).ifPresent(user -> {
-            if (!user.isAdmin()) {
-                User usr = User.convertToEntity(user);
-                predicates.add(from.join("users").in(usr));
+        principalOpt.ifPresent(principal -> {
+            UserVO userVO = principal.getUser();
+            if ((userVO != null) && (!principal.areAllNetworksAvailable())){
+                User user = User.convertToEntity(userVO);
+                predicates.add(from.join("users").in(user));
             }
         });
 
@@ -86,7 +83,7 @@ public class CriteriaHelper {
         });
     }
 
-    public static Predicate[] userListPredicates(CriteriaBuilder cb, Root<User> from, Optional<String> loginOpt, Optional<String> loginPattern, Optional<Integer> roleOpt, Optional<Integer> statusOpt) {
+    public static Predicate[] userListPredicates(CriteriaBuilder cb, Root<User> from, Optional<String> loginOpt, Optional<String> loginPattern, Optional<Integer> statusOpt) {
         List<Predicate> predicates = new LinkedList<>();
 
         if (loginPattern.isPresent()) {
@@ -97,7 +94,6 @@ public class CriteriaHelper {
                     predicates.add(cb.equal(from.get("login"), login)));
         }
 
-        roleOpt.ifPresent(role -> predicates.add(cb.equal(from.get("role"), role)));
         statusOpt.ifPresent(status -> predicates.add(cb.equal(from.get("status"), status)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
@@ -163,13 +159,11 @@ public class CriteriaHelper {
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
         from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
-            UserVO user = p.getUser();
-
-            if (user != null && !user.isAdmin()) {
-
+            UserVO userVO = p.getUser();
+            if ((userVO != null) && (!p.areAllDevicesAvailable())){
                 // Joining after check to prevent duplicate objects
                 final Join<Device, Network> usersJoin = (Join) networkJoin.fetch("users", JoinType.LEFT);
-                predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
+                predicates.add(cb.equal(usersJoin.<Long>get("id"), userVO.getId()));
             }
 
             if (p.getNetworkIds() != null) {

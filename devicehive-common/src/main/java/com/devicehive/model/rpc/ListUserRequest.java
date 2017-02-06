@@ -26,7 +26,6 @@ public class ListUserRequest extends Body {
 
     private String login;
     private String loginPattern;
-    private Integer role;
     private Integer status;
     private String sortField;
     private Boolean sortOrderAsc;
@@ -51,14 +50,6 @@ public class ListUserRequest extends Body {
 
     public void setLoginPattern(String loginPattern) {
         this.loginPattern = loginPattern;
-    }
-
-    public Integer getRole() {
-        return role;
-    }
-
-    public void setRole(Integer role) {
-        this.role = role;
     }
 
     public Integer getStatus() {

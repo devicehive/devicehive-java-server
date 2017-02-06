@@ -55,7 +55,6 @@ public class UserWithNetworkVO extends UserVO {
             vo.setNetworks(new HashSet<>());
             vo.setPasswordHash(dc.getPasswordHash());
             vo.setPasswordSalt(dc.getPasswordSalt());
-            vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
         }
 
