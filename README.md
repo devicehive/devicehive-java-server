@@ -1,4 +1,4 @@
-[![Build Status](http://54.147.231.176:8080/job/DeviceHiveBuild/badge/icon)](http://54.147.231.176:8080/job/DeviceHiveBuild/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+[![Build Status](http://54.208.99.247:8080/job/DeviceHiveBuild/badge/icon)](http://54.208.99.247:8080/job/DeviceHiveBuild/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 DeviceHive Java server
 ======================
