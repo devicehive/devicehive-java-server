@@ -19,7 +19,6 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
@@ -28,8 +27,8 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.AvailableActions;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
@@ -67,7 +66,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
-
 
 public class NetworkServiceTest extends AbstractResourceTest {
 
@@ -345,7 +343,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         verify(requestHandler, times(2)).handle(argument.capture());
     }
 
-
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_networks_only_for_user() throws Exception {
@@ -391,7 +388,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_all_networks_for_admin() throws Exception {
         UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
-        user1.setRole(UserRole.ADMIN);
         user1 = userService.createUser(user1, "123");
         for (int i = 0; i < 10; i++) {
             String name = namePrefix + randomUUID();
@@ -411,8 +407,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user2.getId(), created.getId());
         }
         handleListNetworkRequest();
-        HivePrincipal principal = new HivePrincipal(user1);
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
+        HivePrincipal hivePrincipal = new HivePrincipal(user1);
+        hivePrincipal.setAllDevicesAvailable(true);
+        hivePrincipal.setAllNetworksAvailable(true);
+        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
+
+        networkService.list(null, namePrefix + "%", null, true, 100, 0, hivePrincipal)
                 .thenAccept(networks -> assertThat(networks, hasSize(20))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -479,7 +479,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 //        AccessKeyPermissionVO permission = new AccessKeyPermissionVO();
 //        accessKey.setPermissions(Collections.singleton(permission));
 //        accessKey.setUser(user);
-
         HivePrincipal principal = new HivePrincipal(user);
         handleListNetworkRequest();
         networkService.list(null, namePrefix + "%", null, true, 200, 0, principal)
@@ -492,7 +491,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_with_devices_and_device_classes_for_admin() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -511,7 +509,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
+        HivePrincipal hivePrincipal = new HivePrincipal(user);
+        hivePrincipal.setAllDevicesAvailable(true);
+        hivePrincipal.setAllNetworksAvailable(true);
+        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
+
+        HiveAuthentication authentication = new HiveAuthentication(hivePrincipal);
+
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
         assertThat(returnedNetwork, notNullValue());
         assertThat(returnedNetwork.getDevices(), hasSize(5));
@@ -525,7 +529,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_null_network_if_user_is_not_an_admin() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -554,7 +557,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_for_if_client_is_assigned_to_it() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -588,7 +590,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_with_devices_and_device_classes_for_admin_access_key() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -607,8 +608,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
-
-        HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
+        HivePrincipal hivePrincipal = new HivePrincipal(user);
+        hivePrincipal.setAllDevicesAvailable(true);
+        hivePrincipal.setAllNetworksAvailable(true);
+        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
+        HiveAuthentication authentication = new HiveAuthentication(hivePrincipal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevicesAndDeviceClasses(created.getId(), authentication);
@@ -624,7 +628,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_with_devices_and_device_classes_for_assigned_user_access_key() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -662,7 +665,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_not_return_network_with_devices_if_access_key_does_not_have_permissions() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -685,7 +687,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_only_with_permitted_devices_for_access_key() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -734,7 +735,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_network_without_devices_if_access_key_does_not_have_device_guid_in_permissions() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -769,7 +769,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_permitted_network() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -892,14 +891,18 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
 
-        NetworkVO created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
+        HivePrincipal hivePrincipal = new HivePrincipal(user);
+        hivePrincipal.setAllDevicesAvailable(true);
+        hivePrincipal.setAllNetworksAvailable(true);
+        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
+
+        NetworkVO created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), hivePrincipal);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -911,7 +914,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -921,7 +923,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
 
-        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
+        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), new HivePrincipal(user));
     }
 
     @Test
@@ -930,7 +932,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -941,7 +942,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        NetworkVO stored = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
+        NetworkVO stored = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), new HivePrincipal(user));
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
@@ -951,7 +952,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -963,15 +963,15 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
-        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
+        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), new HivePrincipal(user));
     }
 
     private void handleListNetworkRequest() {
         when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
             ListNetworkRequest req = request.getBody().cast(ListNetworkRequest.class);
-            final List<NetworkVO> networks =
-                    networkDao.list(req.getName(), req.getNamePattern(),
+            final List<NetworkVO> networks
+                    = networkDao.list(req.getName(), req.getNamePattern(),
                             req.getSortField(), req.getSortOrderAsc(),
                             req.getTake(), req.getSkip(), req.getPrincipal());
 

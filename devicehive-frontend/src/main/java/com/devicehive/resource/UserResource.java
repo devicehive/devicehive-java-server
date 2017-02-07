@@ -70,9 +70,6 @@ public interface UserResource {
             @ApiParam(name = "loginPattern", value = "Filter by user login pattern.")
             @QueryParam("loginPattern")
             String loginPattern,
-            @ApiParam(name = "role", value = "Filter by user role. 0 is Administrator, 1 is Client.")
-            @QueryParam("role")
-            Integer role,
             @ApiParam(name = "status", value = "Filter by user status. 0 is Active, 1 is Locked Out, 2 is Disabled.")
             @QueryParam("status")
             Integer status,
