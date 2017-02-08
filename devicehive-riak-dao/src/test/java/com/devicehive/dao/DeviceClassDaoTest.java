@@ -21,8 +21,7 @@ package com.devicehive.dao;
  */
 
 
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,13 +51,8 @@ public class DeviceClassDaoTest {
     public void testCreate() throws Exception {
         UUID uuid = UUID.randomUUID();
 
-        DeviceClassEquipmentVO equipment = new DeviceClassEquipmentVO();
-        equipment.setName("deviceClassName");
-
-        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
+        DeviceClassVO deviceClass = new DeviceClassVO();
         deviceClass.setName("device-class-" + uuid);
-        deviceClass.setEquipment(new HashSet<>());
-        deviceClass.getEquipment().add(equipment);
 
         deviceClassDao.persist(deviceClass);
 

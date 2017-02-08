@@ -25,16 +25,9 @@ import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.handler.MockNotificationHandler;
 import com.devicehive.model.*;
-import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.model.rpc.NotificationInsertResponse;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.shim.api.Body;
-import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -59,7 +51,6 @@ import static javax.ws.rs.core.Response.Status.OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 public class Defect157NotificationTest extends AbstractResourceTest {
 
@@ -91,9 +82,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
 
     @Before
     public void prepareNotifications() {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(Optional.of(deviceClass));

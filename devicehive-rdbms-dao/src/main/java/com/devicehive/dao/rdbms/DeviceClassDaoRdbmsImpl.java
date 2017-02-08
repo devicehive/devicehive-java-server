@@ -23,9 +23,7 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.model.DeviceClass;
-import com.devicehive.model.DeviceClassEquipment;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -52,48 +50,29 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     }
 
     @Override
-    public DeviceClassWithEquipmentVO find(long id) {
+    public DeviceClassVO find(long id) {
         DeviceClass entity = find(DeviceClass.class, id);
         return DeviceClass.convertToVo(entity);
     }
 
     @Override
-    public DeviceClassWithEquipmentVO persist(DeviceClassWithEquipmentVO deviceClass) {
-        DeviceClass dc = DeviceClass.convertWithEquipmentToEntity(deviceClass);
+    public DeviceClassVO persist(DeviceClassVO deviceClass) {
+        DeviceClass dc = DeviceClass.convertToEntity(deviceClass);
         super.persist(dc);
         deviceClass.setId(dc.getId());
         return DeviceClass.convertToVo(dc);
     }
 
     @Override
-    public DeviceClassWithEquipmentVO merge(DeviceClassWithEquipmentVO deviceClass) {
-        DeviceClass entity = DeviceClass.convertWithEquipmentToEntity(deviceClass);
-
-        List<DeviceClassEquipment> existingEquipments = createNamedQuery(DeviceClassEquipment.class, "Equipment.getByDeviceClass", Optional.empty())
-                .setParameter("deviceClass", entity)
-                .getResultList();
-
-        Set<String> codes = new HashSet<>();
-        if (entity.getEquipment() != null) {
-            for (DeviceClassEquipment equipment : entity.getEquipment()) {
-                codes.add(equipment.getCode());
-                equipment.setDeviceClass(entity);
-            }
-        }
+    public DeviceClassVO merge(DeviceClassVO deviceClass) {
+        DeviceClass entity = DeviceClass.convertToEntity(deviceClass);
 
         DeviceClass merged = super.merge(entity);
-
-        for (DeviceClassEquipment equipment : existingEquipments) {
-            if (!codes.contains(equipment.getCode())) {
-                remove(equipment);
-            }
-        }
-
         return DeviceClass.convertToVo(merged);
     }
 
     @Override
-    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
+    public List<DeviceClassVO> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<DeviceClass> criteria = cb.createQuery(DeviceClass.class);
         final Root<DeviceClass> from = criteria.from(DeviceClass.class);
@@ -108,26 +87,16 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
 
         CacheHelper.cacheable(query);
         List<DeviceClass> resultList = query.getResultList();
-        Stream<DeviceClassWithEquipmentVO> objectStream = resultList.stream().map(DeviceClass::convertToVo);
+        Stream<DeviceClassVO> objectStream = resultList.stream().map(DeviceClass::convertToVo);
         return objectStream.collect(Collectors.toList());
     }
 
     @Override
-    public DeviceClassWithEquipmentVO findByName(@NotNull String name) {
+    public DeviceClassVO findByName(@NotNull String name) {
         DeviceClass deviceClass = createNamedQuery(DeviceClass.class, "DeviceClass.findByName", Optional.of(CacheConfig.get()))
                 .setParameter("name", name)
                 .getResultList()
                 .stream().findFirst().orElse(null);
         return DeviceClass.convertToVo(deviceClass);
-    }
-
-    @Override
-    public DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId) {
-        DeviceClassEquipment equipment = createNamedQuery(DeviceClassEquipment.class, "Equipment.getByDeviceClassAndId", Optional.of(CacheConfig.get()))
-                .setParameter("id", equipmentId)
-                .setParameter("deviceClassId", deviceClassId)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        return DeviceClassEquipment.convertDeviceClassEquipment(equipment);
     }
 }

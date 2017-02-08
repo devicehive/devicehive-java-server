@@ -50,17 +50,14 @@ public class DeviceNotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
-    private DeviceEquipmentService deviceEquipmentService;
     private TimestampService timestampService;
     private DeviceDao deviceDao;
     private RpcClient rpcClient;
 
     @Autowired
-    public DeviceNotificationService(DeviceEquipmentService deviceEquipmentService,
-                                     TimestampService timestampService,
+    public DeviceNotificationService(TimestampService timestampService,
                                      DeviceDao deviceDao,
                                      RpcClient rpcClient) {
-        this.deviceEquipmentService = deviceEquipmentService;
         this.timestampService = timestampService;
         this.deviceDao = deviceDao;
         this.rpcClient = rpcClient;
@@ -200,9 +197,6 @@ public class DeviceNotificationService {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
         if (notificationMessage.getNotification() != null) {
             switch (notificationMessage.getNotification()) {
-                case SpecialNotifications.EQUIPMENT:
-                    deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
-                    break;
                 case SpecialNotifications.DEVICE_STATUS:
                     DeviceNotification deviceNotification = refreshDeviceStatusCase(notificationMessage, device);
                     notificationsToCreate.add(deviceNotification);
