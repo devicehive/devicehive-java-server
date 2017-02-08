@@ -51,7 +51,7 @@
         <profile>
             <id>booted-rdbms</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
                 <finalName>devicehive-rdbms-${project.version}-boot</finalName>
@@ -83,7 +83,7 @@
         <profile>
             <id>booted-graph</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
                 <finalName>devicehive-graph-${project.version}-boot</finalName>
