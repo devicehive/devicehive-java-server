@@ -23,7 +23,6 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.*;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
@@ -126,10 +125,6 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (data != null) {
             device.setData(data.orElse(null));
-        }
-        if (deviceClass != null) {
-            DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClass.orElse(null).convertTo();
-            device.setDeviceClass(deviceClassWithEquipmentVO);
         }
         if (name != null) {
             device.setName(name.orElse(null));

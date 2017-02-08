@@ -38,7 +38,7 @@ public class SimpleCORSFilter extends GenericFilterBean {
         resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE, HEAD");
         resp.setHeader("Access-Control-Max-Age", "0");
-        resp.setHeader("Access-Control-Allow-Headers", "Origin, Authorization, Accept, Content-Type, Auth-DeviceID, Auth-DeviceKey");
+        resp.setHeader("Access-Control-Allow-Headers", "Origin, Authorization, Accept, Content-Type, Auth-DeviceID");
         filterChain.doFilter(servletRequest, resp);
     }
 }

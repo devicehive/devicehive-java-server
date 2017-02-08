@@ -26,7 +26,7 @@ import com.devicehive.model.rpc.ListDeviceClassResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class ListDeviceClassHandler implements RequestHandler {
     public Response handle(Request request) {
         final ListDeviceClassRequest req = (ListDeviceClassRequest) request.getBody();
 
-        final List<DeviceClassWithEquipmentVO> deviceClasses =
+        final List<DeviceClassVO> deviceClasses =
                 deviceClassDao.list(req.getName(), req.getNamePattern(),
                         req.getSortField(), req.getSortOrderAsc(),
                         req.getTake(), req.getSkip());

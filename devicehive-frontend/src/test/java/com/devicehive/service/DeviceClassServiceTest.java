@@ -27,15 +27,11 @@ import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.rpc.ListDeviceClassRequest;
 import com.devicehive.model.rpc.ListDeviceClassResponse;
-import com.devicehive.model.rpc.ListUserRequest;
-import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.DeviceClassVO;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,11 +79,11 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_add_device_class_and_retrieve_back() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         deviceClass.setIsPermanent(null);
         deviceClassService.addDeviceClass(deviceClass);
 
-        final DeviceClassWithEquipmentVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        final DeviceClassVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
         assertNotNull(existingDeviceClass);
         assertEquals(deviceClass.getId(), existingDeviceClass.getId());
         assertFalse(existingDeviceClass.getIsPermanent());
@@ -95,12 +91,12 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_update_device_class() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         UUID uuid = UUID.randomUUID();
         deviceClass.setName("INITIAL_DCL_NAME-" + uuid);
         deviceClassService.addDeviceClass(deviceClass);
 
-        DeviceClassWithEquipmentVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        DeviceClassVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
         assertNotNull(existingDeviceClass);
         assertEquals(deviceClass.getId(), existingDeviceClass.getId());
         assertEquals("INITIAL_DCL_NAME-" + uuid, existingDeviceClass.getName());
@@ -117,14 +113,14 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_add_and_update_device_class() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         UUID uuid = UUID.randomUUID();
         deviceClass.setOfflineTimeout(10);
         deviceClass.setName("INITIAL_DC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO createdDC = deviceClassService.addDeviceClass(deviceClass);
+        final DeviceClassVO createdDC = deviceClassService.addDeviceClass(deviceClass);
 
         final long createdDCUpdateId = createdDC.getId();
-        DeviceClassWithEquipmentVO existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
+        DeviceClassVO existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);
         assertEquals(10, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("INITIAL_DC_NAME-" + uuid, existingDeviceClass.getName());
@@ -132,8 +128,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
         dcUpdate.setOfflineTimeout(Optional.of(100));
         dcUpdate.setName(Optional.of("CHANGED_DC_NAME-" + uuid));
-        deviceClassService.createOrUpdateDeviceClass(Optional.of(dcUpdate),
-                Collections.singleton(DeviceFixture.createEquipmentVO()));
+        deviceClassService.createOrUpdateDeviceClass(Optional.of(dcUpdate));
         existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);
         assertEquals(100, existingDeviceClass.getOfflineTimeout().intValue());
@@ -142,105 +137,32 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Test(expected = HiveException.class)
     public void should_fail_on_adding_duplicate_id_device_class() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         deviceClassService.addDeviceClass(deviceClass);
         deviceClassService.addDeviceClass(deviceClass);
     }
 
     @Test(expected = HiveException.class)
     public void should_fail_on_adding_duplicate_name_and_version_device_class() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         deviceClassService.addDeviceClass(deviceClass);
         deviceClassService.addDeviceClass(deviceClass);
-    }
-
-    @Test
-    public void should_replace_equipment() {
-        DeviceClassEquipmentVO initialEquipment = DeviceFixture.createEquipmentVO();
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
-        deviceClass.setEquipment(Collections.singleton(initialEquipment));
-
-        final DeviceClassWithEquipmentVO createdDC = deviceClassService.addDeviceClass(deviceClass);
-
-        for (DeviceClassEquipmentVO deviceClassEquipmentVO : createdDC.getEquipment()) {
-            if (deviceClassEquipmentVO.getCode().equals(initialEquipment.getCode())) {
-                initialEquipment = deviceClassEquipmentVO;
-            }
-        }
-
-        DeviceClassWithEquipmentVO existingDC = deviceClassService.getWithEquipment(createdDC.getId());
-        Set<DeviceClassEquipmentVO> existingEquipmentSet = existingDC.getEquipment();
-        assertNotNull(existingEquipmentSet);
-        assertEquals(1, existingEquipmentSet.size());
-        DeviceClassEquipmentVO existingEquipment = existingEquipmentSet.stream().findFirst().get();
-        assertEquals(initialEquipment.getName(), existingEquipment.getName());
-        assertEquals(initialEquipment.getId(), existingEquipment.getId());
-        assertEquals(initialEquipment.getCode(), existingEquipment.getCode());
-
-        DeviceClassEquipmentVO anotherEquipment = DeviceFixture.createEquipmentVO();
-
-        DeviceClassUpdate dcu = new DeviceClassUpdate();
-        HashSet<DeviceClassEquipmentVO> equipments = new HashSet<>();
-        equipments.add(anotherEquipment);
-        dcu.setEquipment(Optional.of(equipments));
-        DeviceClassWithEquipmentVO update = deviceClassService.update(createdDC.getId(), dcu);
-
-        existingDC = deviceClassService.getWithEquipment(createdDC.getId());
-        existingEquipmentSet = existingDC.getEquipment();
-        assertNotNull(existingEquipmentSet);
-        assertEquals(1, existingEquipmentSet.size());
-
-        for (DeviceClassEquipmentVO deviceClassEquipmentVO : update.getEquipment()) {
-            if (deviceClassEquipmentVO.getCode().equals(anotherEquipment.getCode())) {
-                anotherEquipment = deviceClassEquipmentVO;
-                break;
-            }
-        }
-
-
-        existingEquipment = existingEquipmentSet.stream().findFirst().get();
-        assertEquals(anotherEquipment.getName(), existingEquipment.getName());
-        assertEquals(anotherEquipment.getId(), existingEquipment.getId());
-        assertEquals(anotherEquipment.getCode(), existingEquipment.getCode());
-    }
-
-    @Test
-    public void should_create_equipment() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
-        deviceClass.setEquipment(Collections.emptySet());
-
-        final DeviceClassWithEquipmentVO createdDC = deviceClassService.addDeviceClass(deviceClass);
-        DeviceClassWithEquipmentVO existingDC = deviceClassService.getWithEquipment(createdDC.getId());
-        assertNotNull(existingDC);
-        assertNotNull(existingDC.getEquipment());
-        assertEquals(0, existingDC.getEquipment().size());
-
-        final DeviceClassEquipmentVO initialEquipment = DeviceFixture.createEquipmentVO();
-        deviceClassService.createEquipment(deviceClass.getId(), Collections.singleton(initialEquipment));
-        existingDC = deviceClassService.getWithEquipment(createdDC.getId());
-        assertNotNull(existingDC);
-        assertNotNull(existingDC.getEquipment());
-        assertEquals(1, existingDC.getEquipment().size());
-        final DeviceClassEquipmentVO existingEquipment = existingDC.getEquipment().stream().findFirst().get();
-        assertEquals(initialEquipment.getName(), existingEquipment.getName());
-        assertEquals(initialEquipment.getId(), existingEquipment.getId());
-        assertEquals(initialEquipment.getCode(), existingEquipment.getCode());
     }
 
     @Test
     public void should_get_device_class_list_sorted() throws Exception {
         UUID uuid = UUID.randomUUID();
-        final DeviceClassWithEquipmentVO deviceClass0 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass0 = DeviceFixture.createDCVO();
         deviceClass0.setName("F_COMMON_SPECIFIC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO deviceClass1 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass1 = DeviceFixture.createDCVO();
         deviceClass1.setName("C_COMMON_SPECIFIC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO deviceClass2 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass2 = DeviceFixture.createDCVO();
         deviceClass2.setName("E_COMMON_SPECIFIC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO deviceClass3 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass3 = DeviceFixture.createDCVO();
         deviceClass3.setName("B_COMMON_SPECIFIC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO deviceClass4 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass4 = DeviceFixture.createDCVO();
         deviceClass4.setName("D_COMMON_SPECIFIC_NAME-" + uuid);
-        final DeviceClassWithEquipmentVO deviceClass5 = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass5 = DeviceFixture.createDCVO();
         deviceClass5.setName("A_COMMON_SPECIFIC_NAME-" + uuid);
 
         deviceClassService.addDeviceClass(deviceClass0);
@@ -253,7 +175,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
             ListDeviceClassRequest req = request.getBody().cast(ListDeviceClassRequest.class);
-            final List<DeviceClassWithEquipmentVO> deviceClasses =
+            final List<DeviceClassVO> deviceClasses =
                     deviceClassDao.list(req.getName(), req.getNamePattern(),
                             req.getSortField(), req.getSortOrderAsc(),
                             req.getTake(), req.getSkip());
@@ -281,10 +203,10 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_device_class() {
-        final DeviceClassWithEquipmentVO deviceClass = DeviceFixture.createDCVO();
+        final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         deviceClassService.addDeviceClass(deviceClass);
 
-        DeviceClassWithEquipmentVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
+        DeviceClassVO existingDeviceClass = deviceClassService.getWithEquipment(deviceClass.getId());
         assertNotNull(existingDeviceClass);
         assertEquals(deviceClass.getId(), existingDeviceClass.getId());
 

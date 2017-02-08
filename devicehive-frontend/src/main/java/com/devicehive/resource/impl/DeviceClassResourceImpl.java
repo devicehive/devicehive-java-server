@@ -27,7 +27,7 @@ import com.devicehive.resource.DeviceClassResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceClassService;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +88,7 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
     @Override
     public Response getDeviceClass(long id) {
         logger.debug("Get device class by id requested");
-        DeviceClassWithEquipmentVO result = deviceClassService.getWithEquipment(id);
+        DeviceClassVO result = deviceClassService.getWithEquipment(id);
         if (result == null) {
             logger.info("No device class with id = {} found", id);
             return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_CLASS_NOT_FOUND, id)));
@@ -101,9 +101,9 @@ public class DeviceClassResourceImpl implements DeviceClassResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insertDeviceClass(DeviceClassWithEquipmentVO insert) {
+    public Response insertDeviceClass(DeviceClassVO insert) {
         logger.debug("Insert device class requested");
-        DeviceClassWithEquipmentVO result = deviceClassService.addDeviceClass(insert);
+        DeviceClassVO result = deviceClassService.addDeviceClass(insert);
 
         logger.debug("Device class inserted");
         return ResponseFactory.response(CREATED, result, DEVICECLASS_SUBMITTED);
