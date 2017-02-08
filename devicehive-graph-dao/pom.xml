@@ -10,6 +10,34 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>devicehive-graph-dao</artifactId>
+    <packaging>jar</packaging>
+    <name>DeviceHive Dao RDBMS Implementation</name>
 
+    <properties>
+        <project.rootdir>${project.parent.basedir}</project.rootdir>
+        <tinkerpop.version>3.2.3</tinkerpop.version>
+        <dse-driver.version>1.1.1</dse-driver.version>
+        <dse-graph.version>1.0.0-beta1</dse-graph.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.tinkerpop</groupId>
+            <artifactId>gremlin-core</artifactId>
+            <version>${tinkerpop.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>dse-driver</artifactId>
+            <version>${dse-driver.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>java-dse-graph</artifactId>
+            <version>${dse-graph.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>
