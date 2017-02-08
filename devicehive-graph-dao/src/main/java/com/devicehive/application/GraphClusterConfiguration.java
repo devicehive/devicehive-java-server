@@ -55,7 +55,7 @@ public class GraphClusterConfiguration {
 
     @PostConstruct
     private void init() {
-        logger.debug("Graph initialization started.");
+        logger.info("Graph initialization started.");
 
         String host = env.getProperty("graph.host");
         String graphName = env.getProperty("graph.name");
@@ -69,7 +69,7 @@ public class GraphClusterConfiguration {
 
         g = DseGraph.traversal(dseSession);
 
-        logger.debug("Graph initialization finished.");
+        logger.info("Graph initialization finished.");
     }
 
 
