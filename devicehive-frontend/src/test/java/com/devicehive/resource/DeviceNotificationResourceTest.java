@@ -25,14 +25,9 @@ import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.handler.MockNotificationHandler;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.shim.api.Body;
-import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -85,9 +80,7 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_response_with_status_200_and_notification_when_waitTimeout_is_0_and_polling_for_device() {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);

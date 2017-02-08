@@ -506,7 +506,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HivePrincipal hivePrincipal = new HivePrincipal(user);
@@ -545,7 +545,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -573,7 +573,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -605,7 +605,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HivePrincipal hivePrincipal = new HivePrincipal(user);
@@ -644,7 +644,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(network));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -704,7 +704,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(created));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         DeviceUpdate device = new DeviceUpdate();
@@ -712,7 +712,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         device.setGuid(Optional.ofNullable(randomUUID().toString()));
         device.setDeviceClass(Optional.ofNullable(dc));
         device.setNetwork(Optional.ofNullable(created));
-        DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
+        DeviceNotification notification = deviceService.deviceSave(device);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
@@ -752,7 +752,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(Optional.ofNullable(randomUUID().toString()));
             device.setDeviceClass(Optional.ofNullable(dc));
             device.setNetwork(Optional.ofNullable(created));
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HivePrincipal principal = new HivePrincipal(user);

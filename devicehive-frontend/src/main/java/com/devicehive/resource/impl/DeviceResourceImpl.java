@@ -29,7 +29,6 @@ import com.devicehive.resource.DeviceResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceService;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -42,12 +41,10 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -103,11 +100,8 @@ public class DeviceResourceImpl implements DeviceResource {
 
         deviceUpdate.setGuid(Optional.ofNullable(deviceGuid));
 
-        // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
-        Set<DeviceClassEquipmentVO> equipmentSet = new HashSet<>();
-
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceUpdate, equipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

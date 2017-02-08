@@ -21,8 +21,7 @@ package com.devicehive.dao;
  */
 
 
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -31,16 +30,14 @@ public interface DeviceClassDao {
 
     void remove(long id);
 
-    DeviceClassWithEquipmentVO find(long id);
+    DeviceClassVO find(long id);
 
-    DeviceClassWithEquipmentVO persist(DeviceClassWithEquipmentVO deviceClass);
+    DeviceClassVO persist(DeviceClassVO deviceClass);
 
-    DeviceClassWithEquipmentVO merge(DeviceClassWithEquipmentVO deviceClass);
+    DeviceClassVO merge(DeviceClassVO deviceClass);
 
-    List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField,
+    List<DeviceClassVO> list(String name, String namePattern, String sortField,
                                                 Boolean sortOrderAsc, Integer take, Integer skip);
 
-    DeviceClassWithEquipmentVO findByName(@NotNull String name);
-
-    DeviceClassEquipmentVO findDeviceClassEquipment(@NotNull long deviceClassId, @NotNull long equipmentId);
+    DeviceClassVO findByName(@NotNull String name);
 }
