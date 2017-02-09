@@ -24,6 +24,7 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.rpc.CommandInsertRequest;
 import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.model.rpc.CommandSearchRequest;
@@ -221,6 +222,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         final UserVO user = new UserVO();
         user.setId(System.nanoTime());
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
 
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());

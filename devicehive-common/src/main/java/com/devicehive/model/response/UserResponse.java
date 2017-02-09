@@ -22,6 +22,7 @@ package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserWithNetworkVO;
 import com.google.gson.annotations.SerializedName;
@@ -55,6 +56,10 @@ public class UserResponse implements HiveEntity {
     @Column(name = "login_attempts")
     private Integer loginAttempts;
 
+    @SerializedName("role")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    private UserRole role;
+
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
@@ -73,6 +78,7 @@ public class UserResponse implements HiveEntity {
         response.setId(u.getId());
         response.setLogin(u.getLogin());
         response.setLoginAttempts(u.getLoginAttempts());
+        response.setRole(u.getRole());
         response.setStatus(u.getStatus());
         response.networks = new HashSet<>();
         response.networks.addAll(u.getNetworks().stream().map(UserNetworkResponse::fromNetwork).collect(Collectors.toList()));
@@ -95,7 +101,15 @@ public class UserResponse implements HiveEntity {
     public void setLogin(String login) {
         this.login = login;
     }
-    
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
+
     public UserStatus getStatus() {
         return status;
     }

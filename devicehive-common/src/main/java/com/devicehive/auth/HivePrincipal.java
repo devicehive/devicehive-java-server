@@ -20,7 +20,6 @@ package com.devicehive.auth;
  * #L%
  */
 
-import com.devicehive.model.AvailableActions;
 import com.devicehive.vo.UserVO;
 
 import java.security.Principal;
@@ -150,10 +149,6 @@ public class HivePrincipal implements Principal {
 
     public boolean hasAccessToDevice(String deviceGuid) {
         return allDevicesAvailable || deviceGuids.contains(deviceGuid);
-    }
-    
-    public boolean hasFullAccess() {
-        return (allDevicesAvailable && allDevicesAvailable && actions.equals(AvailableActions.getAllHiveActions()));
     }
 
     @Override
