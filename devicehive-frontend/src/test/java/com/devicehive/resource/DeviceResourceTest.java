@@ -22,6 +22,9 @@ package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
+import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -93,7 +96,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         deviceUpdate.setNetwork(Optional.of(network));
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device
@@ -128,7 +131,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         deviceUpdate.setNetwork(Optional.of(network));
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device without authentication
@@ -136,35 +139,36 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(response);
     }
 
-//    @Test
-//    public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
-//        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
-//        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-//        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
-//        NetworkVO network = DeviceFixture.createNetwork();
-//        String guid = UUID.randomUUID().toString();
-//        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-//        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-//        deviceUpdate.setNetwork(Optional.of(network));
-//
-//        String login = RandomStringUtils.randomAlphabetic(10);
-//        String password = RandomStringUtils.randomAlphabetic(10);
-//
-//        UserUpdate testUser = new UserUpdate();
-//        testUser.setLogin(Optional.of(login));
-//        testUser.setPassword(Optional.of(password));
-//        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
-//
-//        // register device
-//        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
-//        assertNotNull(response);
-//
-//        //register user
-//        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
-//        assertThat(user.getId(), Matchers.notNullValue());
-//
-//        //testing that user has no access to device
-//        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), deviceUpdate, FORBIDDEN, null);
-//        assertNotNull(response);
-//    }
+    @Test
+    public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
+        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
+        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
+        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        NetworkVO network = DeviceFixture.createNetwork();
+        String guid = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
+        deviceUpdate.setNetwork(Optional.of(network));
+
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String password = RandomStringUtils.randomAlphabetic(10);
+
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(Optional.of(login));
+        testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
+        testUser.setPassword(Optional.of(password));
+        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
+
+        // register device
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
+        assertNotNull(response);
+
+        //register user
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        assertThat(user.getId(), Matchers.notNullValue());
+
+        //testing that user has no access to device
+        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), deviceUpdate, FORBIDDEN, null);
+        assertNotNull(response);
+    }
 }

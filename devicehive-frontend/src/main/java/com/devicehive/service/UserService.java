@@ -20,7 +20,6 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
@@ -28,6 +27,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
@@ -152,7 +152,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, Boolean hasFullAccess) {
+    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
         UserVO existing = userDao.find(id);
 
         if (existing == null) {
@@ -198,7 +198,7 @@ public class UserService {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
                     throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
                 }
-            } else if (!hasFullAccess) {
+            } else if (role == UserRole.CLIENT) {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
@@ -211,10 +211,12 @@ public class UserService {
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
-        if (userToUpdate.getStatus() != null) {
-            if (!hasFullAccess) {
+        if (userToUpdate.getStatus() != null || userToUpdate.getRole() != null) {
+            if (role != UserRole.ADMIN) {
                 logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
+            } else if (userToUpdate.getRoleEnum() != null) {
+                existing.setRole(userToUpdate.getRoleEnum());
             } else {
                 existing.setStatus(userToUpdate.getStatusEnum());
             }
@@ -261,11 +263,12 @@ public class UserService {
     }
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer status, String sortField,
+    public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
                                                   Boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);
+        request.setRole(role);
         request.setStatus(status);
         request.setSortField(sortField);
         request.setSortOrderAsc(sortOrderAsc);
@@ -355,18 +358,18 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToDevice( HivePrincipal principal, String deviceGuid) {
-        if (!principal.hasFullAccess()) {
-            long count = userDao.hasAccessToDevice(principal.getUser(), deviceGuid);
+    public boolean hasAccessToDevice(UserVO user, String deviceGuid) {
+        if (!user.isAdmin()) {
+            long count = userDao.hasAccessToDevice(user, deviceGuid);
             return count > 0;
         }
         return true;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToNetwork(HivePrincipal principal, NetworkVO network) {
-        if (!principal.hasFullAccess()) {
-            long count = userDao.hasAccessToNetwork(principal.getUser(), network);
+    public boolean hasAccessToNetwork(UserVO user, NetworkVO network) {
+        if (!user.isAdmin()) {
+            long count = userDao.hasAccessToNetwork(user, network);
             return count > 0;
         }
         return true;

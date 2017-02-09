@@ -23,12 +23,16 @@ package com.devicehive.service;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
+import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
+import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.rpc.ListDeviceClassResponse;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
@@ -59,6 +63,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -153,6 +158,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
         userService.assignNetwork(user.getId(), network.getId());
         final HivePrincipal principal = new HivePrincipal(user);
@@ -205,6 +211,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
         final HivePrincipal principal = new HivePrincipal(user);
 
@@ -227,6 +234,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         final HivePrincipal principal = new HivePrincipal(user);
@@ -251,6 +259,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -314,6 +323,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -351,10 +361,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -401,10 +413,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -525,10 +539,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -649,6 +665,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();

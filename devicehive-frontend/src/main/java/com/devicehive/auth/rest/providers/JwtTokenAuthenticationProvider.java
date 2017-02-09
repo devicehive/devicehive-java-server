@@ -25,7 +25,6 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.model.AvailableActions;
-import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
@@ -45,8 +44,6 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.security.authentication.AccountStatusException;
-import org.springframework.security.authentication.DisabledException;
 
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenAuthenticationProvider.class);
@@ -77,15 +74,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             logger.debug("Jwt token authentication successful");
 
             HivePrincipal principal = new HivePrincipal();
-            UserStatus userStatus = null;
             if (jwtPayload.getUserId() != null) {
                 UserVO userVO = userService.findById(jwtPayload.getUserId());
-                userStatus = userVO.getStatus();
                 principal.setUser(userVO);
-            }
-            
-            if ((userStatus == null) || (!userStatus.equals(userStatus.ACTIVE))) {
-                throw new DisabledException("user disabled or deleted");
             }
 
             Set<String> networkIds = jwtPayload.getNetworkIds();

@@ -22,6 +22,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
 import com.google.gson.annotations.SerializedName;
@@ -79,6 +80,11 @@ public class User implements HiveEntity {
     private Integer loginAttempts;
 
     @Column
+    @SerializedName("role")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    private UserRole role;
+
+    @Column
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private UserStatus status;
@@ -116,6 +122,13 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private JsonStringWrapper data;
 
+    /**
+     * @return true, if user is admin
+     */
+    public boolean isAdmin() {
+        return UserRole.ADMIN.equals(role);
+    }
+
     public Long getId() {
         return id;
     }
@@ -130,6 +143,14 @@ public class User implements HiveEntity {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public UserStatus getStatus() {
@@ -249,6 +270,7 @@ public class User implements HiveEntity {
             //TODO [rafa] ??? vo.setNetworks(dc.getN);
             vo.setPasswordHash(dc.getPasswordHash());
             vo.setPasswordSalt(dc.getPasswordSalt());
+            vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
         }
         return vo;
@@ -269,6 +291,7 @@ public class User implements HiveEntity {
             //TODO [rafa] ??? vo.setNetworks(dc.getN);
             vo.setPasswordHash(dc.getPasswordHash());
             vo.setPasswordSalt(dc.getPasswordSalt());
+            vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
         }
         return vo;

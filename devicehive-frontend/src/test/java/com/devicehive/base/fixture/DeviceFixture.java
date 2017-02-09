@@ -93,8 +93,8 @@ public class DeviceFixture {
         return device;
     }
 
-    public static DeviceUpdate createDevice(String deviceGUID, DeviceClassUpdate dc) {
-        final DeviceUpdate deviceUpdate = createDevice(deviceGUID);
+    public static DeviceUpdate createDevice(String deviceKey, DeviceClassUpdate dc) {
+        final DeviceUpdate deviceUpdate = createDevice(deviceKey);
         deviceUpdate.setDeviceClass(Optional.ofNullable(dc));
         return deviceUpdate;
     }
