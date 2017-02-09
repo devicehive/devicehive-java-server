@@ -42,7 +42,7 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
         GraphTraversal<Vertex, Vertex> gT = g.V().has(ConfigurationVertex.LABEL, ConfigurationVertex.Properties.NAME, name);
         if (gT.hasNext()) {
             ConfigurationVO configurationVO = ConfigurationVertex.toVO(gT.next());
-            return Optional.ofNullable(configurationVO);
+            return Optional.of(configurationVO);
         } else {
             return Optional.empty();
         }
@@ -50,7 +50,16 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
 
     @Override
     public int delete(String name) {
-        return 0;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(ConfigurationVertex.LABEL, ConfigurationVertex.Properties.NAME, name);
+        int count = gT.asAdmin()
+                .clone()
+                .toList()
+                .size();
+
+        gT.drop();
+        executeStatement(gT);
+        logger.info(g.V().count().next().toString());
+        return count;
     }
 
     @Override
@@ -61,6 +70,7 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
                 .property(ConfigurationVertex.Properties.VALUE, configuration.getValue())
                 .property(ConfigurationVertex.Properties.ENTITY_VERSION, configuration.getEntityVersion());
 
+        logger.info(g.V().count().next().toString());
         executeStatement(gT);
     }
 
