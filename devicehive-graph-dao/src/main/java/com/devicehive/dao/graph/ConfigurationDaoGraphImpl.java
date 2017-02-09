@@ -20,8 +20,8 @@ package com.devicehive.dao.graph;
  * #L%
  */
 
-import com.datastax.driver.dse.graph.GraphResultSet;
 import com.devicehive.dao.ConfigurationDao;
+import com.devicehive.dao.graph.model.ConfigurationVertex;
 import com.devicehive.vo.ConfigurationVO;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
@@ -50,9 +50,10 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
     @Override
     public void persist(ConfigurationVO configuration) {
         logger.info("Adding configuration");
-        GraphTraversal<Vertex, Vertex> gT = g.addV("Configuration")
-                .property("name", configuration.getName())
-                .property("value", configuration.getValue());
+        GraphTraversal<Vertex, Vertex> gT = g.addV(ConfigurationVertex.LABEL)
+                .property(ConfigurationVertex.Properties.NAME, configuration.getName())
+                .property(ConfigurationVertex.Properties.VALUE, configuration.getValue())
+                .property(ConfigurationVertex.Properties.ENTITY_VERSION, configuration.getEntityVersion());
 
         executeStatement(gT);
     }
