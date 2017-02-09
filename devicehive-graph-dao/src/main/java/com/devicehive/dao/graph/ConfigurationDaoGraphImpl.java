@@ -20,26 +20,25 @@ package com.devicehive.dao.graph;
  * #L%
  */
 
+import com.datastax.driver.dse.graph.GraphResultSet;
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.vo.ConfigurationVO;
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public class ConfigurationDaoGraphImpl implements ConfigurationDao {
+public class ConfigurationDaoGraphImpl extends GraphGenericDao implements ConfigurationDao {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoGraphImpl.class);
 
-    @Autowired
-    private GraphTraversalSource g;
-
     @Override
     public Optional<ConfigurationVO> getByName(String name) {
+        logger.info(g.V().count().next().toString());
         return Optional.empty();
     }
 
@@ -51,11 +50,11 @@ public class ConfigurationDaoGraphImpl implements ConfigurationDao {
     @Override
     public void persist(ConfigurationVO configuration) {
         logger.info("Adding configuration");
-        g.addV("Configuration")
+        GraphTraversal<Vertex, Vertex> gT = g.addV("Configuration")
                 .property("name", configuration.getName())
                 .property("value", configuration.getValue());
 
-        logger.info(g.V().count().next().toString());
+        executeStatement(gT);
     }
 
     @Override

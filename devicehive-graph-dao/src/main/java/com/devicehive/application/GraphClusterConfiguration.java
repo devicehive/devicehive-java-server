@@ -52,6 +52,7 @@ public class GraphClusterConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(GraphClusterConfiguration.class);
 
+    private DseSession dseSession;
     private GraphTraversalSource g;
 
     @Autowired
@@ -69,7 +70,7 @@ public class GraphClusterConfiguration {
                 .withGraphOptions(new GraphOptions()
                         .setGraphName(graphName))
                 .build();
-        DseSession dseSession = dseCluster.connect();
+        dseSession = dseCluster.connect();
 
         String query = String.format("system.graph('%s').ifNotExists().create()", graphName);
         GraphStatement s = new SimpleGraphStatement(query)
@@ -85,6 +86,12 @@ public class GraphClusterConfiguration {
     @Lazy(false)
     public GraphTraversalSource graphTraversalSource() {
         return g;
+    }
+
+    @Bean
+    @Lazy(false)
+    public DseSession dseSession() {
+        return dseSession;
     }
 
 }
