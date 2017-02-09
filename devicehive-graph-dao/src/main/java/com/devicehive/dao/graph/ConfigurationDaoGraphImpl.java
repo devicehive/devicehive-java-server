@@ -38,8 +38,14 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
 
     @Override
     public Optional<ConfigurationVO> getByName(String name) {
-        logger.info(g.V().count().next().toString());
-        return Optional.empty();
+        logger.info("Getting configuration");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(ConfigurationVertex.LABEL, ConfigurationVertex.Properties.NAME, name);
+        if (gT.hasNext()) {
+            ConfigurationVO configurationVO = ConfigurationVertex.toVO(gT.next());
+            return Optional.ofNullable(configurationVO);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
