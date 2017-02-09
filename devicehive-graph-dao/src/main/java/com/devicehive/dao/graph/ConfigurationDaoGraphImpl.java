@@ -22,6 +22,10 @@ package com.devicehive.dao.graph;
 
 import com.devicehive.dao.ConfigurationDao;
 import com.devicehive.vo.ConfigurationVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -29,9 +33,14 @@ import java.util.Optional;
 @Repository
 public class ConfigurationDaoGraphImpl implements ConfigurationDao {
 
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoGraphImpl.class);
+
+    @Autowired
+    private GraphTraversalSource g;
+
     @Override
     public Optional<ConfigurationVO> getByName(String name) {
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -41,7 +50,12 @@ public class ConfigurationDaoGraphImpl implements ConfigurationDao {
 
     @Override
     public void persist(ConfigurationVO configuration) {
+        logger.info("Adding configuration");
+        g.addV("Configuration")
+                .property("name", configuration.getName())
+                .property("value", configuration.getValue());
 
+        logger.info(g.V().count().next().toString());
     }
 
     @Override

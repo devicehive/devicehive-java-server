@@ -23,6 +23,8 @@ package com.devicehive.application;
 import com.datastax.driver.dse.DseCluster;
 import com.datastax.driver.dse.DseSession;
 import com.datastax.driver.dse.graph.GraphOptions;
+import com.datastax.driver.dse.graph.GraphStatement;
+import com.datastax.driver.dse.graph.SimpleGraphStatement;
 import com.datastax.dse.graph.api.DseGraph;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.slf4j.Logger;
@@ -33,7 +35,9 @@ import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
@@ -67,10 +71,20 @@ public class GraphClusterConfiguration {
                 .build();
         DseSession dseSession = dseCluster.connect();
 
+        String query = String.format("system.graph('%s').ifNotExists().create()", graphName);
+        GraphStatement s = new SimpleGraphStatement(query)
+                .setSystemQuery();
+        dseSession.executeGraph(s);
+
         g = DseGraph.traversal(dseSession);
 
         logger.info("Graph initialization finished.");
     }
 
+    @Bean
+    @Lazy(false)
+    public GraphTraversalSource graphTraversalSource() {
+        return g;
+    }
 
 }
