@@ -50,6 +50,7 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
 
     @Override
     public int delete(String name) {
+        logger.info("Deleting configuration");
         GraphTraversal<Vertex, Vertex> gT = g.V().has(ConfigurationVertex.LABEL, ConfigurationVertex.Properties.NAME, name);
         int count = gT.asAdmin()
                 .clone()
@@ -58,7 +59,7 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
 
         gT.drop();
         executeStatement(gT);
-        logger.info(g.V().count().next().toString());
+        logger.debug(g.V().count().next().toString());
         return count;
     }
 
@@ -70,12 +71,19 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
                 .property(ConfigurationVertex.Properties.VALUE, configuration.getValue())
                 .property(ConfigurationVertex.Properties.ENTITY_VERSION, configuration.getEntityVersion());
 
-        logger.info(g.V().count().next().toString());
+        logger.debug(g.V().count().next().toString());
         executeStatement(gT);
     }
 
     @Override
     public ConfigurationVO merge(ConfigurationVO existing) {
-        return null;
+        logger.info("Updating configuration");
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(ConfigurationVertex.LABEL)
+                .has(ConfigurationVertex.Properties.NAME, existing.getName());
+        gT.property(ConfigurationVertex.Properties.VALUE, existing.getValue());
+        gT.property(ConfigurationVertex.Properties.ENTITY_VERSION, existing.getEntityVersion());
+        executeStatement(gT);
+        return existing;
     }
 }
