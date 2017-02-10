@@ -42,7 +42,7 @@ public class ListUserHandler implements RequestHandler {
 
         final List<UserVO> users =
                 userDao.list(req.getLogin(), req.getLoginPattern(),
-                        req.getStatus(),
+                        req.getRole(), req.getStatus(),
                         req.getSortField(), req.getSortOrderAsc(),
                         req.getTake(), req.getSkip());
 

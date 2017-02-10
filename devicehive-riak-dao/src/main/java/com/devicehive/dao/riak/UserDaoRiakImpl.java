@@ -31,6 +31,7 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.dao.riak.model.RiakUser;
 import com.devicehive.exceptions.HivePersistenceLayerException;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
@@ -237,7 +238,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
 
     @Override
     public List<UserVO> list(String login, String loginPattern,
-            Integer status,
+            Integer role, Integer status,
             String sortField, Boolean isSortOrderAsc,
             Integer take, Integer skip) {
 
@@ -249,6 +250,10 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         } else if (loginPattern != null) {
             loginPattern = loginPattern.replace("%", "");
             addReduceFilter(builder, "login", FilterOperator.REGEX, loginPattern);
+        }
+        if (role != null) {
+            String roleString = UserRole.getValueForIndex(role).name();
+            addReduceFilter(builder, "role", FilterOperator.EQUAL, roleString);
         }
         if (status != null) {
             String statusString = UserStatus.getValueForIndex(status).name();

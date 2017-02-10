@@ -22,7 +22,11 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +44,8 @@ public class RiakUser {
     private String passwordSalt;
 
     private Integer loginAttempts;
+
+    private UserRole role;
 
     private UserStatus status;
 
@@ -69,6 +75,14 @@ public class RiakUser {
 
     public void setLogin(String login) {
         this.login = login;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
     }
 
     public UserStatus getStatus() {
@@ -208,6 +222,7 @@ public class RiakUser {
             //TODO [rafa] ??? vo.setNetworks(dc.getN);
             vo.setPasswordHash(dc.getPasswordHash());
             vo.setPasswordSalt(dc.getPasswordSalt());
+            vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
         }
         return vo;
@@ -228,6 +243,7 @@ public class RiakUser {
             //TODO [rafa] ??? vo.setNetworks(dc.getN);
             vo.setPasswordHash(dc.getPasswordHash());
             vo.setPasswordSalt(dc.getPasswordSalt());
+            vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
         }
         return vo;
