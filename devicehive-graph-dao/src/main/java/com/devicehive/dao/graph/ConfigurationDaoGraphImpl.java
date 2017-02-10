@@ -66,10 +66,7 @@ public class ConfigurationDaoGraphImpl extends GraphGenericDao implements Config
     @Override
     public void persist(ConfigurationVO configuration) {
         logger.info("Adding configuration");
-        GraphTraversal<Vertex, Vertex> gT = g.addV(ConfigurationVertex.LABEL)
-                .property(ConfigurationVertex.Properties.NAME, configuration.getName())
-                .property(ConfigurationVertex.Properties.VALUE, configuration.getValue())
-                .property(ConfigurationVertex.Properties.ENTITY_VERSION, configuration.getEntityVersion());
+        GraphTraversal<Vertex, Vertex> gT = ConfigurationVertex.toVertex(configuration, g);
 
         logger.debug(g.V().count().next().toString());
         executeStatement(gT);

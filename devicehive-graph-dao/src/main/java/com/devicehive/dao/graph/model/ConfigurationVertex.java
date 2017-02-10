@@ -20,7 +20,10 @@ package com.devicehive.dao.graph.model;
  * #L%
  */
 
+import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.vo.ConfigurationVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 public class ConfigurationVertex {
@@ -33,6 +36,26 @@ public class ConfigurationVertex {
         configurationVO.setValue((String) v.property(Properties.VALUE).value());
         configurationVO.setEntityVersion((long) v.property(Properties.ENTITY_VERSION).value());
         return configurationVO;
+    }
+
+    public static GraphTraversal<Vertex, Vertex> toVertex(ConfigurationVO vo, GraphTraversalSource g) {
+        GraphTraversal<Vertex, Vertex> gT = g.addV(ConfigurationVertex.LABEL);
+
+        if (vo.getName() != null) {
+            gT.property(ConfigurationVertex.Properties.NAME, vo.getName());
+        } else {
+            throw new HivePersistenceLayerException("Configuration name cannot be null");
+        }
+
+        if (vo.getValue() != null) {
+            gT.property(ConfigurationVertex.Properties.VALUE, vo.getValue());
+        } else {
+            throw new HivePersistenceLayerException("Configuration value cannot be null");
+        }
+
+        gT.property(ConfigurationVertex.Properties.ENTITY_VERSION, vo.getEntityVersion());
+
+        return gT;
     }
 
     public class Properties {
