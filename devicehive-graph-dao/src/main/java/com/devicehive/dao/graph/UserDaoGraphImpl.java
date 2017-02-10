@@ -21,9 +21,14 @@ package com.devicehive.dao.graph;
  */
 
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.graph.model.UserVertex;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
@@ -31,31 +36,73 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class UserDaoGraphImpl implements UserDao {
+public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserDaoGraphImpl.class);
 
     @Override
     public Optional<UserVO> findByName(String name) {
-        return null;
+        logger.info("Getting user by login");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.LOGIN, name)
+                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        if (gT.hasNext()) {
+            UserVO userVO = UserVertex.toVO(gT.next());
+            return Optional.of(userVO);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
     public UserVO findByGoogleName(String name) {
-        return null;
+        logger.info("Getting user by google login");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.GOOGLE_LOGIN, name.toLowerCase())
+                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        if (gT.hasNext()) {
+            return UserVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public UserVO findByFacebookName(String name) {
-        return null;
+        logger.info("Getting user by facebook login");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.FACEBOOK_LOGIN, name.toLowerCase())
+                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        if (gT.hasNext()) {
+            return UserVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public UserVO findByGithubName(String name) {
-        return null;
+        logger.info("Getting user by github login");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.GITHUB_LOGIN, name.toLowerCase())
+                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        if (gT.hasNext()) {
+            return UserVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        return null;
+        logger.info("Getting user by identity login");
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.LOGIN, login)
+                .or(g.V().has(UserVertex.LABEL, UserVertex.Properties.GOOGLE_LOGIN, googleLogin.toLowerCase()),
+                        g.V().has(UserVertex.LABEL, UserVertex.Properties.FACEBOOK_LOGIN, facebookLogin.toLowerCase()),
+                        g.V().has(UserVertex.LABEL, UserVertex.Properties.GITHUB_LOGIN, githubLogin.toLowerCase()))
+                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        if (gT.hasNext()) {
+            UserVO userVO = UserVertex.toVO(gT.next());
+            return Optional.of(userVO);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -75,17 +122,33 @@ public class UserDaoGraphImpl implements UserDao {
 
     @Override
     public int deleteById(long id) {
-        return 0;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.ID, id);
+        int count = gT.asAdmin()
+                .clone()
+                .toList()
+                .size();
+
+        gT.drop();
+        executeStatement(gT);
+        return count;
     }
 
     @Override
     public UserVO find(Long id) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.ID, id);
+        if (gT.hasNext()) {
+            return UserVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public void persist(UserVO user) {
+        logger.info("Adding new user");
+        GraphTraversal<Vertex, Vertex> gT = UserVertex.toVertex(user, g);
 
+        executeStatement(gT);
     }
 
     @Override
