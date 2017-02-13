@@ -128,8 +128,7 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
                 .toList()
                 .size();
 
-        gT.drop();
-        executeStatement(gT);
+        gT.drop().iterate();
         return count;
     }
 
@@ -148,7 +147,7 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
         logger.info("Adding new user");
         GraphTraversal<Vertex, Vertex> gT = UserVertex.toVertex(user, g);
 
-        executeStatement(gT);
+        gT.next();
     }
 
     @Override

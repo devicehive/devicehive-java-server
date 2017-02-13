@@ -38,9 +38,9 @@ public class GraphGenericDao {
     @Autowired
     DseSession dseSession;
 
-    //TODO - research - is this really the only way to commit statement?!
-    public GraphResultSet executeStatement(GraphTraversal<Vertex, Vertex> gT) {
-        GraphStatement graphStatement = DseGraph.statementFromTraversal(gT);
-        return dseSession.executeGraph(graphStatement);
-    }
+    //DSE - specific solution is not required, most likely. Leaving it commented out for future reference.
+//    public GraphResultSet executeStatement(GraphTraversal<Vertex, Vertex> gT) {
+//        GraphStatement graphStatement = DseGraph.statementFromTraversal(gT);
+//        return dseSession.executeGraph(graphStatement);
+//    }
 }
