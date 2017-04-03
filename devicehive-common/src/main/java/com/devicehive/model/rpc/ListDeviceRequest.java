@@ -27,7 +27,6 @@ public class ListDeviceRequest extends Body {
 
     private String name;
     private String namePattern;
-    private String status;
     private Long networkId;
     private String networkName;
     private Long deviceClassId;
@@ -56,14 +55,6 @@ public class ListDeviceRequest extends Body {
 
     public void setNamePattern(String namePattern) {
         this.namePattern = namePattern;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public Long getNetworkId() {

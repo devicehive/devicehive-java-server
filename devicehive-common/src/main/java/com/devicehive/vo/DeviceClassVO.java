@@ -46,9 +46,6 @@ public class DeviceClassVO implements HiveEntity {
     private Boolean isPermanent;
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Integer offlineTimeout;
-
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
 
     private long entityVersion;
@@ -75,14 +72,6 @@ public class DeviceClassVO implements HiveEntity {
 
     public void setIsPermanent(Boolean isPermanent) {
         this.isPermanent = isPermanent;
-    }
-
-    public Integer getOfflineTimeout() {
-        return offlineTimeout;
-    }
-
-    public void setOfflineTimeout(Integer offlineTimeout) {
-        this.offlineTimeout = offlineTimeout;
     }
 
     public JsonStringWrapper getData() {

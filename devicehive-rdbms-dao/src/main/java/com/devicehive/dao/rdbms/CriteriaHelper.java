@@ -120,7 +120,6 @@ public class CriteriaHelper {
                                                    Root<Device> from,
                                                    Optional<String> name,
                                                    Optional<String> namePattern,
-                                                   Optional<String> status,
                                                    Optional<Long> networkId,
                                                    Optional<String> networkName,
                                                    Optional<Long> deviceClassId,
@@ -130,7 +129,6 @@ public class CriteriaHelper {
 
         name.ifPresent(n -> predicates.add(cb.equal(from.<String>get("name"), n)));
         namePattern.ifPresent(np -> predicates.add(cb.like(from.<String>get("name"), np)));
-        status.ifPresent(s -> predicates.add(cb.equal(from.<String>get("status"), s)));
 
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
         networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));

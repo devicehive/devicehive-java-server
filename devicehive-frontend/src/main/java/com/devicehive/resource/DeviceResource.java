@@ -51,7 +51,6 @@ public interface DeviceResource {
      *
      * @param name               Device name.
      * @param namePattern        Device name pattern.
-     * @param status             Device status
      * @param networkId          Associated network identifier
      * @param networkName        Associated network name
      * @param deviceClassId      Associated device class identifier
@@ -79,9 +78,6 @@ public interface DeviceResource {
             @ApiParam(name = "namePattern", value = "Filter by device name pattern.")
             @QueryParam("namePattern")
             String namePattern,
-            @ApiParam(name = "status", value = "Filter by device status.")
-            @QueryParam("status")
-            String status,
             @ApiParam(name = "networkId", value = "Filter by associated network identifier.")
             @QueryParam("networkId")
             Long networkId,

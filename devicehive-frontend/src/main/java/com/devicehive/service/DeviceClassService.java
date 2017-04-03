@@ -149,9 +149,6 @@ public class DeviceClassService {
         if (update.getPermanent() != null) {
             stored.setIsPermanent(update.getPermanent().orElse(null));
         }
-        if (update.getOfflineTimeout() != null) {
-            stored.setOfflineTimeout(update.getOfflineTimeout().orElse(null));
-        }
         hiveValidator.validate(stored);
         return deviceClassDao.merge(stored);
     }

@@ -69,7 +69,6 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
-        assertThat(device.getStatus(), is(device.getStatus()));
         assertThat(device.getData(), notNullValue());
         NetworkVO savedNetwork = device.getNetwork();
         assertThat(savedNetwork.getId(), notNullValue());
@@ -80,7 +79,6 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName().get()));
         assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout().get()));
         assertThat(savedClass.getData(), notNullValue());
     }
 
@@ -104,7 +102,6 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
-        assertThat(device.getStatus(), is(device.getStatus()));
         assertThat(device.getData(), notNullValue());
         NetworkVO savedNetwork = device.getNetwork();
         assertThat(savedNetwork.getId(), notNullValue());
@@ -115,7 +112,6 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedClass.getId(), notNullValue());
         assertThat(savedClass.getName(), is(deviceClass.getName().get()));
         assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getOfflineTimeout(), is(deviceClass.getOfflineTimeout().get()));
         assertThat(savedClass.getData(), notNullValue());
     }
 

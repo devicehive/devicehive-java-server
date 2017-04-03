@@ -238,39 +238,40 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     Messages.INVALID_REQUEST_PARAMETERS);
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
             asyncResponse.resume(response);
-        }
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
-        if (device == null) {
-            logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
-            Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
-            asyncResponse.resume(response);
         } else {
-            if (device.getNetwork() == null) {
-                logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
-                Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
-                        String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
+            DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+            if (device == null) {
+                logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
+                Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                        String.format(Messages.DEVICE_NOT_FOUND, guid)));
                 asyncResponse.resume(response);
             } else {
-                DeviceNotification toInsert = notificationService.convertWrapperToNotification(notificationSubmit, device);
-                notificationService.insert(toInsert, device)
-                        .thenAccept(notification -> {
-                            logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}",
-                                    guid, notification.getNotification());
+                if (device.getNetwork() == null) {
+                    logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
+                    Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
+                            String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
+                    asyncResponse.resume(response);
+                } else {
+                    DeviceNotification toInsert = notificationService.convertWrapperToNotification(notificationSubmit, device);
+                    notificationService.insert(toInsert, device)
+                            .thenAccept(notification -> {
+                                logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}",
+                                        guid, notification.getNotification());
 
-                            asyncResponse.resume(ResponseFactory.response(
-                                    Response.Status.CREATED,
-                                    notification,
-                                    JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
-                        })
-                        .exceptionally(e -> {
-                            // FIX ERROR
-                            logger.warn("Device notification insert failed for device with guid = {}.", guid);
-                            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
-                            Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                            asyncResponse.resume(jaxResponse);
-                            return null;
-                        });
+                                asyncResponse.resume(ResponseFactory.response(
+                                        Response.Status.CREATED,
+                                        notification,
+                                        JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
+                            })
+                            .exceptionally(e -> {
+                                // FIX ERROR
+                                logger.warn("Device notification insert failed for device with guid = {}.", guid);
+                                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
+                                Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                                asyncResponse.resume(jaxResponse);
+                                return null;
+                            });
+                }
             }
         }
     }
