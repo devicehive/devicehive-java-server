@@ -131,7 +131,6 @@ public class RiakDeviceClass {
             vo.setData(deviceClass.getData());
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
-            vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
 
             if (deviceClass.getEquipment() != null) {
                 Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(RiakDeviceClassEquipment::convertDeviceClassEquipment);
@@ -148,7 +147,6 @@ public class RiakDeviceClass {
             en.setId(vo.getId());
             en.setData(vo.getData());
             en.setName(vo.getName());
-            en.setOfflineTimeout(vo.getOfflineTimeout());
             en.setPermanent(vo.getIsPermanent());
         }
         return en;

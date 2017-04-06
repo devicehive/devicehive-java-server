@@ -45,12 +45,8 @@ public interface DeviceDao {
 
     long getAllowedDeviceCount(HivePrincipal principal, List<String> guids);
 
-    List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
+    List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
                          Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
                          Integer skip, HivePrincipal principal);
-
-    Map<String, Integer> getOfflineTimeForDevices(List<String> guids);
-
-    void changeStatusForDevices(String status, List<String> guids);
 
 }

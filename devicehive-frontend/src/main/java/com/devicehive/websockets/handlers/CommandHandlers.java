@@ -96,7 +96,7 @@ public class CommandHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null, principal).join();
+            actualDevices = deviceService.list(null, null, null, null, null, null, null, true, null, null, principal).join();
             devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
@@ -134,7 +134,7 @@ public class CommandHandlers {
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (!subscriptionId.isPresent() && guids == null) {
-            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, null, true, null, null,
+            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, true, null, null,
                    principal).join();
             guids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
             commandService.sendUnsubscribeRequest(null, guids);

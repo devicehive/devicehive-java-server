@@ -43,10 +43,6 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Optional<String> name;
 
-    @SerializedName("status")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private Optional<String> status;
-
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private Optional<JsonStringWrapper> data;
@@ -85,14 +81,6 @@ public class DeviceUpdate implements HiveEntity {
 
     public void setName(Optional<String> name) {
         this.name = name;
-    }
-
-    public Optional<String> getStatus() {
-        return status;
-    }
-
-    public void setStatus(Optional<String> status) {
-        this.status = status;
     }
 
     public Optional<JsonStringWrapper> getData() {
@@ -136,9 +124,6 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (network != null) {
             device.setNetwork(network.orElse(null));
-        }
-        if (status != null) {
-            device.setStatus(status.orElse(null));
         }
         if (blocked != null) {
             device.setBlocked(Boolean.TRUE.equals(blocked.orElse(null)));

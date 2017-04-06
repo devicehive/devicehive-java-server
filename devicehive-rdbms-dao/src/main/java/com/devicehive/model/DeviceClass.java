@@ -74,12 +74,6 @@ public class DeviceClass implements HiveEntity {
          DEVICECLASS_PUBLISHED})
     private Boolean isPermanent;
 
-    @Column(name = "offline_timeout")
-    @JsonPolicyDef(
-        {DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED,
-         DEVICECLASS_PUBLISHED})
-    private Integer offlineTimeout;
-
     @Embedded
     @AttributeOverrides({
                             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
@@ -127,14 +121,6 @@ public class DeviceClass implements HiveEntity {
         isPermanent = permanent;
     }
 
-    public Integer getOfflineTimeout() {
-        return offlineTimeout;
-    }
-
-    public void setOfflineTimeout(Integer offlineTimeout) {
-        this.offlineTimeout = offlineTimeout;
-    }
-
     public JsonStringWrapper getData() {
         return data;
     }
@@ -179,7 +165,6 @@ public class DeviceClass implements HiveEntity {
             vo.setData(deviceClass.getData());
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
-            vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
             vo.setEntityVersion(deviceClass.getEntityVersion());
             if (deviceClass.getEquipment() != null) {
                 Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipment);
@@ -196,7 +181,6 @@ public class DeviceClass implements HiveEntity {
             en.setId(vo.getId());
             en.setData(vo.getData());
             en.setName(vo.getName());
-            en.setOfflineTimeout(vo.getOfflineTimeout());
             en.setPermanent(vo.getIsPermanent());
             en.setEntityVersion(vo.getEntityVersion());
         }

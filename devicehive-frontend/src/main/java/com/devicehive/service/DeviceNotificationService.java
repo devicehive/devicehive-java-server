@@ -198,29 +198,11 @@ public class DeviceNotificationService {
 
     private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        if (notificationMessage.getNotification() != null) {
-            switch (notificationMessage.getNotification()) {
-                case SpecialNotifications.EQUIPMENT:
-                    deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
-                    break;
-                case SpecialNotifications.DEVICE_STATUS:
-                    DeviceNotification deviceNotification = refreshDeviceStatusCase(notificationMessage, device);
-                    notificationsToCreate.add(deviceNotification);
-                    break;
-                default:
-                    break;
-            }
+        if (notificationMessage.getNotification() != null && notificationMessage.getNotification().equals(SpecialNotifications.EQUIPMENT)) {
+            deviceEquipmentService.refreshDeviceEquipment(notificationMessage, device);
         }
 
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
-
-    }
-
-    private DeviceNotification refreshDeviceStatusCase(DeviceNotification notificationMessage, DeviceVO device) {
-        DeviceVO devicevo = deviceDao.findByUUID(device.getGuid());
-        String status = ServerResponsesFactory.parseNotificationStatus(notificationMessage);
-        devicevo.setStatus(status);
-        return ServerResponsesFactory.createNotificationForDevice(devicevo, SpecialNotifications.DEVICE_UPDATE);
     }
 }

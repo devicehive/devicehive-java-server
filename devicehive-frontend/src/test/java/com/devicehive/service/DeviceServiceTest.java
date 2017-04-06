@@ -481,46 +481,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
         handleListDeviceRequest();
-        deviceService.list(deviceName1, null, null, null, null, null, null, null, false, null, null, null)
+        deviceService.list(deviceName1, null, null, null, null, null, null, false, null, null, null)
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertEquals(devices.size(), 1);
                     assertEquals(device.getGuid(), devices.get(0).getGuid());
                     assertEquals(device.getName(), devices.get(0).getName());
-                }).get(2, TimeUnit.SECONDS);
-
-        verify(requestHandler, times(1)).handle(argument.capture());
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void should_save_and_find_by_device_status() throws Exception {
-        final DeviceVO device = DeviceFixture.createDeviceVO();
-        String status = RandomStringUtils.randomAlphabetic(10);
-        device.setStatus(status);
-        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
-
-        String status1 = RandomStringUtils.randomAlphabetic(10);
-        final DeviceVO device1 = DeviceFixture.createDeviceVO();
-        device1.setStatus(status1);
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
-
-        final DeviceVO device2 = DeviceFixture.createDeviceVO();
-        device2.setStatus(status1);
-        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
-
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
-        handleListDeviceRequest();
-        deviceService.list(null, null, status1, null, null, null, null, null, false, null, null, null)
-                .thenAccept(devices -> {
-                    Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
-                    assertNotNull(devices);
-                    assertEquals(2, devices.size());
-                    assertEquals(device1.getGuid(), devices.get(0).getGuid());
-                    assertEquals(device2.getGuid(), devices.get(1).getGuid());
                 }).get(2, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -569,7 +535,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         handleListDeviceRequest();
-        deviceService.list(null, null, null, network1.getId(), null, null, null, null, false, null, null, null)
+        deviceService.list(null, null, network1.getId(), null, null, null, null, false, null, null, null)
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertNotEquals(0, devices.size());
@@ -599,7 +565,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         handleListDeviceRequest();
-        deviceService.list(null, null, null, null, null, dc.getId(), null, null, false, null, null, null)
+        deviceService.list(null, null, null, null, dc.getId(), null, null, false, null, null, null)
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -626,7 +592,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
         handleListDeviceRequest();
-        deviceService.list(null, null, null, null, null, null, dc.getName(), null, false, null, null, null)
+        deviceService.list(null, null, null, null, null, dc.getName(), null, false, null, null, null)
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertEquals(device.getGuid(), devices.get(0).getGuid());
@@ -712,7 +678,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
             ListDeviceRequest req = request.getBody().cast(ListDeviceRequest.class);
             final List<DeviceVO> devices =
                     deviceDao.list(req.getName(), req.getNamePattern(),
-                            req.getStatus(), req.getNetworkId(), req.getNetworkName(),
+                            req.getNetworkId(), req.getNetworkName(),
                             req.getDeviceClassId(), req.getDeviceClassName(),
                             req.getSortField(), req.getSortOrderAsc(),
                             req.getTake(), req.getSkip(), req.getPrincipal());
