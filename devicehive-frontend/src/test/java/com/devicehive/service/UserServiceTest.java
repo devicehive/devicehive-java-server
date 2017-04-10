@@ -19,7 +19,7 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-import com.devicehive.auth.HivePrincipal;
+
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.model.rpc.ListUserRequest;
@@ -30,7 +30,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.AvailableActions;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -173,17 +173,17 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user1.getNetworks(),
                 hasItems(
                         new CustomTypeSafeMatcher<NetworkVO>("expect network") {
-                    @Override
-                    protected boolean matchesSafely(NetworkVO item) {
-                        return first.getId().equals(item.getId()) && first.getName().equals(item.getName());
-                    }
-                },
+                            @Override
+                            protected boolean matchesSafely(NetworkVO item) {
+                                return first.getId().equals(item.getId()) && first.getName().equals(item.getName());
+                            }
+                        },
                         new CustomTypeSafeMatcher<NetworkVO>("expect network") {
-                    @Override
-                    protected boolean matchesSafely(NetworkVO item) {
-                        return second.getId().equals(item.getId()) && second.getName().equals(item.getName());
-                    }
-                }
+                            @Override
+                            protected boolean matchesSafely(NetworkVO item) {
+                                return second.getId().equals(item.getId()) && second.getName().equals(item.getName());
+                            }
+                        }
                 ));
     }
 
@@ -780,6 +780,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -798,9 +799,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device);
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-
-        assertTrue(userService.hasAccessToDevice(hivePrincipal, device.getGuid().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
 
     @Test
@@ -808,6 +807,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -824,9 +824,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device);
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-
-        assertFalse(userService.hasAccessToDevice(hivePrincipal, device.getGuid().orElse(null)));
+        assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
 
     @Test
@@ -834,6 +832,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -850,12 +849,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setNetwork(Optional.ofNullable(network));
         deviceService.deviceSave(device);
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-        hivePrincipal.setAllDevicesAvailable(true);
-        hivePrincipal.setAllNetworksAvailable(true);
-        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
-
-        assertTrue(userService.hasAccessToDevice(hivePrincipal, device.getGuid().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
 
     @Test
@@ -863,18 +857,14 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-        hivePrincipal.setAllDevicesAvailable(true);
-        hivePrincipal.setAllNetworksAvailable(true);
-        hivePrincipal.setActions(AvailableActions.getAllHiveActions());
-
-        assertTrue(userService.hasAccessToNetwork(hivePrincipal, network));
+        assertTrue(userService.hasAccessToNetwork(user, network));
     }
 
     @Test
@@ -882,6 +872,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
@@ -890,9 +881,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), network.getId());
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-
-        assertTrue(userService.hasAccessToNetwork(hivePrincipal, network));
+        assertTrue(userService.hasAccessToNetwork(user, network));
     }
 
     @Test
@@ -900,15 +889,14 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        HivePrincipal hivePrincipal = new HivePrincipal(user);
-
-        assertFalse(userService.hasAccessToNetwork(hivePrincipal, network));
+        assertFalse(userService.hasAccessToNetwork(user, network));
     }
 
     @Test
@@ -921,6 +909,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user.setGoogleLogin(google);
         userService.createUser(user, "123");
 
@@ -939,6 +928,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user.setFacebookLogin(facebook);
         userService.createUser(user, "123");
 
@@ -957,6 +947,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user.setGithubLogin(gitgub);
         userService.createUser(user, "123");
 
@@ -971,6 +962,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
         TimeUnit.SECONDS.sleep(1);
@@ -985,8 +977,7 @@ public class UserServiceTest extends AbstractResourceTest {
                 userService.authenticate(user.getLogin(), "wrong_password");
                 TimeUnit.SECONDS.sleep(1);
                 fail("should throw ActionNotAllowedException");
-            } catch (ActionNotAllowedException e) {
-            }
+            } catch (ActionNotAllowedException e) { }
         }
 
         user = userService.findById(user.getId());
@@ -1005,7 +996,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(NoSuchElementException.class);
         expectedException.expectMessage(Messages.USER_NOT_FOUND);
 
-        userService.updateUser(-1L, new UserUpdate(), true);
+        userService.updateUser(-1L, new UserUpdate(), UserRole.ADMIN);
     }
 
     @Test
@@ -1015,11 +1006,13 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO first = new UserVO();
         first.setLogin(existingLogin);
         first.setStatus(UserStatus.ACTIVE);
+        first.setRole(UserRole.CLIENT);
         userService.createUser(first, "123");
 
         UserVO second = new UserVO();
         second.setLogin(RandomStringUtils.randomAlphabetic(10));
         second.setStatus(UserStatus.ACTIVE);
+        second.setRole(UserRole.CLIENT);
         second = userService.createUser(second, "123");
 
         expectedException.expect(ActionNotAllowedException.class);
@@ -1027,7 +1020,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         UserUpdate update = new UserUpdate();
         update.setLogin(Optional.ofNullable(existingLogin));
-        userService.updateUser(second.getId(), update, true);
+        userService.updateUser(second.getId(), update, UserRole.ADMIN);
     }
 
     @Test
@@ -1035,6 +1028,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
         user.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
         user.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
@@ -1046,7 +1040,7 @@ public class UserServiceTest extends AbstractResourceTest {
         update.setGoogleLogin(Optional.ofNullable(RandomStringUtils.random(10)));
         update.setGithubLogin(Optional.ofNullable(RandomStringUtils.random(10)));
 
-        UserVO updatedUser = userService.updateUser(user.getId(), update, true);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
@@ -1077,7 +1071,7 @@ public class UserServiceTest extends AbstractResourceTest {
             update.setGoogleLogin(Optional.ofNullable(google));
             update.setFacebookLogin(Optional.ofNullable(null));
             update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGoogleUser.getId(), update, true);
+            userService.updateUser(secondGoogleUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
@@ -1101,7 +1095,7 @@ public class UserServiceTest extends AbstractResourceTest {
             update.setFacebookLogin(Optional.ofNullable(facebook));
             update.setGoogleLogin(Optional.ofNullable(null));
             update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondFacebookUser.getId(), update, true);
+            userService.updateUser(secondFacebookUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
@@ -1126,7 +1120,7 @@ public class UserServiceTest extends AbstractResourceTest {
             update.setGithubLogin(Optional.ofNullable(github));
             update.setFacebookLogin(Optional.ofNullable(null));
             update.setGoogleLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGithubUser.getId(), update, true);
+            userService.updateUser(secondGithubUser.getId(), update, UserRole.ADMIN);
             fail("should throw ActionNotAllowedException");
         } catch (ActionNotAllowedException e) {
             assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
@@ -1142,7 +1136,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
-        UserVO updatedUser = userService.updateUser(user.getId(), update, true);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1161,7 +1155,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
-        userService.updateUser(user.getId(), update, false);
+        userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
     @Test
@@ -1174,7 +1168,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
         update.setOldPassword(Optional.ofNullable("123"));
-        UserVO updatedUser = userService.updateUser(user.getId(), update, false);
+        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1194,7 +1188,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable("new_pass"));
         update.setOldPassword(Optional.ofNullable("old"));
-        userService.updateUser(user.getId(), update, false);
+        userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
     @Test
@@ -1209,7 +1203,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         UserUpdate update = new UserUpdate();
         update.setPassword(Optional.ofNullable(null));
-        userService.updateUser(user.getId(), update, true);
+        userService.updateUser(user.getId(), update, UserRole.ADMIN);
     }
 
     @Test
@@ -1227,7 +1221,7 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
         handleListUserRequest();
         final UserVO finalTestUser = testUser;
-        userService.list(testUser.getLogin(), null, null, null, null, 100, 0)
+        userService.list(testUser.getLogin(), null, null, null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(1));
@@ -1253,7 +1247,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1273,15 +1267,24 @@ public class UserServiceTest extends AbstractResourceTest {
             UserVO user = new UserVO();
             user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
             user.setStatus(UserStatus.ACTIVE);
+            user.setRole(UserRole.ADMIN);
+            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
+        }
+        for (int i = 0; i < 10; i++) {
+            UserVO user = new UserVO();
+            user.setLogin(prefix + RandomStringUtils.randomAlphabetic(10));
+            user.setStatus(UserStatus.ACTIVE);
+            user.setRole(UserRole.CLIENT);
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
                     for (UserVO user : users) {
                         assertThat(user.getLogin(), startsWith(prefix));
+                        assertThat(user.getRole(), equalTo(UserRole.CLIENT));
                     }
                 }).get(15, TimeUnit.SECONDS);
 
@@ -1305,7 +1308,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
@@ -1331,7 +1334,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + suffix, null, "login", true, 100, 0)
+        userService.list(null, "%" + suffix, null, null, "login", true, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1343,7 +1346,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     assertThat(users.get(4).getLogin(), startsWith("e"));
                 }).get(15, TimeUnit.SECONDS);
 
-        userService.list(null, "%" + suffix, null, "login", false, 100, 0)
+        userService.list(null, "%" + suffix, null, null, "login", false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1371,7 +1374,7 @@ public class UserServiceTest extends AbstractResourceTest {
             ids.add(user.getId());
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, true, 20, 10)
+        userService.list(null, "%" + prefix + "%", null, null, null, true, 20, 10)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(20));
@@ -1387,8 +1390,9 @@ public class UserServiceTest extends AbstractResourceTest {
         when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
             ListUserRequest req = request.getBody().cast(ListUserRequest.class);
-            final List<UserVO> users
-                    = userDao.list(req.getLogin(), req.getLoginPattern(), req.getStatus(),
+            final List<UserVO> users =
+                    userDao.list(req.getLogin(), req.getLoginPattern(),
+                            req.getRole(), req.getStatus(),
                             req.getSortField(), req.getSortOrderAsc(),
                             req.getTake(), req.getSkip());
 

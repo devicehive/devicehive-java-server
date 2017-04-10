@@ -203,7 +203,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         if (principal != null) {
             UserVO user = principal.getUser();
 
-            if (user != null && !principal.hasFullAccess()) {
+            if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                 deviceList = deviceList
                         .stream()
@@ -257,7 +257,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         addReduceFilter(builder, "deviceClass.name", FilterOperator.EQUAL, deviceClassName);
         if (principal != null) {
             UserVO user = principal.getUser();
-            if (user != null && !principal.hasFullAccess()) {
+            if (user != null && !user.isAdmin()) {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                 if (principal.getNetworkIds() != null) {
                     networks.retainAll(principal.getNetworkIds());

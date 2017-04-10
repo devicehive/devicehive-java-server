@@ -51,12 +51,14 @@ public class Constants {
     public static final String BASIC_AUTH_SCHEME = "Basic";
     public static final String TOKEN_SCHEME = "Bearer";
     public static final String AUTH_DEVICE_ID_HEADER = "Auth-DeviceID";
+    public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
     //API constants
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_GUID = "deviceGuid";
     public static final String DEVICE_GUIDS = "deviceGuids";
+    public static final String DEVICE_KEY = "deviceKey";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";
     public static final String COMMAND_ID = "commandId";
