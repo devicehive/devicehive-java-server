@@ -52,21 +52,21 @@ public class UserVertex {
     public static GraphTraversal<Vertex, Vertex> toVertex(UserVO vo, GraphTraversalSource g) {
         return g.addV(UserVertex.LABEL)
                 // FIXME: execution fails with null variables
-                .property(UserVertex.Properties.ID, vo.getId())
-                .property(UserVertex.Properties.DATA, vo.getData())
-                .property(UserVertex.Properties.FACEBOOK_LOGIN, vo.getFacebookLogin() != null ? vo.getFacebookLogin().toLowerCase() : null)
-                .property(UserVertex.Properties.GITHUB_LOGIN, vo.getGithubLogin() != null ? vo.getGithubLogin().toLowerCase() : null)
-                .property(UserVertex.Properties.GOOGLE_LOGIN, vo.getGoogleLogin() != null ? vo.getGoogleLogin().toLowerCase() : null)
-                .property(UserVertex.Properties.LAST_LOGIN, vo.getLastLogin())
-                .property(UserVertex.Properties.LOGIN, vo.getLogin())
-                .property(UserVertex.Properties.LOGIN_ATTEMPTS, vo.getLoginAttempts())
-                .property(UserVertex.Properties.PASSWORD_HASH, vo.getPasswordHash())
-                .property(UserVertex.Properties.PASSWORD_SALT, vo.getPasswordSalt())
-                .property(UserVertex.Properties.STATUS, vo.getStatus());
+                .property(Properties.ID, vo.getId())
+                .property(Properties.DATA, vo.getData())
+                .property(Properties.FACEBOOK_LOGIN, vo.getFacebookLogin() != null ? vo.getFacebookLogin().toLowerCase() : null)
+                .property(Properties.GITHUB_LOGIN, vo.getGithubLogin() != null ? vo.getGithubLogin().toLowerCase() : null)
+                .property(Properties.GOOGLE_LOGIN, vo.getGoogleLogin() != null ? vo.getGoogleLogin().toLowerCase() : null)
+                .property(Properties.LAST_LOGIN, vo.getLastLogin())
+                .property(Properties.LOGIN, vo.getLogin())
+                .property(Properties.LOGIN_ATTEMPTS, vo.getLoginAttempts())
+                .property(Properties.PASSWORD_HASH, vo.getPasswordHash())
+                .property(Properties.PASSWORD_SALT, vo.getPasswordSalt())
+                .property(Properties.STATUS, vo.getStatus());
     }
 
     public class Properties {
-        public static final String ID = "id";
+        public static final String ID = "dh_id";
         public static final String DATA = "data";
         public static final String FACEBOOK_LOGIN = "facebook_login";
         public static final String GITHUB_LOGIN = "github_login";
