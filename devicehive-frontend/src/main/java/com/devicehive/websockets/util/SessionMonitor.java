@@ -24,7 +24,6 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.rpc.CommandGetSubscriptionRequest;
 import com.devicehive.model.rpc.CommandGetSubscriptionResponse;
-import com.devicehive.service.DeviceActivityService;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -52,12 +51,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class SessionMonitor {
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
-    @Autowired
-    private RpcClient rpcClient;
-
-    @Autowired
-    private DeviceActivityService deviceActivityService;
-
     private ConcurrentMap<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
 
     public void registerSession(final WebSocketSession session) {
@@ -76,39 +69,6 @@ public class SessionMonitor {
             if (session != null) session.close();
         } catch (IOException ex) {
             logger.error("Error closing session", ex);
-        }
-    }
-
-    public void updateDeviceSession(WebSocketSession session) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<String> authorizedDevices = principal != null ? principal.getDeviceGuids() : null;
-        //Assumption is if principal is a device, it principal.getDevices will return only itself todo - update logic if neccessary
-        if (authorizedDevices != null) {
-            authorizedDevices.forEach(deviceGuid -> {
-                deviceActivityService.update(deviceGuid);
-            });
-        }
-
-        CopyOnWriteArraySet<String> subIds = (CopyOnWriteArraySet)
-                session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
-
-        for (String id : subIds) {
-            CommandGetSubscriptionRequest request = new CommandGetSubscriptionRequest(id);
-            CompletableFuture<Response> future = new CompletableFuture<>();
-
-            rpcClient.call(Request.newBuilder()
-                    .withBody(request).build(), new ResponseConsumer(future));
-
-            future.thenApply(r -> {
-                Set<Subscription> subscriptions = ((CommandGetSubscriptionResponse) r.getBody()).getSubscriptions();
-
-                for (Subscription subscription : subscriptions) {
-                    if (subscription.getGuid() != null) {
-                        deviceActivityService.update(subscription.getGuid());
-                    }
-                }
-                return subscriptions;
-            });
         }
     }
 

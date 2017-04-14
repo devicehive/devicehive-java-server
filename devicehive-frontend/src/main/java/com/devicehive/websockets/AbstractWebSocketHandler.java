@@ -87,7 +87,6 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
     @Override
     protected void handlePongMessage(WebSocketSession session, PongMessage message) throws Exception {
         logger.debug("Pong received for session {}", session.getId());
-        sessionMonitor.updateDeviceSession(session);
     }
 
     @Override

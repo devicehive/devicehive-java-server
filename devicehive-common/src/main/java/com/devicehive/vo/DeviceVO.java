@@ -41,10 +41,6 @@ public class DeviceVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
 
-    @SerializedName("status")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private String status;
-
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
@@ -84,14 +80,6 @@ public class DeviceVO implements HiveEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public JsonStringWrapper getData() {

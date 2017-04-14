@@ -64,8 +64,6 @@ public class DeviceService {
     @Autowired
     private DeviceClassService deviceClassService;
     @Autowired
-    private DeviceActivityService deviceActivityService;
-    @Autowired
     private TimestampService timestampService;
     @Autowired
     private HiveValidator hiveValidator;
@@ -93,7 +91,6 @@ public class DeviceService {
         }
         dn.setTimestamp(timestampService.getDate());
         deviceNotificationService.insert(dn, device.convertTo());
-        deviceActivityService.update(device.getGuid().orElse(null));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -136,9 +133,6 @@ public class DeviceService {
                 dc.setName(deviceClass.getName());
                 dc.setIsPermanent(deviceClass.getIsPermanent());
                 existingDevice.setDeviceClass(dc);
-            }
-            if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(deviceUpdate.getStatus().orElse(null));
             }
             if (deviceUpdate.getData() != null) {
                 existingDevice.setData(deviceUpdate.getData().orElse(null));
@@ -200,9 +194,6 @@ public class DeviceService {
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
-            if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(deviceUpdate.getStatus().orElse(null));
-            }
             if (deviceUpdate.getData() != null) {
                 existingDevice.setData(deviceUpdate.getData().orElse(null));
             }
@@ -250,9 +241,6 @@ public class DeviceService {
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
-            }
-            if (deviceUpdate.getStatus() != null) {
-                existingDevice.setStatus(deviceUpdate.getStatus().orElse(null));
             }
             if (deviceUpdate.getData() != null) {
                 existingDevice.setData(deviceUpdate.getData().orElse(null));
@@ -321,7 +309,6 @@ public class DeviceService {
     //@Transactional(readOnly = true)
     public CompletableFuture<List<DeviceVO>> list(String name,
                                                  String namePattern,
-                                                 String status,
                                                  Long networkId,
                                                  String networkName,
                                                  Long deviceClassId,
@@ -334,7 +321,6 @@ public class DeviceService {
         ListDeviceRequest request = new ListDeviceRequest();
         request.setName(name);
         request.setNamePattern(namePattern);
-        request.setStatus(status);
         request.setNetworkId(networkId);
         request.setNetworkName(networkName);
         request.setDeviceClassId(deviceClassId);

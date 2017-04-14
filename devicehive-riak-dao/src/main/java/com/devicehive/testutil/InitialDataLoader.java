@@ -91,7 +91,6 @@ public class InitialDataLoader {
         deviceClass.setId(1L);
         deviceClass.setName("Sample VirtualLed Device");
         deviceClass.setIsPermanent(false);
-        deviceClass.setOfflineTimeout(600);
         deviceClassDao.persist(deviceClass);
         //INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
@@ -107,7 +106,6 @@ public class InitialDataLoader {
         device.setId(1L);
         device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
-        device.setStatus("Offline");
         device.setNetwork(network);
         device.setDeviceClass(deviceClass);
         deviceDao.persist(device);

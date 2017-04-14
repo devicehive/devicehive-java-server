@@ -75,42 +75,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         ((NetworkDaoRiakImpl) networkDao).setDeviceDao(this);
     }
 
-    /**
-     * Method change statuses for devices with guids that consists in the list
-     *
-     * @param status new status
-     * @param guids list of guids
-     */
-    @Override
-    public void changeStatusForDevices(String status, List<String> guids) {
-        for (String guid : guids) {
-            DeviceVO device = findByUUID(guid);
-            if (device != null) {
-                device.setStatus(status);
-                persist(device);
-            }
-        }
-    }
-
-    /**
-     * Method return a Map where KEY is a device guid from guids list and VALUE
-     * is OfflineTimeout from deviceClass for device with current guid.
-     *
-     * @param guids list of guids
-     */
-    @Override
-    public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
-        final Map<String, Integer> deviceInfo = new HashMap<>();
-        for (String guid : guids) {
-            DeviceVO device = findByUUID(guid);
-            if (device != null && device.getDeviceClass() != null) {
-                refreshRefs(device);
-                deviceInfo.put(guid, device.getDeviceClass().getOfflineTimeout());
-            }
-        }
-        return deviceInfo;
-    }
-
     @Override
     public DeviceVO findByUUID(String uuid) {
         BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", uuid).build();
@@ -193,7 +157,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     @Override
     public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         if (guids.isEmpty()) {
-            return list(null, null, null, null, null,
+            return list(null, null, null, null,
                     null, null, null,
                     true, null,
                     null, principal);
@@ -233,7 +197,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName,
+    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
             Long deviceClassId, String deviceClassName, String sortField,
             Boolean isSortOrderAsc, Integer take,
             Integer skip, HivePrincipal principal) {
@@ -250,7 +214,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             namePattern = namePattern.replace("%", "");
             addReduceFilter(builder, "name", FilterOperator.REGEX, namePattern);
         }
-        addReduceFilter(builder, "status", FilterOperator.EQUAL, status);
         addReduceFilter(builder, "network.id", FilterOperator.EQUAL, networkId);
         addReduceFilter(builder, "network.name", FilterOperator.EQUAL, networkName);
         addReduceFilter(builder, "deviceClass.id", FilterOperator.EQUAL, deviceClassId);

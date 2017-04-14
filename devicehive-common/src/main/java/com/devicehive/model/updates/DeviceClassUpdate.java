@@ -41,8 +41,6 @@ public class DeviceClassUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Optional<Boolean> isPermanent;
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<Integer> offlineTimeout;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private Optional<JsonStringWrapper> data;
 
     public Optional<String> getName() {
@@ -59,14 +57,6 @@ public class DeviceClassUpdate implements HiveEntity {
 
     public void setPermanent(Optional<Boolean> permanent) {
         isPermanent = permanent;
-    }
-
-    public Optional<Integer> getOfflineTimeout() {
-        return offlineTimeout;
-    }
-
-    public void setOfflineTimeout(Optional<Integer> offlineTimeout) {
-        this.offlineTimeout = offlineTimeout;
     }
 
     public Optional<JsonStringWrapper> getData() {
@@ -90,9 +80,6 @@ public class DeviceClassUpdate implements HiveEntity {
         deviceClass.setId(id);
         if (isPermanent != null) {
             deviceClass.setIsPermanent(isPermanent.orElse(null));
-        }
-        if (offlineTimeout != null) {
-            deviceClass.setOfflineTimeout(offlineTimeout.orElse(null));
         }
         if (data != null) {
             deviceClass.setData(data.orElse(null));

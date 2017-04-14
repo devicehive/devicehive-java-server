@@ -77,13 +77,6 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
 
-    @SerializedName("status")
-    @Column
-    @Size(min = 1, max = 128,
-          message = "Field cannot be empty. The length of status should not be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private String status;
-
     @SerializedName("data")
     @Embedded
     @AttributeOverrides({
@@ -143,14 +136,6 @@ public class Device implements HiveEntity {
         this.name = name;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
     public Network getNetwork() {
         return network;
     }
@@ -200,7 +185,6 @@ public class Device implements HiveEntity {
             //TODO Network convert = Network.convertNetwork(dc.getNetwork());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
             vo.setNetwork(networkVO);
-            vo.setStatus(dc.getStatus());
         }
         return vo;
     }
@@ -221,7 +205,6 @@ public class Device implements HiveEntity {
             //TODO ???vo.setNetwork();
             Network network = Network.convert(dc.getNetwork());
             entity.setNetwork(network);
-            entity.setStatus(dc.getStatus());
         }
         return entity;
     }

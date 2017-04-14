@@ -115,23 +115,19 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
     public void should_add_and_update_device_class() {
         final DeviceClassVO deviceClass = DeviceFixture.createDCVO();
         UUID uuid = UUID.randomUUID();
-        deviceClass.setOfflineTimeout(10);
         deviceClass.setName("INITIAL_DC_NAME-" + uuid);
         final DeviceClassVO createdDC = deviceClassService.addDeviceClass(deviceClass);
 
         final long createdDCUpdateId = createdDC.getId();
         DeviceClassVO existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);
-        assertEquals(10, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("INITIAL_DC_NAME-" + uuid, existingDeviceClass.getName());
 
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
-        dcUpdate.setOfflineTimeout(Optional.of(100));
         dcUpdate.setName(Optional.of("CHANGED_DC_NAME-" + uuid));
         deviceClassService.createOrUpdateDeviceClass(Optional.of(dcUpdate));
         existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
         assertNotNull(existingDeviceClass);
-        assertEquals(100, existingDeviceClass.getOfflineTimeout().intValue());
         assertEquals("CHANGED_DC_NAME-" + uuid, existingDeviceClass.getName());
     }
 
