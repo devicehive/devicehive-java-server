@@ -23,16 +23,12 @@ package com.devicehive.service;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
-import com.devicehive.model.enums.AccessKeyType;
-import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.rpc.ListDeviceClassResponse;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
@@ -63,7 +59,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -94,8 +89,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Mock
     private RequestHandler requestHandler;
-
-    private final Set<DeviceClassEquipmentVO> emptyEquipmentSet = Collections.<DeviceClassEquipmentVO>emptySet();
 
     private ArgumentCaptor<Request> argument = ArgumentCaptor.forClass(Request.class);
 
@@ -140,7 +133,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
     }
 
     /**
@@ -158,7 +151,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
         userService.assignNetwork(user.getId(), network.getId());
         final HivePrincipal principal = new HivePrincipal(user);
@@ -177,7 +169,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
                 });
 
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
         TimeUnit.SECONDS.sleep(1);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
@@ -211,13 +203,12 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
         final HivePrincipal principal = new HivePrincipal(user);
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
     }
 
     /**
@@ -234,7 +225,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, "123");
 
         final HivePrincipal principal = new HivePrincipal(user);
@@ -243,7 +233,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
     }
 
     /**
@@ -259,7 +249,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -283,7 +272,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
                     }
                 });
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
         TimeUnit.SECONDS.sleep(1);
         final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
         assertNotNull(existingDevice);
@@ -323,7 +312,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -335,9 +323,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate1.setNetwork(Optional.ofNullable(network));
         deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
-        deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate0);
+        deviceService.deviceSave(deviceUpdate1);
+        deviceService.deviceSave(deviceUpdate2);
 
         final List<DeviceVO> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()), null);
@@ -361,12 +349,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -382,13 +368,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetwork(Optional.ofNullable(network1));
-        
+
         final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
 
         final List<DeviceVO> devices = deviceService.findByGuidWithPermissionsCheck(
                 Arrays.asList(device.getGuid(), device1.getGuid()), principal);
@@ -413,12 +399,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -440,9 +424,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
 //        accessKey.setPermissions(Collections.singleton(permission));
 //        accessKey.setUser(user);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-        
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
+
         Set<String> allowedDeviceGuids = new HashSet<>();
         allowedDeviceGuids.add(device.getGuid());
 
@@ -477,9 +461,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
+        deviceService.deviceSave(deviceUpdate2);
         handleListDeviceRequest();
         deviceService.list(deviceName1, null, null, null, null, null, null, false, null, null, null)
                 .thenAccept(devices -> {
@@ -505,12 +489,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user1.setRole(UserRole.CLIENT);
         user1 = userService.createUser(user1, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -532,8 +514,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
 //        accessKey.setPermissions(Collections.singleton(permission));
 //        accessKey.setUser(user);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
         handleListDeviceRequest();
         deviceService.list(null, null, network1.getId(), null, null, null, null, false, null, null, null)
                 .thenAccept(devices -> {
@@ -551,19 +533,19 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_class_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
-        DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
+        DeviceClassVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
         final DeviceVO device1 = DeviceFixture.createDeviceVO();
-        DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
+        DeviceClassVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
         handleListDeviceRequest();
         deviceService.list(null, null, null, null, dc.getId(), null, null, false, null, null, null)
                 .thenAccept(devices -> {
@@ -578,19 +560,19 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_class_name() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
-        DeviceClassWithEquipmentVO dc = DeviceFixture.createDCVO();
+        DeviceClassVO dc = DeviceFixture.createDCVO();
         dc = deviceClassService.addDeviceClass(dc);
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(dc);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dcUpdate);
 
         final DeviceVO device1 = DeviceFixture.createDeviceVO();
-        DeviceClassWithEquipmentVO dc1 = DeviceFixture.createDCVO();
+        DeviceClassVO dc1 = DeviceFixture.createDCVO();
         dc1 = deviceClassService.addDeviceClass(dc1);
         final DeviceClassUpdate dcUpdate1 = DeviceFixture.createDeviceClassUpdate(dc1);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dcUpdate1);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
+        deviceService.deviceSave(deviceUpdate1);
         handleListDeviceRequest();
         deviceService.list(null, null, null, null, null, dc.getName(), null, false, null, null, null)
                 .thenAccept(devices -> {
@@ -607,7 +589,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dcUpdate);
 
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
         DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
 
@@ -631,7 +613,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
         final NetworkVO network = new NetworkVO();
@@ -643,9 +624,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate1.setNetwork(Optional.ofNullable(network));
         deviceUpdate2.setNetwork(Optional.ofNullable(network));
 
-        deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
-        deviceService.deviceSave(deviceUpdate2, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate0);
+        deviceService.deviceSave(deviceUpdate1);
+        deviceService.deviceSave(deviceUpdate2);
 
         long count = deviceService.getAllowedDevicesCount(null, Arrays.asList(device0.getGuid(), device1.getGuid(), device2.getGuid()));
         assertEquals(3, count);
@@ -663,13 +644,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid(), dc);
-        deviceService.deviceSave(deviceUpdate, emptyEquipmentSet);
+        deviceService.deviceSave(deviceUpdate);
 
         final HivePrincipal principal = new HivePrincipal();
 
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
     }
 
     private void handleListDeviceRequest() {
@@ -677,8 +658,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
             Request request = invocation.getArgumentAt(0, Request.class);
             ListDeviceRequest req = request.getBody().cast(ListDeviceRequest.class);
             final List<DeviceVO> devices =
-                    deviceDao.list(req.getName(), req.getNamePattern(),
-                            req.getNetworkId(), req.getNetworkName(),
+                    deviceDao.list(req.getName(), req.getNamePattern(), req.getNetworkId(), req.getNetworkName(),
                             req.getDeviceClassId(), req.getDeviceClassName(),
                             req.getSortField(), req.getSortOrderAsc(),
                             req.getTake(), req.getSkip(), req.getPrincipal());

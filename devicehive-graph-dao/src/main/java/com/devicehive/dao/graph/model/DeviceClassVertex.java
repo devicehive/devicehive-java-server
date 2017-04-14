@@ -36,7 +36,6 @@ public class DeviceClassVertex {
         vo.setId((Long) v.property(Properties.ID).value());
         vo.setName(v.property(Properties.NAME).isPresent() ? (String) v.property(Properties.NAME).value() : null);
         vo.setIsPermanent(v.property(Properties.IS_PERMANENT).isPresent() ? (Boolean) v.property(Properties.IS_PERMANENT).value() : null);
-        vo.setOfflineTimeout(v.property(Properties.OFFLINE_TIMEOUT).isPresent() ? (Integer) v.property(Properties.OFFLINE_TIMEOUT).value() : null);
         vo.setData(new JsonStringWrapper(v.property(Properties.DATA).isPresent() ? (String) v.property(Properties.DATA).value() : null));
         vo.setEntityVersion(v.property(Properties.ENTITY_VERSION).isPresent() ? (long) v.property(Properties.ENTITY_VERSION).value() : null);
         return vo;
@@ -53,7 +52,6 @@ public class DeviceClassVertex {
         }
 
         gT.property(Properties.IS_PERMANENT, vo.getIsPermanent());
-        gT.property(Properties.OFFLINE_TIMEOUT, vo.getOfflineTimeout());
         gT.property(Properties.DATA, vo.getData());
         gT.property(Properties.ENTITY_VERSION, vo.getEntityVersion());
 

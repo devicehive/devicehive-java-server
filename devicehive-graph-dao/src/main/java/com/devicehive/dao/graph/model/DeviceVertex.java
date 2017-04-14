@@ -37,7 +37,6 @@ public class DeviceVertex {
         vo.setId((Long) v.property(Properties.ID).value());
         vo.setGuid(v.property(Properties.GUID).isPresent() ? (String) v.property(Properties.GUID).value() : null);
         vo.setName(v.property(Properties.NAME).isPresent() ? (String) v.property(Properties.NAME).value() : null);
-        vo.setStatus(v.property(Properties.STATUS).isPresent() ? (String) v.property(Properties.STATUS).value() : null);
         vo.setData(new JsonStringWrapper(v.property(Properties.DATA).isPresent() ? (String) v.property(Properties.DATA).value() : null));
         vo.setBlocked(v.property(Properties.BLOCKED).isPresent() ? (Boolean) v.property(Properties.BLOCKED).value() : null);
         return vo;
@@ -58,12 +57,6 @@ public class DeviceVertex {
             gT.property(Properties.NAME, vo.getName());
         } else {
             throw new HivePersistenceLayerException("Device name cannot be null");
-        }
-
-        if (vo.getStatus() != null) {
-            gT.property(Properties.STATUS, vo.getStatus());
-        } else {
-            throw new HivePersistenceLayerException("Device status cannot be null");
         }
 
         gT.property(Properties.DATA, vo.getData());

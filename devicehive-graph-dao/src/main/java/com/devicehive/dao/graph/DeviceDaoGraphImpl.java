@@ -25,9 +25,7 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.stereotype.Repository;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 @Repository
 public class DeviceDaoGraphImpl implements DeviceDao {
@@ -63,17 +61,7 @@ public class DeviceDaoGraphImpl implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> list(String name, String namePattern, String status, Long networkId, String networkName, Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
+    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName, Long deviceClassId, String deviceClassName, String sortField, Boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         return null;
-    }
-
-    @Override
-    public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
-        return null;
-    }
-
-    @Override
-    public void changeStatusForDevices(String status, List<String> guids) {
-
     }
 }
