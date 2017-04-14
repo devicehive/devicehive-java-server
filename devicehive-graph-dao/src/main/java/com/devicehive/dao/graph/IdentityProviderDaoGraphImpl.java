@@ -21,31 +21,54 @@ package com.devicehive.dao.graph;
  */
 
 import com.devicehive.dao.IdentityProviderDao;
+import com.devicehive.dao.graph.model.IdentityProviderVertex;
 import com.devicehive.vo.IdentityProviderVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 
 @Repository
-public class IdentityProviderDaoGraphImpl implements IdentityProviderDao {
+public class IdentityProviderDaoGraphImpl extends GraphGenericDao implements IdentityProviderDao {
 
     @Override
     public IdentityProviderVO getByName(@NotNull String name) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(IdentityProviderVertex.LABEL, IdentityProviderVertex.Properties.NAME, name);
+        if (gT.hasNext()) {
+            return IdentityProviderVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public boolean deleteById(@NotNull String name) {
-        return false;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(IdentityProviderVertex.LABEL, IdentityProviderVertex.Properties.NAME, name);
+
+        if (gT.hasNext()) {
+            gT.drop().iterate();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public IdentityProviderVO merge(IdentityProviderVO existing) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(IdentityProviderVertex.LABEL)
+                .has(IdentityProviderVertex.Properties.NAME, existing.getName());
+        gT.property(IdentityProviderVertex.Properties.NAME, existing.getName());
+        gT.property(IdentityProviderVertex.Properties.API_ENDPOINT, existing.getApiEndpoint());
+        gT.property(IdentityProviderVertex.Properties.VERIFICATION_ENDPOINT, existing.getVerificationEndpoint());
+        gT.property(IdentityProviderVertex.Properties.TOKEN_ENDPOINT, existing.getTokenEndpoint());
+        gT.next();
+        return existing;
     }
 
     @Override
     public void persist(IdentityProviderVO identityProvider) {
-
+        IdentityProviderVertex.toVertex(identityProvider, g).next();
     }
 }
