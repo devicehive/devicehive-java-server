@@ -21,9 +21,11 @@ package com.devicehive.dao.graph;
  */
 
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.graph.model.DeviceVertex;
 import com.devicehive.dao.graph.model.NetworkVertex;
 import com.devicehive.dao.graph.model.Relationship;
 import com.devicehive.dao.graph.model.UserVertex;
+import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -35,8 +37,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Repository
 public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
@@ -110,17 +115,65 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
 
     @Override
     public long hasAccessToNetwork(UserVO user, NetworkVO network) {
-        return 0;
+        return g.V().hasLabel(UserVertex.LABEL)
+                .has(UserVertex.Properties.ID, user.getId())
+                .bothE(Relationship.IS_MEMBER_OF)
+                .where(__.otherV().hasLabel(NetworkVertex.LABEL).has(NetworkVertex.Properties.ID, network.getId()))
+                .count()
+                .next();
     }
 
     @Override
     public long hasAccessToDevice(UserVO user, String deviceGuid) {
-        return 0;
+        UserWithNetworkVO userWithNetworkVO = getWithNetworksById(user.getId());
+        Set<Long> networkIds = userWithNetworkVO.getNetworks()
+                .stream()
+                .map(NetworkVO::getId)
+                .collect(Collectors.toSet());
+
+        for (Long id : networkIds) {
+            GraphTraversal<Vertex, Vertex> gTD = g.V().has(NetworkVertex.LABEL, NetworkVertex.Properties.ID, id).in(Relationship.BELONGS_TO);
+            Set<DeviceVO> devices = new HashSet<>();
+            while (gTD.hasNext()) {
+                DeviceVO deviceVO = DeviceVertex.toVO(gTD.next());
+                devices.add(deviceVO);
+            }
+
+            if (!devices.isEmpty()) {
+                long guidCount = devices
+                        .stream()
+                        .map(DeviceVO::getGuid)
+                        .filter(g -> g.equals(deviceGuid))
+                        .count();
+                if (guidCount > 0) {
+                    return guidCount;
+                }
+            }
+        }
+
+        return 0L;
     }
 
     @Override
     public UserWithNetworkVO getWithNetworksById(long id) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.ID, id);
+        if (gT.hasNext()) {
+            UserVO userVO = UserVertex.toVO(gT.next());
+            UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(userVO);
+
+            GraphTraversal<Vertex, Vertex> gTN = g.V().has(UserVertex.LABEL, UserVertex.Properties.ID, id).out(Relationship.IS_MEMBER_OF);
+            Set<NetworkVO> networks = new HashSet<>();
+            while (gTN.hasNext()) {
+               NetworkVO networkVO = NetworkVertex.toVO(gTN.next());
+               networks.add(networkVO);
+            }
+            result.setNetworks(networks);
+
+            return result;
+        } else {
+            return null;
+        }
+
     }
 
     @Override
