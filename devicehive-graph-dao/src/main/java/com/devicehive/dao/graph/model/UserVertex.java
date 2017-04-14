@@ -35,34 +35,40 @@ public class UserVertex {
 
     public static UserVO toVO(Vertex v) {
         UserVO vo = new UserVO();
-        vo.setId(Long.parseLong((String) v.property(Properties.ID).value()));
+        vo.setId((Long) v.property(Properties.ID).value());
         vo.setData(new JsonStringWrapper(v.property(Properties.DATA).isPresent() ? (String) v.property(Properties.DATA).value() : null));
         vo.setFacebookLogin(v.property(Properties.FACEBOOK_LOGIN).isPresent() ? (String) v.property(Properties.FACEBOOK_LOGIN).value() : null);
         vo.setGithubLogin(v.property(Properties.GITHUB_LOGIN).isPresent() ? (String) v.property(Properties.GITHUB_LOGIN).value() : null);
         vo.setGoogleLogin(v.property(Properties.GOOGLE_LOGIN).isPresent() ? (String) v.property(Properties.GOOGLE_LOGIN).value() : null);
         vo.setLastLogin(v.property(Properties.LAST_LOGIN).isPresent() ? new Date((long) v.property(Properties.LAST_LOGIN).value()) : null);
         vo.setLogin(v.property(Properties.LOGIN).isPresent() ? (String) v.property(Properties.LOGIN).value() : null);
-        vo.setLoginAttempts(v.property(Properties.LOGIN_ATTEMPTS).isPresent() ? Integer.parseInt((String) v.property(Properties.LOGIN_ATTEMPTS).value()) : null);
+        vo.setLoginAttempts(v.property(Properties.LOGIN_ATTEMPTS).isPresent() ? (Integer) v.property(Properties.LOGIN_ATTEMPTS).value() : null);
         vo.setPasswordHash(v.property(Properties.PASSWORD_HASH).isPresent() ? (String) v.property(Properties.PASSWORD_HASH).value() : null);
         vo.setPasswordSalt(v.property(Properties.PASSWORD_SALT).isPresent() ? (String) v.property(Properties.PASSWORD_SALT).value() : null);
-        vo.setStatus(v.property(Properties.STATUS).isPresent() ? UserStatus.getValueForIndex(Integer.parseInt((String) v.property(Properties.STATUS).value())) : null);
+        vo.setStatus(v.property(Properties.STATUS).isPresent() ? UserStatus.getValueForIndex((Integer) v.property(Properties.STATUS).value()) : null);
         return vo;
     }
 
     public static GraphTraversal<Vertex, Vertex> toVertex(UserVO vo, GraphTraversalSource g) {
-        return g.addV(UserVertex.LABEL)
+        GraphTraversal<Vertex, Vertex> gT = g.addV(UserVertex.LABEL)
                 // FIXME: execution fails with null variables
                 .property(Properties.ID, vo.getId())
-                .property(Properties.DATA, vo.getData())
+                .property(Properties.DATA, vo.getData().getJsonString())
                 .property(Properties.FACEBOOK_LOGIN, vo.getFacebookLogin() != null ? vo.getFacebookLogin().toLowerCase() : null)
                 .property(Properties.GITHUB_LOGIN, vo.getGithubLogin() != null ? vo.getGithubLogin().toLowerCase() : null)
-                .property(Properties.GOOGLE_LOGIN, vo.getGoogleLogin() != null ? vo.getGoogleLogin().toLowerCase() : null)
-                .property(Properties.LAST_LOGIN, vo.getLastLogin())
-                .property(Properties.LOGIN, vo.getLogin())
+                .property(Properties.GOOGLE_LOGIN, vo.getGoogleLogin() != null ? vo.getGoogleLogin().toLowerCase() : null);
+
+        if (vo.getLastLogin() != null) {
+            gT.property(Properties.LAST_LOGIN, vo.getLastLogin());
+        }
+
+        gT.property(Properties.LOGIN, vo.getLogin())
                 .property(Properties.LOGIN_ATTEMPTS, vo.getLoginAttempts())
                 .property(Properties.PASSWORD_HASH, vo.getPasswordHash())
                 .property(Properties.PASSWORD_SALT, vo.getPasswordSalt())
-                .property(Properties.STATUS, vo.getStatus());
+                .property(Properties.STATUS, vo.getStatus().getValue());
+
+        return gT;
     }
 
     public class Properties {

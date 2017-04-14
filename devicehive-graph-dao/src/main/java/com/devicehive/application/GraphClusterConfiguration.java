@@ -88,10 +88,10 @@ public class GraphClusterConfiguration {
         return g;
     }
 
-    @Bean
-    @Lazy(false)
-    public DseSession dseSession() {
-        return dseSession;
-    }
+//    @Bean
+//    @Lazy(false)
+//    public DseSession dseSession() {
+//        return dseSession;
+//    }
 
 }

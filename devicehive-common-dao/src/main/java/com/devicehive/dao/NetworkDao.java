@@ -36,7 +36,7 @@ public interface NetworkDao {
 
     void persist(NetworkVO newNetwork);
 
-    List<NetworkWithUsersAndDevicesVO> getNetworksByIdsAndUsers(Long idForFiltering, Set<Long> singleton, Set<Long> permittedNetworks);
+    List<NetworkWithUsersAndDevicesVO> getNetworksByIdsAndUsers(Long idForFiltering, Set<Long> networkdIds, Set<Long> permittedNetworks);
 
     int deleteById(long id);
 

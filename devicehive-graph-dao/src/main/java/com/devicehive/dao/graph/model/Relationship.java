@@ -1,4 +1,4 @@
-package com.devicehive.dao.graph;
+package com.devicehive.dao.graph.model;
 
 /*
  * #%L
@@ -20,12 +20,9 @@ package com.devicehive.dao.graph;
  * #L%
  */
 
-import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
-import org.springframework.beans.factory.annotation.Autowired;
-
-public class GraphGenericDao {
-
-    @Autowired
-    GraphTraversalSource g;
-
+public class Relationship {
+    public static final String IS_MEMBER_OF = "is_member_of";
+    public static final String BELONGS_TO = "belongs_to";
+    public static final String IS_PART_OF = "is_part_of";
+    public static final String IS_A = "is_a";
 }

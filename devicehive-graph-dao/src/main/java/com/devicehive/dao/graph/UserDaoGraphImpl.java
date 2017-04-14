@@ -21,11 +21,14 @@ package com.devicehive.dao.graph;
  */
 
 import com.devicehive.dao.UserDao;
+import com.devicehive.dao.graph.model.NetworkVertex;
+import com.devicehive.dao.graph.model.Relationship;
 import com.devicehive.dao.graph.model.UserVertex;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,6 +148,13 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
     @Override
     public void persist(UserVO user) {
         logger.info("Adding new user");
+
+        //TODO - major performance bottleneck, look into more efficient ID generation mechanisms
+        if (user.getId() == null) {
+            long id = g.V().hasLabel(UserVertex.LABEL).count().next();
+            user.setId(id);
+        }
+
         GraphTraversal<Vertex, Vertex> gT = UserVertex.toVertex(user, g);
 
         gT.next();
@@ -152,16 +162,37 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
 
     @Override
     public UserVO merge(UserVO existing) {
-        return null;
+        logger.info("Updating user");
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(UserVertex.LABEL)
+                .has(UserVertex.Properties.ID, existing.getId());
+
+        gT.property(UserVertex.Properties.DATA, existing.getData());
+        gT.property(UserVertex.Properties.FACEBOOK_LOGIN, existing.getFacebookLogin().toLowerCase());
+        gT.property(UserVertex.Properties.GITHUB_LOGIN, existing.getGithubLogin().toLowerCase());
+        gT.property(UserVertex.Properties.GOOGLE_LOGIN, existing.getGoogleLogin().toLowerCase());
+        gT.property(UserVertex.Properties.LAST_LOGIN, existing.getLastLogin());
+        gT.property(UserVertex.Properties.LOGIN, existing.getLogin());
+        gT.property(UserVertex.Properties.LOGIN_ATTEMPTS, existing.getLoginAttempts());
+        gT.property(UserVertex.Properties.PASSWORD_HASH, existing.getPasswordHash());
+        gT.property(UserVertex.Properties.PASSWORD_SALT, existing.getPasswordSalt());
+        gT.property(UserVertex.Properties.STATUS, existing.getStatus());
+        gT.next();
+        return existing;
     }
 
     @Override
     public void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId) {
-
+        g.V().hasLabel(UserVertex.LABEL)
+                .has(UserVertex.Properties.ID, existingUser.getId())
+                .bothE(Relationship.IS_MEMBER_OF)
+                .where(__.otherV().hasLabel(NetworkVertex.LABEL).has(NetworkVertex.Properties.ID, networkId))
+                .drop()
+                .iterate();
     }
 
     @Override
-    public List<UserVO> list(String login, String loginPattern, Integer status, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
+    public List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
         return null;
     }
 }
