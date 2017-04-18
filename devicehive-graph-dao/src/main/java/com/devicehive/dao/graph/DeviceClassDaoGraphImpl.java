@@ -21,33 +21,59 @@ package com.devicehive.dao.graph;
  */
 
 import com.devicehive.dao.DeviceClassDao;
+import com.devicehive.dao.graph.model.DeviceClassVertex;
 import com.devicehive.vo.DeviceClassVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Repository
-public class DeviceClassDaoGraphImpl implements DeviceClassDao {
+public class DeviceClassDaoGraphImpl extends GraphGenericDao implements DeviceClassDao {
 
     @Override
     public void remove(long id) {
-
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(DeviceClassVertex.LABEL, DeviceClassVertex.Properties.ID, id);
+        gT.drop().iterate();
     }
 
     @Override
     public DeviceClassVO find(long id) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(DeviceClassVertex.LABEL, DeviceClassVertex.Properties.ID, id);
+
+        if (gT.hasNext()) {
+            return DeviceClassVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public DeviceClassVO persist(DeviceClassVO deviceClass) {
-        return null;
+        //TODO - major performance bottleneck, look into more efficient ID generation mechanisms
+        if (deviceClass.getId() == null) {
+            long id = g.V().hasLabel(DeviceClassVertex.LABEL).count().next();
+            deviceClass.setId(id);
+        }
+
+        GraphTraversal<Vertex, Vertex> gT = DeviceClassVertex.toVertex(deviceClass, g);
+        return DeviceClassVertex.toVO(gT.next());
     }
 
     @Override
     public DeviceClassVO merge(DeviceClassVO deviceClass) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(DeviceClassVertex.LABEL)
+                .has(DeviceClassVertex.Properties.ID, deviceClass.getId());
+
+        gT.property(DeviceClassVertex.Properties.NAME, deviceClass.getName());
+        gT.property(DeviceClassVertex.Properties.IS_PERMANENT, deviceClass.getIsPermanent());
+        gT.property(DeviceClassVertex.Properties.DATA, deviceClass.getData());
+        gT.property(DeviceClassVertex.Properties.ENTITY_VERSION, deviceClass.getEntityVersion());
+        gT.next();
+        return deviceClass;
     }
 
     @Override
@@ -57,6 +83,12 @@ public class DeviceClassDaoGraphImpl implements DeviceClassDao {
 
     @Override
     public DeviceClassVO findByName(@NotNull String name) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(DeviceClassVertex.LABEL, DeviceClassVertex.Properties.NAME, name);
+
+        if (gT.hasNext()) {
+            return DeviceClassVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 }

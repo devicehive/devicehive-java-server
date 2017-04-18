@@ -73,7 +73,6 @@ public class NetworkDaoGraphImpl extends GraphGenericDao implements NetworkDao {
 
         GraphTraversal<Vertex, Vertex> gT = NetworkVertex.toVertex(newNetwork, g);
         gT.next();
-        logger.info(g.V().count().next().toString());
     }
 
     @Override
@@ -143,7 +142,8 @@ public class NetworkDaoGraphImpl extends GraphGenericDao implements NetworkDao {
                 .V()
                 .hasLabel(UserVertex.LABEL)
                 .has(UserVertex.Properties.ID, user.getId())
-                .addE(Relationship.IS_MEMBER_OF).to("n")
+                .addE(Relationship.IS_MEMBER_OF)
+                .to("n")
                 .iterate();
     }
 

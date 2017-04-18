@@ -62,7 +62,6 @@ public class DeviceClassVertex {
         public static final String ID = "dh_id";
         public static final String NAME = "name";
         public static final String IS_PERMANENT = "is_permanent";
-        public static final String OFFLINE_TIMEOUT = "offline_timeout";
         public static final String DATA = "data";
         public static final String ENTITY_VERSION = "entity_version";
     }
