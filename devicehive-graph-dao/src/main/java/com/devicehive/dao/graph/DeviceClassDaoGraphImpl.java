@@ -23,11 +23,13 @@ package com.devicehive.dao.graph;
 import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.graph.model.DeviceClassVertex;
 import com.devicehive.vo.DeviceClassVO;
+import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -78,7 +80,40 @@ public class DeviceClassDaoGraphImpl extends GraphGenericDao implements DeviceCl
 
     @Override
     public List<DeviceClassVO> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(DeviceClassVertex.LABEL);
+
+        if (name != null) {
+            gT.has(DeviceClassVertex.Properties.NAME, name);
+        }
+
+        if (namePattern != null) {
+            //fixme - implement
+        }
+
+        if (sortField != null) {
+            if (sortOrderAsc != null) {
+                gT.order().by(sortField).by(sortOrderAsc ? Order.incr : Order.decr);
+            } else {
+                gT.order().by(sortField);
+            }
+        }
+
+        if (take != null) {
+            gT.limit(take);
+        }
+
+        if (skip != null) {
+            gT.range(skip, -1L);
+        }
+
+        List<DeviceClassVO> result = new ArrayList<>();
+
+        while (gT.hasNext()) {
+            result.add(DeviceClassVertex.toVO(gT.next()));
+        }
+
+        return result;
     }
 
     @Override

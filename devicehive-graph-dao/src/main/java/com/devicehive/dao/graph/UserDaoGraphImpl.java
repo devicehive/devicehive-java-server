@@ -29,18 +29,17 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
+import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.util.function.Lambda;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
@@ -164,8 +163,8 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
             GraphTraversal<Vertex, Vertex> gTN = g.V().has(UserVertex.LABEL, UserVertex.Properties.ID, id).out(Relationship.IS_MEMBER_OF);
             Set<NetworkVO> networks = new HashSet<>();
             while (gTN.hasNext()) {
-               NetworkVO networkVO = NetworkVertex.toVO(gTN.next());
-               networks.add(networkVO);
+                NetworkVO networkVO = NetworkVertex.toVO(gTN.next());
+                networks.add(networkVO);
             }
             result.setNetworks(networks);
 
@@ -246,6 +245,43 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
 
     @Override
     public List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(UserVertex.LABEL);
+
+        if (login != null) {
+            gT.has(UserVertex.Properties.LOGIN, login);
+        }
+
+        if (loginPattern != null) {
+            //fixme - implement
+        }
+
+        if (status != null) {
+            gT.has(UserVertex.Properties.STATUS, status);
+        }
+
+        if (sortField != null) {
+            if (sortOrderAsc != null) {
+                gT.order().by(sortField).by(sortOrderAsc ? Order.incr : Order.decr);
+            } else {
+                gT.order().by(sortField);
+            }
+        }
+
+        if (take != null) {
+            gT.limit(take);
+        }
+
+        if (skip != null) {
+            gT.range(skip, -1L);
+        }
+
+        List<UserVO> result = new ArrayList<>();
+
+        while (gT.hasNext()) {
+            result.add(UserVertex.toVO(gT.next()));
+        }
+
+        return result;
     }
 }

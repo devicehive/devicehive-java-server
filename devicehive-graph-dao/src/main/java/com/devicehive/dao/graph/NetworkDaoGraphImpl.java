@@ -30,6 +30,7 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
+import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.slf4j.Logger;
@@ -149,7 +150,42 @@ public class NetworkDaoGraphImpl extends GraphGenericDao implements NetworkDao {
 
     @Override
     public List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, Optional<HivePrincipal> principal) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(NetworkVertex.LABEL);
+
+        if (name != null) {
+            gT.has(NetworkVertex.Properties.NAME, name);
+        }
+
+        if (namePattern != null) {
+            //fixme - implement
+        }
+
+        if (sortField != null) {
+            gT.order().by(sortField).by(sortOrderAsc ? Order.incr : Order.decr);
+        }
+
+        if (take != null) {
+            gT.limit(take);
+        }
+
+        if (skip != null) {
+            gT.range(skip, -1L);
+        }
+
+        List<NetworkVO> networks = new ArrayList<>();
+
+        while (gT.hasNext()) {
+            networks.add(NetworkVertex.toVO(gT.next()));
+        }
+
+        if (!principal.isPresent() || principal.get().areAllNetworksAvailable()) {
+            return networks;
+        } else {
+            return networks.stream()
+                    .filter(vo -> principal.get().getNetworkIds().contains(vo.getId()))
+                    .collect(Collectors.toList());
+        }
     }
 
     @Override

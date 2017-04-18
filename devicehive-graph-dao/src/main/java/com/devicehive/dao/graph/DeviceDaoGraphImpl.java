@@ -22,16 +22,20 @@ package com.devicehive.dao.graph;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.dao.graph.model.DeviceClassVertex;
 import com.devicehive.dao.graph.model.DeviceVertex;
 import com.devicehive.dao.graph.model.NetworkVertex;
 import com.devicehive.dao.graph.model.Relationship;
 import com.devicehive.vo.DeviceVO;
+import org.apache.tinkerpop.gremlin.process.traversal.Order;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class DeviceDaoGraphImpl extends GraphGenericDao implements DeviceDao {
@@ -121,7 +125,64 @@ public class DeviceDaoGraphImpl extends GraphGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName, Long deviceClassId, String deviceClassName, String sortField, Boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
-        return null;
+    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
+                               Long deviceClassId, String deviceClassName,
+                               String sortField, Boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(NetworkVertex.LABEL);
+
+        if (name != null) {
+            gT.has(DeviceVertex.Properties.NAME, name);
+        }
+
+        if (namePattern != null) {
+            //fixme - implement
+        }
+
+        if (networkId != null) {
+            gT.outE(Relationship.BELONGS_TO)
+                    .where(__.otherV().hasLabel(NetworkVertex.LABEL).has(NetworkVertex.Properties.ID, networkId));
+        }
+
+        if (networkName != null) {
+            gT.outE(Relationship.BELONGS_TO)
+                    .where(__.otherV().hasLabel(NetworkVertex.LABEL).has(NetworkVertex.Properties.NAME, networkName));
+        }
+
+        if (deviceClassId != null) {
+            gT.outE(Relationship.IS_A)
+                    .where(__.otherV().hasLabel(DeviceClassVertex.LABEL).has(DeviceClassVertex.Properties.ID, deviceClassId));
+        }
+
+        if (deviceClassName != null) {
+            gT.outE(Relationship.IS_A)
+                    .where(__.otherV().hasLabel(DeviceClassVertex.LABEL).has(DeviceClassVertex.Properties.NAME, deviceClassName));
+        }
+
+        if (sortField != null) {
+            gT.order().by(sortField).by(sortOrderAsc ? Order.incr : Order.decr);
+        }
+
+        if (take != null) {
+            gT.limit(take);
+        }
+
+        if (skip != null) {
+            gT.range(skip, -1L);
+        }
+
+        List<DeviceVO> devices = new ArrayList<>();
+
+        while (gT.hasNext()) {
+            devices.add(DeviceVertex.toVO(gT.next()));
+        }
+
+        if (principal == null || principal.areAllNetworksAvailable()) {
+            return devices;
+        } else {
+            return devices.stream()
+                    .filter(vo -> principal.getNetworkIds().contains(vo.getId()))
+                    .collect(Collectors.toList());
+        }
     }
 }
