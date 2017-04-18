@@ -22,42 +22,102 @@ package com.devicehive.dao.graph;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.dao.graph.model.DeviceVertex;
+import com.devicehive.dao.graph.model.NetworkVertex;
+import com.devicehive.dao.graph.model.Relationship;
 import com.devicehive.vo.DeviceVO;
+import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversal;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class DeviceDaoGraphImpl implements DeviceDao {
+public class DeviceDaoGraphImpl extends GraphGenericDao implements DeviceDao {
 
     @Override
     public DeviceVO findByUUID(String uuid) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(DeviceVertex.LABEL, DeviceVertex.Properties.GUID, uuid);
+
+        if (gT.hasNext()) {
+            return DeviceVertex.toVO(gT.next());
+        } else {
+            return null;
+        }
     }
 
     @Override
     public void persist(DeviceVO device) {
+        //TODO - major performance bottleneck, look into more efficient ID generation mechanisms
+        if (device.getId() == null) {
+            long id = g.V().hasLabel(DeviceVertex.LABEL).count().next();
+            device.setId(id);
+        }
 
+        GraphTraversal<Vertex, Vertex> gT = DeviceVertex.toVertex(device, g);
+        gT.next();
+
+        g.V().hasLabel(NetworkVertex.LABEL)
+                .has(NetworkVertex.Properties.ID, device.getNetwork().getId())
+                .as("n")
+                .V()
+                .hasLabel(DeviceVertex.LABEL)
+                .has(DeviceVertex.Properties.ID, device.getId())
+                .addE(Relationship.BELONGS_TO)
+                .to("n")
+                .iterate();
     }
 
     @Override
     public DeviceVO merge(DeviceVO device) {
-        return null;
+        GraphTraversal<Vertex, Vertex> gT = g.V()
+                .hasLabel(DeviceVertex.LABEL)
+                .has(DeviceVertex.Properties.ID, device.getId());
+
+        gT.property(DeviceVertex.Properties.GUID, device.getGuid());
+        gT.property(DeviceVertex.Properties.NAME, device.getName());
+        gT.property(DeviceVertex.Properties.DATA, device.getData());
+        gT.property(DeviceVertex.Properties.BLOCKED, device.getBlocked());
+        gT.next();
+        return device;
     }
 
     @Override
     public int deleteByUUID(String guid) {
-        return 0;
+        GraphTraversal<Vertex, Vertex> gT = g.V().has(DeviceVertex.LABEL, DeviceVertex.Properties.GUID, guid);
+        int count = gT.asAdmin()
+                .clone()
+                .toList()
+                .size();
+
+        gT.drop().iterate();
+        return count;
     }
 
     @Override
     public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
-        return null;
+        List<DeviceVO> result = new ArrayList<>();
+        for (String guid : guids) {
+            if (principal.getDeviceGuids().contains(guid)) {
+                result.add(findByUUID(guid));
+            }
+        }
+
+        return result;
     }
 
     @Override
     public long getAllowedDeviceCount(HivePrincipal principal, List<String> guids) {
-        return 0;
+        long count = 0;
+
+        for (String guid : guids) {
+            if (principal.getDeviceGuids().contains(guid)) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     @Override

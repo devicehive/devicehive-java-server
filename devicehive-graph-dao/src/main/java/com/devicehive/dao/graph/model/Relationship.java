@@ -23,6 +23,5 @@ package com.devicehive.dao.graph.model;
 public class Relationship {
     public static final String IS_MEMBER_OF = "is_member_of";
     public static final String BELONGS_TO = "belongs_to";
-    public static final String IS_PART_OF = "is_part_of";
     public static final String IS_A = "is_a";
 }

@@ -69,7 +69,6 @@ public class DeviceVertex {
         public static final String ID = "dh_id";
         public static final String GUID = "guid";
         public static final String NAME = "name";
-        public static final String STATUS = "status";
         public static final String DATA = "data";
         public static final String BLOCKED = "blocked";
     }
