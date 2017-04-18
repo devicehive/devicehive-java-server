@@ -59,7 +59,7 @@ public class DeviceVertex {
             throw new HivePersistenceLayerException("Device name cannot be null");
         }
 
-        gT.property(Properties.DATA, vo.getData());
+        gT.property(Properties.DATA, vo.getData().getJsonString());
         gT.property(Properties.BLOCKED, vo.getBlocked());
 
         return gT;

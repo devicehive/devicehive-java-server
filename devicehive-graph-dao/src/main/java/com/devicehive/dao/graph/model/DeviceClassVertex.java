@@ -52,7 +52,7 @@ public class DeviceClassVertex {
         }
 
         gT.property(Properties.IS_PERMANENT, vo.getIsPermanent());
-        gT.property(Properties.DATA, vo.getData());
+        gT.property(Properties.DATA, vo.getData().getJsonString());
         gT.property(Properties.ENTITY_VERSION, vo.getEntityVersion());
 
         return gT;

@@ -99,11 +99,20 @@ public class UserDaoGraphImpl extends GraphGenericDao implements UserDao {
     @Override
     public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
         logger.info("Getting user by identity login");
-        GraphTraversal<Vertex, Vertex> gT = g.V().has(UserVertex.LABEL, UserVertex.Properties.LOGIN, login)
-                .or(g.V().has(UserVertex.LABEL, UserVertex.Properties.GOOGLE_LOGIN, googleLogin.toLowerCase()),
-                        g.V().has(UserVertex.LABEL, UserVertex.Properties.FACEBOOK_LOGIN, facebookLogin.toLowerCase()),
-                        g.V().has(UserVertex.LABEL, UserVertex.Properties.GITHUB_LOGIN, githubLogin.toLowerCase()))
-                .not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+        GraphTraversal<Vertex, Vertex> gT = g.V();
+
+        if (login != null) {
+            gT.has(UserVertex.LABEL, UserVertex.Properties.LOGIN, login);
+        } else if (googleLogin != null) {
+            gT.has(UserVertex.LABEL, UserVertex.Properties.GOOGLE_LOGIN, googleLogin);
+        } else if (facebookLogin != null) {
+            gT.has(UserVertex.LABEL, UserVertex.Properties.FACEBOOK_LOGIN, facebookLogin);
+        } else if (githubLogin != null) {
+            gT.has(UserVertex.LABEL, UserVertex.Properties.GITHUB_LOGIN, githubLogin);
+        }
+
+        gT.not(g.V().has(UserVertex.LABEL, UserVertex.Properties.STATUS, 3));
+
         if (gT.hasNext()) {
             UserVO userVO = UserVertex.toVO(gT.next());
             return Optional.of(userVO);

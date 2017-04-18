@@ -53,7 +53,7 @@ public class UserVertex {
         GraphTraversal<Vertex, Vertex> gT = g.addV(UserVertex.LABEL)
                 // FIXME: execution fails with null variables
                 .property(Properties.ID, vo.getId())
-                .property(Properties.DATA, vo.getData().getJsonString())
+                .property(Properties.DATA, vo.getData() != null? vo.getData().getJsonString() : null)
                 .property(Properties.FACEBOOK_LOGIN, vo.getFacebookLogin() != null ? vo.getFacebookLogin().toLowerCase() : null)
                 .property(Properties.GITHUB_LOGIN, vo.getGithubLogin() != null ? vo.getGithubLogin().toLowerCase() : null)
                 .property(Properties.GOOGLE_LOGIN, vo.getGoogleLogin() != null ? vo.getGoogleLogin().toLowerCase() : null);
@@ -66,7 +66,7 @@ public class UserVertex {
                 .property(Properties.LOGIN_ATTEMPTS, vo.getLoginAttempts())
                 .property(Properties.PASSWORD_HASH, vo.getPasswordHash())
                 .property(Properties.PASSWORD_SALT, vo.getPasswordSalt())
-                .property(Properties.STATUS, vo.getStatus().getValue());
+                .property(Properties.STATUS, vo.getStatus() != null ? vo.getStatus().getValue() : null);
 
         return gT;
     }
