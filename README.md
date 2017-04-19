@@ -1,4 +1,4 @@
-[![Build Status](http://54.208.99.247:8080/job/DeviceHiveBuild/badge/icon)](http://54.208.99.247:8080/job/DeviceHiveBuild/) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
 
 DeviceHive Java server
 ======================
@@ -28,11 +28,14 @@ is included. This also means you don't have to contribute the end product or
 modified sources back to Open Source, but if you feel like sharing, you are
 highly encouraged to do so!
 
-&copy; Copyright 2013-2016 DataArt Apps &copy; All Rights Reserved
+&copy; Copyright 2013-2017 DataArt Apps &copy; All Rights Reserved
 
 Docker Container
 =========================================
-We have published DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. Check out docker [DeviceHive on Docker Hub](https://hub.docker.com/r/devicehive/devicehive/) with the instructions on how to use it. You can check dockerfile implemetation as well as the script for setting up a new instance running under nginx on [DeviceHive Java Docker](https://github.com/devicehive/devicehive-java-docker) 
+We have published a DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. 
+Check out [DeviceHive on Docker Hub](https://hub.docker.com/r/devicehive/devicehive/) with the instructions on 
+how to use it. You can check dockerfile implementation as well as the script for setting up a new instance running 
+under nginx on [DeviceHive Docker](https://github.com/devicehive/devicehive-docker) 
 
 DeviceHive Java installation instructions
 =========================================
@@ -41,7 +44,7 @@ Prerequisites
 -------------
 In order to use DeviceHive framework you must have the following components installed and configured:
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
-* [Apache Kafka 0.8.2.1](http://kafka.apache.org/downloads.html) or above.
+* [Apache Kafka 0.10.0.0](http://kafka.apache.org/downloads.html) or above.
 * [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/)
 * [Maven](http://maven.apache.org/download.cgi)
 * [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework
@@ -58,49 +61,36 @@ If you prefer git, clone project using command
 
 After that you can switch to the tag or branch you need. The list of all available releases can be found at
 https://github.com/devicehive/devicehive-java-server/releases
-Execute following command from ${devicehive-java-server-directory}/server.
+Execute following command from ${devicehive-java-server-directory}.
 
 `mvn clean package`
 
-If this steps are done correctly you will find devicehive-<version>-boot.jar at ${devicehive-java-server-directory}/server/target
-After successful compilation and packaging go to the next step.
+If there are no errors, compilation and packaging are completed and you can go to the next step.
 
 Running Apache Kafka
 -----------------------
 Start Zookeeper and Apache Kafka brokers as explained at official documentation (`http://kafka.apache.org/documentation.html#quickstart`).
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
-You need to update zookeeper.connect (zookeeper's contactpoint) and bootstrap.servers (list of brokers) properties.
+You need to update zookeeper.connect (zookeeper's contact point) and bootstrap.servers (list of brokers) properties.
 
 Starting database
 ---------------------
-* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) you have to create new user. This step is required for database migrations to work properly.
-* Create database using user that have been created at step 1. This user should be owner of database.
-* Database schema will be initializied on application startup.
+* After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) 
+you have to create new user. This step is required for database migrations to work properly. By default, DH expects that
+the username is `postgres` and the password is `12345`. You can change this in the DH configuration files.
+* Create database with the name `devicehive` using user that have been created at step 1. This user should be owner of 
+database.
+* Database schema will be initialized on application startup.
 
 Running application
 ---------------------
-* To start application run following command:
+* To start application, you have to start the backend and the frontend. To do this, first run following command:
 
- `java -jar ${devicehive-java-server-directory}/server/target/devicehive-<version>-boot.jar`
+`java -jar ${devicehive-java-server-directory}/devicehive-backend/target/devicehive-backend-<version>-boot.jar`
+ 
+Wait for the application to start, then run: 
 
-This will start embeded undertow application server on default port 8080 and deploy DeviceHive application.
+`java -jar ${devicehive-java-server-directory}/devicehive-frontend/target/devicehive-frontend-<version>-boot.jar`
 
-* Set up OAuth2 providers properties. At the moment DeviceHive supports Google Plus, Facebook, Github OAuth2 identity providers.
-After registering your application at Google/Facebook/Github you'll be provided with your client id and client secret.
-To save them you should use link below:
-
-`http://localhost:8080/DeviceHiveJava/rest/configuration/${name}/set?value=${value}`
-
-For Google:
-The parameter “name” should be “google.identity.client.id” and “google.identity.client.secret”.
-To allow google authentication flow set “google.identity.allowed” to "true" (by default it's false)
-
-For Facebook:
-The parameter “name” should be “facebook.identity.client.id” and “facebook.identity.client.secret”.
-To allow facebook authentication flow set “facebook.identity.allowed” to "true" (by default it's false)
-
-For Github:
-The parameter “name” should be “github.identity.client.id” and “github.identity.client.secret”.
-To allow github authentication flow set “github.identity.allowed” to "true" (by default it's false)
-
-* Use it.
+This will start embedded undertow application server on default port 8080 and deploy DeviceHive application.
+You can visit http://localhost:8080/dh/swagger from your web browser to start learning the APIs.
