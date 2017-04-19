@@ -19,7 +19,6 @@ package com.devicehive.model.rpc;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
@@ -32,13 +31,15 @@ public class CommandSubscribeRequest extends Body {
     private String device;
     private Set<String> names;
     private Date timestamp;
+    private Integer limit;
 
-    public CommandSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp) {
+    public CommandSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST.name());
         this.subscriptionId = subscriptionId;
         this.device = device;
         this.names = names;
         this.timestamp = timestamp;
+        this.limit = limit;
     }
 
     public String getSubscriptionId() {
@@ -73,17 +74,30 @@ public class CommandSubscribeRequest extends Body {
         this.timestamp = timestamp;
     }
 
+    public Integer getLimit() {
+        return limit;
+    }
+
+    public void setLimit(Integer limit) {
+        this.limit = limit;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CommandSubscribeRequest)) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof CommandSubscribeRequest)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         CommandSubscribeRequest that = (CommandSubscribeRequest) o;
-        return Objects.equals(subscriptionId, that.subscriptionId) &&
-                Objects.equals(device, that.device) &&
-                Objects.equals(names, that.names) &&
-                Objects.equals(timestamp, that.timestamp);
-
+        return Objects.equals(subscriptionId, that.subscriptionId)
+                && Objects.equals(device, that.device)
+                && Objects.equals(names, that.names)
+                && Objects.equals(timestamp, that.timestamp);
     }
 
     @Override
@@ -93,11 +107,6 @@ public class CommandSubscribeRequest extends Body {
 
     @Override
     public String toString() {
-        return "CommandSubscribeRequest{" +
-                "subscriptionId='" + subscriptionId + '\'' +
-                ", device='" + device + '\'' +
-                ", names=" + names +
-                ", timestamp=" + timestamp +
-                '}';
+        return "CommandSubscribeRequest{" + "subscriptionId=" + subscriptionId + ", device=" + device + ", names=" + names + ", timestamp=" + timestamp + ", limit=" + limit + '}';
     }
 }

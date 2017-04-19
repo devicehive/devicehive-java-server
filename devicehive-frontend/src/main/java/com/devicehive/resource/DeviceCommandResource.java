@@ -48,11 +48,13 @@ public interface DeviceCommandResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful
      * API: DeviceCommand: poll</a>
      *
-     * @param deviceGuid Device unique identifier.
-     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
-     *                   instead.
-     * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
-     *                   waiting.
+     * @param deviceGuid  Device unique identifier.
+     * @param namesString Command names
+     * @param timestamp   Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
+     *                    instead.
+     * @param timeout     Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
+     *                    waiting.
+     * @param limit       Limit number of commands
      */
     @GET
     @Path("/{deviceGuid}/command/poll")
@@ -78,6 +80,11 @@ public interface DeviceCommandResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
+            @ApiParam(name = "limit", value = "Limit number of commands", defaultValue = Constants.DEFAULT_TAKE_STR)
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            @Min(value = 0L, message = "Limit can't be less than " + 0L + ".")
+            @QueryParam("limit")
+            int limit,
             @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
@@ -104,6 +111,11 @@ public interface DeviceCommandResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
+            @ApiParam(name = "limit", value = "Limit number of commands", defaultValue = Constants.DEFAULT_TAKE_STR)
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            @Min(value = 0L, message = "Limit can't be less than " + 0L + ".")
+            @QueryParam("limit")
+            int limit,
             @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET

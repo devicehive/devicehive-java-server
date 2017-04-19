@@ -83,6 +83,7 @@ public class CommandHandlers {
                 .orElse(null);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
+        final Integer limit = Optional.ofNullable(request.get(LIMIT)).map(JsonElement::getAsInt).orElse(DEFAULT_TAKE);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
@@ -106,7 +107,7 @@ public class CommandHandlers {
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .sendSubscribeRequest(devices, names, timestamp, callback);
+                .sendSubscribeRequest(devices, names, timestamp, limit, callback);
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->

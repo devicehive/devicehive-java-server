@@ -76,19 +76,20 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceGuid, final String namesString, final String timestamp, final long timeout, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse);
+    public void poll(final String deviceGuid, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceGuid, namesString, timestamp, limit, asyncResponse);
     }
 
     @Override
-    public void pollMany(final String deviceGuidsString, final String namesString, final String timestamp, final long timeout, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse);
+    public void pollMany(final String deviceGuidsString, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceGuidsString, namesString, timestamp, limit, asyncResponse);
     }
 
     private void poll(final long timeout,
                       final String deviceGuidsCsv,
                       final String namesCsv,
                       final String timestamp,
+                      final Integer limit,
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -133,7 +134,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDevices, names, ts, callback);
+                    .sendSubscribeRequest(availableDevices, names, ts, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

@@ -61,6 +61,7 @@ public class Constants {
     public static final String DEVICE_KEY = "deviceKey";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";
+    public static final String LIMIT = "limit";
     public static final String COMMAND_ID = "commandId";
     public static final String NOTIFICATION = "notification";
     public static final String COMMAND = "command";

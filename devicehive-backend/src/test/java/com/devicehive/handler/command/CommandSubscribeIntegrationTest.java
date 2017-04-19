@@ -59,29 +59,29 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         String subscriber2 = randomUUID().toString();
         String subscriber3 = randomUUID().toString();
 
-        CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, null, null);
+        CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, null, null, 100);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
         TestCallback c1 = new TestCallback();
         client.call(r1, c1);
 
         CommandSubscribeRequest sr2 = new CommandSubscribeRequest(subscriber1, device2,
-                Collections.singleton("increase_temperature"), null);
+                Collections.singleton("increase_temperature"), null, 100);
         Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
         TestCallback c2 = new TestCallback();
         client.call(r2, c2);
 
-        CommandSubscribeRequest sr3 = new CommandSubscribeRequest(subscriber2, device2, null, null);
+        CommandSubscribeRequest sr3 = new CommandSubscribeRequest(subscriber2, device2, null, null, 100);
         Request r3 = Request.newBuilder().withBody(sr3).withSingleReply(false).build();
         TestCallback c3 = new TestCallback();
         client.call(r3, c3);
 
         CommandSubscribeRequest sr4 = new CommandSubscribeRequest(subscriber2, device1,
-                Collections.singleton("toggle_lights"), null);
+                Collections.singleton("toggle_lights"), null, 100);
         Request r4 = Request.newBuilder().withBody(sr4).withSingleReply(false).build();
         TestCallback c4 = new TestCallback();
         client.call(r4, c4);
 
-        CommandSubscribeRequest sr5 = new CommandSubscribeRequest(subscriber3, randomUUID().toString(), null, null);
+        CommandSubscribeRequest sr5 = new CommandSubscribeRequest(subscriber3, randomUUID().toString(), null, null, 100);
         Request r5 = Request.newBuilder().withBody(sr5).withSingleReply(false).build();
         TestCallback c5 = new TestCallback();
         client.call(r5, c5);
@@ -155,12 +155,12 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         String subscriber1 = randomUUID().toString();
         String subscriber2 = randomUUID().toString();
 
-        CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, null, null);
+        CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, null, null, 100);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
         TestCallback c1 = new TestCallback();
         client.call(r1, c1);
 
-        CommandSubscribeRequest sr2 = new CommandSubscribeRequest(subscriber2, device1, null, null);
+        CommandSubscribeRequest sr2 = new CommandSubscribeRequest(subscriber2, device1, null, null, 100);
         Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
         TestCallback c2 = new TestCallback();
         client.call(r2, c2);
