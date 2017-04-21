@@ -33,7 +33,8 @@ public class CommandSubscribeRequest extends Body {
     private Date timestamp;
     private Integer limit;
 
-    public CommandSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp, Integer limit) {
+    public CommandSubscribeRequest(String subscriptionId, String device,
+            Set<String> names, Date timestamp, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST.name());
         this.subscriptionId = subscriptionId;
         this.device = device;
@@ -107,6 +108,12 @@ public class CommandSubscribeRequest extends Body {
 
     @Override
     public String toString() {
-        return "CommandSubscribeRequest{" + "subscriptionId=" + subscriptionId + ", device=" + device + ", names=" + names + ", timestamp=" + timestamp + ", limit=" + limit + '}';
+        return "CommandSubscribeRequest{"
+                + "subscriptionId='" + subscriptionId + '\''
+                + ", device='" + device + '\''
+                + ", names=" + names
+                + ", timestamp=" + timestamp
+                + ", limit=" + limit
+                + '}';
     }
 }
