@@ -22,10 +22,12 @@ package com.devicehive.resource;
 
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.vo.JwtTokenVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -40,6 +42,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public interface JwtTokenResource {
 
     @POST
+    @Path("/create")
     @Consumes(APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     @ApiOperation(value = "JWT access and refresh token request")
@@ -67,5 +70,18 @@ public interface JwtTokenResource {
     Response refreshTokenRequest(
             @ApiParam(name = "refreshToken", value = "Refresh token", required = true)
             JwtTokenVO jwtTokenVO);
+    
+    @POST
+    @PreAuthorize("permitAll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "If successful, this method returns the object with the following properties in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 403, message = "If identity provider is not allowed")
+    })
+    Response login(
+            @ApiParam(value = "Access key request", required = true)
+                    OauthJwtRequestVO request);
 }
 

@@ -107,11 +107,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationEntryPoint unauthorizedEntryPoint() {
         return (request, response, authException) -> {
             Optional<String> authHeader = Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION));
-            if (authHeader.isPresent() && authHeader.get().startsWith(Constants.TOKEN_SCHEME)) {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Messages.OAUTH_REALM);
-            } else {
-                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Messages.BASIC_REALM);
-            }
+//            if (authHeader.isPresent() && authHeader.get().startsWith(Constants.TOKEN_SCHEME)) {
+//                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Messages.OAUTH_REALM);
+//            } else {
+//                response.addHeader(HttpHeaders.WWW_AUTHENTICATE, Messages.BASIC_REALM);
+//            }
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getOutputStream().println(

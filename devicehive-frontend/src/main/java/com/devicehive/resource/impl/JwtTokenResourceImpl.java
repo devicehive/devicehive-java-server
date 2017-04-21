@@ -19,17 +19,18 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.service.security.jwt.AuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.JwtTokenVO;
+import com.devicehive.vo.OauthJwtRequestVO;
 import com.devicehive.vo.UserVO;
 import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
@@ -54,6 +55,9 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private AuthTokenService authTokenService;
 
     @Override
     public Response tokenRequest(JwtPayload payload) {
@@ -87,7 +91,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             logger.error(e.getMessage(), e);
             return ResponseFactory.response(UNAUTHORIZED);
         }
-        
+
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
             logger.warn("JwtToken: User not found");
@@ -109,5 +113,11 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
         logger.debug("JwtToken: access token successfully generated with refresh token");
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response login(OauthJwtRequestVO request) {
+        JwtTokenVO jwtToken = authTokenService.createAccessKey(request);
+        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }
