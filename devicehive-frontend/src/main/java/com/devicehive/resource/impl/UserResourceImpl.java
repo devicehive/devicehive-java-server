@@ -19,8 +19,7 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
-
-
+import static com.devicehive.auth.HiveAction.MANAGE_USER;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -51,6 +50,8 @@ import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.LOGIN;
+import static com.devicehive.configuration.Constants.USER_ANONYMOUS_CREATION;
+import com.devicehive.service.configuration.ConfigurationService;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
@@ -61,12 +62,15 @@ public class UserResourceImpl implements UserResource {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     /**
      * {@inheritDoc}
      */
     @Override
     public void list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                     String sortOrderSt, Integer take, Integer skip,  @Suspended final AsyncResponse asyncResponse) {
+            String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         final boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
 
@@ -99,9 +103,9 @@ public class UserResourceImpl implements UserResource {
         UserWithNetworkVO fetchedUser = null;
 
         if (currentLoggedInUser != null && currentLoggedInUser.getRole() == UserRole.ADMIN) {
-            fetchedUser =  userService.findUserWithNetworks(userId);
+            fetchedUser = userService.findUserWithNetworks(userId);
         } else if (currentLoggedInUser != null && currentLoggedInUser.getRole() == UserRole.CLIENT && Objects.equals(currentLoggedInUser.getId(), userId)) {
-            fetchedUser =  userService.findUserWithNetworks(currentLoggedInUser.getId());
+            fetchedUser = userService.findUserWithNetworks(currentLoggedInUser.getId());
         } else {
             return ResponseFactory.response(FORBIDDEN, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.USER_NOT_FOUND));
         }
@@ -132,9 +136,17 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response insertUser(UserUpdate userToCreate) {
-        String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
-        UserVO created = userService.createUser(userToCreate.convertTo(), password);
-        return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Boolean isAnonymousCreateAllowed = configurationService.getBoolean(USER_ANONYMOUS_CREATION, false);
+        Boolean isCreateAllowed = isAnonymousCreateAllowed ||
+                (principal.isAuthenticated() && principal.getActions().contains(MANAGE_USER));
+        if (isCreateAllowed) {
+            String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
+            UserVO created = userService.createUser(userToCreate.convertTo(), password);
+            return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
+        } else {
+            return ResponseFactory.response(FORBIDDEN);
+        }
     }
 
     /**
@@ -160,11 +172,11 @@ public class UserResourceImpl implements UserResource {
     public Response deleteUser(long userId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO currentUser = null;
-        if(principal.getUser() != null){
+        if (principal.getUser() != null) {
             currentUser = principal.getUser();
         }
 
-        if(currentUser != null && currentUser.getId().equals(userId)){
+        if (currentUser != null && currentUser.getId().equals(userId)) {
             logger.debug("Rejected removing current user");
             throw new HiveException(Messages.CANT_DELETE_CURRENT_USER_KEY, FORBIDDEN.getStatusCode());
         }
@@ -209,7 +221,9 @@ public class UserResourceImpl implements UserResource {
     }
 
     /**
-     * Finds current user from authentication context, handling key and basic authorisation schemes.
+     * Finds current user from authentication context, handling key and basic
+     * authorisation schemes.
+     *
      * @return user object or null
      */
     private UserVO findCurrentUserFromAuthContext() {
