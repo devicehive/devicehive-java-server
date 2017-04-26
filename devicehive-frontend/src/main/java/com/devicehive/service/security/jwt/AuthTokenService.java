@@ -26,7 +26,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.UserService;
-import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +52,7 @@ public class AuthTokenService {
     @Autowired
     private NetworkDao networkDao;
     
-    public JwtTokenVO createAccessKey(@NotNull final OauthJwtRequestVO request) {
+    public JwtTokenVO createAccessKey(@NotNull final JwtRequestVO request) {
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());

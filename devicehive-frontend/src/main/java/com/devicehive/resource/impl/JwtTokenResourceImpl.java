@@ -19,6 +19,7 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
@@ -30,7 +31,7 @@ import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.JwtTokenVO;
-import com.devicehive.vo.OauthJwtRequestVO;
+import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.UserVO;
 import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 public class JwtTokenResourceImpl implements JwtTokenResource {
@@ -116,8 +118,15 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     }
 
     @Override
-    public Response login(OauthJwtRequestVO request) {
+    public Response login(JwtRequestVO request) {
         JwtTokenVO jwtToken = authTokenService.createAccessKey(request);
+        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response login() {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        JwtTokenVO jwtToken = authTokenService.authenticate(principal.getUser());
         return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }
