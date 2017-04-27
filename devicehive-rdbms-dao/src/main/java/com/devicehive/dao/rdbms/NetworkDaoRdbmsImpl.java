@@ -43,7 +43,6 @@ import java.util.stream.Stream;
 
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
@@ -139,12 +138,10 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     }
 
     @Override
-    @Transactional
     public Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId) {
-        Optional<Network> result = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
+        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
                 .setParameter("id", networkId)
-                .getResultList()
-                .stream().findFirst();
-        return result.isPresent() ? Optional.ofNullable(Network.convertWithDevicesAndUsers(result.get())) : Optional.empty();
+                .getResultList();
+        return networks.isEmpty() ? Optional.empty() : Optional.ofNullable(Network.convertWithDevicesAndUsers(networks.get(0)));
     }
 }
