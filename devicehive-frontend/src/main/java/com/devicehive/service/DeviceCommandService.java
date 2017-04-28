@@ -50,9 +50,9 @@ public class DeviceCommandService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandService.class);
 
-    private TimestampService timestampService;
-    private HiveValidator hiveValidator;
-    private RpcClient rpcClient;
+    private final TimestampService timestampService;
+    private final HiveValidator hiveValidator;
+    private final RpcClient rpcClient;
 
     @Autowired
     public DeviceCommandService(TimestampService timestampService,
@@ -123,11 +123,12 @@ public class DeviceCommandService {
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
+            final Integer limit,
             final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
 
         final String subscriptionId = UUID.randomUUID().toString();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
