@@ -19,9 +19,9 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -56,7 +56,7 @@ import static java.util.Optional.*;
 
 @Component
 public class NetworkService {
-    public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
+
     private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
     @Autowired
     private UserService userService;
@@ -78,18 +78,19 @@ public class NetworkService {
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
-                    if (pr.getUser() != null)
+                    if (pr.getUser() != null) {
                         return of(pr.getUser());
-                    else
+                    } else {
                         return empty();
+                    }
                 }).flatMap(user -> {
-                    Long idForFiltering = user.isAdmin() ? null : user.getId();
-                    List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
-                            Collections.singleton(networkId), permittedNetworks);
-                    return found.stream().findFirst();
-                }).map(network -> {
-                    //fixme - important, restore functionality once permission evaluator is switched to jwt
-                    /*if (principal.getKey() != null) {
+            Long idForFiltering = user.isAdmin() ? null : user.getId();
+            List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
+                    Collections.singleton(networkId), permittedNetworks);
+            return found.stream().findFirst();
+        }).map(network -> {
+            //fixme - important, restore functionality once permission evaluator is switched to jwt
+            /*if (principal.getKey() != null) {
                         Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
                         Set<AccessKeyPermissionVO> filtered = CheckPermissionsHelper
                                 .filterPermissions(principal.getKey(), permissions, AccessKeyAction.GET_DEVICE,
@@ -98,14 +99,14 @@ public class NetworkService {
                             network.setDevices(Collections.emptySet());
                         }
                     }*/
-                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
-                        Set<DeviceVO> allowed = network.getDevices().stream()
-                                .filter(device -> permittedDevices.contains(device.getGuid()))
-                                .collect(Collectors.toSet());
-                        network.setDevices(allowed);
-                    }
-                    return network;
-                });
+            if (permittedDevices != null && !permittedDevices.isEmpty()) {
+                Set<DeviceVO> allowed = network.getDevices().stream()
+                        .filter(device -> permittedDevices.contains(device.getGuid()))
+                        .collect(Collectors.toSet());
+                network.setDevices(allowed);
+            }
+            return network;
+        });
 
         return result.orElse(null);
     }
@@ -158,12 +159,12 @@ public class NetworkService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<NetworkVO>> list(String name,
-                                                   String namePattern,
-                                                   String sortField,
-                                                   boolean sortOrderAsc,
-                                                   Integer take,
-                                                   Integer skip,
-                                                   HivePrincipal principal) {
+            String namePattern,
+            String sortField,
+            boolean sortOrderAsc,
+            Integer take,
+            Integer skip,
+            HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListNetworkRequest request = new ListNetworkRequest();
@@ -238,6 +239,15 @@ public class NetworkService {
             }
             return network;
         }
+    }
+
+    @Transactional
+    public NetworkVO createOrUpdateNetworkByUser(UserVO user) {
+        NetworkVO networkVO = new NetworkVO();
+        networkVO.setKey(java.util.UUID.randomUUID().toString());
+        networkVO.setName(user.getLogin());
+        networkVO.setDescription(String.format("User %s default network", user.getLogin()));
+        return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
     }
 
     private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {

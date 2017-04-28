@@ -24,6 +24,7 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -815,7 +816,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Ignore("JavaScript integration test '#Create Auto Create (incl. Legacy Equipment) should auto-create network and device class' fails with such behavior")
     @Test
     public void should_throw_ActionNotAllowedException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
@@ -827,7 +828,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_new_network_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -839,7 +840,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_key_by_id_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -854,7 +855,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_key_by_name_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -872,7 +873,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -888,7 +889,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -907,7 +908,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_exception_when_updates_network_by_user_if_user_is_client() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -926,7 +927,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_if_client_has_access() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -947,7 +948,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));

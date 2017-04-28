@@ -52,6 +52,7 @@ public class AuthTokenService {
     @Autowired
     private NetworkDao networkDao;
     
+    @Transactional(propagation = Propagation.REQUIRED)
     public JwtTokenVO createAccessKey(@NotNull final JwtRequestVO request) {
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
