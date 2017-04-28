@@ -19,7 +19,6 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
@@ -68,12 +67,15 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
  */
 @Component
 public class UserService {
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private PasswordProcessor passwordService;
     @Autowired
     private NetworkDao networkDao;
+    @Autowired
+    private NetworkService networkService;
     @Autowired
     private UserDao userDao;
     @Autowired
@@ -127,8 +129,8 @@ public class UserService {
             return of(user1);
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >=
-                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+            if (user.getLoginAttempts()
+                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
                 user.setLoginAttempts(0);
             }
@@ -172,12 +174,12 @@ public class UserService {
             }
             existing.setLogin(newLogin);
 
-            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null)) ?
-                    userToUpdate.getGoogleLogin().orElse(null) : null;
-            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null)) ?
-                    userToUpdate.getFacebookLogin().orElse(null) : null;
-            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null)) ?
-                    userToUpdate.getGithubLogin().orElse(null) : null;
+            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null))
+                    ? userToUpdate.getGoogleLogin().orElse(null) : null;
+            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null))
+                    ? userToUpdate.getFacebookLogin().orElse(null) : null;
+            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null))
+                    ? userToUpdate.getGithubLogin().orElse(null) : null;
 
             if (googleLogin != null || facebookLogin != null || githubLogin != null) {
                 Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
@@ -231,7 +233,7 @@ public class UserService {
     /**
      * Allows user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -249,7 +251,7 @@ public class UserService {
     /**
      * Revokes user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -264,7 +266,7 @@ public class UserService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                                                  Boolean sortOrderAsc, Integer take, Integer skip) {
+            Boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);
@@ -297,8 +299,8 @@ public class UserService {
     }
 
     /**
-     * Retrieves user with networks by id, if there is no networks user hass access to networks will be represented by
-     * empty set
+     * Retrieves user with networks by id, if there is no networks user hass
+     * access to networks will be represented by empty set
      *
      * @param id user id
      * @return User model with networks, or null, if there is no such user
@@ -343,6 +345,15 @@ public class UserService {
         hiveValidator.validate(user);
         userDao.persist(user);
         return user;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
+        UserVO createdUser = createUser(convertTo, password);
+        NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
+        UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);
+        result.getNetworks().add(createdNetwork);
+        return result;
     }
 
     /**
