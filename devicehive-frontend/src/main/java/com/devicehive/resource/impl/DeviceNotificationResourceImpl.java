@@ -81,7 +81,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         final Date timestampSt = TimestampQueryParamParser.parse(startTs);
         final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
-        DeviceVO byGuidWithPermissionsCheck = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO byGuidWithPermissionsCheck = deviceService.findById(guid);
         if (byGuidWithPermissionsCheck == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
@@ -109,7 +109,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public void get(String guid, Long notificationId, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
 
         if (device == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
@@ -239,7 +239,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
             asyncResponse.resume(response);
         } else {
-            DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+            DeviceVO device = deviceService.findById(guid);
             if (device == null) {
                 logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

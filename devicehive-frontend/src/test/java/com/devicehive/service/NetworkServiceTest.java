@@ -172,7 +172,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         NetworkUpdate network = new NetworkUpdate();
-        network.setName(Optional.of("network"));
+        network.setName("network");
 
         networkService.update(-1L, network);
     }
@@ -186,9 +186,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         NetworkUpdate update = new NetworkUpdate();
-        update.setKey(Optional.of("key"));
-        update.setName(Optional.of("name"));
-        update.setDescription(Optional.of("description"));
+        update.setKey("key");
+        update.setName("name");
+        update.setDescription("description");
 
         NetworkVO updated = networkService.update(created.getId(), update);
         assertThat(created.getId(), is(updated.getId()));
@@ -502,13 +502,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -536,13 +536,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -565,13 +565,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -598,13 +598,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -635,13 +635,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -697,21 +697,21 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(created);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable("allowed_device"));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(created));
+        device.setName("allowed_device");
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(created);
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
         HivePrincipal principal = new HivePrincipal(user);
@@ -746,13 +746,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(created);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 

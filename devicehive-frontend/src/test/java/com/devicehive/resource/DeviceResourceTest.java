@@ -46,6 +46,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class DeviceResourceTest extends AbstractResourceTest {
 
@@ -53,12 +54,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     public void should_save_device_with_key() {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -86,12 +87,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     public void should_save_device_as_admin() {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -119,12 +120,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     public void should_return_401_status_for_anonymous() throws Exception {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -139,12 +140,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);

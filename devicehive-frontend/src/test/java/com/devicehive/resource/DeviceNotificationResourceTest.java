@@ -87,12 +87,12 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
     public void should_get_response_with_status_200_and_notification_when_waitTimeout_is_0_and_polling_for_device() {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device

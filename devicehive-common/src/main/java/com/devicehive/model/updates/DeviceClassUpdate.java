@@ -35,46 +35,51 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceClassUpdate implements HiveEntity {
 
     private static final long serialVersionUID = 967472386318199376L;
+
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private Long id;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<String> name;
+    private String name;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<Boolean> isPermanent;
+    private Boolean isPermanent;
+
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
-    private Optional<JsonStringWrapper> data;
+    private JsonStringWrapper data;
+
     @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
-    private Optional<Set<DeviceClassEquipmentVO>> equipment;
+    private Set<DeviceClassEquipmentVO> equipment;
 
     public Optional<Set<DeviceClassEquipmentVO>> getEquipment() {
-        return equipment;
+        return Optional.ofNullable(equipment);
     }
 
-    public void setEquipment(Optional<Set<DeviceClassEquipmentVO>> equipment) {
+    public void setEquipment(Set<DeviceClassEquipmentVO> equipment) {
         this.equipment = equipment;
     }
 
     public Optional<String> getName() {
-        return name;
+        return Optional.ofNullable(name);
     }
 
-    public void setName(Optional<String> name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public Optional<Boolean> getPermanent() {
-        return isPermanent;
+        return Optional.ofNullable(isPermanent);
     }
 
-    public void setPermanent(Optional<Boolean> permanent) {
+    public void setPermanent(Boolean permanent) {
         isPermanent = permanent;
     }
 
     public Optional<JsonStringWrapper> getData() {
-        return data;
+        return Optional.ofNullable(data);
     }
 
-    public void setData(Optional<JsonStringWrapper> data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 
@@ -88,18 +93,20 @@ public class DeviceClassUpdate implements HiveEntity {
 
     public DeviceClassWithEquipmentVO convertTo() {
         DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
-        deviceClass.setId(id);
-        if (isPermanent != null) {
-            deviceClass.setIsPermanent(isPermanent.orElse(null));
+        if (this.id != null){
+            deviceClass.setId(this.id);
         }
-        if (data != null) {
-            deviceClass.setData(data.orElse(null));
+        if (this.isPermanent != null){
+            deviceClass.setIsPermanent(this.isPermanent);
         }
-        if (name != null) {
-            deviceClass.setName(name.orElse(null));
+        if (this.data != null){
+            deviceClass.setData(this.data);
         }
-        if (equipment != null) {
-            deviceClass.setEquipment(equipment.orElse(null));
+        if (this.name != null){
+            deviceClass.setName(this.name);
+        }
+        if (this.equipment != null){
+            deviceClass.setEquipment(this.equipment);
         }
         return deviceClass;
     }

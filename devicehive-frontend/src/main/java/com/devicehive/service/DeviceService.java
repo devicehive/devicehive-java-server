@@ -97,7 +97,7 @@ public class DeviceService {
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
-        NetworkVO vo = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
+        NetworkVO vo = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
         NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
         NetworkVO network = nwVo != null ? findNetworkForAuth(nwVo) : null;
         network = findNetworkForAuth(network);
@@ -127,24 +127,24 @@ public class DeviceService {
                 logger.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
-            if (deviceUpdate.getDeviceClass() != null) {
+            if (deviceUpdate.getDeviceClass().isPresent()) {
                 DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 dc.setIsPermanent(deviceClass.getIsPermanent());
                 existingDevice.setDeviceClass(dc);
             }
-            if (deviceUpdate.getData() != null) {
-                existingDevice.setData(deviceUpdate.getData().orElse(null));
+            if (deviceUpdate.getData().isPresent()){
+                existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork() != null) {
+            if (deviceUpdate.getNetwork().isPresent()){
                 existingDevice.setNetwork(network);
             }
-            if (deviceUpdate.getName() != null) {
-                existingDevice.setName(deviceUpdate.getName().orElse(null));
+            if (deviceUpdate.getName().isPresent()){
+                existingDevice.setName(deviceUpdate.getName().get());
             }
-            if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(deviceUpdate.getBlocked().orElse(null));
+            if (deviceUpdate.getBlocked().isPresent()){
+                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
             }
             deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
@@ -153,10 +153,10 @@ public class DeviceService {
 
     private DeviceClassWithEquipmentVO prepareDeviceClassForNewlyCreatedDevice(DeviceUpdate deviceUpdate) {
         DeviceClassWithEquipmentVO deviceClass = null;
-        if (deviceUpdate.getDeviceClass() != null && deviceUpdate.getDeviceClass().isPresent()) {
+        if (deviceUpdate.getDeviceClass().isPresent()) {
             //TODO [rafa] if device class equipment not present - we need to clone it from device.
             Set<DeviceClassEquipmentVO> customEquipmentSet = null;
-            if (deviceUpdate.getDeviceClass().get().getEquipment() != null) {
+            if (deviceUpdate.getDeviceClass().get().getEquipment().isPresent()) {
                 customEquipmentSet = deviceUpdate.getDeviceClass().get().getEquipment().orElse(new HashSet<>());
             }
             deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), customEquipmentSet);
@@ -173,7 +173,7 @@ public class DeviceService {
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
 
-        NetworkVO nw = deviceUpdate.getNetwork() != null ? deviceUpdate.getNetwork().get() : null;
+        NetworkVO nw = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
         NetworkVO network = networkService.createOrVerifyNetwork(Optional.ofNullable(nw));
         network = findNetworkForAuth(network);
 
@@ -193,23 +193,23 @@ public class DeviceService {
                 logger.error("Principal {} has no access to device {}", principal, existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
-            if (deviceUpdate.getDeviceClass() != null && !existingDevice.getDeviceClass().getIsPermanent()) {
+            if (deviceUpdate.getDeviceClass().isPresent() && !existingDevice.getDeviceClass().getIsPermanent()) {
                 DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
-            if (deviceUpdate.getData() != null) {
-                existingDevice.setData(deviceUpdate.getData().orElse(null));
+            if (deviceUpdate.getData().isPresent()){
+                existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork() != null) {
+            if (deviceUpdate.getNetwork().isPresent()){
                 existingDevice.setNetwork(network);
             }
-            if (deviceUpdate.getName() != null) {
-                existingDevice.setName(deviceUpdate.getName().orElse(null));
+            if (deviceUpdate.getName().isPresent()){
+                existingDevice.setName(deviceUpdate.getName().get());
             }
-            if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
+            if (deviceUpdate.getBlocked().isPresent()){
+                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
             }
             deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
@@ -220,7 +220,7 @@ public class DeviceService {
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
                                          Set<DeviceClassEquipmentVO> equipmentSet) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
-        NetworkVO network = (deviceUpdate.getNetwork() != null)? deviceUpdate.getNetwork().get() : null;
+        NetworkVO network = (deviceUpdate.getNetwork().isPresent())? deviceUpdate.getNetwork().get() : null;
         if (network != null) {
             network = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         }
@@ -242,20 +242,20 @@ public class DeviceService {
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getDeviceClass() != null) {
+            if (deviceUpdate.getDeviceClass().isPresent()) {
                 DeviceClassVO dc = new DeviceClassVO();
                 dc.setId(deviceClass.getId());
                 dc.setName(deviceClass.getName());
                 existingDevice.setDeviceClass(dc);
             }
-            if (deviceUpdate.getData() != null) {
-                existingDevice.setData(deviceUpdate.getData().orElse(null));
+            if (deviceUpdate.getData().isPresent()){
+                existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork() != null) {
+            if (deviceUpdate.getNetwork().isPresent()){
                 existingDevice.setNetwork(network);
             }
-            if (deviceUpdate.getBlocked() != null) {
-                existingDevice.setBlocked(Boolean.TRUE.equals(deviceUpdate.getBlocked().orElse(null)));
+            if (deviceUpdate.getBlocked().isPresent()){
+                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
             }
             deviceDao.merge(existingDevice);
             return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
@@ -284,11 +284,11 @@ public class DeviceService {
             logger.error("Device validation: device is empty");
             throw new HiveException(Messages.EMPTY_DEVICE);
         }
-        if (device.getName() != null && device.getName().orElse(null) == null) {
+        if (!device.getName().isPresent()) {
             logger.error("Device validation: device name is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_NAME);
         }
-        if (device.getDeviceClass() != null && device.getDeviceClass().orElse(null) == null) {
+        if (!device.getDeviceClass().isPresent()) {
             logger.error("Device validation: device class is empty");
             throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
         }
@@ -296,7 +296,7 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public DeviceVO getDeviceWithNetworkAndDeviceClass(String deviceId) {
+    public DeviceVO findById(String deviceId) {
         DeviceVO device = deviceDao.findByUUID(deviceId);
 
         if (device == null) {

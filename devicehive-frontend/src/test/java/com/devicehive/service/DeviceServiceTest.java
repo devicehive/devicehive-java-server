@@ -23,16 +23,13 @@ package com.devicehive.service;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
-import com.devicehive.base.AbstractSpringKafkaTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
-import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.rpc.ListDeviceClassResponse;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.rpc.NotificationInsertRequest;
@@ -63,7 +60,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Collections.singleton;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -179,7 +175,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
         TimeUnit.SECONDS.sleep(1);
-        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
+        final DeviceVO existingDevice = deviceService.findById(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(device.getGuid(), existingDevice.getGuid());
         assertEquals(dc.getName().orElse(null), existingDevice.getDeviceClass().getName());
@@ -267,7 +263,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(created));
+        deviceUpdate.setNetwork(created);
         final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
@@ -285,7 +281,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         deviceService.deviceSaveAndNotify(deviceUpdate, emptyEquipmentSet, principal);
         TimeUnit.SECONDS.sleep(1);
-        final DeviceVO existingDevice = deviceService.getDeviceWithNetworkAndDeviceClass(device.getGuid());
+        final DeviceVO existingDevice = deviceService.findById(device.getGuid());
         assertNotNull(existingDevice);
         assertEquals(existingDevice.getGuid(), deviceUpdate.getGuid().get());
         assertEquals(existingDevice.getName(), deviceUpdate.getName().get());
@@ -331,9 +327,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(Optional.ofNullable(network));
-        deviceUpdate1.setNetwork(Optional.ofNullable(network));
-        deviceUpdate2.setNetwork(Optional.ofNullable(network));
+        deviceUpdate0.setNetwork(network);
+        deviceUpdate1.setNetwork(network);
+        deviceUpdate2.setNetwork(network);
 
         deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);
@@ -374,14 +370,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(network);
 
         final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
         NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(network1);
         
         final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
@@ -426,14 +422,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(network);
 
         final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
         NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(network1);
 
 //        final AccessKey accessKey = new AccessKey();
 //        final AccessKeyPermission permission = new AccessKeyPermission();
@@ -518,14 +514,14 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate.setNetwork(Optional.ofNullable(network));
+        deviceUpdate.setNetwork(network);
 
         final NetworkVO network1 = new NetworkVO();
         network1.setName("" + randomUUID());
         NetworkVO created1 = networkService.create(network1);
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
-        deviceUpdate1.setNetwork(Optional.ofNullable(network1));
+        deviceUpdate1.setNetwork(network1);
 
 //        final AccessKey accessKey = new AccessKey();
 //        final AccessKeyPermission permission = new AccessKeyPermission();
@@ -639,9 +635,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
-        deviceUpdate0.setNetwork(Optional.ofNullable(network));
-        deviceUpdate1.setNetwork(Optional.ofNullable(network));
-        deviceUpdate2.setNetwork(Optional.ofNullable(network));
+        deviceUpdate0.setNetwork(network);
+        deviceUpdate1.setNetwork(network);
+        deviceUpdate2.setNetwork(network);
 
         deviceService.deviceSave(deviceUpdate0, emptyEquipmentSet);
         deviceService.deviceSave(deviceUpdate1, emptyEquipmentSet);

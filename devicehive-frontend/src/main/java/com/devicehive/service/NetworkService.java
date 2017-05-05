@@ -143,14 +143,14 @@ public class NetworkService {
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
-        if (networkUpdate.getKey() != null) {
-            existing.setKey(networkUpdate.getKey().orElse(null));
+        if (networkUpdate.getKey().isPresent()){
+            existing.setKey(networkUpdate.getKey().get());
         }
-        if (networkUpdate.getName() != null) {
-            existing.setName(networkUpdate.getName().orElse(null));
+        if (networkUpdate.getName().isPresent()){
+            existing.setName(networkUpdate.getName().get());
         }
-        if (networkUpdate.getDescription() != null) {
-            existing.setDescription(networkUpdate.getDescription().orElse(null));
+        if (networkUpdate.getDescription().isPresent()){
+            existing.setDescription(networkUpdate.getDescription().get());
         }
         hiveValidator.validate(existing);
 

@@ -790,13 +790,13 @@ public class UserServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -815,13 +815,13 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -840,13 +840,13 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));

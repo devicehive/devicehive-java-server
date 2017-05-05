@@ -128,7 +128,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         assertEquals("INITIAL_DC_NAME-" + uuid, existingDeviceClass.getName());
 
         final DeviceClassUpdate dcUpdate = DeviceFixture.createDeviceClassUpdate(deviceClass);
-        dcUpdate.setName(Optional.of("CHANGED_DC_NAME-" + uuid));
+        dcUpdate.setName("CHANGED_DC_NAME-" + uuid);
         deviceClassService.createOrUpdateDeviceClass(Optional.of(dcUpdate),
                 Collections.singleton(DeviceFixture.createEquipmentVO()));
         existingDeviceClass = deviceClassService.getWithEquipment(createdDCUpdateId);
@@ -178,7 +178,7 @@ public class DeviceClassServiceTest extends AbstractResourceTest {
         DeviceClassUpdate dcu = new DeviceClassUpdate();
         HashSet<DeviceClassEquipmentVO> equipments = new HashSet<>();
         equipments.add(anotherEquipment);
-        dcu.setEquipment(Optional.of(equipments));
+        dcu.setEquipment(equipments);
         DeviceClassWithEquipmentVO update = deviceClassService.update(createdDC.getId(), dcu);
 
         existingDC = deviceClassService.getWithEquipment(createdDC.getId());

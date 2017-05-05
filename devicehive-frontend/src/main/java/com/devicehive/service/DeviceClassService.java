@@ -85,7 +85,7 @@ public class DeviceClassService {
         }
         if (stored != null) {
             if (!stored.getIsPermanent()) {
-                deviceClassUpdate.setEquipment(Optional.ofNullable(customEquipmentSet));
+                deviceClassUpdate.setEquipment(customEquipmentSet);
                 update(stored.getId(), deviceClassUpdate);
             }
             return stored;
@@ -121,33 +121,29 @@ public class DeviceClassService {
         if (update == null) {
             return null;
         }
-        if (update.getData() != null) {
-            stored.setData(update.getData().orElse(null));
-        }
-        if (update.getEquipment() != null) {
-            if (update.getEquipment().isPresent()) {
-                Map<String, DeviceClassEquipmentVO> existing = new HashMap<>();
-                for (DeviceClassEquipmentVO deviceClassEquipmentVO : stored.getEquipment()) {
-                    existing.put(deviceClassEquipmentVO.getCode(), deviceClassEquipmentVO);
-                }
-
-                for (DeviceClassEquipmentVO deviceClassEquipmentVO : update.getEquipment().get()) {
-                    if (existing.containsKey(deviceClassEquipmentVO.getCode())) {
-                        Long existingEquipmentId = existing.get(deviceClassEquipmentVO.getCode()).getId();
-                        deviceClassEquipmentVO.setId(existingEquipmentId);
-                    }
-                }
-                stored.setEquipment(update.getEquipment().orElse(null));
+        update.getData().ifPresent(stored::setData);
+        if (update.getEquipment().isPresent()) {
+            Map<String, DeviceClassEquipmentVO> existing = new HashMap<>();
+            for (DeviceClassEquipmentVO deviceClassEquipmentVO : stored.getEquipment()) {
+                existing.put(deviceClassEquipmentVO.getCode(), deviceClassEquipmentVO);
             }
+
+            for (DeviceClassEquipmentVO deviceClassEquipmentVO : update.getEquipment().get()) {
+                if (existing.containsKey(deviceClassEquipmentVO.getCode())) {
+                    Long existingEquipmentId = existing.get(deviceClassEquipmentVO.getCode()).getId();
+                    deviceClassEquipmentVO.setId(existingEquipmentId);
+                }
+            }
+            stored.setEquipment(update.getEquipment().orElse(null));
         }
         if (update.getId() != null) {
             stored.setId(update.getId());
         }
-        if (update.getName() != null) {
-            stored.setName(update.getName().orElse(null));
+        if (update.getName().isPresent()){
+            stored.setName(update.getName().get());
         }
-        if (update.getPermanent() != null) {
-            stored.setIsPermanent(update.getPermanent().orElse(null));
+        if (update.getPermanent().isPresent()){
+            stored.setIsPermanent(update.getPermanent().get());
         }
         hiveValidator.validate(stored);
         return deviceClassDao.merge(stored);
@@ -177,17 +173,17 @@ public class DeviceClassService {
         if (found == null) {
             return false; // equipment with id = equipmentId does not exists
         }
-        if (equipmentUpdate.getCode() != null) {
-            found.setCode(equipmentUpdate.getCode().orElse(null));
+        if (equipmentUpdate.getCode().isPresent()){
+            found.setCode(equipmentUpdate.getCode().get());
         }
-        if (equipmentUpdate.getName() != null) {
-            found.setName(equipmentUpdate.getName().orElse(null));
+        if (equipmentUpdate.getName().isPresent()){
+            found.setName(equipmentUpdate.getName().get());
         }
-        if (equipmentUpdate.getType() != null) {
-            found.setType(equipmentUpdate.getType().orElse(null));
+        if (equipmentUpdate.getType().isPresent()){
+            found.setType(equipmentUpdate.getType().get());
         }
-        if (equipmentUpdate.getData() != null) {
-            found.setData(equipmentUpdate.getData().orElse(null));
+        if (equipmentUpdate.getData().isPresent()){
+            found.setData(equipmentUpdate.getData().get());
         }
         deviceClassDao.merge(stored);
         return true;

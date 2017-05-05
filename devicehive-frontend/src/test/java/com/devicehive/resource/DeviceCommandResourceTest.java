@@ -82,12 +82,12 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
     public void should_get_empty_response_with_status_204_when_command_not_processed() throws Exception {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment((Collections.singleton(equipment)));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -113,12 +113,12 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0() throws Exception {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -145,12 +145,12 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0_and_polling_for_device() throws Exception {
         DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
+        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        deviceUpdate.setDeviceClass(deviceClass);
+        deviceUpdate.setNetwork(network);
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device

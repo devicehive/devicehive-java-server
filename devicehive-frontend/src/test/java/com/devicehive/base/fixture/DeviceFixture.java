@@ -48,18 +48,18 @@ public class DeviceFixture {
     public static DeviceClassUpdate createDeviceClass() {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
-        deviceClass.setName(Optional.ofNullable("device_class-" + uuid));
-        deviceClass.setPermanent(Optional.ofNullable(false));
-        deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
+        deviceClass.setName("device_class-" + uuid);
+        deviceClass.setPermanent(false);
+        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
         return deviceClass;
     }
     public static DeviceClassUpdate createDeviceClassUpdate(DeviceClassWithEquipmentVO dc) {
         UUID uuid = UUID.randomUUID();
         DeviceClassUpdate deviceClass = new DeviceClassUpdate();
         deviceClass.setId(dc.getId());
-        deviceClass.setName(Optional.ofNullable(dc.getName()));
-        deviceClass.setPermanent(Optional.ofNullable(false));
-        deviceClass.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid))));
+        deviceClass.setName(dc.getName());
+        deviceClass.setPermanent(false);
+        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
         return deviceClass;
     }
 
@@ -83,23 +83,23 @@ public class DeviceFixture {
 
     public static DeviceUpdate createDevice(String guid) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(Optional.ofNullable(guid));
-        device.setName(Optional.ofNullable("device-" + guid));
-        device.setData(Optional.ofNullable(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid))));
+        device.setGuid(guid);
+        device.setName("device-" + guid);
+        device.setData(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid)));
         return device;
     }
 
     public static DeviceUpdate createDevice(String deviceKey, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = createDevice(deviceKey);
-        deviceUpdate.setDeviceClass(Optional.ofNullable(dc));
+        deviceUpdate.setDeviceClass(dc);
         return deviceUpdate;
     }
 
     public static DeviceUpdate createDevice(DeviceVO device, DeviceClassUpdate dc) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
-        deviceUpdate.setGuid(Optional.ofNullable(device.getGuid()));
-        deviceUpdate.setName(Optional.ofNullable(device.getName()));
-        deviceUpdate.setDeviceClass(Optional.ofNullable(dc));
+        deviceUpdate.setGuid(device.getGuid());
+        deviceUpdate.setName(device.getName());
+        deviceUpdate.setDeviceClass(dc);
         return deviceUpdate;
     }
 
