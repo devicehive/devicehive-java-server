@@ -142,7 +142,7 @@ public class UserResourceImpl implements UserResource {
                 principal.getActions().contains(MANAGE_USER));
         Boolean isCreateAllowed = isAnonymousCreateAllowed || isAuthenticatedAndHasPermission;
         if (isCreateAllowed) {
-            String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
+            String password = !userToCreate.getPassword().isPresent() ? null : userToCreate.getPassword().orElse(null);
             if (isAuthenticatedAndHasPermission) {
                 UserVO created = userService.createUser(userToCreate.convertTo(), password);
                 return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);

@@ -898,7 +898,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(existingLogin));
+        update.setLogin(existingLogin);
         userService.updateUser(second.getId(), update, UserRole.ADMIN);
     }
 
@@ -911,7 +911,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        update.setLogin(RandomStringUtils.random(10));
 
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
@@ -927,7 +927,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setPassword("new_pass");
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -946,7 +946,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.OLD_PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setPassword("new_pass");
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -958,8 +958,8 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("123"));
+        update.setPassword("new_pass");
+        update.setOldPassword("123");
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -978,8 +978,8 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.INCORRECT_CREDENTIALS);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("old"));
+        update.setPassword("new_pass");
+        update.setOldPassword("old");
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -994,7 +994,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable(null));
+        update.setPassword(null);
         userService.updateUser(user.getId(), update, UserRole.ADMIN);
     }
 

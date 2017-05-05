@@ -31,82 +31,76 @@ import java.util.Optional;
 public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
-    private Optional<String> login;
-    private Optional<Integer> role;
-    private Optional<Integer> status;
-    private Optional<String> password;
-    private Optional<String> oldPassword;
-    private Optional<JsonStringWrapper> data;
+    private String login;
+    private Integer role;
+    private Integer status;
+    private String password;
+    private String oldPassword;
+    private JsonStringWrapper data;
 
     public Optional<String> getLogin() {
-        return login;
+        return Optional.ofNullable(login);
     }
 
-    public void setLogin(Optional<String> login) {
+    public void setLogin(String login) {
         this.login = login;
     }
 
     public Optional<Integer> getRole() {
-        return role;
+        return Optional.ofNullable(role);
     }
 
-    public void setRole(Optional<Integer> role) {
+    public void setRole(Integer role) {
         this.role = role;
     }
 
     public Optional<Integer> getStatus() {
-        return status;
+        return Optional.ofNullable(status);
     }
 
-    public void setStatus(Optional<Integer> status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
     public Optional<String> getPassword() {
-        return password;
+        return Optional.ofNullable(password);
     }
 
-    public void setPassword(Optional<String> password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 
     public Optional<String> getOldPassword() {
-        return oldPassword;
+        return Optional.ofNullable(oldPassword);
     }
 
-    public void setOldPassword(Optional<String> oldPassword) {
+    public void setOldPassword(String oldPassword) {
         this.oldPassword = oldPassword;
     }
 
     public Optional<JsonStringWrapper> getData() {
-        return data;
+        return Optional.ofNullable(data);
     }
 
-    public void setData(Optional<JsonStringWrapper> data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 
     public UserRole getRoleEnum() {
-        if(role != null) {
-            return role.map(UserRole::getValueForIndex).orElse(null);
-        }
-        return null;
+        return getRole().map(UserRole::getValueForIndex).orElse(null);
     }
 
     public UserStatus getStatusEnum() {
-        if(status != null) {
-            return status.map(UserStatus::getValueForIndex).orElse(null);
-        }
-        return null;
+        return getStatus().map(UserStatus::getValueForIndex).orElse(null);
     }
 
     public UserVO convertTo() {
         UserVO result = new UserVO();
         if (login != null) {
-            result.setLogin(login.orElse(null));
+            result.setLogin(login);
         }
         if (data != null) {
-            result.setData(data.orElse(null));
+            result.setData(data);
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

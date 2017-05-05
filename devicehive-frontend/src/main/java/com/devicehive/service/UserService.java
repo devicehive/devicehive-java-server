@@ -175,8 +175,8 @@ public class UserService {
             existing.setLogin(newLogin);
 
         }
-        if (userToUpdate.getPassword() != null) {
-            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
+        if (userToUpdate.getPassword().isPresent()) {
+            if (userToUpdate.getOldPassword().isPresent() && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
                 final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().orElse(null),
                         existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
@@ -196,7 +196,7 @@ public class UserService {
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
-        if (userToUpdate.getStatus() != null || userToUpdate.getRole() != null) {
+        if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
             if (role != UserRole.ADMIN) {
                 logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
@@ -206,8 +206,8 @@ public class UserService {
                 existing.setStatus(userToUpdate.getStatusEnum());
             }
         }
-        if (userToUpdate.getData() != null) {
-            existing.setData(userToUpdate.getData().orElse(null));
+        if (userToUpdate.getData().isPresent()) {
+            existing.setData(userToUpdate.getData().get());
         }
         hiveValidator.validate(existing);
         return userDao.merge(existing);

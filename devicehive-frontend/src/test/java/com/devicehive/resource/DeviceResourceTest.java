@@ -151,10 +151,10 @@ public class DeviceResourceTest extends AbstractResourceTest {
         String password = RandomStringUtils.randomAlphabetic(10);
 
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(Optional.of(login));
-        testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
-        testUser.setPassword(Optional.of(password));
-        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
+        testUser.setLogin(login);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(password);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
