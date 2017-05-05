@@ -138,7 +138,8 @@ public class UserResourceImpl implements UserResource {
     public Response insertUser(UserUpdate userToCreate) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Boolean isAnonymousCreateAllowed = configurationService.getBoolean(USER_ANONYMOUS_CREATION, false);
-        Boolean isAuthenticatedAndHasPermission = (principal.isAuthenticated() && principal.getActions().contains(MANAGE_USER));
+        Boolean isAuthenticatedAndHasPermission = (principal.isAuthenticated() && principal.getActions() != null && 
+                principal.getActions().contains(MANAGE_USER));
         Boolean isCreateAllowed = isAnonymousCreateAllowed || isAuthenticatedAndHasPermission;
         if (isCreateAllowed) {
             String password = userToCreate.getPassword() == null ? null : userToCreate.getPassword().orElse(null);
@@ -150,7 +151,7 @@ public class UserResourceImpl implements UserResource {
                 return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_PUBLISHED);
             }
         } else {
-            return ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(), Messages.FORBIDDEN_INSERT_USER));
+            return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.FORBIDDEN_INSERT_USER));
         }
     }
 

@@ -174,23 +174,6 @@ public class UserService {
             }
             existing.setLogin(newLogin);
 
-            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null))
-                    ? userToUpdate.getGoogleLogin().orElse(null) : null;
-            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null))
-                    ? userToUpdate.getFacebookLogin().orElse(null) : null;
-            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null))
-                    ? userToUpdate.getGithubLogin().orElse(null) : null;
-
-            if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
-                        facebookLogin, githubLogin);
-                if (userWithSameIdentity.isPresent()) {
-                    throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-                }
-            }
-            existing.setGoogleLogin(googleLogin);
-            existing.setFacebookLogin(facebookLogin);
-            existing.setGithubLogin(githubLogin);
         }
         if (userToUpdate.getPassword() != null) {
             if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
@@ -328,19 +311,6 @@ public class UserService {
             user.setPasswordSalt(salt);
             user.setPasswordHash(hash);
         }
-        final String googleLogin = StringUtils.isNotBlank(user.getGoogleLogin()) ? user.getGoogleLogin() : null;
-        final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
-        final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
-        if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-            Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
-                    facebookLogin, githubLogin);
-            if (userWithSameIdentity.isPresent()) {
-                throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-            }
-            user.setGoogleLogin(googleLogin);
-            user.setFacebookLogin(facebookLogin);
-            user.setGithubLogin(githubLogin);
-        }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         hiveValidator.validate(user);
         userDao.persist(user);
@@ -384,21 +354,6 @@ public class UserService {
             return count > 0;
         }
         return true;
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGoogleUser(String login) {
-        return userDao.findByGoogleName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findFacebookUser(String login) {
-        return userDao.findByFacebookName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGithubUser(String login) {
-        return userDao.findByGithubName(login);
     }
 
     @Transactional

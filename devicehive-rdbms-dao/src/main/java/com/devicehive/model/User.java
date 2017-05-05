@@ -27,7 +27,6 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
@@ -42,10 +41,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Table(name = "\"user\"")
 @NamedQueries({
         @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"), //TODO this actually finds by login, not name - consider refactoring
-        @NamedQuery(name = "User.findByGoogleName", query = "select u from User u where upper(u.googleLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByFacebookName", query = "select u from User u where upper(u.facebookLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByGithubName", query = "select u from User u where upper(u.githubLogin) = upper(:login) and u.status <> 3"),
-        @NamedQuery(name = "User.findByIdentityName", query = "select u from User u where u.login<> :login and (u.googleLogin = :googleLogin or u.facebookLogin = :facebookLogin or u.githubLogin = :githubLogin) and u.status <> 3"),
         @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u.id = :user and n = :network"),
         @NamedQuery(name = "User.hasAccessToDevice", query = "select count(distinct n) from Network n join n.devices d join n.users u where u.id = :user and d.guid = :guid"),
         @NamedQuery(name = "User.getWithNetworksById", query = "select u from User u left join fetch u.networks where u.id = :id"),
@@ -98,21 +93,6 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin;
-
-    @Column(name="google_login")
-    @SerializedName("googleLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String googleLogin;
-
-    @Column(name = "facebook_login")
-    @SerializedName("facebookLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String facebookLogin;
-
-    @Column(name = "github_login")
-    @SerializedName("githubLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String githubLogin;
 
     @SerializedName("data")
     @Embedded
@@ -201,30 +181,6 @@ public class User implements HiveEntity {
         this.loginAttempts = loginAttempts;
     }
 
-    public String getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(String googleLogin) {
-        this.googleLogin = StringUtils.trim(googleLogin);
-    }
-
-    public String getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(String facebookLogin) {
-        this.facebookLogin = StringUtils.trim(facebookLogin);
-    }
-
-    public String getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(String githubLogin) {
-        this.githubLogin = StringUtils.trim(githubLogin);
-    }
-
     public JsonStringWrapper getData() {
         return data;
     }
@@ -260,9 +216,6 @@ public class User implements HiveEntity {
         if (dc != null) {
             vo = new UserVO();
             vo.setData(dc.getData());
-            vo.setFacebookLogin(dc.getFacebookLogin());
-            vo.setGithubLogin(dc.getGithubLogin());
-            vo.setGoogleLogin(dc.getGoogleLogin());
             vo.setId(dc.getId());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());
@@ -281,9 +234,6 @@ public class User implements HiveEntity {
         if (dc != null) {
             vo = new User();
             vo.setData(dc.getData());
-            vo.setFacebookLogin(dc.getFacebookLogin());
-            vo.setGithubLogin(dc.getGithubLogin());
-            vo.setGoogleLogin(dc.getGoogleLogin());
             vo.setId(dc.getId());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());

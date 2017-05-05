@@ -22,7 +22,6 @@ package com.devicehive.dao;
 
 import com.devicehive.dao.riak.UserNetworkDaoRiakImpl;
 import com.devicehive.dao.riak.model.UserNetwork;
-import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -103,67 +102,6 @@ public class UserDaoTest {
         Optional<UserVO> newUser = userDao.findByName("login");
         assertTrue(newUser.isPresent());
         assertEquals(id, newUser.get().getId());
-    }
-
-    @Test
-    public void testFindByGoogleName() throws Exception {
-        UserVO user = new UserVO();
-        Long id = 100L;
-        user.setId(id);
-        user.setGoogleLogin("google login");
-        userDao.persist(user);
-
-        UserVO newUser = userDao.findByGoogleName("google login");
-        assertEquals(id, newUser.getId());
-    }
-
-    @Test
-    public void testFindByFacebookName() throws Exception {
-        UserVO user = new UserVO();
-        Long id = 100L;
-        user.setId(id);
-        user.setFacebookLogin("facebook login");
-        userDao.persist(user);
-
-        UserVO newUser = userDao.findByFacebookName("facebook login");
-        assertEquals(id, newUser.getId());
-    }
-
-    @Test
-    public void testFindByGithubName() throws Exception {
-        UserVO user = new UserVO();
-        Long id = 100L;
-        user.setId(id);
-        user.setGithubLogin("github login");
-        userDao.persist(user);
-
-        UserVO newUser = userDao.findByGithubName("github login");
-        assertEquals(id, newUser.getId());
-    }
-
-    @Test
-    public void testFindByIdentityName() throws Exception {
-        UserVO user = new UserVO();
-        Long id = 100L;
-        user.setId(id);
-        user.setLogin("login");
-        user.setGoogleLogin("google login");
-        user.setFacebookLogin("facebook login");
-        user.setGithubLogin("github login");
-        user.setStatus(UserStatus.ACTIVE);
-        userDao.persist(user);
-
-        Optional<UserVO> emptyUser = userDao.findByIdentityName("login", "google login", "facebook login", "github login");
-        assertFalse(emptyUser.isPresent());
-
-        Optional<UserVO> presentGoogle = userDao.findByIdentityName("l", "google login", "", "");
-        assertTrue(presentGoogle.isPresent());
-
-        Optional<UserVO> presentFacebook = userDao.findByIdentityName("l", "", "facebook login", "");
-        assertTrue(presentFacebook.isPresent());
-
-        Optional<UserVO> presentGithub = userDao.findByIdentityName("l", "", "", "github login");
-        assertTrue(presentGithub.isPresent());
     }
 
     @Test

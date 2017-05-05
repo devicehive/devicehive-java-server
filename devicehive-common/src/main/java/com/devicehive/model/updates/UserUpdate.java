@@ -36,9 +36,6 @@ public class UserUpdate implements HiveEntity {
     private Optional<Integer> status;
     private Optional<String> password;
     private Optional<String> oldPassword;
-    private Optional<String> googleLogin;
-    private Optional<String> facebookLogin;
-    private Optional<String> githubLogin;
     private Optional<JsonStringWrapper> data;
 
     public Optional<String> getLogin() {
@@ -81,30 +78,6 @@ public class UserUpdate implements HiveEntity {
         this.oldPassword = oldPassword;
     }
 
-    public Optional<String> getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(Optional<String> googleLogin) {
-        this.googleLogin = googleLogin;
-    }
-
-    public Optional<String> getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(Optional<String> facebookLogin) {
-        this.facebookLogin = facebookLogin;
-    }
-
-    public Optional<String> getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(Optional<String> githubLogin) {
-        this.githubLogin = githubLogin;
-    }
-
     public Optional<JsonStringWrapper> getData() {
         return data;
     }
@@ -131,15 +104,6 @@ public class UserUpdate implements HiveEntity {
         UserVO result = new UserVO();
         if (login != null) {
             result.setLogin(login.orElse(null));
-        }
-        if (googleLogin != null) {
-            result.setGoogleLogin(googleLogin.orElse(null));
-        }
-        if (facebookLogin != null) {
-            result.setFacebookLogin(facebookLogin.orElse(null));
-        }
-        if (githubLogin != null) {
-            result.setGithubLogin(githubLogin.orElse(null));
         }
         if (data != null) {
             result.setData(data.orElse(null));

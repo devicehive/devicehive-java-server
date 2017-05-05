@@ -81,54 +81,6 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public UserVO findByGoogleName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("googleLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public UserVO findByFacebookName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("facebookLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public UserVO findByGithubName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("githubLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        UserVO userToCheck;
-        userToCheck = findByGoogleName(googleLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        userToCheck = findByFacebookName(facebookLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        userToCheck = findByGithubName(githubLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
     public long hasAccessToNetwork(UserVO user, NetworkVO network) {
         Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
         if (networks != null && networks.contains(network.getId())) {
