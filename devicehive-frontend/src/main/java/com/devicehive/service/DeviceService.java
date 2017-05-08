@@ -284,14 +284,6 @@ public class DeviceService {
             logger.error("Device validation: device is empty");
             throw new HiveException(Messages.EMPTY_DEVICE);
         }
-        if (!device.getName().isPresent()) {
-            logger.error("Device validation: device name is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE_NAME);
-        }
-        if (!device.getDeviceClass().isPresent()) {
-            logger.error("Device validation: device class is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE_CLASS);
-        }
         hiveValidator.validate(device);
     }
 

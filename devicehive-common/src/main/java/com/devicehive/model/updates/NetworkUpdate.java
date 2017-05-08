@@ -23,7 +23,6 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Optional;
 
