@@ -30,6 +30,7 @@ import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
@@ -103,6 +104,12 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response register(DeviceUpdate deviceUpdate, String deviceGuid) {
+        if (deviceUpdate == null){
+            return ResponseFactory.response(
+                    BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
+            );
+        }
         logger.debug("Device register method requested. Guid : {}, Device: {}", deviceGuid, deviceUpdate);
 
         deviceUpdate.setGuid(deviceGuid);

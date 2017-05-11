@@ -34,6 +34,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private HiveValidator hiveValidator;
 
     /**
      * {@inheritDoc}
@@ -328,7 +332,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      */
     @Override
     public void insert(String guid, DeviceCommandWrapper deviceCommand, @Suspended final AsyncResponse asyncResponse) {
-        LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
+        hiveValidator.validate(deviceCommand);
+        LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand);
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO authUser = principal.getUser();
         DeviceVO device = deviceService.findById(guid);

@@ -296,6 +296,7 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserVO createUser(@NotNull UserVO user, String password) {
+        hiveValidator.validate(user);
         if (user.getId() != null) {
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
@@ -312,13 +313,13 @@ public class UserService {
             user.setPasswordHash(hash);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        hiveValidator.validate(user);
         userDao.persist(user);
         return user;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
+        hiveValidator.validate(convertTo);
         UserVO createdUser = createUser(convertTo, password);
         NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
         UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);

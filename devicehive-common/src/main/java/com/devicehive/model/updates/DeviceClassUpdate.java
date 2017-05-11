@@ -27,6 +27,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassWithEquipmentVO;
 
+import javax.validation.constraints.Size;
 import java.util.Optional;
 import java.util.Set;
 
@@ -39,6 +40,7 @@ public class DeviceClassUpdate implements HiveEntity {
     @JsonPolicyDef(DEVICE_PUBLISHED)
     private Long id;
 
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String name;
 

@@ -43,7 +43,7 @@ public class UserVO implements HiveEntity {
 
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
+    @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 " +
             "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;

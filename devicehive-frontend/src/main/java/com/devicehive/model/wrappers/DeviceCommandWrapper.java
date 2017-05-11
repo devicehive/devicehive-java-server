@@ -39,78 +39,78 @@ public class DeviceCommandWrapper implements HiveEntity {
     @SerializedName("command")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private Optional<String> command;
+    private String command;
 
     @SerializedName("timestamp")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private Optional<Date> timestamp;
+    private Date timestamp;
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private Optional<JsonStringWrapper> parameters;
+    private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
-    private Optional<Integer> lifetime;
+    private Integer lifetime;
 
     @SerializedName("status")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private Optional<String> status;
+    private String status;
 
     @SerializedName("result")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
-    private Optional<JsonStringWrapper> result;
+    private JsonStringWrapper result;
 
     public Optional<String> getCommand() {
-        return command;
+        return Optional.ofNullable(command);
     }
 
-    public void setCommand(Optional<String> command) {
+    public void setCommand(String command) {
         this.command = command;
     }
 
     public Optional<Date> getTimestamp() {
-        return timestamp;
+        return Optional.ofNullable(timestamp);
     }
 
-    public void setTimestamp(Optional<Date> timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
     public Optional<JsonStringWrapper> getParameters() {
-        return parameters;
+        return Optional.ofNullable(parameters);
     }
 
-    public void setParameters(Optional<JsonStringWrapper> parameters) {
+    public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
 
     public Optional<Integer> getLifetime() {
-        return lifetime;
+        return Optional.ofNullable(lifetime);
     }
 
-    public void setLifetime(Optional<Integer> lifetime) {
+    public void setLifetime(Integer lifetime) {
         this.lifetime = lifetime;
     }
 
     public Optional<String> getStatus() {
-        return status;
+        return Optional.ofNullable(status);
     }
 
-    public void setStatus(Optional<String> status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
     public Optional<JsonStringWrapper> getResult() {
-        return result;
+        return Optional.ofNullable(result);
     }
 
-    public void setResult(Optional<JsonStringWrapper> result) {
+    public void setResult(JsonStringWrapper result) {
         this.result = result;
     }
 

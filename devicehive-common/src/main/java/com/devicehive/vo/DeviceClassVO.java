@@ -38,7 +38,7 @@ public class DeviceClassVO implements HiveEntity {
     private Long id;
 
     @NotNull(message = "name field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 symbols.")
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private String name;
 

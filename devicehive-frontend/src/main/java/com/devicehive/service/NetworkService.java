@@ -121,6 +121,7 @@ public class NetworkService {
 
     @Transactional
     public NetworkVO create(NetworkVO newNetwork) {
+        hiveValidator.validate(newNetwork);
         logger.debug("Creating network {}", newNetwork);
         if (newNetwork.getId() != null) {
             logger.error("Can't create network entity with id={} specified", newNetwork.getId());
@@ -131,7 +132,6 @@ public class NetworkService {
             logger.error("Network with name {} already exists", newNetwork.getName());
             throw new ActionNotAllowedException(Messages.DUPLICATE_NETWORK);
         }
-        hiveValidator.validate(newNetwork);
         networkDao.persist(newNetwork);
         logger.info("Entity {} created successfully", newNetwork);
         return newNetwork;

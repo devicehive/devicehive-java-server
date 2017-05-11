@@ -109,6 +109,7 @@ public class DeviceCommandService {
     }
 
     public CompletableFuture<DeviceCommand> insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
+        hiveValidator.validate(commandWrapper);
         DeviceCommand command = convertWrapperToCommand(commandWrapper, device, user);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -186,28 +187,29 @@ public class DeviceCommandService {
     }
 
     public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+        hiveValidator.validate(commandWrapper);
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
 
-        if (commandWrapper.getCommand() != null) {
-            cmd.setCommand(commandWrapper.getCommand().orElse(null));
+        if (commandWrapper.getCommand().isPresent()) {
+            cmd.setCommand(commandWrapper.getCommand().get());
         }
-        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+        if (commandWrapper.getTimestamp().isPresent()) {
             cmd.setTimestamp(commandWrapper.getTimestamp().get());
         }
-        if (commandWrapper.getParameters() != null) {
-            cmd.setParameters(commandWrapper.getParameters().orElse(null));
+        if (commandWrapper.getParameters().isPresent()) {
+            cmd.setParameters(commandWrapper.getParameters().get());
         }
-        if (commandWrapper.getLifetime() != null) {
-            cmd.setLifetime(commandWrapper.getLifetime().orElse(null));
+        if (commandWrapper.getLifetime().isPresent()) {
+            cmd.setLifetime(commandWrapper.getLifetime().get());
         }
-        if (commandWrapper.getStatus() != null) {
-            cmd.setStatus(commandWrapper.getStatus().orElse(null));
+        if (commandWrapper.getStatus().isPresent()) {
+            cmd.setStatus(commandWrapper.getStatus().get());
         }
-        if (commandWrapper.getResult() != null) {
-            cmd.setResult(commandWrapper.getResult().orElse(null));
+        if (commandWrapper.getResult().isPresent()) {
+            cmd.setResult(commandWrapper.getResult().get());
         }
 
         hiveValidator.validate(cmd);
@@ -225,7 +227,7 @@ public class DeviceCommandService {
         command.setDeviceGuid(device.getGuid());
         command.setIsUpdated(false);
 
-        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+        if (commandWrapper.getTimestamp().isPresent()) {
             command.setTimestamp(commandWrapper.getTimestamp().get());
         } else {
             command.setTimestamp(timestampService.getDate());
@@ -234,20 +236,20 @@ public class DeviceCommandService {
         if (user != null) {
             command.setUserId(user.getId());
         }
-        if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().orElseGet(null));
+        if (commandWrapper.getCommand().isPresent()) {
+            command.setCommand(commandWrapper.getCommand().get());
         }
-        if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().orElse(null));
+        if (commandWrapper.getParameters().isPresent()) {
+            command.setParameters(commandWrapper.getParameters().get());
         }
-        if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().orElse(null));
+        if (commandWrapper.getLifetime().isPresent()) {
+            command.setLifetime(commandWrapper.getLifetime().get());
         }
-        if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().orElse(null));
+        if (commandWrapper.getStatus().isPresent()) {
+            command.setStatus(commandWrapper.getStatus().get());
         }
-        if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().orElse(null));
+        if (commandWrapper.getResult().isPresent()) {
+            command.setResult(commandWrapper.getResult().get());
         }
 
         hiveValidator.validate(command);

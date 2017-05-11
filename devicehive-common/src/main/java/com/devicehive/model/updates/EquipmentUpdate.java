@@ -25,6 +25,7 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
@@ -36,14 +37,17 @@ public class EquipmentUpdate implements HiveEntity {
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private Long id;
 
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private String name;
 
+    @Size(min = 1, max = 128, message = "Field code cannot be empty. The length of code should not be more than 128 symbols.")
     @SerializedName("code")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private String code;
 
+    @Size(min = 1, max = 128, message = "Field type cannot be empty. The length of type should not be more than 128 symbols.")
     @SerializedName("type")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
     private String type;

@@ -31,6 +31,7 @@ import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.tuple.Pair;
@@ -54,16 +55,19 @@ public class DeviceNotificationService {
     private TimestampService timestampService;
     private DeviceDao deviceDao;
     private RpcClient rpcClient;
+    private HiveValidator hiveValidator;
 
     @Autowired
     public DeviceNotificationService(DeviceEquipmentService deviceEquipmentService,
                                      TimestampService timestampService,
                                      DeviceDao deviceDao,
-                                     RpcClient rpcClient) {
+                                     RpcClient rpcClient,
+                                     HiveValidator hiveValidator) {
         this.deviceEquipmentService = deviceEquipmentService;
         this.timestampService = timestampService;
         this.deviceDao = deviceDao;
         this.rpcClient = rpcClient;
+        this.hiveValidator = hiveValidator;
     }
 
     public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String guid) {
@@ -112,6 +116,7 @@ public class DeviceNotificationService {
 
     public CompletableFuture<DeviceNotification> insert(final DeviceNotification notification,
                                                         final DeviceVO device) {
+        hiveValidator.validate(notification);
         List<CompletableFuture<Response>> futures = processDeviceNotification(notification, device).stream()
                 .map(n -> {
                     CompletableFuture<Response> future = new CompletableFuture<>();

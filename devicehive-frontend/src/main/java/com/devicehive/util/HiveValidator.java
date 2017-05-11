@@ -46,7 +46,12 @@ public class HiveValidator {
      * @throws HiveException if there is any constraint violations.
      */
     public <T> void validate(T object) {
-        Set<ConstraintViolation<?>> violations = new HashSet<>(validator.validate(object));
+        Set<ConstraintViolation<?>> violations = new HashSet<>();
+        try {
+            violations.addAll(validator.validate(object));
+        } catch (IllegalArgumentException e){
+            throw new HiveException("Error! Validation failed: Object is null", BAD_REQUEST.getStatusCode());
+        }
         if (!violations.isEmpty()) {
             String response = buildMessage(violations);
             throw new HiveException(response, BAD_REQUEST.getStatusCode());

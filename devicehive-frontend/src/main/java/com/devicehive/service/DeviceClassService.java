@@ -70,6 +70,7 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClassWithEquipmentVO createOrUpdateDeviceClass(Optional<DeviceClassUpdate> deviceClass, Set<DeviceClassEquipmentVO> customEquipmentSet) {
+
         DeviceClassWithEquipmentVO stored;
         //use existing
         if (deviceClass == null || !deviceClass.isPresent()) {
@@ -96,13 +97,13 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClassWithEquipmentVO addDeviceClass(DeviceClassWithEquipmentVO deviceClass) {
+        hiveValidator.validate(deviceClass);
         if (deviceClassDao.findByName(deviceClass.getName()) != null) {
             throw new HiveException(Messages.DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS, FORBIDDEN.getStatusCode());
         }
         if (deviceClass.getIsPermanent() == null) {
             deviceClass.setIsPermanent(false);
         }
-        hiveValidator.validate(deviceClass);
         deviceClass = deviceClassDao.persist(deviceClass);
         // TODO [rafa] looks strange, very strange
 //        if (deviceClass.getEquipment() != null) {
@@ -219,6 +220,7 @@ public class DeviceClassService {
 
     @Transactional
     public DeviceClassEquipmentVO createEquipment(Long classId, DeviceClassEquipmentVO equipment) {
+        hiveValidator.validate(equipment);
         DeviceClassWithEquipmentVO deviceClass = deviceClassDao.find(classId);
         if (deviceClass == null) {
             throw new HiveException(String.format(Messages.DEVICE_CLASS_NOT_FOUND, classId), NOT_FOUND.getStatusCode());

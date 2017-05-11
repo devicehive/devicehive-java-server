@@ -75,8 +75,8 @@ public class DeviceService {
     //todo equipmentSet is not used
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, Set<DeviceClassEquipmentVO> equipmentSet, HivePrincipal principal) {
+        hiveValidator.validate(device);
         logger.debug("Device: {}. Current principal: {}.", device.getGuid(), principal == null ? null : principal.getName());
-        validateDevice(device);
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
             if (principal.getUser() != null) {
@@ -271,20 +271,6 @@ public class DeviceService {
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> findByGuidWithPermissionsCheck(Collection<String> guids, HivePrincipal principal) {
         return getDeviceList(new ArrayList<>(guids), principal);
-    }
-
-    /**
-     * Implementation for model: if field exists and null - error if field does not exists - use field from database
-     *
-     * @param device device to check
-     */
-    @Transactional(readOnly = true)
-    public void validateDevice(DeviceUpdate device) throws HiveException {
-        if (device == null) {
-            logger.error("Device validation: device is empty");
-            throw new HiveException(Messages.EMPTY_DEVICE);
-        }
-        hiveValidator.validate(device);
     }
 
     @Transactional(readOnly = true)

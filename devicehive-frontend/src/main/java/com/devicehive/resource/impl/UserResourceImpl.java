@@ -33,6 +33,7 @@ import com.devicehive.resource.UserResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.UserService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -64,6 +65,9 @@ public class UserResourceImpl implements UserResource {
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private HiveValidator hiveValidator;
 
     /**
      * {@inheritDoc}
@@ -136,6 +140,7 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response insertUser(UserUpdate userToCreate) {
+        hiveValidator.validate(userToCreate);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Boolean isAnonymousCreateAllowed = configurationService.getBoolean(USER_ANONYMOUS_CREATION, false);
         Boolean isAuthenticatedAndHasPermission = (principal.isAuthenticated() && principal.getActions() != null && 

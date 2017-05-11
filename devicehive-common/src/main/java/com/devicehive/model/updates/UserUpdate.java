@@ -26,16 +26,32 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
+
+    @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 symbols.")
     private String login;
+
+    @Max(value = 1, message = "The value of role should not be more than 1.")
+    @Min(value = 0, message = "The value of role should not be less than 0.")
     private Integer role;
+
+    @Max(value = 3, message = "The value of status should not be more than 3.")
+    @Min(value = 0, message = "The value of status should not be less than 0.")
     private Integer status;
+
+    @Size(max = 128, message = "The length of password should not be more than 128 symbols.")
     private String password;
+
+    @Size(max = 128, message = "The length of old password should not be more than 128 symbols.")
     private String oldPassword;
+
     private JsonStringWrapper data;
 
     public Optional<String> getLogin() {

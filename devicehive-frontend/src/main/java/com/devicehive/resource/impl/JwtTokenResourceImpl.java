@@ -30,6 +30,7 @@ import com.devicehive.service.security.jwt.AuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.UserVO;
@@ -61,8 +62,12 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     @Autowired
     private AuthTokenService authTokenService;
 
+    @Autowired
+    private HiveValidator hiveValidator;
+
     @Override
     public Response tokenRequest(JwtPayload payload) {
+        hiveValidator.validate(payload);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
 
         UserVO user = userService.findById(payload.getUserId());
@@ -84,6 +89,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Override
     public Response refreshTokenRequest(JwtTokenVO requestTokenVO) {
+        hiveValidator.validate(requestTokenVO);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
         JwtPayload payload;
 

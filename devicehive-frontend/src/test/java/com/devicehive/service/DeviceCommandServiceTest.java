@@ -230,9 +230,9 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
         for (int i = 0; i < num; i++) {
             final DeviceCommandWrapper deviceCommand = new DeviceCommandWrapper();
-            deviceCommand.setCommand(Optional.of("command" + i));
-            deviceCommand.setParameters(Optional.of(new JsonStringWrapper("{'test':'test'}")));
-            deviceCommand.setStatus(Optional.of(DEFAULT_STATUS));
+            deviceCommand.setCommand("command" + i);
+            deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
+            deviceCommand.setStatus(DEFAULT_STATUS);
 
             deviceCommandService.insert(deviceCommand, deviceVO, user)
                     .thenAccept(deviceCom -> {
@@ -256,8 +256,8 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         deviceCommand.setStatus(DEFAULT_STATUS);
 
         final DeviceCommandWrapper commandWrapper = new DeviceCommandWrapper();
-        commandWrapper.setStatus(Optional.of("OK"));
-        commandWrapper.setLifetime(Optional.of(100500));
+        commandWrapper.setStatus("OK");
+        commandWrapper.setLifetime(100500);
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> Response.newBuilder()
                 .buildSuccess());

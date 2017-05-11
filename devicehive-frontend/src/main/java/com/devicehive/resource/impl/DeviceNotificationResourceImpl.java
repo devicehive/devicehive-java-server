@@ -33,6 +33,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -69,6 +70,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
     @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private HiveValidator hiveValidator;
 
     /**
      * {@inheritDoc}
@@ -230,8 +234,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      */
     @Override
     public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
+        hiveValidator.validate(notificationSubmit);
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
-
         if (notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
