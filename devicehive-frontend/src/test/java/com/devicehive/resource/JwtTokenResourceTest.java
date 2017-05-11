@@ -85,7 +85,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
         assertNotNull(jwtTokenVO.getAccessToken());
         assertNotNull(jwtTokenVO.getRefreshToken());
     }

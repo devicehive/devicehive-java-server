@@ -994,7 +994,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(null);
+        update.setPassword("");
         userService.updateUser(user.getId(), update, UserRole.ADMIN);
     }
 
