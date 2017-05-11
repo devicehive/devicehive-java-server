@@ -164,7 +164,7 @@ public class UserService {
         if (userToUpdate == null) {
             return existing;
         }
-        if (userToUpdate.getLogin() != null) {
+        if (userToUpdate.getLogin().isPresent()) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             final String oldLogin = existing.getLogin();
             Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);

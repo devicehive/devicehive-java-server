@@ -257,7 +257,9 @@ public class NetworkService {
     }
 
     private NetworkVO validateNetworkKey(NetworkVO stored, NetworkVO received) {
-        if (stored.getKey() != null && !stored.getKey().equals(received.getKey())) {
+        if (stored.getKey() != null
+                && !stored.getKey().isEmpty()
+                && !stored.getKey().equals(received.getKey())) {
             throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
         }
         return stored;
