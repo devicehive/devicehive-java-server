@@ -25,6 +25,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.resource.converters.TimestampQueryParamParser;
@@ -236,11 +237,18 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(notificationSubmit);
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
-        if (notificationSubmit.getNotification() == null) {
+        final String notificationName = notificationSubmit.getNotification();
+        if (notificationName == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
                     Messages.INVALID_REQUEST_PARAMETERS);
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
+            asyncResponse.resume(response);
+        } else if (SpecialNotifications.DEVICE_UPDATE.equals(notificationName) || // Prevent inserting special notification manually
+                    SpecialNotifications.DEVICE_ADD.equals(notificationName)){
+            logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: it's not allow to insert special notification.");
+            ErrorResponse errorCode = new ErrorResponse(FORBIDDEN.getStatusCode(), Messages.FORBIDDEN_INSERT_SPECIAL_NOTIFICATION);
+            Response response = ResponseFactory.response(FORBIDDEN, errorCode);
             asyncResponse.resume(response);
         } else {
             DeviceVO device = deviceService.findById(guid);
@@ -268,10 +276,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                             })
                             .exceptionally(e -> {
-                                // FIX ERROR
                                 logger.warn("Device notification insert failed for device with guid = {}.", guid);
-                                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, -1L));
-                                Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                                ErrorResponse errorCode = new ErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(), String.format(Messages.NOTIFICATION_INSERT_FAILED, guid));
+                                Response jaxResponse = ResponseFactory.response(INTERNAL_SERVER_ERROR, errorCode);
                                 asyncResponse.resume(jaxResponse);
                                 return null;
                             });

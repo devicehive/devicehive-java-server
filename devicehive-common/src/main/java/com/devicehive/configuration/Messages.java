@@ -126,6 +126,8 @@ public class Messages {
     public static final String CANT_DELETE_CURRENT_USER_KEY = BidBundle.get("CANT_DELETE_CURRENT_USER_KEY");
     public static final String CANT_DELETE_LAST_DEFAULT_ACCESS_KEY = BidBundle.get("CANT_DELETE_LAST_DEFAULT_ACCESS_KEY");
     public static final String FORBIDDEN_INSERT_USER = BidBundle.get("FORBIDDEN_INSERT_USER");
+    public static final String FORBIDDEN_INSERT_SPECIAL_NOTIFICATION = BidBundle.get("FORBIDDEN_INSERT_SPECIAL_NOTIFICATION");
+    public static final String NOTIFICATION_INSERT_FAILED = BidBundle.get("NOTIFICATION_INSERT_FAILED");
 
     /**
      * Bundle to extract localized strings from property files.
