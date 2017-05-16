@@ -24,6 +24,7 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -171,7 +172,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         NetworkUpdate network = new NetworkUpdate();
-        network.setName(Optional.of("network"));
+        network.setName("network");
 
         networkService.update(-1L, network);
     }
@@ -185,9 +186,9 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         NetworkUpdate update = new NetworkUpdate();
-        update.setKey(Optional.of("key"));
-        update.setName(Optional.of("name"));
-        update.setDescription(Optional.of("description"));
+        update.setKey("key");
+        update.setName("name");
+        update.setDescription("description");
 
         NetworkVO updated = networkService.update(created.getId(), update);
         assertThat(created.getId(), is(updated.getId()));
@@ -501,13 +502,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -535,13 +536,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -564,13 +565,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -597,13 +598,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -634,13 +635,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(network));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(network);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -696,21 +697,21 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(created);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable("allowed_device"));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(created));
+        device.setName("allowed_device");
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(created);
         DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
 
         HivePrincipal principal = new HivePrincipal(user);
@@ -745,13 +746,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), created.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
-            device.setName(Optional.ofNullable(randomUUID().toString()));
-            device.setGuid(Optional.ofNullable(randomUUID().toString()));
-            device.setDeviceClass(Optional.ofNullable(dc));
-            device.setNetwork(Optional.ofNullable(created));
+            device.setName(randomUUID().toString());
+            device.setGuid(randomUUID().toString());
+            device.setDeviceClass(dc);
+            device.setNetwork(created);
             deviceService.deviceSave(device, Collections.emptySet());
         }
 
@@ -815,7 +816,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     @Ignore("JavaScript integration test '#Create Auto Create (incl. Legacy Equipment) should auto-create network and device class' fails with such behavior")
     @Test
     public void should_throw_ActionNotAllowedException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
@@ -827,7 +828,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_create_new_network_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -839,7 +840,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_key_by_id_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -854,7 +855,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_key_by_name_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -872,7 +873,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
@@ -888,7 +889,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -907,7 +908,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_exception_when_updates_network_by_user_if_user_is_client() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, false);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -926,7 +927,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_if_client_has_access() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -947,7 +948,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
-        configurationService.save(NetworkService.ALLOW_NETWORK_AUTO_CREATE, true);
+        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));

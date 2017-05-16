@@ -33,6 +33,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -70,6 +71,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     @Autowired
     private TimestampService timestampService;
 
+    @Autowired
+    private HiveValidator hiveValidator;
+
     /**
      * {@inheritDoc}
      */
@@ -81,7 +85,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         final Date timestampSt = TimestampQueryParamParser.parse(startTs);
         final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
-        DeviceVO byGuidWithPermissionsCheck = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO byGuidWithPermissionsCheck = deviceService.findById(guid);
         if (byGuidWithPermissionsCheck == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
@@ -109,7 +113,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     public void get(String guid, Long notificationId, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
 
         if (device == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
@@ -230,8 +234,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      */
     @Override
     public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
+        hiveValidator.validate(notificationSubmit);
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
-
         if (notificationSubmit.getNotification() == null) {
             logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
@@ -239,7 +243,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
             asyncResponse.resume(response);
         } else {
-            DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+            DeviceVO device = deviceService.findById(guid);
             if (device == null) {
                 logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

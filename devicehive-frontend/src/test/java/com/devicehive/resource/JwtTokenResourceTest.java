@@ -69,9 +69,6 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setLogin("string_0");
         testUser.setRole(UserRole.CLIENT);
         testUser.setPasswordHash("string_0");
-        testUser.setFacebookLogin("string_0");
-        testUser.setGithubLogin("string_0");
-        testUser.setGoogleLogin("string_0");
         testUser.setStatus(UserStatus.ACTIVE);
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
@@ -88,7 +85,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
         assertNotNull(jwtTokenVO.getAccessToken());
         assertNotNull(jwtTokenVO.getRefreshToken());
     }
@@ -123,9 +120,6 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setLogin("string_1");
         testUser.setRole(UserRole.CLIENT);
         testUser.setPasswordHash("string_1");
-        testUser.setFacebookLogin("string_1");
-        testUser.setGithubLogin("string_1");
-        testUser.setGoogleLogin("string_1");
         testUser.setStatus(UserStatus.DISABLED);
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);

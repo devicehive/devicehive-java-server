@@ -1,4 +1,4 @@
-package com.devicehive.service;
+package com.devicehive.service.security.jwt;
 
 /*
  * #%L
@@ -20,11 +20,13 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AvailableActions;
-import com.devicehive.model.oauth.*;
 import com.devicehive.security.jwt.JwtPayload;
-import com.devicehive.service.security.jwt.JwtClientService;
+import com.devicehive.service.UserService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,40 +39,31 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import javax.ws.rs.core.Response;
+import org.apache.commons.lang3.StringUtils;
 
 @Component
-public class OAuthTokenService {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(OAuthTokenService.class);
+public class AuthTokenService {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AuthTokenService.class);
 
     @Autowired
     private UserService userService;
     @Autowired
     private JwtClientService tokenService;
-
-    @Autowired
-    private GoogleAuthProvider googleAuthProvider;
-    @Autowired
-    private FacebookAuthProvider facebookAuthProvider;
-    @Autowired
-    private GithubAuthProvider githubAuthProvider;
-    @Autowired
-    private PasswordIdentityProvider passwordIdentityProvider;
-
     @Autowired
     private NetworkDao networkDao;
-
-    public JwtTokenVO createToken(@NotNull OauthJwtRequestVO request, IdentityProviderEnum identityProviderEnum) {
-        switch (identityProviderEnum) {
-            case GOOGLE:
-                return googleAuthProvider.createAccessKey(request);
-            case FACEBOOK:
-                return facebookAuthProvider.createAccessKey(request);
-            case GITHUB:
-                return githubAuthProvider.createAccessKey(request);
-            case PASSWORD:
-            default:
-                return passwordIdentityProvider.createAccessKey(request);
+    @Autowired
+    private HiveValidator hiveValidator;
+    
+    @Transactional(propagation = Propagation.REQUIRED)
+    public JwtTokenVO createAccessKey(@NotNull final JwtRequestVO request) {
+        hiveValidator.validate(request);
+        if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
+            logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
+            throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
+        final UserVO user = userService.findUser(request.getLogin(), request.getPassword());
+        return authenticate(user);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

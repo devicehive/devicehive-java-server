@@ -54,6 +54,8 @@ public class Constants {
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
+    public static final String USER_ANONYMOUS_CREATION = "user.anonymous_creation";
+    public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
     //API constants
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_GUID = "deviceGuid";

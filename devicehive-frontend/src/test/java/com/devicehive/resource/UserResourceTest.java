@@ -47,10 +47,10 @@ public class UserResourceTest extends AbstractResourceTest {
         String password = RandomStringUtils.randomAlphabetic(10);
 
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(Optional.ofNullable(login));
-        testUser.setRole(Optional.ofNullable(UserRole.CLIENT.getValue()));
-        testUser.setPassword(Optional.ofNullable(password));
-        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
+        testUser.setLogin(login);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(password);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), notNullValue());
@@ -61,18 +61,18 @@ public class UserResourceTest extends AbstractResourceTest {
         assertThat(user.getId(), equalTo(userid));
 
         testUser = new UserUpdate();
-        testUser.setStatus(Optional.ofNullable(UserStatus.DISABLED.getValue()));
-        testUser.setLogin(Optional.ofNullable(login));
-        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setStatus(UserStatus.DISABLED.getValue());
+        testUser.setLogin(login);
+        testUser.setPassword(password);
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, NO_CONTENT, Response.class);
 
         user = performRequest("/user/" + user.getId(), "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, UserVO.class);
         assertThat(user.getStatus(), equalTo(UserStatus.DISABLED));
 
         testUser = new UserUpdate();
-        testUser.setStatus(Optional.ofNullable(UserStatus.ACTIVE.getValue()));
-        testUser.setLogin(Optional.ofNullable(login));
-        testUser.setPassword(Optional.ofNullable(password));
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setLogin(login);
+        testUser.setPassword(password);
         performRequest("/user/current", "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), testUser, UNAUTHORIZED, Response.class);
     }
 

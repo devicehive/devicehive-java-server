@@ -55,45 +55,6 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     }
 
     @Override
-    public UserVO findByGoogleName(String name) {
-        User user = createNamedQuery(User.class, "User.findByGoogleName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        return User.convertToVo(user);
-    }
-
-    @Override
-    public UserVO findByFacebookName(String name) {
-        User user = createNamedQuery(User.class, "User.findByFacebookName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        return User.convertToVo(user);
-    }
-
-    @Override
-    public UserVO findByGithubName(String name) {
-        User user = createNamedQuery(User.class, "User.findByGithubName", empty())
-                .setParameter("login", name)
-                .getResultList()
-                .stream().findFirst().orElse(null);
-        return User.convertToVo(user);
-    }
-
-    @Override
-    public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        Optional<User> user = createNamedQuery(User.class, "User.findByIdentityName", of(CacheConfig.bypass()))
-                .setParameter("login", login)
-                .setParameter("googleLogin", googleLogin)
-                .setParameter("facebookLogin", facebookLogin)
-                .setParameter("githubLogin", githubLogin)
-                .getResultList()
-                .stream().findFirst();
-        return optionalUserConvertToVo(user);
-    }
-
-    @Override
     public long hasAccessToNetwork(UserVO user, NetworkVO network) {
         Network nw = reference(Network.class, network.getId());
         return createNamedQuery(Long.class, "User.hasAccessToNetwork", empty())

@@ -34,6 +34,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +72,9 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private HiveValidator hiveValidator;
 
     /**
      * {@inheritDoc}
@@ -187,7 +191,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(deviceGuid);
+        DeviceVO device = deviceService.findById(deviceGuid);
 
         if (device == null) {
             LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceGuid);
@@ -268,7 +272,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final Date timestampSt = TimestampQueryParamParser.parse(startTs);
         final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
         if (device == null) {
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
@@ -295,7 +299,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public void get(String guid, String commandId, @Suspended final AsyncResponse asyncResponse) {
         LOGGER.debug("Device command get requested. deviceId = {}, commandId = {}", guid, commandId);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
         if (device == null) {
             Response response = ResponseFactory.response(NOT_FOUND,
                     new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid)));
@@ -329,10 +333,11 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      */
     @Override
     public void insert(String guid, DeviceCommandWrapper deviceCommand, @Suspended final AsyncResponse asyncResponse) {
-        LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand.getCommand());
+        hiveValidator.validate(deviceCommand);
+        LOGGER.debug("Device command insert requested. deviceId = {}, command = {}", guid, deviceCommand);
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO authUser = principal.getUser();
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
 
         if (device == null) {
             LOGGER.warn("Device command insert failed. No device with guid = {} found", guid);
@@ -362,7 +367,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public void update(String guid, Long commandId, DeviceCommandWrapper command, @Suspended final AsyncResponse asyncResponse) {
 
         LOGGER.debug("Device command update requested. command {}", command);
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
         if (device == null) {
             LOGGER.warn("Device command update failed. No device with guid = {} found", guid);
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));

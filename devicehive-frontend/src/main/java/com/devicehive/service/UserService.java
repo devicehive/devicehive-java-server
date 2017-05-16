@@ -19,7 +19,6 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
@@ -68,12 +67,15 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
  */
 @Component
 public class UserService {
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private PasswordProcessor passwordService;
     @Autowired
     private NetworkDao networkDao;
+    @Autowired
+    private NetworkService networkService;
     @Autowired
     private UserDao userDao;
     @Autowired
@@ -127,8 +129,8 @@ public class UserService {
             return of(user1);
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >=
-                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+            if (user.getLoginAttempts()
+                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
                 user.setLoginAttempts(0);
             }
@@ -162,7 +164,7 @@ public class UserService {
         if (userToUpdate == null) {
             return existing;
         }
-        if (userToUpdate.getLogin() != null) {
+        if (userToUpdate.getLogin().isPresent()) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             final String oldLogin = existing.getLogin();
             Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);
@@ -172,26 +174,9 @@ public class UserService {
             }
             existing.setLogin(newLogin);
 
-            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null)) ?
-                    userToUpdate.getGoogleLogin().orElse(null) : null;
-            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null)) ?
-                    userToUpdate.getFacebookLogin().orElse(null) : null;
-            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null)) ?
-                    userToUpdate.getGithubLogin().orElse(null) : null;
-
-            if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
-                        facebookLogin, githubLogin);
-                if (userWithSameIdentity.isPresent()) {
-                    throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-                }
-            }
-            existing.setGoogleLogin(googleLogin);
-            existing.setFacebookLogin(facebookLogin);
-            existing.setGithubLogin(githubLogin);
         }
-        if (userToUpdate.getPassword() != null) {
-            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
+        if (userToUpdate.getPassword().isPresent()) {
+            if (userToUpdate.getOldPassword().isPresent() && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
                 final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().orElse(null),
                         existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
@@ -211,7 +196,7 @@ public class UserService {
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
-        if (userToUpdate.getStatus() != null || userToUpdate.getRole() != null) {
+        if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
             if (role != UserRole.ADMIN) {
                 logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
@@ -221,8 +206,8 @@ public class UserService {
                 existing.setStatus(userToUpdate.getStatusEnum());
             }
         }
-        if (userToUpdate.getData() != null) {
-            existing.setData(userToUpdate.getData().orElse(null));
+        if (userToUpdate.getData().isPresent()) {
+            existing.setData(userToUpdate.getData().get());
         }
         hiveValidator.validate(existing);
         return userDao.merge(existing);
@@ -231,7 +216,7 @@ public class UserService {
     /**
      * Allows user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -249,7 +234,7 @@ public class UserService {
     /**
      * Revokes user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -264,7 +249,7 @@ public class UserService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                                                  Boolean sortOrderAsc, Integer take, Integer skip) {
+            Boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);
@@ -297,8 +282,8 @@ public class UserService {
     }
 
     /**
-     * Retrieves user with networks by id, if there is no networks user hass access to networks will be represented by
-     * empty set
+     * Retrieves user with networks by id, if there is no networks user hass
+     * access to networks will be represented by empty set
      *
      * @param id user id
      * @return User model with networks, or null, if there is no such user
@@ -311,6 +296,7 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserVO createUser(@NotNull UserVO user, String password) {
+        hiveValidator.validate(user);
         if (user.getId() != null) {
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
@@ -326,23 +312,19 @@ public class UserService {
             user.setPasswordSalt(salt);
             user.setPasswordHash(hash);
         }
-        final String googleLogin = StringUtils.isNotBlank(user.getGoogleLogin()) ? user.getGoogleLogin() : null;
-        final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
-        final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
-        if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-            Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
-                    facebookLogin, githubLogin);
-            if (userWithSameIdentity.isPresent()) {
-                throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-            }
-            user.setGoogleLogin(googleLogin);
-            user.setFacebookLogin(facebookLogin);
-            user.setGithubLogin(githubLogin);
-        }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        hiveValidator.validate(user);
         userDao.persist(user);
         return user;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
+        hiveValidator.validate(convertTo);
+        UserVO createdUser = createUser(convertTo, password);
+        NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
+        UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);
+        result.getNetworks().add(createdNetwork);
+        return result;
     }
 
     /**
@@ -373,21 +355,6 @@ public class UserService {
             return count > 0;
         }
         return true;
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGoogleUser(String login) {
-        return userDao.findByGoogleName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findFacebookUser(String login) {
-        return userDao.findByFacebookName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGithubUser(String login) {
-        return userDao.findByGithubName(login);
     }
 
     @Transactional

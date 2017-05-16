@@ -45,9 +45,6 @@ public class UserWithNetworkVO extends UserVO {
         if (dc != null) {
             vo = new UserWithNetworkVO();
             vo.setData(dc.getData());
-            vo.setFacebookLogin(dc.getFacebookLogin());
-            vo.setGithubLogin(dc.getGithubLogin());
-            vo.setGoogleLogin(dc.getGoogleLogin());
             vo.setId(dc.getId());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());

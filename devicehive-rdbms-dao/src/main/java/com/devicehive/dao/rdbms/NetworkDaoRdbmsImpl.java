@@ -19,8 +19,6 @@ package com.devicehive.dao.rdbms;
  * limitations under the License.
  * #L%
  */
-
-
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.model.Network;
@@ -48,6 +46,7 @@ import static java.util.Optional.ofNullable;
 
 @Repository
 public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
+
     @Override
     public List<NetworkVO> findByName(String name) {
         List<Network> result = createNamedQuery(Network.class, "Network.findByName", Optional.of(CacheConfig.get()))
@@ -106,7 +105,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
         assert user != null && user.getId() != null;
         Network existing = find(Network.class, network.getId());
         User userReference = reference(User.class, user.getId());
-        if (existing.getUsers() == null){
+        if (existing.getUsers() == null) {
             existing.setUsers(new HashSet<>());
         }
         existing.getUsers().add(userReference);
@@ -140,10 +139,9 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId) {
-        Optional<Network> result = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
+        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
                 .setParameter("id", networkId)
-                .getResultList()
-                .stream().findFirst();
-        return result.isPresent() ? Optional.ofNullable(Network.convertWithDevicesAndUsers(result.get())) : Optional.empty();
+                .getResultList();
+        return networks.isEmpty() ? Optional.empty() : Optional.ofNullable(Network.convertWithDevicesAndUsers(networks.get(0)));
     }
 }

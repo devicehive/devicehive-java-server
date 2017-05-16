@@ -21,55 +21,18 @@ package com.devicehive.vo;
  */
 
 import com.devicehive.model.HiveEntity;
-import com.google.gson.annotations.SerializedName;
-
-import java.io.Serializable;
 
 /**
  * Created by tmatvienko on 1/13/15.
  */
-public class OauthJwtRequestVO implements HiveEntity {
+public class JwtRequestVO implements HiveEntity {
     private static final long serialVersionUID = -3876398635939615946L;
-
-    private String providerName;
-
-    private String code;
-
-    @SerializedName("redirectUri")
-    private String redirectUri;
-
-    @SerializedName("accessToken")
-    private String accessToken;
 
     private String login;
 
     private String password;
 
-    public OauthJwtRequestVO() {
-    }
-
-    public String getProviderName() {
-        return providerName;
-    }
-
-    public void setProviderName(String providerName) {
-        this.providerName = providerName;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public JwtRequestVO() {
     }
 
     public String getLogin() {
@@ -88,11 +51,4 @@ public class OauthJwtRequestVO implements HiveEntity {
         this.password = password;
     }
 
-    public String getRedirectUri() {
-        return redirectUri;
-    }
-
-    public void setRedirectUri(String redirectUri) {
-        this.redirectUri = redirectUri;
-    }
 }

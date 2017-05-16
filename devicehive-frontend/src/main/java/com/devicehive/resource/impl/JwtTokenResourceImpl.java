@@ -19,17 +19,20 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
-
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.service.security.jwt.AuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtTokenVO;
+import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.UserVO;
 import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
@@ -40,6 +43,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 public class JwtTokenResourceImpl implements JwtTokenResource {
@@ -55,8 +59,15 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     @Autowired
     private TimestampService timestampService;
 
+    @Autowired
+    private AuthTokenService authTokenService;
+
+    @Autowired
+    private HiveValidator hiveValidator;
+
     @Override
     public Response tokenRequest(JwtPayload payload) {
+        hiveValidator.validate(payload);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
 
         UserVO user = userService.findById(payload.getUserId());
@@ -78,6 +89,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Override
     public Response refreshTokenRequest(JwtTokenVO requestTokenVO) {
+        hiveValidator.validate(requestTokenVO);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
         JwtPayload payload;
 
@@ -87,7 +99,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             logger.error(e.getMessage(), e);
             return ResponseFactory.response(UNAUTHORIZED);
         }
-        
+
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
             logger.warn("JwtToken: User not found");
@@ -109,5 +121,18 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
         logger.debug("JwtToken: access token successfully generated with refresh token");
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response login(JwtRequestVO request) {
+        JwtTokenVO jwtToken = authTokenService.createAccessKey(request);
+        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response login() {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        JwtTokenVO jwtToken = authTokenService.authenticate(principal.getUser());
+        return ResponseFactory.response(OK, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }

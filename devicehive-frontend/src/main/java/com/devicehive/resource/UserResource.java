@@ -136,7 +136,7 @@ public interface UserResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
+    @PreAuthorize("permitAll")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     @ApiOperation(value = "Create user", notes = "Creates new user.")
     @ApiResponses({

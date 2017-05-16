@@ -125,6 +125,7 @@ public class Messages {
     public static final String NO_NETWORKS_ASSIGNED_TO_USER = BidBundle.get("NO_NETWORKS_ASSIGNED_TO_USER");
     public static final String CANT_DELETE_CURRENT_USER_KEY = BidBundle.get("CANT_DELETE_CURRENT_USER_KEY");
     public static final String CANT_DELETE_LAST_DEFAULT_ACCESS_KEY = BidBundle.get("CANT_DELETE_LAST_DEFAULT_ACCESS_KEY");
+    public static final String FORBIDDEN_INSERT_USER = BidBundle.get("FORBIDDEN_INSERT_USER");
 
     /**
      * Bundle to extract localized strings from property files.

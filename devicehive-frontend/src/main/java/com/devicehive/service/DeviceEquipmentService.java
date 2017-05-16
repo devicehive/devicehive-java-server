@@ -24,6 +24,7 @@ import com.devicehive.dao.DeviceEquipmentDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
@@ -44,6 +45,8 @@ public class DeviceEquipmentService {
     private TimestampService timestampService;
     @Autowired
     private DeviceEquipmentDao deviceEquipmentDao;
+    @Autowired
+    private HiveValidator hiveValidator;
 
     /**
      * find Device equipment by device
@@ -77,6 +80,7 @@ public class DeviceEquipmentService {
 
     @Transactional
     public void createDeviceEquipment(DeviceEquipmentVO deviceEquipment, DeviceVO device) {
+        hiveValidator.validate(deviceEquipment);
         DeviceEquipmentVO equipment = findByCodeAndDevice(deviceEquipment.getCode(), device);
         if (equipment != null) {
             equipment.setTimestamp(timestampService.getDate());

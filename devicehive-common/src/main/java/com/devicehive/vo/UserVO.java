@@ -25,7 +25,6 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,7 @@ public class UserVO implements HiveEntity {
 
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
+    @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 " +
             "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
@@ -66,18 +65,6 @@ public class UserVO implements HiveEntity {
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Date lastLogin;
-
-    @SerializedName("googleLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String googleLogin;
-
-    @SerializedName("facebookLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String facebookLogin;
-
-    @SerializedName("githubLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String githubLogin;
 
     @SerializedName("data")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
@@ -152,30 +139,6 @@ public class UserVO implements HiveEntity {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
-    }
-
-    public String getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(String googleLogin) {
-        this.googleLogin = StringUtils.trim(googleLogin);
-    }
-
-    public String getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(String facebookLogin) {
-        this.facebookLogin = StringUtils.trim(facebookLogin);
-    }
-
-    public String getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(String githubLogin) {
-        this.githubLogin = StringUtils.trim(githubLogin);
     }
 
     public JsonStringWrapper getData() {

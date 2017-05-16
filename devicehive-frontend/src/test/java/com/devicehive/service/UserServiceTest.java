@@ -641,13 +641,6 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
 
-        String googleLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setGoogleLogin(googleLogin);
-        String facebookLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setFacebookLogin(facebookLogin);
-        String githubLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setGithubLogin(githubLogin);
-
         user = userService.createUser(user, "123");
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
@@ -655,9 +648,6 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordHash(), notNullValue());
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
-        assertThat(user.getGoogleLogin(), equalTo(googleLogin));
-        assertThat(user.getFacebookLogin(), equalTo(facebookLogin));
-        assertThat(user.getGithubLogin(), equalTo(githubLogin));
         assertThat(user.getLoginAttempts(), equalTo(0));
     }
 
@@ -707,60 +697,6 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_ActionNotAllowedException_if_any_identity_login_already_exists() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setGoogleLogin(google);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setGoogleLogin(google);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setFacebookLogin(facebook);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setFacebookLogin(facebook);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String github = RandomStringUtils.randomAlphabetic(10);
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setGithubLogin(github);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setGithubLogin(github);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-    }
-
-    @Test
     public void should_delete_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -790,13 +726,13 @@ public class UserServiceTest extends AbstractResourceTest {
         userService.assignNetwork(user.getId(), network.getId());
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -815,13 +751,13 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -840,13 +776,13 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
+        dc.setName(randomUUID().toString());
 
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
+        device.setName(randomUUID().toString());
+        device.setGuid(randomUUID().toString());
+        device.setDeviceClass(dc);
+        device.setNetwork(network);
         deviceService.deviceSave(device, Collections.emptySet());
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
@@ -897,63 +833,6 @@ public class UserServiceTest extends AbstractResourceTest {
         network = networkService.create(network);
 
         assertFalse(userService.hasAccessToNetwork(user, network));
-    }
-
-    @Test
-    public void should_return_user_by_google_login() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findGoogleUser(google);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setGoogleLogin(google);
-        userService.createUser(user, "123");
-
-        user = userService.findGoogleUser(google);
-        assertThat(user, notNullValue());
-        assertThat(user.getGoogleLogin(), equalTo(google));
-    }
-
-    @Test
-    public void should_return_user_by_facebook_login() throws Exception {
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findFacebookUser(facebook);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setFacebookLogin(facebook);
-        userService.createUser(user, "123");
-
-        user = userService.findFacebookUser(facebook);
-        assertThat(user, notNullValue());
-        assertThat(user.getFacebookLogin(), equalTo(facebook));
-    }
-
-    @Test
-    public void should_return_user_by_github_login() throws Exception {
-        String gitgub = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findGithubUser(gitgub);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setGithubLogin(gitgub);
-        userService.createUser(user, "123");
-
-        user = userService.findGithubUser(gitgub);
-        assertThat(user, notNullValue());
-        assertThat(user.getGithubLogin(), equalTo(gitgub));
     }
 
     @Test
@@ -1019,7 +898,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(existingLogin));
+        update.setLogin(existingLogin);
         userService.updateUser(second.getId(), update, UserRole.ADMIN);
     }
 
@@ -1029,102 +908,15 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setFacebookLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setGoogleLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setGithubLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        update.setLogin(RandomStringUtils.random(10));
 
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
-        assertThat(updatedUser.getFacebookLogin(), allOf(not(equalTo(user.getFacebookLogin())), equalTo(update.getFacebookLogin().orElse(null))));
-        assertThat(updatedUser.getGoogleLogin(), allOf(not(equalTo(user.getGoogleLogin())), equalTo(update.getGoogleLogin().orElse(null))));
-        assertThat(updatedUser.getGithubLogin(), allOf(not(equalTo(user.getGithubLogin())), equalTo(update.getGithubLogin().orElse(null))));
-    }
-
-    @Test
-    public void should_throw_ActionNotAllowedException_if_user_with_any_login_exists_when_update() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstGoogleUser = new UserVO();
-        firstGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstGoogleUser.setGoogleLogin(google);
-        firstGoogleUser.setStatus(UserStatus.ACTIVE);
-        firstGoogleUser = userService.createUser(firstGoogleUser, RandomStringUtils.randomAlphabetic(10));
-        assertThat(firstGoogleUser.getGoogleLogin(), equalTo(google));
-
-        UserVO secondGoogleUser = new UserVO();
-        secondGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGoogleUser.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGoogleUser.setStatus(UserStatus.ACTIVE);
-        secondGoogleUser = userService.createUser(secondGoogleUser, RandomStringUtils.randomAlphabetic(10));
-        assertThat(firstGoogleUser.getId(), not(equalTo(secondGoogleUser.getId())));
-        try {
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondGoogleUser.getLogin()));
-            update.setGoogleLogin(Optional.ofNullable(google));
-            update.setFacebookLogin(Optional.ofNullable(null));
-            update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGoogleUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstFacebookUser = new UserVO();
-        firstFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstFacebookUser.setFacebookLogin(facebook);
-        firstFacebookUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(firstFacebookUser, RandomStringUtils.randomAlphabetic(10));
-
-        UserVO secondFacebookUser = new UserVO();
-        secondFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondFacebookUser.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
-        secondFacebookUser.setStatus(UserStatus.ACTIVE);
-        secondFacebookUser = userService.createUser(secondFacebookUser, RandomStringUtils.randomAlphabetic(10));
-        try {
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondFacebookUser.getLogin()));
-            update.setFacebookLogin(Optional.ofNullable(facebook));
-            update.setGoogleLogin(Optional.ofNullable(null));
-            update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondFacebookUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String github = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstGithubUser = new UserVO();
-        firstGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstGithubUser.setGithubLogin(github);
-        firstGithubUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(firstGithubUser, RandomStringUtils.randomAlphabetic(10));
-
-        UserVO secondGithubUser = new UserVO();
-        secondGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGithubUser.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGithubUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(secondGithubUser, RandomStringUtils.randomAlphabetic(10));
-        try {
-
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondGithubUser.getLogin()));
-            update.setGithubLogin(Optional.ofNullable(github));
-            update.setFacebookLogin(Optional.ofNullable(null));
-            update.setGoogleLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGithubUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
     }
 
     @Test
@@ -1135,7 +927,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setPassword("new_pass");
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -1154,7 +946,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.OLD_PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
+        update.setPassword("new_pass");
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -1166,8 +958,8 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, "123");
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("123"));
+        update.setPassword("new_pass");
+        update.setOldPassword("123");
         UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
@@ -1186,8 +978,8 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.INCORRECT_CREDENTIALS);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("old"));
+        update.setPassword("new_pass");
+        update.setOldPassword("old");
         userService.updateUser(user.getId(), update, UserRole.CLIENT);
     }
 
@@ -1202,7 +994,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable(null));
+        update.setPassword("");
         userService.updateUser(user.getId(), update, UserRole.ADMIN);
     }
 

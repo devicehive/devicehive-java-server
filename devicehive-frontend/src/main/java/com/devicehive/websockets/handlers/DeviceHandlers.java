@@ -90,7 +90,7 @@ public class DeviceHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setGuid(Optional.ofNullable(deviceId));
+        device.setGuid(deviceId);
         Set<DeviceClassEquipmentVO> equipmentSet = gson.fromJson(
                 request.get(Constants.EQUIPMENT),
                 new TypeToken<HashSet<DeviceClassEquipmentVO>>() {

@@ -30,6 +30,7 @@ import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
@@ -103,9 +104,15 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response register(DeviceUpdate deviceUpdate, String deviceGuid) {
+        if (deviceUpdate == null){
+            return ResponseFactory.response(
+                    BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
+            );
+        }
         logger.debug("Device register method requested. Guid : {}, Device: {}", deviceGuid, deviceUpdate);
 
-        deviceUpdate.setGuid(Optional.ofNullable(deviceGuid));
+        deviceUpdate.setGuid(deviceGuid);
 
         // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
         Set<DeviceClassEquipmentVO> equipmentSet = new HashSet<>();
@@ -124,7 +131,7 @@ public class DeviceResourceImpl implements DeviceResource {
     public Response get(String guid) {
         logger.debug("Device get requested. Guid {}", guid);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
 
         logger.debug("Device get proceed successfully. Guid {}", guid);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
@@ -147,7 +154,7 @@ public class DeviceResourceImpl implements DeviceResource {
     public Response equipment(String guid) {
         logger.debug("Device equipment requested for device {}", guid);
 
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
         List<DeviceEquipmentVO> equipments = deviceEquipmentService.findByFK(device);
 
         logger.debug("Device equipment request proceed successfully for device {}", guid);
@@ -161,7 +168,7 @@ public class DeviceResourceImpl implements DeviceResource {
     @Override
     public Response equipmentByCode(String guid, String code) {
         logger.debug("Device equipment by code requested");
-        DeviceVO device = deviceService.getDeviceWithNetworkAndDeviceClass(guid);
+        DeviceVO device = deviceService.findById(guid);
 
         DeviceEquipmentVO equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
         if (equipment == null) {

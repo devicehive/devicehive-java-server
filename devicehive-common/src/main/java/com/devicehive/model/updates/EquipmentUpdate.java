@@ -25,6 +25,7 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBLISHED;
@@ -32,24 +33,28 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.EQUIPMENT_PUBL
 public class EquipmentUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -1048095377970919818L;
-    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    Long id;
 
+    @JsonPolicyDef(EQUIPMENT_PUBLISHED)
+    private Long id;
+
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private Optional<String> name;
+    private String name;
 
+    @Size(min = 1, max = 128, message = "Field code cannot be empty. The length of code should not be more than 128 symbols.")
     @SerializedName("code")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private Optional<String> code;
+    private String code;
 
+    @Size(min = 1, max = 128, message = "Field type cannot be empty. The length of type should not be more than 128 symbols.")
     @SerializedName("type")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private Optional<String> type;
+    private String type;
 
     @SerializedName("data")
     @JsonPolicyDef(EQUIPMENT_PUBLISHED)
-    private Optional<JsonStringWrapper> data;
+    private JsonStringWrapper data;
 
     public Long getId() {
         return id;
@@ -60,34 +65,34 @@ public class EquipmentUpdate implements HiveEntity {
     }
 
     public Optional<String> getName() {
-        return name;
+        return Optional.ofNullable(name);
     }
 
-    public void setName(Optional<String> name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public Optional<String> getCode() {
-        return code;
+        return Optional.ofNullable(code);
     }
 
-    public void setCode(Optional<String> code) {
+    public void setCode(String code) {
         this.code = code;
     }
 
     public Optional<String> getType() {
-        return type;
+        return Optional.ofNullable(type);
     }
 
-    public void setType(Optional<String> type) {
+    public void setType(String type) {
         this.type = type;
     }
 
     public Optional<JsonStringWrapper> getData() {
-        return data;
+        return Optional.ofNullable(data);
     }
 
-    public void setData(Optional<JsonStringWrapper> data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 }
