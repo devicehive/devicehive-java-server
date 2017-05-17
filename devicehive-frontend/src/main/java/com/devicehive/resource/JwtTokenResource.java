@@ -76,7 +76,7 @@ public interface JwtTokenResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "If successful, this method returns the object with the following properties in the response body.",
+            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
                     response = JwtTokenVO.class),
             @ApiResponse(code = 403, message = "If identity provider is not allowed")
     })
@@ -88,7 +88,7 @@ public interface JwtTokenResource {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
     @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "If successful, this method returns the object with the following properties in the response body.",
+            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
                     response = JwtTokenVO.class),
             @ApiResponse(code = 403, message = "If identity provider is not allowed")
     })
