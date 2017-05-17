@@ -92,6 +92,7 @@ public class AuthTokenService {
                 .buildPayload();
 
         tokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
+        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload));
         return tokenVO;
     }
 }
