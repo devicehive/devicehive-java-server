@@ -239,7 +239,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Override
     public List<UserVO> list(String login, String loginPattern,
             Integer role, Integer status,
-            String sortField, Boolean isSortOrderAsc,
+            String sortField, boolean isSortOrderAsc,
             Integer take, Integer skip) {
 
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()

@@ -1221,7 +1221,7 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
         handleListUserRequest();
         final UserVO finalTestUser = testUser;
-        userService.list(testUser.getLogin(), null, null, null, null, null, 100, 0)
+        userService.list(testUser.getLogin(), null, null, null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(1));
@@ -1247,7 +1247,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1278,7 +1278,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
@@ -1308,7 +1308,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));

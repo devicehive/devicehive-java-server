@@ -202,7 +202,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
             Long deviceClassId, String deviceClassName, String sortField,
-            Boolean isSortOrderAsc, Integer take,
+            boolean isSortOrderAsc, Integer take,
             Integer skip, HivePrincipal principal) {
         //TODO [rafa] when filtering by device class name we have to instead query DeviceClass bucket for ids, and then use ids.
         // here is what happens, since device class is not embeddable in case of Riak we need to either keep id only and perform the logic above.

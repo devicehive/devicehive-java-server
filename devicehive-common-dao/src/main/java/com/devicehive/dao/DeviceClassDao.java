@@ -38,7 +38,7 @@ public interface DeviceClassDao {
     DeviceClassWithEquipmentVO merge(DeviceClassWithEquipmentVO deviceClass);
 
     List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField,
-                                                Boolean sortOrderAsc, Integer take, Integer skip);
+                                                boolean sortOrderAsc, Integer take, Integer skip);
 
     DeviceClassWithEquipmentVO findByName(@NotNull String name);
 

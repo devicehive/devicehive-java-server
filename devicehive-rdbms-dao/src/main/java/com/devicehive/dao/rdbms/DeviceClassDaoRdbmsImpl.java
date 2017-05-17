@@ -93,7 +93,7 @@ public class DeviceClassDaoRdbmsImpl extends RdbmsGenericDao implements DeviceCl
     }
 
     @Override
-    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField, Boolean sortOrderAsc, Integer take, Integer skip) {
+    public List<DeviceClassWithEquipmentVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<DeviceClass> criteria = cb.createQuery(DeviceClass.class);
         final Root<DeviceClass> from = criteria.from(DeviceClass.class);

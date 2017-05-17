@@ -56,5 +56,5 @@ public interface UserDao {
     void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId);
 
     List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                       Boolean sortOrderAsc, Integer take, Integer skip);
+                       boolean sortOrderAsc, Integer take, Integer skip);
 }
