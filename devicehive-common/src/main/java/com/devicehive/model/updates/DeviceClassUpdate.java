@@ -28,7 +28,6 @@ import com.devicehive.vo.DeviceClassVO;
 
 import javax.validation.constraints.Size;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 

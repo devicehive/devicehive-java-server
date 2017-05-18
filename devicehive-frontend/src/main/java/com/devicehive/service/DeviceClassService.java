@@ -31,7 +31,6 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceClassVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -39,12 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Component
 public class DeviceClassService {

@@ -22,31 +22,30 @@ package com.devicehive.resource;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
-import com.devicehive.model.*;
-import com.devicehive.model.enums.AccessKeyType;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceClassVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class DeviceResourceTest extends AbstractResourceTest {
 
@@ -132,9 +131,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);

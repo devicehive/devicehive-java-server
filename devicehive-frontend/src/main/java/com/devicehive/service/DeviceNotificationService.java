@@ -32,7 +32,6 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -200,16 +199,6 @@ public class DeviceNotificationService {
 
     private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
         List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        if (notificationMessage.getNotification() != null) {
-            switch (notificationMessage.getNotification()) {
-                case SpecialNotifications.DEVICE_STATUS:
-                    notificationsToCreate.add(deviceNotification);
-                    break;
-                default:
-                    break;
-            }
-        }
-
         notificationsToCreate.add(notificationMessage);
         return notificationsToCreate;
     }

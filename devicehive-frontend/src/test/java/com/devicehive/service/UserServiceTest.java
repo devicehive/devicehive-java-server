@@ -733,7 +733,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setGuid(randomUUID().toString());
         device.setDeviceClass(dc);
         device.setNetwork(network);
-        deviceService.deviceSave(device, Collections.emptySet());
+        deviceService.deviceSave(device);
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
@@ -758,7 +758,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setGuid(randomUUID().toString());
         device.setDeviceClass(dc);
         device.setNetwork(network);
-        deviceService.deviceSave(device, Collections.emptySet());
+        deviceService.deviceSave(device);
 
         assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
@@ -783,7 +783,7 @@ public class UserServiceTest extends AbstractResourceTest {
         device.setGuid(randomUUID().toString());
         device.setDeviceClass(dc);
         device.setNetwork(network);
-        deviceService.deviceSave(device, Collections.emptySet());
+        deviceService.deviceSave(device);
 
         assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
     }
@@ -1070,7 +1070,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));

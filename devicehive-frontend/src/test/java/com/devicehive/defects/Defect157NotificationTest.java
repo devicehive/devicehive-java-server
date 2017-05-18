@@ -24,15 +24,10 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.handler.MockNotificationHandler;
-import com.devicehive.model.*;
-import com.devicehive.model.rpc.NotificationInsertRequest;
-import com.devicehive.model.rpc.NotificationInsertResponse;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeResponse;
+import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.shim.api.Body;
-import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
 import org.junit.After;
@@ -47,18 +42,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 public class Defect157NotificationTest extends AbstractResourceTest {
 

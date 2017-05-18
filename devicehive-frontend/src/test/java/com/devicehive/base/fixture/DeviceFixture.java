@@ -29,7 +29,6 @@ import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public class DeviceFixture {

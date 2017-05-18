@@ -24,11 +24,6 @@ import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceClassVO;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class RiakDeviceClass {
 
     private Long id;
@@ -119,7 +114,6 @@ public class RiakDeviceClass {
             vo.setData(deviceClass.getData());
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
-            vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
         }
         return vo;
     }

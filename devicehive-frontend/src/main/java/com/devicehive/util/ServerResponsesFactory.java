@@ -21,8 +21,6 @@ package com.devicehive.util;
  */
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
@@ -32,9 +30,6 @@ import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.springframework.util.Assert;
-
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.Random;
 
@@ -73,24 +68,6 @@ public class ServerResponsesFactory {
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         return resultJsonObject;
-    }
-
-    public static String parseNotificationStatus(DeviceNotification notificationMessage) {
-        Assert.notNull(notificationMessage.getParameters(), "Notification parameters are required.");
-        String jsonParametersString = notificationMessage.getParameters().getJsonString();
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
-        JsonObject statusJsonObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            statusJsonObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-
-        JsonElement jsonElement = statusJsonObject.get(Constants.STATUS);
-        Assert.notNull(jsonElement, "Parameter " + Constants.STATUS + " is required.");
-
-        return jsonElement.getAsString();
     }
 
     public static DeviceNotification createNotificationForDevice(DeviceVO device, String notificationName) {

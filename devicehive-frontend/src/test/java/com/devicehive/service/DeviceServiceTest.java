@@ -488,40 +488,6 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void should_save_and_find_by_device_status() throws Exception {
-        final DeviceVO device = DeviceFixture.createDeviceVO();
-        String status = RandomStringUtils.randomAlphabetic(10);
-        device.setStatus(status);
-        final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();
-        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device, dc);
-
-        String status1 = RandomStringUtils.randomAlphabetic(10);
-        final DeviceVO device1 = DeviceFixture.createDeviceVO();
-        device1.setStatus(status1);
-        final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1, dc);
-
-        final DeviceVO device2 = DeviceFixture.createDeviceVO();
-        device2.setStatus(status1);
-        final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2, dc);
-
-        deviceService.deviceSave(deviceUpdate);
-        deviceService.deviceSave(deviceUpdate1);
-        deviceService.deviceSave(deviceUpdate2);
-        handleListDeviceRequest();
-        deviceService.list(null, null, status1, null, null, null, null, null, false, null, null, null)
-                .thenAccept(devices -> {
-                    Collections.sort(devices, (DeviceVO a, DeviceVO b) -> a.getId().compareTo(b.getId()));
-                    assertNotNull(devices);
-                    assertEquals(2, devices.size());
-                    assertEquals(device1.getGuid(), devices.get(0).getGuid());
-                    assertEquals(device2.getGuid(), devices.get(1).getGuid());
-                }).get(2, TimeUnit.SECONDS);
-
-        verify(requestHandler, times(1)).handle(argument.capture());
-    }
-
-    @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_network_id() throws Exception {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceClassUpdate dc = DeviceFixture.createDeviceClass();

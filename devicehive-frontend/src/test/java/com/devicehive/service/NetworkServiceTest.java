@@ -24,7 +24,6 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
-import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -40,7 +39,10 @@ import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
+import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.CustomTypeSafeMatcher;
@@ -60,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.contains;
@@ -507,7 +510,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(network);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -541,7 +544,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(network);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -570,7 +573,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(network);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -603,7 +606,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(network);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
 
@@ -640,7 +643,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(network);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -702,7 +705,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(created);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         DeviceUpdate device = new DeviceUpdate();
@@ -710,7 +713,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         device.setGuid(randomUUID().toString());
         device.setDeviceClass(dc);
         device.setNetwork(created);
-        DeviceNotification notification = deviceService.deviceSave(device, Collections.emptySet());
+        DeviceNotification notification = deviceService.deviceSave(device);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
@@ -751,7 +754,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
             device.setNetwork(created);
-            deviceService.deviceSave(device, Collections.emptySet());
+            deviceService.deviceSave(device);
         }
 
         HivePrincipal principal = new HivePrincipal(user);

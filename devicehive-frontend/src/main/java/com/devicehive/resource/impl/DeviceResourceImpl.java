@@ -23,13 +23,12 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceService;
-import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -41,13 +40,11 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 /**
  * {@inheritDoc}

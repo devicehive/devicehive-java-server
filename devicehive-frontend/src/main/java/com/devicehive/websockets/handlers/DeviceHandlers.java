@@ -31,7 +31,6 @@ import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -89,7 +86,7 @@ public class DeviceHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setGuid(Optional.ofNullable(deviceId));
+        device.setGuid(deviceId);
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
