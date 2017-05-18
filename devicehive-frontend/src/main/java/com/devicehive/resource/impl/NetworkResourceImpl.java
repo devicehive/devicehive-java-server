@@ -42,6 +42,8 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
+import java.util.Collections;
+
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
@@ -75,6 +77,13 @@ public class NetworkResourceImpl implements NetworkResource {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty())) {
+            logger.warn("Unable to get list for empty networks");
+            final Response response = ResponseFactory.response(OK, Collections.<NetworkVO>emptyList(), NETWORKS_LISTED);
+            asyncResponse.resume(response);
+        }
+
         networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
                 .thenApply(networks -> {
                     logger.debug("Network list request proceed successfully.");

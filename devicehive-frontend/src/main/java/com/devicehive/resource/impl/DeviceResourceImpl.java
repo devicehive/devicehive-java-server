@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
+import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
@@ -80,6 +81,13 @@ public class DeviceResourceImpl implements DeviceResource {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
+                !principal.areAllDevicesAvailable() && (principal.getDeviceGuids() == null || principal.getDeviceGuids().isEmpty())) {
+            logger.warn("Unable to get list for empty devices");
+            final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+            asyncResponse.resume(response);
+        }
 
         deviceService.list(name, namePattern, networkId, networkName, deviceClassId,
                 deviceClassName, sortField, sortOrder, take, skip, principal)
