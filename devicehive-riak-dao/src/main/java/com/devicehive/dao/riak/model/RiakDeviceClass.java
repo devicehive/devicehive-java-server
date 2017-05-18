@@ -22,9 +22,7 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
 
 import java.util.Collections;
 import java.util.Set;
@@ -42,8 +40,6 @@ public class RiakDeviceClass {
     private Integer offlineTimeout;
 
     private JsonStringWrapper data;
-
-    private Set<RiakDeviceClassEquipment> equipment;
 
     public Long getId() {
         return id;
@@ -95,14 +91,6 @@ public class RiakDeviceClass {
         this.data = data;
     }
 
-    public Set<RiakDeviceClassEquipment> getEquipment() {
-        return equipment;
-    }
-
-    public void setEquipment(Set<RiakDeviceClassEquipment> equipment) {
-        this.equipment = equipment;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -123,19 +111,15 @@ public class RiakDeviceClass {
         return id != null ? id.hashCode() : 0;
     }
 
-    public static DeviceClassWithEquipmentVO convertDeviceClassWithEquipment(RiakDeviceClass deviceClass) {
-        DeviceClassWithEquipmentVO vo = null;
+    public static DeviceClassVO convertDeviceClass(RiakDeviceClass deviceClass) {
+        DeviceClassVO vo = null;
         if (deviceClass != null) {
-            vo = new DeviceClassWithEquipmentVO();
+            vo = new DeviceClassVO();
             vo.setName(deviceClass.getName());
             vo.setData(deviceClass.getData());
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
-
-            if (deviceClass.getEquipment() != null) {
-                Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(RiakDeviceClassEquipment::convertDeviceClassEquipment);
-                vo.setEquipment(eqVos.collect(Collectors.toSet()));
-            }
+            vo.setOfflineTimeout(deviceClass.getOfflineTimeout());
         }
         return vo;
     }
@@ -151,19 +135,4 @@ public class RiakDeviceClass {
         }
         return en;
     }
-
-    public static RiakDeviceClass convertWithEquipmentToEntity(DeviceClassWithEquipmentVO vo) {
-        RiakDeviceClass en = convertDeviceClassVOToEntity(vo);
-        if (en != null) {
-            if (vo.getEquipment() != null) {
-                Set<RiakDeviceClassEquipment> equipmentSet = vo.getEquipment().stream().map(RiakDeviceClassEquipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());
-                en.setEquipment(equipmentSet);
-            } else {
-                en.setEquipment(Collections.emptySet());
-            }
-        }
-        return en;
-    }
-
-
 }

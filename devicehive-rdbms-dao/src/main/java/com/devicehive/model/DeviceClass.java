@@ -22,18 +22,12 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceClassVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -85,10 +79,6 @@ public class DeviceClass implements HiveEntity {
     @Column(name = "entity_version")
     private Long entityVersion;
 
-    @OneToMany(mappedBy = "deviceClass", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_PUBLISHED})
-    private Set<DeviceClassEquipment> equipment;
-
     public Long getEntityVersion() {
         return entityVersion;
     }
@@ -129,14 +119,6 @@ public class DeviceClass implements HiveEntity {
         this.data = data;
     }
 
-    public Set<DeviceClassEquipment> getEquipment() {
-        return equipment;
-    }
-
-    public void setEquipment(Set<DeviceClassEquipment> equipment) {
-        this.equipment = equipment;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -157,19 +139,15 @@ public class DeviceClass implements HiveEntity {
         return id != null ? id.hashCode() : 0;
     }
 
-    public static DeviceClassWithEquipmentVO convertToVo(DeviceClass deviceClass) {
-        DeviceClassWithEquipmentVO vo = null;
+    public static DeviceClassVO convertToVo(DeviceClass deviceClass) {
+        DeviceClassVO vo = null;
         if (deviceClass != null) {
-            vo = new DeviceClassWithEquipmentVO();
+            vo = new DeviceClassVO();
             vo.setName(deviceClass.getName());
             vo.setData(deviceClass.getData());
             vo.setId(deviceClass.getId());
             vo.setIsPermanent(deviceClass.getPermanent());
             vo.setEntityVersion(deviceClass.getEntityVersion());
-            if (deviceClass.getEquipment() != null) {
-                Stream<DeviceClassEquipmentVO> eqVos = deviceClass.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipment);
-                vo.setEquipment(eqVos.collect(Collectors.toSet()));
-            }
         }
         return vo;
     }
@@ -186,21 +164,4 @@ public class DeviceClass implements HiveEntity {
         }
         return en;
     }
-
-    public static DeviceClass convertWithEquipmentToEntity(DeviceClassWithEquipmentVO vo) {
-        DeviceClass en = convertToEntity(vo);
-        if (en != null) {
-            if (vo.getEquipment() != null) {
-                Set<DeviceClassEquipment> equipmentSet = vo.getEquipment().stream().map(DeviceClassEquipment::convertDeviceClassEquipmentVOToEntity).collect(Collectors.toSet());
-                for (DeviceClassEquipment equipment : equipmentSet) {
-                    equipment.setDeviceClass(en);
-                }
-                en.setEquipment(equipmentSet);
-            } else {
-                en.setEquipment(Collections.emptySet());
-            }
-        }
-        return en;
-    }
-
 }

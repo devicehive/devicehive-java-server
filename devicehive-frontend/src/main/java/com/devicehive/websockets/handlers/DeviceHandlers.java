@@ -26,7 +26,6 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
@@ -90,15 +89,8 @@ public class DeviceHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setGuid(deviceId);
-        Set<DeviceClassEquipmentVO> equipmentSet = gson.fromJson(
-                request.get(Constants.EQUIPMENT),
-                new TypeToken<HashSet<DeviceClassEquipmentVO>>() {
-                }.getType());
-        if (equipmentSet != null) {
-            equipmentSet.remove(null);
-        }
-        deviceService.deviceSaveAndNotify(device, equipmentSet, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        device.setGuid(Optional.ofNullable(deviceId));
+        deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
     }

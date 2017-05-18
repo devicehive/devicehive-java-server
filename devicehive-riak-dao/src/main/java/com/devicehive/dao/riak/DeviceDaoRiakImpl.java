@@ -109,9 +109,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             if (device.getId() == null) {
                 device.setId(getId());
             }
-            if (device.getDeviceClass() != null && device.getDeviceClass().getEquipment() != null) {
-                device.getDeviceClass().getEquipment().clear();
-            }
             Location location = new Location(DEVICE_NS, String.valueOf(device.getId()));
             StoreValue storeOp = new StoreValue.Builder(device)
                     .withLocation(location)
@@ -256,7 +253,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             }
 
             if (device.getDeviceClass() != null) {
-                DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
+                DeviceClassVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
                 device.setDeviceClass(deviceClassWithEquipmentVO);
             }
         }

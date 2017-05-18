@@ -87,7 +87,7 @@ public class InitialDataLoader {
         // -- 2. Default device classes
         //INSERT INTO device_class (name, is_permanent, offline_timeout) VALUES ('Sample VirtualLed Device', FALSE, 600);
 
-        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
+        DeviceClassVO deviceClass = new DeviceClassVO();
         deviceClass.setId(1L);
         deviceClass.setName("Sample VirtualLed Device");
         deviceClass.setIsPermanent(false);

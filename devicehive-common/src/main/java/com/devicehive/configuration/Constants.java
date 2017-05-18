@@ -74,7 +74,6 @@ public class Constants {
     public static final String STATUS = "status";
     public static final String NETWORK = "network";
     public static final String DEVICE_CLASS = "deviceClass";
-    public static final String EQUIPMENT = "equipment";
     public static final String DOMAIN = "domain";
     public static final String OAUTH_ID = "oauthId";
     public static final String LOGIN = "login";

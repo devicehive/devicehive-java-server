@@ -74,8 +74,7 @@ public class DeviceService {
 
     //todo equipmentSet is not used
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deviceSaveAndNotify(DeviceUpdate device, Set<DeviceClassEquipmentVO> equipmentSet, HivePrincipal principal) {
-        hiveValidator.validate(device);
+    public void deviceSaveAndNotify(DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", device.getGuid(), principal == null ? null : principal.getName());
         DeviceNotification dn;
         if (principal != null && principal.isAuthenticated()) {
@@ -101,7 +100,7 @@ public class DeviceService {
         NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
         NetworkVO network = nwVo != null ? findNetworkForAuth(nwVo) : null;
         network = findNetworkForAuth(network);
-        DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
+        DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
@@ -151,15 +150,10 @@ public class DeviceService {
         }
     }
 
-    private DeviceClassWithEquipmentVO prepareDeviceClassForNewlyCreatedDevice(DeviceUpdate deviceUpdate) {
-        DeviceClassWithEquipmentVO deviceClass = null;
-        if (deviceUpdate.getDeviceClass().isPresent()) {
-            //TODO [rafa] if device class equipment not present - we need to clone it from device.
-            Set<DeviceClassEquipmentVO> customEquipmentSet = null;
-            if (deviceUpdate.getDeviceClass().get().getEquipment().isPresent()) {
-                customEquipmentSet = deviceUpdate.getDeviceClass().get().getEquipment().orElse(new HashSet<>());
-            }
-            deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass(), customEquipmentSet);
+    private DeviceClassVO prepareDeviceClassForNewlyCreatedDevice(DeviceUpdate deviceUpdate) {
+        DeviceClassVO deviceClass = null;
+        if (deviceUpdate.getDeviceClass() != null && deviceUpdate.getDeviceClass().isPresent()) {
+            deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass());
         }
         return deviceClass;
     }
@@ -177,7 +171,7 @@ public class DeviceService {
         NetworkVO network = networkService.createOrVerifyNetwork(Optional.ofNullable(nw));
         network = findNetworkForAuth(network);
 
-        DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
+        DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
             DeviceClassVO dc = new DeviceClassVO();
             dc.setId(deviceClass.getId());
@@ -217,14 +211,13 @@ public class DeviceService {
     }
 
     @Transactional
-    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate,
-                                         Set<DeviceClassEquipmentVO> equipmentSet) {
+    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         NetworkVO network = (deviceUpdate.getNetwork().isPresent())? deviceUpdate.getNetwork().get() : null;
         if (network != null) {
             network = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
         }
-        DeviceClassWithEquipmentVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
+        DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 

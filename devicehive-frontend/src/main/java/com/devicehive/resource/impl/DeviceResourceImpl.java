@@ -28,11 +28,8 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
 import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.service.DeviceEquipmentService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -45,12 +42,10 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_EQUIPMENT_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -61,8 +56,6 @@ import static javax.ws.rs.core.Response.Status.*;
 public class DeviceResourceImpl implements DeviceResource {
     private static final Logger logger = LoggerFactory.getLogger(DeviceResourceImpl.class);
 
-    @Autowired
-    private DeviceEquipmentService deviceEquipmentService;
     @Autowired
     private DeviceService deviceService;
 
@@ -114,11 +107,8 @@ public class DeviceResourceImpl implements DeviceResource {
 
         deviceUpdate.setGuid(deviceGuid);
 
-        // TODO: [#98] refactor this API to have a separate endpoint for equipment update.
-        Set<DeviceClassEquipmentVO> equipmentSet = new HashSet<>();
-
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceUpdate, equipmentSet, principal);
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
         logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
@@ -146,42 +136,4 @@ public class DeviceResourceImpl implements DeviceResource {
         logger.debug("Device with id = {} is deleted", guid);
         return ResponseFactory.response(NO_CONTENT);
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Response equipment(String guid) {
-        logger.debug("Device equipment requested for device {}", guid);
-
-        DeviceVO device = deviceService.findById(guid);
-        List<DeviceEquipmentVO> equipments = deviceEquipmentService.findByFK(device);
-
-        logger.debug("Device equipment request proceed successfully for device {}", guid);
-
-        return ResponseFactory.response(OK, equipments, DEVICE_EQUIPMENT_SUBMITTED);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Response equipmentByCode(String guid, String code) {
-        logger.debug("Device equipment by code requested");
-        DeviceVO device = deviceService.findById(guid);
-
-        DeviceEquipmentVO equipment = deviceEquipmentService.findByCodeAndDevice(code, device);
-        if (equipment == null) {
-            logger.debug("No device equipment found for code : {} and guid : {}", code, guid);
-            return ResponseFactory
-                    .response(NOT_FOUND,
-                            new ErrorResponse(NOT_FOUND.getStatusCode(),
-                                    String.format(Messages.DEVICE_NOT_FOUND, guid)));
-        }
-        logger.debug("Device equipment by code proceed successfully");
-
-        return ResponseFactory.response(OK, equipment, DEVICE_EQUIPMENT_SUBMITTED);
-    }
-
-
 }

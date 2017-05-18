@@ -23,7 +23,6 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -182,66 +181,4 @@ public interface DeviceResource {
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             String guid);
-
-    /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful API:
-     * Device: equipment</a> Gets current state of device equipment. The equipment state is tracked by framework and it
-     * could be updated by sending 'equipment' notification with the following parameters: equipment: equipment code
-     * parameters: current equipment state
-     *
-     * @param guid Device unique identifier.
-     * @return If successful, this method returns array of the following structures in the response body. <table> <tr>
-     * <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>string</td>
-     * <td>Equipment code.</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Equipment state
-     * timestamp.</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Current equipment state.</td> </tr>
-     * </table>
-     */
-    @GET
-    @Path("/{id}/equipment")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get device's equipment", notes = "Gets current state of device equipment.\n" +
-            "The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:\n" +
-            "equipment: equipment code\n" +
-            "parameters: current equipment state")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.",
-                    response = DeviceEquipmentVO.class,
-                    responseContainer = "List"),
-            @ApiResponse(code = 400, message = "If request is malformed"),
-            @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If device is not found")
-    })
-    Response equipment(
-            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
-            @PathParam("id")
-            String guid);
-
-    /**
-     * Gets current state of device equipment. The equipment state is tracked by framework and it could be updated by
-     * sending 'equipment' notification with the following parameters: equipment: equipment code parameters: current
-     * equipment state
-     *
-     * @param guid device guid
-     * @param code equipment code
-     * @return If successful return equipment associated with code and device with following guid
-     */
-    @GET
-    @Path("/{id}/equipment/{code}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",
-                    response = DeviceEquipmentVO.class),
-            @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If device or equipment is not found.")
-    })
-    Response equipmentByCode(
-            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
-            @PathParam("id")
-            String guid,
-            @ApiParam(name = "code", value = "Equipment code.", required = true)
-            @PathParam("code")
-            String code);
 }

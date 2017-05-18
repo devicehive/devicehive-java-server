@@ -1070,7 +1070,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, null, null, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));

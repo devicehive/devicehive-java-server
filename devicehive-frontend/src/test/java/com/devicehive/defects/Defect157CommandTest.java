@@ -29,7 +29,6 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.junit.After;
 import org.junit.Before;
@@ -82,9 +81,7 @@ public class Defect157CommandTest extends AbstractResourceTest {
 
     @Before
     public void prepareCommands() {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);

@@ -314,6 +314,60 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    public void testSubmitDeviceNotificationWithRefreshDeviceStatusShouldInsertTwoNotifications() throws Exception {
+        // mock DeviceDao
+        final DeviceDao deviceDaoMock = Mockito.mock(DeviceDao.class);
+        Whitebox.setInternalState(notificationService, "deviceDao", deviceDaoMock);
+
+        // create inputs
+        final DeviceVO deviceVO = new DeviceVO();
+        deviceVO.setId(System.nanoTime());
+        deviceVO.setGuid(UUID.randomUUID().toString());
+
+        final DeviceNotification originalNotification = new DeviceNotification();
+        originalNotification.setId(System.nanoTime());
+        originalNotification.setTimestamp(new Date());
+        originalNotification.setNotification(SpecialNotifications.DEVICE_STATUS);
+        originalNotification.setDeviceGuid(deviceVO.getGuid());
+        originalNotification.setParameters(new JsonStringWrapper("{\"" + Constants.STATUS + "\":\"status1\"}"));
+
+        // define return values
+        when(deviceDaoMock.findByUUID(deviceVO.getGuid())).thenReturn(deviceVO);
+        when(requestHandler.handle(any(Request.class))).then(invocation -> {
+            NotificationInsertRequest insertRequest = invocation.getArgumentAt(0, Request.class)
+                    .getBody().cast(NotificationInsertRequest.class);
+            return Response.newBuilder()
+                    .withBody(new NotificationInsertResponse(insertRequest.getDeviceNotification()))
+                    .buildSuccess();
+        });
+
+        // execute
+        notificationService.insert(originalNotification, deviceVO)
+                .thenAccept(resultNotification -> assertEquals(originalNotification, resultNotification))
+                .exceptionally(ex -> {
+                    fail(ex.toString());
+                    return null;
+                }).get(15, TimeUnit.SECONDS);
+
+        // check
+        verify(requestHandler, times(2)).handle(argument.capture());
+
+        Optional<DeviceNotification> statusNotification = argument.getAllValues().stream()
+                .map(r -> r.getBody().cast(NotificationInsertRequest.class).getDeviceNotification())
+                .filter(n -> SpecialNotifications.DEVICE_STATUS.equals(n.getNotification())).findFirst();
+        assertTrue(statusNotification.isPresent());
+        assertEquals(originalNotification, statusNotification.get());
+
+        Optional<DeviceNotification> updateNotification = argument.getAllValues().stream()
+                .map(r -> r.getBody().cast(NotificationInsertRequest.class).getDeviceNotification())
+                .filter(n -> SpecialNotifications.DEVICE_UPDATE.equals(n.getNotification())).findFirst();
+        assertTrue(updateNotification.isPresent());
+        assertNotNull(originalNotification.getId());
+        assertEquals(deviceVO.getGuid(), updateNotification.get().getDeviceGuid());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationWithRefreshEquipmentShouldInsertSingleNotification() throws Exception {
         // mock DeviceDao
         final DeviceEquipmentService equipmentServiceMock = Mockito.mock(DeviceEquipmentService.class);

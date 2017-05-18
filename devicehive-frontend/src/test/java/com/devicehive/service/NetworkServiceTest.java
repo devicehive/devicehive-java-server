@@ -69,7 +69,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-
 public class NetworkServiceTest extends AbstractResourceTest {
 
     @Autowired
@@ -345,7 +344,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         verify(requestHandler, times(2)).handle(argument.capture());
     }
-
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)

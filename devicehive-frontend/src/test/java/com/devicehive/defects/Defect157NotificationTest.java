@@ -34,7 +34,6 @@ import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.junit.After;
 import org.junit.Before;
@@ -91,9 +90,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
 
     @Before
     public void prepareNotifications() {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
         DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Collections.singleton(equipment));
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);

@@ -120,7 +120,7 @@ public class RiakDevice {
             vo = new DeviceVO();
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
-            DeviceClassVO rdc = RiakDeviceClass.convertDeviceClassWithEquipment(dc.getDeviceClass());
+            DeviceClassVO rdc = RiakDeviceClass.convertDeviceClass(dc.getDeviceClass());
             vo.setDeviceClass(rdc);
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());

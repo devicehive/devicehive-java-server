@@ -24,8 +24,7 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceClassEquipmentVO;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.vo.DeviceClassVO;
 
 import javax.validation.constraints.Size;
 import java.util.Optional;
@@ -49,17 +48,6 @@ public class DeviceClassUpdate implements HiveEntity {
 
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICECLASS_LISTED, DEVICECLASS_PUBLISHED})
     private JsonStringWrapper data;
-
-    @JsonPolicyDef({DEVICECLASS_PUBLISHED, DEVICE_SUBMITTED})
-    private Set<DeviceClassEquipmentVO> equipment;
-
-    public Optional<Set<DeviceClassEquipmentVO>> getEquipment() {
-        return Optional.ofNullable(equipment);
-    }
-
-    public void setEquipment(Set<DeviceClassEquipmentVO> equipment) {
-        this.equipment = equipment;
-    }
 
     public Optional<String> getName() {
         return Optional.ofNullable(name);
@@ -93,8 +81,8 @@ public class DeviceClassUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public DeviceClassWithEquipmentVO convertTo() {
-        DeviceClassWithEquipmentVO deviceClass = new DeviceClassWithEquipmentVO();
+    public DeviceClassVO convertTo() {
+        DeviceClassVO deviceClass = new DeviceClassVO();
         if (this.id != null){
             deviceClass.setId(this.id);
         }
@@ -106,9 +94,6 @@ public class DeviceClassUpdate implements HiveEntity {
         }
         if (this.name != null){
             deviceClass.setName(this.name);
-        }
-        if (this.equipment != null){
-            deviceClass.setEquipment(this.equipment);
         }
         return deviceClass;
     }

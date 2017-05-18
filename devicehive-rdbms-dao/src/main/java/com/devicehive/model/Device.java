@@ -45,7 +45,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                   @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
                                                                   "left join fetch d.deviceClass dc " +
-                                                                  "left join fetch dc.equipment " +
                                                                   "where d.guid = :guid"),
                   @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid")
               })
