@@ -61,6 +61,9 @@ public interface DeviceClassResource {
     @GET
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "List device classes", notes = "Gets list of device classes.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns array of DeviceClass resources in the response body.",
                     response = DeviceClassVO.class, responseContainer = "List"),
@@ -102,6 +105,9 @@ public interface DeviceClassResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_CLASS')")
     @ApiOperation(value = "Get device class", notes = "Gets information about device class and its equipment.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "If successful, this method returns a DeviceClass resource in the response body.",
                     response = DeviceClassVO.class),
@@ -132,6 +138,9 @@ public interface DeviceClassResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Create device class", notes = "Creates new device class.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "If successful, this method returns a DeviceClass resource in the response body.",
                     response = DeviceClassVO.class),
@@ -157,6 +166,9 @@ public interface DeviceClassResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Updates an existing device class.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -184,6 +196,9 @@ public interface DeviceClassResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_CLASS')")
     @ApiOperation(value = "Update device class", notes = "Deletes an existing device class.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),

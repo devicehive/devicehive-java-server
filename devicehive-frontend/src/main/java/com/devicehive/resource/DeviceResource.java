@@ -63,6 +63,9 @@ public interface DeviceResource {
     @GET
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "List devices", notes = "Gets list of devices.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Device resources in the response body.",
                     response = DeviceVO.class, responseContainer = "List"),
@@ -120,6 +123,9 @@ public interface DeviceResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -147,6 +153,9 @@ public interface DeviceResource {
     @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
             response = DeviceVO.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -170,6 +179,9 @@ public interface DeviceResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),

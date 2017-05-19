@@ -20,9 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
@@ -36,17 +34,20 @@ import javax.ws.rs.core.Response;
 public interface ConfigurationResource {
 
     @GET
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated()")
     @ApiOperation(value = "Get property", notes = "Returns requested property value")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     Response get(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
                     String name);
 
     @PUT
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated()")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
     Response setProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
@@ -56,9 +57,12 @@ public interface ConfigurationResource {
                     String value);
 
     @GET
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}/set")
+    @PreAuthorize("isAuthenticated()")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     Response setPropertyGet(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
@@ -68,9 +72,12 @@ public interface ConfigurationResource {
                     String value);
 
     @DELETE
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated()")
     @ApiOperation(value = "Delete property", notes = "Deletes property")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     Response deleteProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
