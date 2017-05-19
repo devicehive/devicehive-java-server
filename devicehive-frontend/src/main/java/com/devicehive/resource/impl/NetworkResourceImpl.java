@@ -82,13 +82,13 @@ public class NetworkResourceImpl implements NetworkResource {
             logger.warn("Unable to get list for empty networks");
             final Response response = ResponseFactory.response(OK, Collections.<NetworkVO>emptyList(), NETWORKS_LISTED);
             asyncResponse.resume(response);
+        } else {
+            networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
+                    .thenApply(networks -> {
+                        logger.debug("Network list request proceed successfully.");
+                        return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
+                    }).thenAccept(asyncResponse::resume);
         }
-
-        networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
-                .thenApply(networks -> {
-                    logger.debug("Network list request proceed successfully.");
-                    return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
-                }).thenAccept(asyncResponse::resume);
     }
 
     /**

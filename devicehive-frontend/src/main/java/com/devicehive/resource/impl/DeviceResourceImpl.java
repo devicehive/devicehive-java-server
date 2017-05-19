@@ -87,14 +87,14 @@ public class DeviceResourceImpl implements DeviceResource {
             logger.warn("Unable to get list for empty devices");
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
+        } else {
+            deviceService.list(name, namePattern, networkId, networkName, deviceClassId,
+                    deviceClassName, sortField, sortOrder, take, skip, principal)
+                    .thenApply(devices -> {
+                        logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
+                        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+                    }).thenAccept(asyncResponse::resume);
         }
-
-        deviceService.list(name, namePattern, networkId, networkName, deviceClassId,
-                deviceClassName, sortField, sortOrder, take, skip, principal)
-                .thenApply(devices -> {
-                    logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
-                    return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
-                }).thenAccept(asyncResponse::resume);
     }
 
     /**
