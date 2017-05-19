@@ -46,6 +46,9 @@ public interface JwtTokenResource {
     @Consumes(APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     @ApiOperation(value = "JWT access and refresh token request")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 201,
                     message = "If successful, this method returns a JWT access and refresh token in the response body.",

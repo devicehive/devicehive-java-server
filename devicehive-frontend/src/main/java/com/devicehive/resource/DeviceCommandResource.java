@@ -64,6 +64,9 @@ public interface DeviceCommandResource {
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void poll(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -95,6 +98,9 @@ public interface DeviceCommandResource {
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void pollMany(
             @ApiParam(name = "deviceGuids", value = "List of device GUIDs")
             @QueryParam("deviceGuids")
@@ -128,6 +134,9 @@ public interface DeviceCommandResource {
                     "<br>" +
                     "In the case when command is not processed, the method blocks until device acknowledges command execution. If the command is not processed within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "Command was not processed during waitTimeout."),
             @ApiResponse(code = 400, message = "Command with commandId was not sent for device with deviceGuid or wrong input parameters."),
@@ -155,6 +164,9 @@ public interface DeviceCommandResource {
             notes = "Gets list of commands that has been received in specified time range.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -202,6 +214,9 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Get command ",
             notes = "Gets command by device GUID and command id",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
@@ -232,6 +247,9 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Creates new device command.",
             notes = "Creates new device command, stores and returns command with generated id.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device not found")
     })
@@ -265,6 +283,9 @@ public interface DeviceCommandResource {
     @ApiOperation(value = "Updates an existing device command.",
             notes = "Updates an existing device command.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })

@@ -72,6 +72,9 @@ public interface DeviceNotificationResource {
     @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
             response = DeviceNotification.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void query(
             @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
             @PathParam("deviceGuid")
@@ -120,6 +123,9 @@ public interface DeviceNotificationResource {
     @Path("/{deviceGuid}/notification/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Returned notification by device guid and notification id",
                     response = DeviceNotification.class),
@@ -155,6 +161,9 @@ public interface DeviceNotificationResource {
             "If no notifications are received within the waitTimeout period, the server returns an empty response." +
             " In this case, to continue polling, the client should repeat the call with the same timestamp value."
     )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK",
                     response = DeviceNotification.class,
@@ -190,6 +199,9 @@ public interface DeviceNotificationResource {
             " If no notifications are received within the waitTimeout period, the server returns an empty response." +
             " In this case, to continue polling, the client should repeat the call with the same timestamp value."
     )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK",
                     response = DeviceNotification.class,
@@ -233,6 +245,9 @@ public interface DeviceNotificationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 201, message = "notification sent", response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device not found"),

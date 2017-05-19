@@ -65,6 +65,9 @@ public interface NetworkResource {
     @GET
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "List networks", notes = "Gets list of device networks the client has access to.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Network resources in the response body.", response = NetworkVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
@@ -111,6 +114,9 @@ public interface NetworkResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'GET_NETWORK')")
     @ApiOperation(value = "Get network", notes = "Gets information about device network and its devices.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -148,6 +154,9 @@ public interface NetworkResource {
     @POST
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Create network", notes = "Creates new device network.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 201, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -182,6 +191,9 @@ public interface NetworkResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Update network", notes = "Updates an existing device network.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -204,6 +216,9 @@ public interface NetworkResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Delete network", notes = "Deletes an existing device network.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
