@@ -21,13 +21,13 @@ package com.devicehive.service.security.jwt;
  */
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,12 +35,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import javax.ws.rs.core.Response;
-import org.apache.commons.lang3.StringUtils;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class AuthTokenService {
@@ -51,11 +48,9 @@ public class AuthTokenService {
     @Autowired
     private JwtClientService tokenService;
     @Autowired
-    private NetworkDao networkDao;
-    @Autowired
     private HiveValidator hiveValidator;
     
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public JwtTokenVO createAccessKey(@NotNull final JwtRequestVO request) {
         hiveValidator.validate(request);
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
@@ -66,27 +61,33 @@ public class AuthTokenService {
         return authenticate(user);
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public JwtTokenVO authenticate(@NotNull UserVO user) {
-        UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
-        userService.refreshUserLoginData(user);
-
         Set<String> networkIds = new HashSet<>();
         Set<String> deviceGuids = new HashSet<>();
-        userWithNetwork.getNetworks().stream().forEach( network -> {
-            networkIds.add(network.getId().toString());
-            Optional<NetworkWithUsersAndDevicesVO> networkWithDevices = networkDao.findWithUsers(network.getId());
-            if (networkWithDevices.isPresent()) {
-                networkWithDevices.get().getDevices().stream().forEach( device -> {
-                    deviceGuids.add(device.getGuid());
+        Set<String> actions = new HashSet<>();
+        if (user.isAdmin()) {
+            networkIds.add("*");
+            deviceGuids.add("*");
+            actions.add("*");
+        } else {
+            UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
+            userService.refreshUserLoginData(user);
+
+            Set<NetworkVO> networks = userWithNetwork.getNetworks();
+            if (!networks.isEmpty()) {
+                networks.stream().forEach( network -> {
+                    networkIds.add(network.getId().toString());
                 });
+                deviceGuids.add("*");
             }
-        });
+            actions = AvailableActions.getClientActions();
+        }
 
         JwtTokenVO tokenVO = new JwtTokenVO();
         JwtPayload payload = JwtPayload.newBuilder()
-                .withUserId(userWithNetwork.getId())
-                .withActions(new HashSet<>(Arrays.asList(AvailableActions.getClientActions())))
+                .withUserId(user.getId())
+                .withActions(actions)
                 .withNetworkIds(networkIds)
                 .withDeviceGuids(deviceGuids)
                 .buildPayload();

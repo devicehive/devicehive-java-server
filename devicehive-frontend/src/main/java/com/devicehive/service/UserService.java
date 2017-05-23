@@ -288,7 +288,7 @@ public class UserService {
      * @param id user id
      * @return User model with networks, or null, if there is no such user
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public UserWithNetworkVO findUserWithNetworks(@NotNull long id) {
         return userDao.getWithNetworksById(id);
 

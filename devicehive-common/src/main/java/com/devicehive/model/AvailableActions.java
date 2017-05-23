@@ -124,8 +124,8 @@ public class AvailableActions {
         return CLIENT_HIVE_ACTIONS;
     }
 
-    public static String[] getClientActions() {
-        return CLIENT_ACTIONS.toArray(new String[CLIENT_ACTIONS.size()]);
+    public static Set<String> getClientActions() {
+        return CLIENT_ACTIONS;
     }
 
     public static Set<String> getAdminActions() {
