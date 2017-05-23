@@ -22,12 +22,12 @@ package com.devicehive.service.security.jwt;
 
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.security.util.JwtSecretHolder;
 import com.devicehive.security.util.JwtTokenGenerator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -37,9 +37,6 @@ import java.util.*;
  */
 @Component
 public class JwtClientService {
-
-    @Value("${jwt.secret}")
-    String secret;
 
     @Autowired
     private JwtTokenGenerator tokenGenerator;
@@ -54,7 +51,7 @@ public class JwtClientService {
 
     public JwtPayload getPayload(String jwtToken) {
         Claims claims = Jwts.parser()
-                .setSigningKey(secret)
+                .setSigningKey(JwtSecretHolder.INSTANCE.getJwtSecret())
                 .parseClaimsJws(jwtToken)
                 .getBody();
         LinkedHashMap payloadMap = (LinkedHashMap) claims.get(JwtPayload.JWT_CLAIM_KEY);

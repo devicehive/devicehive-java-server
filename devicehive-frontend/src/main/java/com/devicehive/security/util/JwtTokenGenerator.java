@@ -38,9 +38,6 @@ import java.util.Map;
 @Component
 public class JwtTokenGenerator {
 
-    @Value("${jwt.secret}")
-    String secret;
-
     @Value("${jwt.refresh-token-max-age}")
     long refreshTokenMaxAge;
 
@@ -68,7 +65,7 @@ public class JwtTokenGenerator {
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(SignatureAlgorithm.HS256, JwtSecretHolder.INSTANCE.getJwtSecret())
                 .compact();
     }
 }
