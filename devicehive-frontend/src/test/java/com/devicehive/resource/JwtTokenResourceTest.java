@@ -25,7 +25,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
-import com.devicehive.service.UserService;
+import com.devicehive.security.util.JwtSecretHolder;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -35,7 +35,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -51,15 +50,6 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
 
     @Autowired
     private JwtClientService jwtClientService;
-
-    @Autowired
-    private JwtClientService tokenService;
-
-    @Autowired
-    private UserService userService;
-
-    @Value("${jwt.secret}")
-    String secret;
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
@@ -136,7 +126,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
         JwtTokenVO token = new JwtTokenVO();
-        String refreshToken = tokenService.generateJwtAccessToken(payload);
+        String refreshToken = jwtClientService.generateJwtAccessToken(payload);
         token.setRefreshToken(refreshToken);
 
         JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), token, UNAUTHORIZED, JwtTokenVO.class);
@@ -206,7 +196,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         Claims claims = Jwts.claims(jwtMap);
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(SignatureAlgorithm.HS256, JwtSecretHolder.INSTANCE.getJwtSecret())
                 .compact();
 
         JwtTokenVO tokenVO = new JwtTokenVO();
