@@ -40,8 +40,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class AuthTokenService {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AuthTokenService.class);
+public class JwtTokenService {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
     @Autowired
     private UserService userService;
@@ -51,18 +51,18 @@ public class AuthTokenService {
     private HiveValidator hiveValidator;
     
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public JwtTokenVO createAccessKey(@NotNull final JwtRequestVO request) {
+    public JwtTokenVO createJwtToken(@NotNull final JwtRequestVO request) {
         hiveValidator.validate(request);
         if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
         final UserVO user = userService.findUser(request.getLogin(), request.getPassword());
-        return authenticate(user);
+        return createJwtToken(user);
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public JwtTokenVO authenticate(@NotNull UserVO user) {
+    public JwtTokenVO createJwtToken(@NotNull UserVO user) {
         Set<String> networkIds = new HashSet<>();
         Set<String> deviceGuids = new HashSet<>();
         Set<String> actions = new HashSet<>();
@@ -72,6 +72,7 @@ public class AuthTokenService {
             actions.add("*");
         } else {
             UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
+//          TODO: check if needed
             userService.refreshUserLoginData(user);
 
             Set<NetworkVO> networks = userWithNetwork.getNetworks();

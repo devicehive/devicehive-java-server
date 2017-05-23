@@ -26,24 +26,24 @@ import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
-import com.devicehive.service.security.jwt.AuthTokenService;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
+import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.JwtRequestVO;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 public class JwtTokenResourceImpl implements JwtTokenResource {
@@ -60,7 +60,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     private TimestampService timestampService;
 
     @Autowired
-    private AuthTokenService authTokenService;
+    private JwtTokenService jwtTokenService;
 
     @Autowired
     private HiveValidator hiveValidator;
@@ -125,14 +125,14 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Override
     public Response login(JwtRequestVO request) {
-        JwtTokenVO jwtToken = authTokenService.createAccessKey(request);
+        JwtTokenVO jwtToken = jwtTokenService.createJwtToken(request);
         return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 
     @Override
     public Response login() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        JwtTokenVO jwtToken = authTokenService.authenticate(principal.getUser());
+        JwtTokenVO jwtToken = jwtTokenService.createJwtToken(principal.getUser());
         return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }
