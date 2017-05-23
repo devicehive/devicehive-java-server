@@ -54,7 +54,8 @@ public class JwtTokenGenerator {
     public String generateToken(JwtPayload payload, TokenType tokenType) {
         
         long maxAge = tokenType.equals(TokenType.ACCESS) ? accessTokenMaxAge : refreshTokenMaxAge;
-        Date expiration = new Date(System.currentTimeMillis() + maxAge);
+        Date expiration = payload.getExpiration() != null ? payload.getExpiration() :
+                new Date(System.currentTimeMillis() + maxAge);
         
         payload.setExpiration(expiration);
         payload.setTokenType(tokenType);

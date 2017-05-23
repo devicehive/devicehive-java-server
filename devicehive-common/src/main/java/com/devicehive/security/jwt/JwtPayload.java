@@ -74,7 +74,6 @@ public class JwtPayload implements HiveEntity {
     //Registered claims
 
     @SerializedName("expiration")
-    @ApiModelProperty(hidden = true)
     private Date expiration;
 
     @SerializedName("tokenType")
