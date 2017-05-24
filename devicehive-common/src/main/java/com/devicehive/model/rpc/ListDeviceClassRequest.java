@@ -27,7 +27,7 @@ public class ListDeviceClassRequest extends Body {
     private String name;
     private String namePattern;
     private String sortField;
-    private Boolean sortOrderAsc;
+    private boolean sortOrderAsc;
     private Integer take;
     private Integer skip;
 
@@ -59,11 +59,11 @@ public class ListDeviceClassRequest extends Body {
         this.sortField = sortField;
     }
 
-    public Boolean getSortOrderAsc() {
+    public boolean getSortOrderAsc() {
         return sortOrderAsc;
     }
 
-    public void setSortOrderAsc(Boolean sortOrderAsc) {
+    public void setSortOrderAsc(boolean sortOrderAsc) {
         this.sortOrderAsc = sortOrderAsc;
     }
 

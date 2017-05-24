@@ -32,7 +32,7 @@ public class ListDeviceRequest extends Body {
     private Long deviceClassId;
     private String deviceClassName;
     private String sortField;
-    private Boolean sortOrderAsc;
+    private boolean sortOrderAsc;
     private Integer take;
     private Integer skip;
     private HivePrincipal principal;
@@ -97,11 +97,11 @@ public class ListDeviceRequest extends Body {
         this.sortField = sortField;
     }
 
-    public Boolean getSortOrderAsc() {
+    public boolean getSortOrderAsc() {
         return sortOrderAsc;
     }
 
-    public void setSortOrderAsc(Boolean sortOrderAsc) {
+    public void setSortOrderAsc(boolean sortOrderAsc) {
         this.sortOrderAsc = sortOrderAsc;
     }
 
