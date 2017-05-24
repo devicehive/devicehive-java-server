@@ -46,7 +46,7 @@ public interface DeviceDao {
     long getAllowedDeviceCount(HivePrincipal principal, List<String> guids);
 
     List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
-                         Long deviceClassId, String deviceClassName, String sortField, @NotNull Boolean sortOrderAsc, Integer take,
+                         Long deviceClassId, String deviceClassName, String sortField, boolean sortOrderAsc, Integer take,
                          Integer skip, HivePrincipal principal);
 
 }

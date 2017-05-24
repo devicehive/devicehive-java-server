@@ -136,7 +136,7 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     @Override
     public List<UserVO> list(String login, String loginPattern,
                               Integer role, Integer status,
-                              String sortField, Boolean sortOrderAsc,
+                              String sortField, boolean sortOrderAsc,
                               Integer take, Integer skip) {
         CriteriaBuilder cb = criteriaBuilder();
         CriteriaQuery<User> cq = cb.createQuery(User.class);

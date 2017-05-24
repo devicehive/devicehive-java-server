@@ -29,7 +29,7 @@ public class ListUserRequest extends Body {
     private Integer role;
     private Integer status;
     private String sortField;
-    private Boolean sortOrderAsc;
+    private boolean sortOrderAsc;
     private Integer take;
     private Integer skip;
 
@@ -77,11 +77,11 @@ public class ListUserRequest extends Body {
         this.sortField = sortField;
     }
 
-    public Boolean getSortOrderAsc() {
+    public boolean getSortOrderAsc() {
         return sortOrderAsc;
     }
 
-    public void setSortOrderAsc(Boolean sortOrderAsc) {
+    public void setSortOrderAsc(boolean sortOrderAsc) {
         this.sortOrderAsc = sortOrderAsc;
     }
 

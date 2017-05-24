@@ -291,7 +291,7 @@ public class DeviceService {
                                                  Long deviceClassId,
                                                  String deviceClassName,
                                                  String sortField,
-                                                 @NotNull Boolean sortOrderAsc,
+                                                 boolean sortOrderAsc,
                                                  Integer take,
                                                  Integer skip,
                                                  HivePrincipal principal) {

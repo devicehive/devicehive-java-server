@@ -130,7 +130,7 @@ public class DeviceClassService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<DeviceClassVO>> list(String name, String namePattern, String sortField,
-                                                                   Boolean sortOrderAsc, Integer take, Integer skip) {
+            boolean sortOrderAsc, Integer take, Integer skip) {
         ListDeviceClassRequest request = new ListDeviceClassRequest();
         request.setName(name);
         request.setNamePattern(namePattern);

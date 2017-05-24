@@ -249,7 +249,7 @@ public class UserService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-            Boolean sortOrderAsc, Integer take, Integer skip) {
+            boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);

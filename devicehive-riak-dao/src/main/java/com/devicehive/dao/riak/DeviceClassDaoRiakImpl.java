@@ -101,7 +101,7 @@ public class DeviceClassDaoRiakImpl extends RiakGenericDao implements DeviceClas
 
     @Override
     public List<DeviceClassVO> list(String name, String namePattern, String sortField,
-            Boolean isSortOrderAsc, Integer take, Integer skip) {
+            boolean isSortOrderAsc, Integer take, Integer skip) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                 .withNamespace(DEVICE_CLASS_NS);
         addMapValues(builder);
