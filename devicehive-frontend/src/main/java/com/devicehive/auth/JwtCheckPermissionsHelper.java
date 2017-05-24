@@ -53,7 +53,7 @@ public class JwtCheckPermissionsHelper {
     private boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
         if (principal.areAllNetworksAvailable()) return true;
         else if (targetDomainObject instanceof Long) {
-            return principal.getNetworkIds() != null && principal.getNetworkIds().contains((Long) targetDomainObject);
+            return principal.getNetworkIds() != null && principal.getNetworkIds().contains(targetDomainObject);
         }
         return true;
     }
@@ -71,6 +71,8 @@ public class JwtCheckPermissionsHelper {
                 return networks.stream().flatMap(n -> deviceService.list(null, null, n, null, null, null, null, false, null, null, null)
                         .thenApply(Collection::stream).join())
                         .anyMatch(deviceVO -> deviceVO.getGuid().equals(targetDomainObject));
+            } else if (devices != null && principal.areAllNetworksAvailable()) {
+                return devices.contains(targetDomainObject);
             } else
                 return networks != null && devices != null && devices.contains(targetDomainObject);
         }
