@@ -27,7 +27,6 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
-import com.devicehive.service.security.jwt.AuthTokenService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
@@ -74,11 +73,11 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
             logger.warn("JwtToken: User not found");
-            return ResponseFactory.response(BAD_REQUEST, "UserId not valid");
+            return ResponseFactory.response(BAD_REQUEST);
         }
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
             logger.warn("JwtToken: User is not active");
-            return ResponseFactory.response(BAD_REQUEST, "User is not active");
+            return ResponseFactory.response(BAD_REQUEST);
         }
 
         logger.debug("JwtToken: generate access and refresh token");
