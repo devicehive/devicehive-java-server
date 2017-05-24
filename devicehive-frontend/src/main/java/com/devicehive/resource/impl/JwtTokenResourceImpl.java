@@ -74,13 +74,13 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
-            logger.warn("JwtToken: User with specified id was not found");
+            logger.warn("JwtToken: User with specified id {} was not found", payload.getUserId());
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
         }
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            logger.warn("JwtToken: User with specified id  is not active");
+            logger.warn("JwtToken: User with specified id {} is not active", payload.getUserId());
             return ResponseFactory
                     .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));

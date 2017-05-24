@@ -37,6 +37,11 @@ public class LocalTimestampService implements TimestampService {
     }
 
     @Override
+    public Date getDate(long ms) {
+        return new Date(ms);
+    }
+
+    @Override
     public String getDateAsString() {
         DATE_FORMAT.setTimeZone(new SimpleTimeZone(SimpleTimeZone.UTC_TIME, "UTC"));
         return DATE_FORMAT.format(getDate());

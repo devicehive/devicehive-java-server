@@ -22,9 +22,11 @@ package com.devicehive.security.util;
 
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.service.time.TimestampService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +46,9 @@ public class JwtTokenGenerator {
     @Value("${jwt.access-token-max-age}")
     long accessTokenMaxAge;
 
+    @Autowired
+    private TimestampService timestampService;
+
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified
      * JwtPayload object.
@@ -55,7 +60,7 @@ public class JwtTokenGenerator {
         
         long maxAge = tokenType.equals(TokenType.ACCESS) ? accessTokenMaxAge : refreshTokenMaxAge;
         Date expiration = payload.getExpiration() != null ? payload.getExpiration() :
-                new Date(System.currentTimeMillis() + maxAge);
+                timestampService.getDate(System.currentTimeMillis() + maxAge);
         
         payload.setExpiration(expiration);
         payload.setTokenType(tokenType);
