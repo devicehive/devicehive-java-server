@@ -69,6 +69,7 @@ public class AvailableActions {
             add(UPDATE_CURRENT_USER);
             add(MANAGE_ACCESS_KEY);
             add(MANAGE_OAUTH_GRANT);
+            add(MANAGE_TOKEN);
         }
 
         private static final long serialVersionUID = -6981208010851957614L;
@@ -80,7 +81,6 @@ public class AvailableActions {
             add(MANAGE_DEVICE_CLASS);
             add(MANAGE_NETWORK);
             add(MANAGE_OAUTH_CLIENT);
-            add(MANAGE_TOKEN);
         }
 
         private static final long serialVersionUID = -1946208903850253584L;
