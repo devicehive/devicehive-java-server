@@ -47,11 +47,6 @@ public class Messages {
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
     public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
-    public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
-    public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
-    public static final String IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED");
-    public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
-    public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
     public static final String DEVICE_IS_BLOCKED = BidBundle.get("DEVICE_IS_BLOCKED");
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = BidBundle.get("NO_NOTIFICATIONS_FROM_DEVICE");
@@ -93,7 +88,6 @@ public class Messages {
     public static final String COMMAND_ID_REQUIRED = BidBundle.get("COMMAND_ID_REQUIRED");
     public static final String VALIDATION_FAILED = BidBundle.get("VALIDATION_FAILED");
     public static final String DUPLICATE_LOGIN = BidBundle.get("DUPLICATE_LOGIN");
-    public static final String DUPLICATE_IDENTITY_LOGIN = BidBundle.get("DUPLICATE_IDENTITY_LOGIN");
     public static final String PASSWORD_REQUIRED = BidBundle.get("PASSWORD_REQUIRED");
     public static final String OLD_PASSWORD_REQUIRED = BidBundle.get("OLD_PASSWORD_REQUIRED");
     public static final String INTERNAL_SERVER_ERROR = BidBundle.get("INTERNAL_SERVER_ERROR");
