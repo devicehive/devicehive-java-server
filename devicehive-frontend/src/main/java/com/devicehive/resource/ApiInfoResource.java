@@ -20,7 +20,6 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
@@ -52,18 +51,6 @@ public interface ApiInfoResource {
     })
     Response getApiInfo(@Context UriInfo uriInfo);
 
-    @GET
-    @Path("/config/auth")
-    @PreAuthorize("permitAll")
-    @ApiOperation(value = "Get oAuth configuration", notes = "Gets information about supported authentication providers.",
-            response = ApiConfigVO.class)
-    @ApiResponses(value = {
-            @ApiResponse(code = 200,
-                    message = "Returns configured identity providers",
-                    response = ApiConfigVO.class)
-    })
-    @Deprecated
-    Response getOauth2Config();
 
     @GET
     @Path("/config/cluster")

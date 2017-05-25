@@ -39,13 +39,13 @@ sleep 20
 curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-login_bin: dhadmin' \
-    -d "{\"id\": 1, \"login\":\"dhadmin\", \"passwordHash\":\"DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=\", \"passwordSalt\":\"sjQbZgcCmFxqTV4CCmGwpIHO\", \"role\":\"ADMIN\", \"status\":\"ACTIVE\", \"loginAttempts\":0, \"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":0,\"data\":null}" \
+    -d "{\"id\": 1, \"login\":\"dhadmin\", \"passwordHash\":\"DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=\", \"passwordSalt\":\"sjQbZgcCmFxqTV4CCmGwpIHO\", \"role\":\"ADMIN\", \"status\":\"ACTIVE\", \"loginAttempts\":0, \"lastLogin\":null,\"entityVersion\":0,\"data\":null}" \
     'http://127.0.0.1:8098/types/default/buckets/user/keys/1'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-login_bin: test_admin' \
-    -d "{\"id\": 2, \"login\":\"test_admin\", \"passwordHash\":\"+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=\", \"passwordSalt\":\"9KynX3ShWnFym4y8Dla039py\", \"role\":\"ADMIN\", \"status\":\"ACTIVE\", \"loginAttempts\":0, \"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":0,\"data\":null}" \
+    -d "{\"id\": 2, \"login\":\"test_admin\", \"passwordHash\":\"+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=\", \"passwordSalt\":\"9KynX3ShWnFym4y8Dla039py\", \"role\":\"ADMIN\", \"status\":\"ACTIVE\", \"loginAttempts\":0, \"lastLogin\":null,\"entityVersion\":0,\"data\":null}" \
     'http://127.0.0.1:8098/types/default/buckets/user/keys/2'
 
 curl -XPOST \
@@ -59,7 +59,7 @@ curl -XPUT \
     -H 'x-riak-index-userId_int: 2' \
     -H 'x-riak-index-key_bin: 1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=' \
     -H 'x-riak-index-expirationDate_int: -1' \
-    -d "{\"id\": 1, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":2,\"login\":\"test_admin\",\"passwordHash\":\"+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=\",\"passwordSalt\":\"9KynX3ShWnFym4y8Dla039py\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":1,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
+    -d "{\"id\": 1, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":2,\"login\":\"test_admin\",\"passwordHash\":\"+IC4w+NeByiymEWlI5H1xbtNe4YKmPlLRZ7j3xaireg=\",\"passwordSalt\":\"9KynX3ShWnFym4y8Dla039py\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"entityVersion\":1,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
     'http://127.0.0.1:8098/types/default/buckets/access_key/keys/1'
 
 curl -XPUT \
@@ -68,7 +68,7 @@ curl -XPUT \
     -H 'x-riak-index-userId_int: 1' \
     -H 'x-riak-index-key_bin: 1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=' \
     -H 'x-riak-index-expirationDate_int: -1' \
-    -d "{\"id\": 2, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":1,\"login\":\"dhadmin\",\"passwordHash\":\"DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=\",\"passwordSalt\":\"sjQbZgcCmFxqTV4CCmGwpIHO\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"googleLogin\":null,\"facebookLogin\":null,\"githubLogin\":null,\"entityVersion\":0,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
+    -d "{\"id\": 2, \"label\":\"Access Key for dhadmin\", \"key\": \"1jwKgLYi/CdfBTI9KByfYxwyQ6HUIEfnGSgakdpFjgk=\", \"expirationDate\": null, \"type\":\"DEFAULT\", \"user\":{\"id\":1,\"login\":\"dhadmin\",\"passwordHash\":\"DFXFrZ8VQIkOYECScBbBwsYinj+o8IlaLsRQ81wO+l8=\",\"passwordSalt\":\"sjQbZgcCmFxqTV4CCmGwpIHO\",\"loginAttempts\":0,\"role\":\"ADMIN\",\"status\":\"ACTIVE\",\"lastLogin\":null,\"entityVersion\":0,\"data\":null}, \"permissions\": [{\"id\":null,\"domains\":null,\"subnets\":null,\"actions\":null,\"networkIds\":null,\"deviceGuids\":null}]}" \
     'http://127.0.0.1:8098/types/default/buckets/access_key/keys/2'
 
 curl -XPOST \
@@ -112,52 +112,12 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -d "{\"value\":\"true\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/google.identity.allowed'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"google_id\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/google.identity.client.id'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/facebook.identity.allowed'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"facebook_id\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/facebook.identity.client.id'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/github.identity.allowed'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"github_id\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/github.identity.client.id'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
     'http://127.0.0.1:8098/types/default/buckets/configuration/keys/allowNetworkAutoCreate'
 
 curl -XPUT \
     -H "Content-Type: application/json" \
-    -d "{\"value\":\"http://127.0.0.1:8080/cassandra\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/cassandra.rest.endpoint'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":120000}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/websocket.ping.timeout'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":1200000}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/session.timeout'
+    -d "{\"value\":\"true\"}" \
+    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/user.anonymous_creation'
 
 curl -XPUT \
     -H "Content-Type: application/json" \

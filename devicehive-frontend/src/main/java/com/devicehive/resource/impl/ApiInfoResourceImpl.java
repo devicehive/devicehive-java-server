@@ -27,7 +27,6 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.vo.ApiConfigVO;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.vo.IdentityProviderConfig;
@@ -89,41 +88,6 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         }
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
-    }
-
-    @Override
-    public Response getOauth2Config() {
-        logger.debug("ApiConfigVO requested");
-        ApiConfigVO apiConfig = new ApiConfigVO();
-
-        Set<IdentityProviderConfig> providerConfigs = new HashSet<>();
-
-        if (Boolean.parseBoolean(configurationService.get(Constants.GOOGLE_IDENTITY_ALLOWED))) {
-            IdentityProviderConfig googleConfig = new IdentityProviderConfig("google");
-            googleConfig.setClientId(configurationService.get(Constants.GOOGLE_IDENTITY_CLIENT_ID));
-            providerConfigs.add(googleConfig);
-        }
-
-        if (Boolean.parseBoolean(configurationService.get(Constants.FACEBOOK_IDENTITY_ALLOWED))) {
-            IdentityProviderConfig facebookConfig = new IdentityProviderConfig("facebook");
-            facebookConfig.setClientId(configurationService.get(Constants.FACEBOOK_IDENTITY_CLIENT_ID));
-            providerConfigs.add(facebookConfig);
-        }
-
-        if (Boolean.parseBoolean(configurationService.get(Constants.GITHUB_IDENTITY_ALLOWED))) {
-            IdentityProviderConfig githubConfig = new IdentityProviderConfig("github");
-            githubConfig.setClientId(configurationService.get(Constants.GITHUB_IDENTITY_CLIENT_ID));
-            providerConfigs.add(githubConfig);
-        }
-
-        IdentityProviderConfig passwordConfig = new IdentityProviderConfig("password");
-        passwordConfig.setClientId("");
-        providerConfigs.add(passwordConfig);
-
-        apiConfig.setProviderConfigs(providerConfigs);
-        apiConfig.setSessionTimeout(Long.parseLong(configurationService.get(Constants.SESSION_TIMEOUT)) / 1000);
-
-        return ResponseFactory.response(Response.Status.OK, apiConfig, JsonPolicyDef.Policy.REST_SERVER_CONFIG);
     }
 
     @Override
