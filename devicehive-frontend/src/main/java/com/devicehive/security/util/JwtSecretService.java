@@ -52,7 +52,7 @@ public class JwtSecretService {
         	secret = UUID.randomUUID().toString();
         	configurationService.save(SECRET_VAR_NAME, secret);
         }
-    } 
+    }
 
     public String getJwtSecret() {
         return secret;
