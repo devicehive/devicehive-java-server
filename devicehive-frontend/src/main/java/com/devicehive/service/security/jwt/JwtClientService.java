@@ -22,7 +22,7 @@ package com.devicehive.service.security.jwt;
 
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
-import com.devicehive.security.util.JwtSecretHolder;
+import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.security.util.JwtTokenGenerator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -40,6 +40,8 @@ public class JwtClientService {
 
     @Autowired
     private JwtTokenGenerator tokenGenerator;
+    @Autowired
+    private JwtSecretService jwtSecretService;
 
     public String generateJwtAccessToken(JwtPayload payload) {
         return tokenGenerator.generateToken(payload, TokenType.ACCESS);
@@ -51,7 +53,7 @@ public class JwtClientService {
 
     public JwtPayload getPayload(String jwtToken) {
         Claims claims = Jwts.parser()
-                .setSigningKey(JwtSecretHolder.INSTANCE.getJwtSecret())
+                .setSigningKey(jwtSecretService.getJwtSecret())
                 .parseClaimsJws(jwtToken)
                 .getBody();
         LinkedHashMap payloadMap = (LinkedHashMap) claims.get(JwtPayload.JWT_CLAIM_KEY);

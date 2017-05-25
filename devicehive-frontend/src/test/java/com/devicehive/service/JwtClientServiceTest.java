@@ -23,7 +23,7 @@ package com.devicehive.service;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
-import com.devicehive.security.util.JwtSecretHolder;
+import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -46,6 +46,8 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
     
     @Autowired
     private JwtClientService jwtClientService;
+    @Autowired
+    private JwtSecretService jwtSecretService;
             
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
@@ -107,7 +109,7 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         Claims claims = Jwts.claims(jwtMap);
         String malformedToken = Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, JwtSecretHolder.INSTANCE.getJwtSecret())
+                .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
         jwtClientService.getPayload(malformedToken);
     }

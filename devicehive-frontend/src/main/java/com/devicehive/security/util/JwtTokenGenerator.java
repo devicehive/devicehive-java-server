@@ -48,6 +48,8 @@ public class JwtTokenGenerator {
 
     @Autowired
     private TimestampService timestampService;
+    @Autowired
+    private JwtSecretService jwtSecretService;
 
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified
@@ -71,7 +73,7 @@ public class JwtTokenGenerator {
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, JwtSecretHolder.INSTANCE.getJwtSecret())
+                .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
     }
 }

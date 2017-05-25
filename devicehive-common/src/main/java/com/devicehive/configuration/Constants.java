@@ -56,6 +56,8 @@ public class Constants {
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
     public static final String USER_ANONYMOUS_CREATION = "user.anonymous_creation";
     public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
+    public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
+    public static final String DB_SECRET_VAR_NAME = "jwt.secret";
     //API constants
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_GUID = "deviceGuid";
