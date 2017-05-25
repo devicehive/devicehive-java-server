@@ -1,8 +1,5 @@
 package com.devicehive.security.util;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
 /*
  * #%L
  * DeviceHive Frontend Logic
@@ -23,6 +20,8 @@ import java.security.SecureRandom;
  * #L%
  */
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 import javax.annotation.PostConstruct;
 
@@ -30,12 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.service.configuration.ConfigurationService;
 
 @Component
 public class JwtSecretService {
 
-	private final String SECRET_VAR_NAME = "JWT_SECRET";
     private String secret;
     
     @Autowired
@@ -43,16 +42,16 @@ public class JwtSecretService {
     
     @PostConstruct
     public void init() {
-    	secret = System.getenv(SECRET_VAR_NAME);
+    	secret = System.getenv(Constants.ENV_SECRET_VAR_NAME);
         if (!StringUtils.isEmpty(secret)) {
-        	configurationService.save(SECRET_VAR_NAME, secret);
+        	configurationService.save(Constants.DB_SECRET_VAR_NAME, secret);
         	return;
         }
         
-        secret = configurationService.get(SECRET_VAR_NAME);
+        secret = configurationService.get(Constants.DB_SECRET_VAR_NAME);
         if (StringUtils.isEmpty(secret)) {
         	secret = new BigInteger(130, new SecureRandom()).toString(32);
-        	configurationService.save(SECRET_VAR_NAME, secret);
+        	configurationService.save(Constants.DB_SECRET_VAR_NAME, secret);
         }
     }
 
