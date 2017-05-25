@@ -26,8 +26,6 @@ import java.util.ResourceBundle;
 public class Messages {
 
     public static final String NOT_AUTHORIZED = BidBundle.get("NOT_AUTHORIZED");
-    public static final String OAUTH_REALM = BidBundle.get("OAUTH_REALM");
-    public static final String BASIC_REALM = BidBundle.get("BASIC_REALM");
     public static final String TWO_OR_MORE_ACTIVE_JSON_POLICIES = BidBundle.get("TWO_OR_MORE_ACTIVE_JSON_POLICIES");
     public static final String NOT_A_JSON_OBJECT = BidBundle.get("NOT_A_JSON_OBJECT");
     public static final String UNPARSEABLE_TIMESTAMP = BidBundle.get("UNPARSEABLE_TIMESTAMP");
