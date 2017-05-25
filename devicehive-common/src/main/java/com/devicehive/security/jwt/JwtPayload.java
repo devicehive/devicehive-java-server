@@ -27,6 +27,8 @@ import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
 import java.util.Set;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Common JWT entity
  * Structure must be as provided below:
@@ -59,6 +61,7 @@ public class JwtPayload implements HiveEntity {
 
     //Public claims
 
+    @NotNull
     @SerializedName("userId")
     private Long userId;
 
