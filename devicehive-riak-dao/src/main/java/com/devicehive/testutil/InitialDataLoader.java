@@ -67,20 +67,6 @@ public class InitialDataLoader {
         userDao.persist(user);
 
         ConfigurationVO cfg;
-        cfg = new ConfigurationVO("google.identity.allowed", "true");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("google.identity.client.id", "google_id");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("facebook.identity.allowed", "true");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("facebook.identity.client.id", "facebook_id");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("github.identity.allowed", "true");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("github.identity.client.id", "github_id");
-        configurationDao.persist(cfg);
-        cfg = new ConfigurationVO("session.timeout", "1200000");
-        configurationDao.persist(cfg);
         cfg = new ConfigurationVO("allowNetworkAutoCreate", "true");
         configurationDao.persist(cfg);
 
@@ -120,12 +106,6 @@ public class InitialDataLoader {
         user2.setStatus(UserStatus.ACTIVE);
         user2.setLoginAttempts(0);
         userDao.persist(user2);
-
-        cfg = new ConfigurationVO("websocket.ping.timeout", "120000");
-        configurationDao.persist(cfg);
-
-        cfg = new ConfigurationVO("cassandra.rest.endpoint", "http://127.0.0.1:8080/cassandra");
-        configurationDao.persist(cfg);
 
         cfg = new ConfigurationVO("user.login.lastTimeout", "1000");
         configurationDao.persist(cfg);

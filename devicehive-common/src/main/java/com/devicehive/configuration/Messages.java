@@ -46,15 +46,12 @@ public class Messages {
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
     public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
-    public static final String OAUTH_CLIENT_NOT_FOUND = BidBundle.get("OAUTH_CLIENT_NOT_FOUND");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String IDENTITY_PROVIDER_API_REQUEST_ERROR = BidBundle.get("IDENTITY_PROVIDER_API_REQUEST_ERROR");
     public static final String IDENTITY_PROVIDER_NOT_FOUND = BidBundle.get("IDENTITY_PROVIDER_NOT_FOUND");
     public static final String IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NAME_CHANGE_NOT_ALLOWED");
     public static final String IDENTITY_PROVIDER_NOT_ALLOWED = BidBundle.get("IDENTITY_PROVIDER_NOT_ALLOWED");
     public static final String WRONG_IDENTITY_PROVIDER_SCOPE = BidBundle.get("WRONG_IDENTITY_PROVIDER_SCOPE");
-    public static final String GETTING_OAUTH_ACCESS_TOKEN_FAILED = BidBundle.get("GETTING_OAUTH_ACCESS_TOKEN_FAILED");
-    public static final String OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED = BidBundle.get("OAUTH_ACCESS_TOKEN_VERIFICATION_FAILED");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
     public static final String DEVICE_IS_BLOCKED = BidBundle.get("DEVICE_IS_BLOCKED");
     public static final String NO_NOTIFICATIONS_FROM_DEVICE = BidBundle.get("NO_NOTIFICATIONS_FROM_DEVICE");
@@ -70,8 +67,6 @@ public class Messages {
     public static final String LABEL_IS_REQUIRED = BidBundle.get("LABEL_IS_REQUIRED");
     public static final String ACTIONS_ARE_REQUIRED = BidBundle.get("ACTIONS_ARE_REQUIRED");
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
-    public static final String OAUTH_GRANT_TOKEN_LABEL = BidBundle.get("OAUTH_TOKEN_LABEL");
-    public static final String OAUTH_TOKEN_LABEL = BidBundle.get("OAUTH_TOKEN_LABEL");
     public static final String ID_NOT_ALLOWED = BidBundle.get("ID_NOT_ALLOWED");
     public static final
     String
@@ -86,7 +81,6 @@ public class Messages {
     public static final String EMPTY_DEVICE_CLASS = BidBundle.get("EMPTY_DEVICE_CLASS");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");
     public static final String NOTIFICATION_REQUIRED = BidBundle.get("NOTIFICATION_REQUIRED");
-    public static final String DUPLICATE_OAUTH_ID = BidBundle.get("DUPLICATE_OAUTH_ID");
     public static final String CLIENT_IS_NULL = BidBundle.get("CLIENT_IS_NULL");
     public static final String INVALID_AUTH_CODE = BidBundle.get("INVALID_AUTH_CODE");
     public static final String INVALID_AUTH_REQUEST_PARAMETERS = BidBundle.get("INVALID_AUTH_REQUEST_PARAMETERS");
