@@ -1,5 +1,8 @@
 package com.devicehive.security.util;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 /*
  * #%L
  * DeviceHive Frontend Logic
@@ -21,12 +24,11 @@ package com.devicehive.security.util;
  */
 
 
-import java.util.UUID;
-
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.devicehive.service.configuration.ConfigurationService;
 
@@ -42,14 +44,14 @@ public class JwtSecretService {
     @PostConstruct
     public void init() {
     	secret = System.getenv(SECRET_VAR_NAME);
-        if (secret != null) {
+        if (!StringUtils.isEmpty(secret)) {
         	configurationService.save(SECRET_VAR_NAME, secret);
         	return;
         }
         
         secret = configurationService.get(SECRET_VAR_NAME);
-        if (secret == null) {
-        	secret = UUID.randomUUID().toString();
+        if (StringUtils.isEmpty(secret)) {
+        	secret = new BigInteger(130, new SecureRandom()).toString(32);
         	configurationService.save(SECRET_VAR_NAME, secret);
         }
     }
