@@ -23,17 +23,36 @@ package com.devicehive.security.util;
 
 import java.util.UUID;
 
-public class JwtSecretHolder {
+import javax.annotation.PostConstruct;
 
-    private String secret = System.getenv("JWT_SECRET");
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-    public static final JwtSecretHolder INSTANCE = new JwtSecretHolder();
+import com.devicehive.service.configuration.ConfigurationService;
 
-    private JwtSecretHolder() {
-        if (secret == null) {
-            secret = UUID.randomUUID().toString();
+@Component
+public class JwtSecretService {
+
+	private final String SECRET_VAR_NAME = "JWT_SECRET";
+    private String secret;
+    
+    @Autowired
+    private ConfigurationService configurationService;
+    
+    @PostConstruct
+    public void init() {
+    	secret = System.getenv(SECRET_VAR_NAME);
+        if (secret != null) {
+        	configurationService.save(SECRET_VAR_NAME, secret);
+        	return;
         }
-    }
+        
+        secret = configurationService.get(SECRET_VAR_NAME);
+        if (secret == null) {
+        	secret = UUID.randomUUID().toString();
+        	configurationService.save(SECRET_VAR_NAME, secret);
+        }
+    } 
 
     public String getJwtSecret() {
         return secret;
