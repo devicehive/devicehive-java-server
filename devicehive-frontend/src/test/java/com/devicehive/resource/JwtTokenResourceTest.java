@@ -55,7 +55,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void should_return_access_and_refresh_tokens_for_basic_authorized_user() throws Exception {
+    public void should_return_access_and_refresh_tokens_for_token_authorized_user() throws Exception {
         // Create test user
         UserVO testUser = new UserVO();
         testUser.setLogin("string_0");
@@ -63,7 +63,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setPasswordHash("string_0");
         testUser.setStatus(UserStatus.ACTIVE);
 
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userId = user.getId();
 
         // Create payload
@@ -77,7 +77,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
 
-        JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), payload, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
         assertNotNull(jwtTokenVO.getAccessToken());
         assertNotNull(jwtTokenVO.getRefreshToken());
     }
@@ -114,7 +114,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setPasswordHash("string_1");
         testUser.setStatus(UserStatus.DISABLED);
 
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userid = user.getId();
         // Create payload
         Long userId = userid;
@@ -145,7 +145,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setPasswordHash("string_2");
         testUser.setStatus(UserStatus.ACTIVE);
 
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userid = user.getId();
         // Create payload
         Long userId = userid;
@@ -177,10 +177,9 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         testUser.setPasswordHash("string_3");
         testUser.setStatus(UserStatus.ACTIVE);
 
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
-        final long userid = user.getId();
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         // Create payload
-        Long userId = userid;
+        Long userId = user.getId();
         Set<String> actions = new HashSet<>();
         actions.add("string");
         Set<String> networkIds = new HashSet<>();

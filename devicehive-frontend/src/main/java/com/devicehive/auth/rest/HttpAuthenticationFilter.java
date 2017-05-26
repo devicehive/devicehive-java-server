@@ -72,12 +72,7 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
 
         try {
             if (authHeader.isPresent()) {
-                String header = authHeader.get();
-                if (header.startsWith(Constants.BASIC_AUTH_SCHEME)) {
-                    processBasicAuth(header);
-                } else if (header.startsWith(Constants.TOKEN_SCHEME)) {
-                    processJwtAuth(authHeader.get().substring(6).trim());
-                }
+                processJwtAuth(authHeader.get().substring(6).trim());
             } else {
                 processAnonymousAuth();
             }
@@ -109,19 +104,8 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
                 request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
-    private void processBasicAuth(String authHeader) throws UnsupportedEncodingException {
-        Pair<String, String> credentials = extractAndDecodeHeader(authHeader);
-        UsernamePasswordAuthenticationToken requestAuth = new UsernamePasswordAuthenticationToken(credentials.getLeft().trim(), credentials.getRight().trim());
-        tryAuthenticate(requestAuth);
-    }
-
     private void processJwtAuth(String token) {
         PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(token, null);
-        tryAuthenticate(requestAuth);
-    }
-
-    private void processKeyAuth(String key) {
-        PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(key, null);
         tryAuthenticate(requestAuth);
     }
 
@@ -137,21 +121,5 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
         }
         logger.debug("Successfully authenticated");
         SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    private Pair<String, String> extractAndDecodeHeader(String header) throws UnsupportedEncodingException {
-        byte[] base64Token = header.substring(6).getBytes("UTF-8");
-        byte[] decoded;
-        try {
-            decoded = Base64.decode(base64Token);
-        } catch (IllegalArgumentException e) {
-            throw new BadCredentialsException("Failed to decode basic authentication token");
-        }
-        String token = new String(decoded, "UTF-8");
-        int delim = token.indexOf(":");
-        if (delim == -1) {
-            throw new BadCredentialsException("Invalid basic authentication token");
-        }
-        return Pair.of(token.substring(0, delim), token.substring(delim + 1));
     }
 }

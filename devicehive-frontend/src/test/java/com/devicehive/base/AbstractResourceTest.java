@@ -23,6 +23,9 @@ package com.devicehive.base;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
+import com.devicehive.service.security.jwt.JwtTokenService;
+import com.devicehive.vo.JwtRequestVO;
+import com.devicehive.vo.JwtTokenVO;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
@@ -56,7 +59,7 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ACCESS_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MDk3MDc2Njg3MzAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.J1sd66JL5jLwW_NKHX6d5LClHMuc4mlr77htGrsAZFo";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MDk3MDc2Njg3MzAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.J1sd66JL5jLwW_NKHX6d5LClHMuc4mlr77htGrsAZFo";
 
     @Value("${local.server.port}")
     protected Integer port;
@@ -68,6 +71,9 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     @Autowired
     protected Gson gson;
+
+    @Autowired
+    protected JwtTokenService jwtTokenService;
 
     @Before
     public void initSpringBootIntegrationTest() {
@@ -96,14 +102,16 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
         return wsBaseUrl;
     }
 
-    protected String basicAuthHeader(String login, String password) {
-        String str = String.format("%s:%s", login, password);
-        String base64 = Base64.getEncoder().encodeToString(str.getBytes());
-        return String.format("Basic %s", base64);
-    }
-
     protected String tokenAuthHeader(String key) {
         return "Bearer " + key;
+    }
+
+    protected String accessTokenRequest(String login, String password) {
+        JwtRequestVO request = new JwtRequestVO();
+        request.setLogin(login);
+        request.setPassword(password);
+        JwtTokenVO token = jwtTokenService.createJwtToken(request);
+        return token.getAccessToken();
     }
 
     @SuppressWarnings("unchecked")
