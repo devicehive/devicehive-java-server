@@ -192,10 +192,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
     }
 
     /**
-     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with basic auth.
+     * Test amdin can't create device without network when admin user hasn't networks. Admin authorized with token auth.
      */
     @Test
-    public void should_throw_HiveException_when_role_admin_without_networks_and_basic_authorized_create_device_without_network() {
+    public void should_throw_HiveException_when_role_admin_without_networks_and_token_authorized_create_device_without_network() {
         expectedException.expect(HiveException.class);
         expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
 

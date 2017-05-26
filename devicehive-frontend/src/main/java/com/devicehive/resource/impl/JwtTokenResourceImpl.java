@@ -134,11 +134,4 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         JwtTokenVO jwtToken = jwtTokenService.createJwtToken(request);
         return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
-
-    @Override
-    public Response login() {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        JwtTokenVO jwtToken = jwtTokenService.createJwtToken(principal.getUser());
-        return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
-    }
 }

@@ -20,7 +20,6 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.application.JerseyConfig;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.configuration.Constants;
 import com.devicehive.vo.ApiInfoVO;
@@ -29,11 +28,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -49,20 +44,6 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         assertThat(apiInfo.getServerTimestamp(), notNullValue());
         assertThat(apiInfo.getRestServerUrl(), nullValue());
         assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));
-
-        //TODO what exactly was supposed to be tested here? Asserts are the same as at the start of the test
-        /*String path = String.format("configuration/%s/set", Constants.REST_SERVER_URL);
-        performRequest(path, "GET", singletonMap("value", baseUri() + JerseyConfig.REST_PATH),
-                singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
-
-        path = String.format("configuration/%s/set", Constants.WEBSOCKET_SERVER_URL);
-        performRequest(path, "GET", singletonMap("value", wsBaseUri() + "/websocket"),
-                singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), null, OK, Response.class);
-
-        apiInfo = performRequest("info", "GET", emptyMap(), emptyMap(), null, OK, ApiInfoVO.class);
-        assertThat(apiInfo.getServerTimestamp(), notNullValue());
-        assertThat(apiInfo.getRestServerUrl(), nullValue());
-        assertThat(apiInfo.getWebSocketServerUrl(), is(wsBaseUri() + "/websocket"));*/
     }
 
     @Test

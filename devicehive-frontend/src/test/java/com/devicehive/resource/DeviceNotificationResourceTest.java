@@ -89,12 +89,12 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // Create notification
         DeviceNotification notification = DeviceFixture.createDeviceNotification();
-        notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), notification, CREATED, DeviceNotification.class);
+        notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), notification, CREATED, DeviceNotification.class);
         assertNotNull(notification.getId());
 
         // poll notification
@@ -102,7 +102,7 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         params.put("waitTimeout", 0);
         params.put("timestamp", timeStamp);
         ArrayList notifications = new ArrayList();
-        notifications = performRequest("/device/" + guid + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), null, OK, notifications.getClass());
+        notifications = performRequest("/device/" + guid + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), null, OK, notifications.getClass());
         assertNotNull(notifications);
         assertEquals(1, notifications.size());
     }

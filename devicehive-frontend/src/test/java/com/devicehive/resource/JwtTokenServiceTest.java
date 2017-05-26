@@ -67,7 +67,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         JwtRequestVO jwtRequestVO = new JwtRequestVO();
         jwtRequestVO.setLogin(user.getLogin());
         jwtRequestVO.setPassword("123");
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), jwtRequestVO, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), jwtRequestVO, CREATED, JwtTokenVO.class);
 
         // Check the given user rights
         assertNotNull(jwtTokenVO.getAccessToken());
@@ -91,7 +91,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         JwtRequestVO jwtRequestVO = new JwtRequestVO();
         jwtRequestVO.setLogin(user.getLogin());
         jwtRequestVO.setPassword("123");
-        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), jwtRequestVO, CREATED, JwtTokenVO.class);
+        JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), jwtRequestVO, CREATED, JwtTokenVO.class);
 
         // Check the given user rights
         assertNotNull(jwtTokenVO.getAccessToken());

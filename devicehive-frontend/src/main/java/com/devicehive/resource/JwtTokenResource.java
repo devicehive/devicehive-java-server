@@ -86,15 +86,5 @@ public interface JwtTokenResource {
     Response login(
             @ApiParam(value = "Access key request", required = true)
                     JwtRequestVO request);
-
-    @GET
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
-    @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
-                    response = JwtTokenVO.class),
-            @ApiResponse(code = 403, message = "If identity provider is not allowed")
-    })
-    Response login();
 }
 

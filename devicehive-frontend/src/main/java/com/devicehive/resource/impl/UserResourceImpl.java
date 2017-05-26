@@ -232,7 +232,7 @@ public class UserResourceImpl implements UserResource {
     }
 
     /**
-     * Finds current user from authentication context, handling key and basic
+     * Finds current user from authentication context, handling token
      * authorisation schemes.
      *
      * @return user object or null
