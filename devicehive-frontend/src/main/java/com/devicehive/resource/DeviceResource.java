@@ -52,9 +52,7 @@ public interface DeviceResource {
      * @param namePattern        Device name pattern.
      * @param networkId          Associated network identifier
      * @param networkName        Associated network name
-     * @param deviceClassId      Associated device class identifier
-     * @param deviceClassName    Associated device class name
-     * @param sortField          Result list sort field. Available values are Name, Status, Network and DeviceClass.
+     * @param sortField          Result list sort field. Available values are Name, Status and Network.
      * @param sortOrderSt        Result list sort order. Available values are ASC and DESC.
      * @param take               Number of records to take from the result list.
      * @param skip               Number of records to skip from the result list.
@@ -86,13 +84,7 @@ public interface DeviceResource {
             @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
-            @ApiParam(name = "deviceClassId", value = "Filter by associated device class identifier.")
-            @QueryParam("deviceClassId")
-            Long deviceClassId,
-            @ApiParam(name = "deviceClassName", value = "Filter by associated device class name.")
-            @QueryParam("deviceClassName")
-            String deviceClassName,
-            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network,DeviceClass")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network")
             @QueryParam("sortField")
             String sortField,
             @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
@@ -122,7 +114,7 @@ public interface DeviceResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
-    @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
+    @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' property is required.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })

@@ -70,7 +70,7 @@ public class NetworkService {
     private RpcClient rpcClient;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public NetworkWithUsersAndDevicesVO getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
+    public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
         Set<Long> permittedNetworks = principal.getNetworkIds();

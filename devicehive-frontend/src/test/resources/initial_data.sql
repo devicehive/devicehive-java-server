@@ -26,11 +26,8 @@ INSERT INTO configuration (name, value, entity_version) VALUES ('allowNetworkAut
 INSERT INTO configuration (name, value, entity_version) VALUES ('user.login.lastTimeout', '1000', 0);
 INSERT INTO configuration (name, value, entity_version) VALUES ('jwt.secret', 'devicehive', 0);
 
--- 2. Default device classes
-INSERT INTO device_class (name, is_permanent, entity_version) VALUES ('Sample VirtualLed Device', FALSE, 0);
-
--- 3. Default networks
+-- 2. Default networks
 INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
--- 4. Default devices
-INSERT INTO device (guid, name, network_id, device_class_id, blocked) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 1, 1, FALSE);
+-- 3. Default devices
+INSERT INTO device (guid, name, network_id, blocked) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 1, FALSE);

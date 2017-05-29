@@ -122,8 +122,6 @@ public class CriteriaHelper {
                                                    Optional<String> namePattern,
                                                    Optional<Long> networkId,
                                                    Optional<String> networkName,
-                                                   Optional<Long> deviceClassId,
-                                                   Optional<String> deviceClassName,
                                                    Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
 
@@ -134,23 +132,7 @@ public class CriteriaHelper {
         networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));
         networkName.ifPresent(nName ->  predicates.add(cb.equal(networkJoin.<String>get("name"), nName)));
 
-        final Join<Device, DeviceClass> dcJoin = (Join) from.fetch("deviceClass", JoinType.LEFT);
-        deviceClassId.ifPresent(dcId -> predicates.add(cb.equal(dcJoin.<Long>get("id"), dcId)));
-        deviceClassName.ifPresent(dcName -> predicates.add(cb.equal(dcJoin.<String>get("name"), dcName)));
-
         predicates.addAll(deviceSpecificPrincipalPredicates(cb, from, principal));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] deviceClassListPredicates(CriteriaBuilder cb, Root<DeviceClass> from, Optional<String> name,
-                                                 Optional<String>  namePattern) {
-        final List<Predicate> predicates = new LinkedList<>();
-        if (namePattern.isPresent()) {
-            namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));
-        } else {
-            name.ifPresent(n -> predicates.add(cb.equal(from.get("name"), n)));
-        }
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
@@ -159,7 +141,6 @@ public class CriteriaHelper {
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
-        from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
 

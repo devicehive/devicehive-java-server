@@ -22,7 +22,6 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 
@@ -39,8 +38,6 @@ public class RiakDevice {
     private JsonStringWrapper data;
 
     private RiakNetwork network;
-
-    private RiakDeviceClass deviceClass;
 
     private Boolean blocked;
 
@@ -92,14 +89,6 @@ public class RiakDevice {
         this.network = network;
     }
 
-    public RiakDeviceClass getDeviceClass() {
-        return deviceClass;
-    }
-
-    public void setDeviceClass(RiakDeviceClass deviceClass) {
-        this.deviceClass = deviceClass;
-    }
-
     public Boolean getBlocked() {
         return blocked;
     }
@@ -120,8 +109,6 @@ public class RiakDevice {
             vo = new DeviceVO();
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
-            DeviceClassVO rdc = RiakDeviceClass.convertDeviceClass(dc.getDeviceClass());
-            vo.setDeviceClass(rdc);
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
@@ -137,8 +124,6 @@ public class RiakDevice {
             entity = new RiakDevice();
             entity.setBlocked(dc.getBlocked());
             entity.setData(dc.getData());
-            RiakDeviceClass cdc = RiakDeviceClass.convertDeviceClassVOToEntity(dc.getDeviceClass());
-            entity.setDeviceClass(cdc);
             entity.setGuid(dc.getGuid());
             entity.setId(dc.getId());
             entity.setName(dc.getName());

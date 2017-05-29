@@ -25,7 +25,6 @@ import com.devicehive.base.handler.MockCommandHandler;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
@@ -79,11 +78,9 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_empty_response_with_status_204_when_command_not_processed() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         // register device
@@ -108,11 +105,9 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         // register device
@@ -138,11 +133,9 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0_and_polling_for_device() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 

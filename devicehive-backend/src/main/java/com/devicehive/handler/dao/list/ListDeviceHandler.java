@@ -41,9 +41,9 @@ public class ListDeviceHandler implements RequestHandler {
 
         final ListDeviceRequest req = (ListDeviceRequest) request.getBody();
 
-        final List<DeviceVO> devices = deviceDao.list(req.getName(), req.getNamePattern(),
-                req.getNetworkId(), req.getNetworkName(), req.getDeviceClassId(), req.getDeviceClassName(),
-                req.getSortField(), req.getSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
+        final List<DeviceVO> devices = deviceDao.list(req.getName(), req.getNamePattern(), req.getNetworkId(),
+                req.getNetworkName(), req.getSortField(), req.getSortOrderAsc(), req.getTake(), req.getSkip(),
+                req.getPrincipal());
 
         return Response.newBuilder()
                 .withBody(new ListDeviceResponse(devices))

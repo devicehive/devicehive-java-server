@@ -73,7 +73,6 @@ public class Constants {
     public static final String LABEL = "label";
     public static final String STATUS = "status";
     public static final String NETWORK = "network";
-    public static final String DEVICE_CLASS = "deviceClass";
     public static final String DOMAIN = "domain";
     public static final String LOGIN = "login";
     public static final String DEVICE = "device";

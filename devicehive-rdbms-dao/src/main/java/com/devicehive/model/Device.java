@@ -21,7 +21,6 @@ package com.devicehive.model;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
@@ -44,7 +43,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
                   @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
-                                                                  "left join fetch d.deviceClass dc " +
                                                                   "where d.guid = :guid"),
                   @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid")
               })
@@ -90,13 +88,6 @@ public class Device implements HiveEntity {
     @JoinColumn(name = "network_id")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
-
-    @SerializedName("deviceClass")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_class_id")
-    @NotNull(message = "deviceClass field cannot be null.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClass deviceClass;
 
     @Column(name = "blocked")
     @SerializedName("isBlocked")
@@ -144,14 +135,6 @@ public class Device implements HiveEntity {
         this.network = network;
     }
 
-    public DeviceClass getDeviceClass() {
-        return deviceClass;
-    }
-
-    public void setDeviceClass(DeviceClass deviceClass) {
-        this.deviceClass = deviceClass;
-    }
-
     public Boolean getBlocked() {
         return blocked;
     }
@@ -174,15 +157,10 @@ public class Device implements HiveEntity {
         if (dc != null) {
             vo = new DeviceVO();
             vo.setId(dc.getId());
-            vo.setBlocked(dc.getBlocked());
-            vo.setData(dc.getData());
-            //TODO ???vo.setDeviceClass();
-            DeviceClassVO classVO = DeviceClass.convertToVo(dc.getDeviceClass());
-            vo.setDeviceClass(classVO);
             vo.setGuid(dc.getGuid());
-            vo.setId(dc.getId());
             vo.setName(dc.getName());
-            //TODO Network convert = Network.convertNetwork(dc.getNetwork());
+            vo.setData(dc.getData());
+            vo.setBlocked(dc.getBlocked());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
             vo.setNetwork(networkVO);
         }
@@ -194,15 +172,10 @@ public class Device implements HiveEntity {
         if (dc != null) {
             entity = new Device();
             entity.setId(dc.getId());
-            entity.setBlocked(dc.getBlocked());
-            entity.setData(dc.getData());
-            //TODO ??? next lines conversion
-            DeviceClass deviceClass = DeviceClass.convertToEntity(dc.getDeviceClass());
-            entity.setDeviceClass(deviceClass);
             entity.setGuid(dc.getGuid());
-            entity.setId(dc.getId());
             entity.setName(dc.getName());
-            //TODO ???vo.setNetwork();
+            entity.setData(dc.getData());
+            entity.setBlocked(dc.getBlocked());
             Network network = Network.convert(dc.getNetwork());
             entity.setNetwork(network);
         }
