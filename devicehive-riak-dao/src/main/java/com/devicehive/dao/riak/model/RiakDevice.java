@@ -125,8 +125,7 @@ public class RiakDevice {
             vo.setGuid(dc.getGuid());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
-            NetworkVO networkVO = RiakNetwork.convert(dc.getNetwork());
-            vo.setNetwork(networkVO);
+            vo.setNetworkId(dc.getNetwork().getId());
         }
         return vo;
     }
@@ -142,7 +141,8 @@ public class RiakDevice {
             entity.setGuid(dc.getGuid());
             entity.setId(dc.getId());
             entity.setName(dc.getName());
-            RiakNetwork network = RiakNetwork.convert(dc.getNetwork());
+            RiakNetwork network = new RiakNetwork();
+            network.setId(dc.getNetworkId());
             entity.setNetwork(network);
         }
         return entity;

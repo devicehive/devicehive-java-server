@@ -66,8 +66,6 @@ public class DeviceService {
     @Autowired
     private TimestampService timestampService;
     @Autowired
-    private HiveValidator hiveValidator;
-    @Autowired
     private DeviceDao deviceDao;
     @Autowired
     private RpcClient rpcClient;
@@ -96,10 +94,7 @@ public class DeviceService {
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
-        NetworkVO vo = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
-        NetworkVO network = nwVo != null ? findNetworkForAuth(nwVo) : null;
-        network = findNetworkForAuth(network);
+        Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
         DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
@@ -113,9 +108,7 @@ public class DeviceService {
                 dc.setIsPermanent(deviceClass.getIsPermanent());
                 device.setDeviceClass(dc);
             }
-            if (network != null) {
-                device.setNetwork(network);
-            }
+            device.setNetworkId(networkId);
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
             }
@@ -136,8 +129,8 @@ public class DeviceService {
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
             }
             if (deviceUpdate.getName().isPresent()){
                 existingDevice.setName(deviceUpdate.getName().get());
@@ -162,14 +155,12 @@ public class DeviceService {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), principal.getName());
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
-        if (existingDevice != null && !principal.hasAccessToNetwork(existingDevice.getNetwork().getId())) {
-            logger.error("Principal {} has no access to device network {}", principal.getName(), existingDevice.getNetwork().getId());
+        if (existingDevice != null && !principal.hasAccessToNetwork(existingDevice.getNetworkId())) {
+            logger.error("Principal {} has no access to device network {}", principal.getName(), existingDevice.getNetworkId());
             throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
         }
 
-        NetworkVO nw = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO network = networkService.createOrVerifyNetwork(Optional.ofNullable(nw));
-        network = findNetworkForAuth(network);
+        Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
 
         DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         if (existingDevice == null) {
@@ -179,7 +170,7 @@ public class DeviceService {
 
             DeviceVO device = deviceUpdate.convertTo();
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(networkId);
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
@@ -196,8 +187,8 @@ public class DeviceService {
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
             }
             if (deviceUpdate.getName().isPresent()){
                 existingDevice.setName(deviceUpdate.getName().get());
@@ -213,10 +204,7 @@ public class DeviceService {
     @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
-        NetworkVO network = (deviceUpdate.getNetwork().isPresent())? deviceUpdate.getNetwork().get() : null;
-        if (network != null) {
-            network = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
-        }
+        Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
         DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
@@ -229,9 +217,7 @@ public class DeviceService {
                 dc.setName(deviceClass.getName());
                 device.setDeviceClass(dc);
             }
-            if (network != null) {
-                device.setNetwork(network);
-            }
+            device.setNetworkId(networkId);
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
@@ -244,8 +230,8 @@ public class DeviceService {
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
             }
             if (deviceUpdate.getBlocked().isPresent()){
                 existingDevice.setBlocked(deviceUpdate.getBlocked().get());

@@ -250,6 +250,12 @@ public class NetworkService {
         return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
     }
 
+    public boolean isNetworkExists(Long networkId) {
+    	return ofNullable(networkId)
+        	.map(id -> networkDao.find(id) != null)
+        	.orElse(false);
+    }
+
     private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(networkDao.find(id)))

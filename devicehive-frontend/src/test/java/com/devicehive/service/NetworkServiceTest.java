@@ -509,7 +509,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
 
@@ -543,7 +543,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
 
@@ -572,7 +572,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
 
@@ -605,7 +605,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
 
@@ -642,7 +642,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(network);
+            device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
 
@@ -704,7 +704,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(created);
+            device.setNetworkId(created.getId());
             deviceService.deviceSave(device);
         }
 
@@ -712,7 +712,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         device.setName("allowed_device");
         device.setGuid(randomUUID().toString());
         device.setDeviceClass(dc);
-        device.setNetwork(created);
+        device.setNetworkId(created.getId());
         DeviceNotification notification = deviceService.deviceSave(device);
 
         HivePrincipal principal = new HivePrincipal(user);
@@ -753,7 +753,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             device.setName(randomUUID().toString());
             device.setGuid(randomUUID().toString());
             device.setDeviceClass(dc);
-            device.setNetwork(created);
+            device.setNetworkId(created.getId());
             deviceService.deviceSave(device);
         }
 

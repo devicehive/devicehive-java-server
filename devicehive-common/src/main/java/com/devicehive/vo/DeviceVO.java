@@ -52,7 +52,7 @@ public class DeviceVO implements HiveEntity {
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private NetworkVO network;
+    private Long networkId;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
@@ -95,12 +95,12 @@ public class DeviceVO implements HiveEntity {
         this.data = data;
     }
 
-    public NetworkVO getNetwork() {
-        return network;
+    public Long getNetworkId() {
+        return networkId;
     }
 
-    public void setNetwork(NetworkVO network) {
-        this.network = network;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
     public DeviceClassVO getDeviceClass() {

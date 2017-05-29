@@ -85,7 +85,7 @@ public class Defect157CommandTest extends AbstractResourceTest {
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(),

@@ -56,7 +56,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
@@ -68,10 +68,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
-        NetworkVO savedNetwork = device.getNetwork();
-        assertThat(savedNetwork.getId(), notNullValue());
-        assertThat(network.getName(), is(savedNetwork.getName()));
-        assertThat(network.getDescription(), is(savedNetwork.getDescription()));
+        assertThat(device.getNetworkId(), notNullValue());
         DeviceClassVO savedClass = device.getDeviceClass();
         assertThat(savedClass, notNullValue());
         assertThat(savedClass.getId(), notNullValue());
@@ -87,7 +84,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -99,10 +96,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
-        NetworkVO savedNetwork = device.getNetwork();
-        assertThat(savedNetwork.getId(), notNullValue());
-        assertThat(network.getName(), is(savedNetwork.getName()));
-        assertThat(network.getDescription(), is(savedNetwork.getDescription()));
+        assertThat(device.getNetworkId(), notNullValue());
         DeviceClassVO savedClass = device.getDeviceClass();
         assertThat(savedClass, notNullValue());
         assertThat(savedClass.getId(), notNullValue());
@@ -118,7 +112,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
@@ -136,7 +130,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
         deviceUpdate.setDeviceClass(deviceClass);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);

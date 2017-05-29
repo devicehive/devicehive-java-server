@@ -184,7 +184,7 @@ public class Device implements HiveEntity {
             vo.setName(dc.getName());
             //TODO Network convert = Network.convertNetwork(dc.getNetwork());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
-            vo.setNetwork(networkVO);
+            vo.setNetworkId(networkVO.getId());
         }
         return vo;
     }
@@ -203,7 +203,8 @@ public class Device implements HiveEntity {
             entity.setId(dc.getId());
             entity.setName(dc.getName());
             //TODO ???vo.setNetwork();
-            Network network = Network.convert(dc.getNetwork());
+            Network network = new Network();
+            network.setId(dc.getNetworkId());
             entity.setNetwork(network);
         }
         return entity;

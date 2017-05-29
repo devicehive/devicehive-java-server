@@ -26,8 +26,6 @@ import com.devicehive.model.*;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
-import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Size;
 import java.util.Optional;
@@ -53,7 +51,7 @@ public class DeviceUpdate implements HiveEntity {
 
     @SerializedName("network")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private NetworkVO network;
+    private Long networkId;
 
     @SerializedName("deviceClass")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
@@ -95,12 +93,12 @@ public class DeviceUpdate implements HiveEntity {
         this.data = data;
     }
 
-    public Optional<NetworkVO> getNetwork() {
-        return Optional.ofNullable(network);
+    public Optional<Long> getNetworkId() {
+        return Optional.ofNullable(networkId);
     }
 
-    public void setNetwork(NetworkVO network) {
-        this.network = network;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
     public Optional<Boolean> getBlocked() {
@@ -125,8 +123,8 @@ public class DeviceUpdate implements HiveEntity {
         if (this.name != null){
             device.setName(this.name);
         }
-        if (this.network != null){
-            device.setNetwork(this.network);
+        if (this.networkId != null){
+            device.setNetworkId(this.networkId);
         }
         if (this.blocked != null){
             device.setBlocked(this.blocked);

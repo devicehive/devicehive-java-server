@@ -92,7 +92,7 @@ public class InitialDataLoader {
         device.setId(1L);
         device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
-        device.setNetwork(network);
+        device.setNetworkId(network.getId());
         device.setDeviceClass(deviceClass);
         deviceDao.persist(device);
 
