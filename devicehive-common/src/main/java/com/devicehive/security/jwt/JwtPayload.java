@@ -24,10 +24,9 @@ import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Set;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * Common JWT entity
@@ -159,6 +158,15 @@ public class JwtPayload implements HiveEntity {
             this.actions = actions;
             this.networkIds = networkIds;
             this.deviceGuids = deviceGuids;
+            return this;
+        }
+
+        public Builder withPayload(JwtPayload payload) {
+            this.userId = payload.getUserId();
+            this.actions = payload.getActions();
+            this.networkIds = payload.getNetworkIds();
+            this.deviceGuids = payload.getDeviceGuids();
+            this.expiration = payload.getExpiration();
             return this;
         }
 
