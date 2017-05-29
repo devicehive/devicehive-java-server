@@ -28,7 +28,6 @@ import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.riak.model.NetworkDevice;
@@ -57,9 +56,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     @Autowired
     private NetworkDao networkDao;
-
-    @Autowired
-    private DeviceClassDao deviceClassDao;
 
     @Autowired
     private UserNetworkDaoRiakImpl userNetworkDao;
@@ -91,7 +87,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             RiakDevice device = getOrNull(client.execute(fetchOp), RiakDevice.class);
             //TODO [rafa] refreshRefs
             DeviceVO deviceVO = RiakDevice.convertToVo(device);
-//            deviceVO.setDeviceClass(device.getDeviceClass());
 //            deviceVO.setNetwork(device.getNetwork());
             //TODO [rafa] do we need next refresh commands? Seems that all references are reconstructed.
             refreshRefs(deviceVO);
@@ -157,10 +152,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     @Override
     public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         if (guids.isEmpty()) {
-            return list(null, null, null, null,
-                    null, null, null,
-                    true, null,
-                    null, principal);
+            return list(null, null, null, null, null, true, null, null, principal);
         }
         List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
 
@@ -198,13 +190,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
-            Long deviceClassId, String deviceClassName, String sortField,
-            boolean isSortOrderAsc, Integer take,
-            Integer skip, HivePrincipal principal) {
-        //TODO [rafa] when filtering by device class name we have to instead query DeviceClass bucket for ids, and then use ids.
-        // here is what happens, since device class is not embeddable in case of Riak we need to either keep id only and perform the logic above.
-        // or we need to update device class embedded data in every device corresponding to the class, which is nighmare.
-
+            String sortField, boolean isSortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                 .withNamespace(DEVICE_NS);
         addMapValues(builder);
@@ -216,8 +202,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         }
         addReduceFilter(builder, "network.id", FilterOperator.EQUAL, networkId);
         addReduceFilter(builder, "network.name", FilterOperator.EQUAL, networkName);
-        addReduceFilter(builder, "deviceClass.id", FilterOperator.EQUAL, deviceClassId);
-        addReduceFilter(builder, "deviceClass.name", FilterOperator.EQUAL, deviceClassName);
         if (principal != null) {
             UserVO user = principal.getUser();
             if (user != null && !user.isAdmin()) {
@@ -250,11 +234,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 // todo: remove when migrate Device->DeviceVO
                 NetworkVO networkVO = networkDao.find(device.getNetwork().getId());
                 device.setNetwork(networkVO);
-            }
-
-            if (device.getDeviceClass() != null) {
-                DeviceClassVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
-                device.setDeviceClass(deviceClassWithEquipmentVO);
             }
         }
 

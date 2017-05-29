@@ -29,8 +29,6 @@ public class ListDeviceRequest extends Body {
     private String namePattern;
     private Long networkId;
     private String networkName;
-    private Long deviceClassId;
-    private String deviceClassName;
     private String sortField;
     private boolean sortOrderAsc;
     private Integer take;
@@ -71,22 +69,6 @@ public class ListDeviceRequest extends Body {
 
     public void setNetworkName(String networkName) {
         this.networkName = networkName;
-    }
-
-    public Long getDeviceClassId() {
-        return deviceClassId;
-    }
-
-    public void setDeviceClassId(Long deviceClassId) {
-        this.deviceClassId = deviceClassId;
-    }
-
-    public String getDeviceClassName() {
-        return deviceClassName;
-    }
-
-    public void setDeviceClassName(String deviceClassName) {
-        this.deviceClassName = deviceClassName;
     }
 
     public String getSortField() {

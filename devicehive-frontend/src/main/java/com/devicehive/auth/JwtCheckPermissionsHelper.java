@@ -68,7 +68,7 @@ public class JwtCheckPermissionsHelper {
             if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
             } else if (networks != null && principal.areAllDevicesAvailable()) {
-                return networks.stream().flatMap(n -> deviceService.list(null, null, n, null, null, null, null, false, null, null, null)
+                return networks.stream().flatMap(n -> deviceService.list(null, null, n, null, null, false, null, null, null)
                         .thenApply(Collection::stream).join())
                         .anyMatch(deviceVO -> deviceVO.getGuid().equals(targetDomainObject));
             } else if (devices != null && principal.areAllNetworksAvailable()) {

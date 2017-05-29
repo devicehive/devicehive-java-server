@@ -55,21 +55,9 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private NetworkVO network;
 
-    @SerializedName("deviceClass")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClassUpdate deviceClass;
-
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("isBlocked")
     private Boolean blocked;
-
-    public Optional<DeviceClassUpdate> getDeviceClass() {
-        return Optional.ofNullable(deviceClass);
-    }
-
-    public void setDeviceClass(DeviceClassUpdate deviceClass) {
-        this.deviceClass = deviceClass;
-    }
 
     public Optional<String> getGuid() {
         return Optional.ofNullable(guid);
@@ -118,9 +106,6 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (this.data != null){
             device.setData(this.data);
-        }
-        if (this.deviceClass != null){
-            device.setDeviceClass(this.deviceClass.convertTo());
         }
         if (this.name != null){
             device.setName(this.name);

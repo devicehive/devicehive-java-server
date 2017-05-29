@@ -34,7 +34,6 @@ public class AvailableActions {
     public static final String GET_DEVICE_STATE = "GetDeviceState";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
-    public static final String GET_DEVICE_CLASS = "GetDeviceClass";
     public static final String REGISTER_DEVICE = "RegisterDevice";
     public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
@@ -47,7 +46,6 @@ public class AvailableActions {
 
     //admin
     public static final String MANAGE_USER = "ManageUser";
-    public static final String MANAGE_DEVICE_CLASS = "ManageDeviceClass";
     public static final String MANAGE_NETWORK = "ManageNetwork";
     public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
     public static final String MANAGE_TOKEN = "ManageToken";
@@ -59,7 +57,6 @@ public class AvailableActions {
             add(GET_DEVICE_STATE);
             add(GET_DEVICE_NOTIFICATION);
             add(GET_DEVICE_COMMAND);
-            add(GET_DEVICE_CLASS);
             add(REGISTER_DEVICE);
             add(CREATE_DEVICE_NOTIFICATION);
             add(CREATE_DEVICE_COMMAND);
@@ -78,7 +75,6 @@ public class AvailableActions {
     private static Set<String> ADMIN_ACTIONS = new HashSet<String>() {
         {
             add(MANAGE_USER);
-            add(MANAGE_DEVICE_CLASS);
             add(MANAGE_NETWORK);
             add(MANAGE_OAUTH_CLIENT);
         }

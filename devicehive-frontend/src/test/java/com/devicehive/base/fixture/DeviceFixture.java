@@ -23,43 +23,13 @@ package com.devicehive.base.fixture;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 
 import java.util.UUID;
 
 public class DeviceFixture {
-
-    public static DeviceClassUpdate createDeviceClass() {
-        UUID uuid = UUID.randomUUID();
-        DeviceClassUpdate deviceClass = new DeviceClassUpdate();
-        deviceClass.setName("device_class-" + uuid);
-        deviceClass.setPermanent(false);
-        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
-        return deviceClass;
-    }
-    public static DeviceClassUpdate createDeviceClassUpdate(DeviceClassVO dc) {
-        UUID uuid = UUID.randomUUID();
-        DeviceClassUpdate deviceClass = new DeviceClassUpdate();
-        deviceClass.setId(dc.getId());
-        deviceClass.setName(dc.getName());
-        deviceClass.setPermanent(false);
-        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
-        return deviceClass;
-    }
-
-    public static DeviceClassVO createDCVO() {
-        UUID uuid = UUID.randomUUID();
-        DeviceClassVO deviceClass = new DeviceClassVO();
-        deviceClass.setName("device_class-" + uuid);
-        deviceClass.setIsPermanent(false);
-        deviceClass.setData(new JsonStringWrapper(String.format("{\"data\": \"device_class_data-%s\"}", uuid)));
-
-        return deviceClass;
-    }
 
     public static NetworkVO createNetwork() {
         UUID uuid = UUID.randomUUID();
@@ -77,17 +47,10 @@ public class DeviceFixture {
         return device;
     }
 
-    public static DeviceUpdate createDevice(String deviceKey, DeviceClassUpdate dc) {
-        final DeviceUpdate deviceUpdate = createDevice(deviceKey);
-        deviceUpdate.setDeviceClass(dc);
-        return deviceUpdate;
-    }
-
-    public static DeviceUpdate createDevice(DeviceVO device, DeviceClassUpdate dc) {
+    public static DeviceUpdate createDevice(DeviceVO device) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
         deviceUpdate.setGuid(device.getGuid());
         deviceUpdate.setName(device.getName());
-        deviceUpdate.setDeviceClass(dc);
         return deviceUpdate;
     }
 

@@ -24,10 +24,8 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
@@ -51,11 +49,9 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_device_with_key() {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         // register device
@@ -72,21 +68,13 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedNetwork.getId(), notNullValue());
         assertThat(network.getName(), is(savedNetwork.getName()));
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
-        DeviceClassVO savedClass = device.getDeviceClass();
-        assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
-        assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getData(), notNullValue());
     }
 
     @Test
     public void should_save_device_as_admin() {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         // register device
@@ -103,21 +91,13 @@ public class DeviceResourceTest extends AbstractResourceTest {
         assertThat(savedNetwork.getId(), notNullValue());
         assertThat(network.getName(), is(savedNetwork.getName()));
         assertThat(network.getDescription(), is(savedNetwork.getDescription()));
-        DeviceClassVO savedClass = device.getDeviceClass();
-        assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
-        assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getData(), notNullValue());
     }
 
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         // register device
@@ -131,11 +111,9 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_403_for_token_authorized_user_that_has_no_access_to_device() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetwork(network);
 
         String login = RandomStringUtils.randomAlphabetic(10);

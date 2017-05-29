@@ -42,7 +42,6 @@ public class JerseyConfig extends ResourceConfig {
 
         registerClasses(ApiInfoResourceImpl.class,
                 ConfigurationResourceImpl.class,
-                DeviceClassResourceImpl.class,
                 DeviceCommandResourceImpl.class,
                 DeviceNotificationResourceImpl.class,
                 DeviceResourceImpl.class,

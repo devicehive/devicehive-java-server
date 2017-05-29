@@ -23,7 +23,6 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
-import com.devicehive.model.DeviceClass;
 import com.devicehive.model.Network;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +47,6 @@ import static java.util.Optional.ofNullable;
 
 @Repository
 public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
-    private static final String GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT = "SELECT d.guid, dc.offline_timeout FROM device d " +
-                                                                        "LEFT JOIN device_class dc " +
-                                                                        "ON dc.id = d.device_class_id " +
-                                                                        "WHERE d.guid IN (:guids)";
-    private static final String UPDATE_DEVICES_STATUSES = "UPDATE device SET status =:status WHERE guid IN (:guids)";
 
     private NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -61,35 +54,6 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     public void setDataSource(DataSource dataSource) {
         jdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
     }
-
-    /**
-     * Method change statuses for devices with guids that consists in the list
-     *
-     * @param status new status
-     * @param guids  list of guids
-     */
-    public void changeStatusForDevices(String status, List<String> guids) {
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("status", status);
-        parameters.addValue("guids", guids);
-        jdbcTemplate.update(UPDATE_DEVICES_STATUSES, parameters);
-    }
-
-    /**
-     * Method return a Map where KEY is a device guid from guids list and
-     * VALUE is OfflineTimeout from deviceClass for device with current guid.
-     *
-     * @param guids list of guids
-     */
-    public Map<String, Integer> getOfflineTimeForDevices(List<String> guids) {
-        final Map<String, Integer> deviceInfo = new HashMap<>();
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue("guids", guids);
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(GET_DEVICES_GUIDS_AND_OFFLINE_TIMEOUT, parameters);
-        results.stream().forEach(map -> deviceInfo.put((String) map.get("guid"), (Integer) map.get("offline_timeout")));
-        return deviceInfo;
-    }
-
 
     @Override
     public DeviceVO findByUUID(String uuid) {
@@ -103,7 +67,6 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     @Override
     public void persist(DeviceVO vo) {
         Device device = Device.convertToEntity(vo);
-        device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
@@ -115,7 +78,6 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     @Override
     public DeviceVO merge(DeviceVO vo) {
         Device device = Device.convertToEntity(vo);
-        device.setDeviceClass(reference(DeviceClass.class, device.getDeviceClass().getId()));
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
@@ -155,14 +117,14 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
 
     @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
-                                Long deviceClassId, String deviceClassName, String sortField, boolean sortOrderAsc, Integer take,
+                                String sortField, boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
         final Root<Device> from = criteria.from(Device.class);
 
         final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(networkId), ofNullable(networkName),
-                ofNullable(deviceClassId), ofNullable(deviceClassName), ofNullable(principal));
+                ofNullable(principal));
 
         criteria.where(predicates);
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);

@@ -71,8 +71,6 @@ public class RequestHandlersConfig {
             put(Action.LIST_NETWORK_REQUEST, new ListNetworkHandler());
 
             put(Action.LIST_DEVICE_REQUEST, new ListDeviceHandler());
-
-            put(Action.LIST_DEVICE_CLASS_REQUEST, new ListDeviceClassHandler());
         }};
     }
 

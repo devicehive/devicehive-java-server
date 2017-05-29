@@ -38,7 +38,6 @@ public class Messages {
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
     public static final String EQUIPMENT_NOT_FOUND = BidBundle.get("EQUIPMENT_NOT_FOUND");
-    public static final String DEVICE_CLASS_NOT_FOUND = BidBundle.get("DEVICE_CLASS_NOT_FOUND");
     public static final String COMMAND_NOT_FOUND = BidBundle.get("COMMAND_NOT_FOUND");
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
@@ -61,17 +60,12 @@ public class Messages {
     public static final String ACTIONS_ARE_REQUIRED = BidBundle.get("ACTIONS_ARE_REQUIRED");
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
     public static final String ID_NOT_ALLOWED = BidBundle.get("ID_NOT_ALLOWED");
-    public static final
-    String
-        DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS =
-        BidBundle.get("DEVICE_CLASS_WITH_SUCH_NAME_AND_VERSION_EXISTS");
     public static final String DUPLICATE_EQUIPMENT_ENTRY = BidBundle.get("DUPLICATE_EQUIPMENT_ENTRY");
     public static final String UPDATE_PERMANENT_EQUIPMENT = BidBundle.get("UPDATE_PERMANENT_EQUIPMENT");
     public static final String INCORRECT_CREDENTIALS = BidBundle.get("INCORRECT_CREDENTIALS");
     public static final String DEVICE_GUID_REQUIRED = BidBundle.get("DEVICE_GUID_REQUIRED");
     public static final String EMPTY_DEVICE = BidBundle.get("EMPTY_DEVICE");
     public static final String EMPTY_DEVICE_NAME = BidBundle.get("EMPTY_DEVICE_NAME");
-    public static final String EMPTY_DEVICE_CLASS = BidBundle.get("EMPTY_DEVICE_CLASS");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");
     public static final String NOTIFICATION_REQUIRED = BidBundle.get("NOTIFICATION_REQUIRED");
     public static final String CLIENT_IS_NULL = BidBundle.get("CLIENT_IS_NULL");
