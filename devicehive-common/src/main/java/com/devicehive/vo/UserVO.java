@@ -70,6 +70,10 @@ public class UserVO implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private JsonStringWrapper data;
 
+    @SerializedName("introReviewed")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean introReviewed;
+
     /**
      * @return true, if user is admin
      */
@@ -147,6 +151,14 @@ public class UserVO implements HiveEntity {
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
+    }
+
+    public Boolean getIntroReviewed() {
+        return introReviewed;
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
     }
 
     @Override
