@@ -72,6 +72,9 @@ public class UserResponse implements HiveEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin = new Date(0);
 
+    @SerializedName("introReviewed")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean introReviewed;
 
     public static UserResponse createFromUser(UserWithNetworkVO u) {
         UserResponse response = new UserResponse();
@@ -83,6 +86,7 @@ public class UserResponse implements HiveEntity {
         response.networks = new HashSet<>();
         response.networks.addAll(u.getNetworks().stream().map(UserNetworkResponse::fromNetwork).collect(Collectors.toList()));
         response.setLastLogin(u.getLastLogin());
+        response.setIntroReviewed(u.getIntroReviewed());
         return response;
     }
 
@@ -140,5 +144,13 @@ public class UserResponse implements HiveEntity {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
+    }
+
+    public Boolean getIntroReviewed() {
+        return introReviewed;
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
     }
 }

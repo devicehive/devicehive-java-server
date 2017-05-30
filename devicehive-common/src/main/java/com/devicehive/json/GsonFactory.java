@@ -95,9 +95,6 @@ public class GsonFactory {
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.name())
                 .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.name())
 
-                .registerSubtype(ListDeviceClassRequest.class, Action.LIST_DEVICE_CLASS_REQUEST.name())
-                .registerSubtype(ListDeviceClassResponse.class, Action.LIST_DEVICE_CLASS_RESPONSE.name())
-
                 .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.name())
                 .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.name())
 

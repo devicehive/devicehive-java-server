@@ -23,7 +23,6 @@ package com.devicehive.service.helpers;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;

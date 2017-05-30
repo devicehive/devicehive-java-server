@@ -25,7 +25,6 @@ import com.devicehive.base.handler.MockCommandHandler;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
@@ -79,28 +78,26 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_empty_response_with_status_204_when_command_not_processed() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
         TimeUnit.SECONDS.sleep(1);
 
         // create command
         DeviceCommand command = DeviceFixture.createDeviceCommand();
-        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, CREATED, DeviceCommand.class);
+        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, CREATED, DeviceCommand.class);
         assertNotNull(command.getId());
         TimeUnit.SECONDS.sleep(1);
 
         // try get not processed command
         Map<String, Object> params = new HashMap<>();
         params.put("waitTimeout", 1);
-        DeviceCommand updatedCommand = performRequest("/device/" + guid + "/command/" + command.getId() + "/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, NO_CONTENT, DeviceCommand.class);
+        DeviceCommand updatedCommand = performRequest("/device/" + guid + "/command/" + command.getId() + "/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, NO_CONTENT, DeviceCommand.class);
         assertNull(updatedCommand);
 
     }
@@ -108,52 +105,48 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // create command
         DeviceCommand command = DeviceFixture.createDeviceCommand();
-        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, CREATED, DeviceCommand.class);
+        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, CREATED, DeviceCommand.class);
         assertNotNull(command.getId());
 
         //updateCommand
-        response = performRequest("/device/" + guid + "/command/" + command.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, NO_CONTENT, null);
+        response = performRequest("/device/" + guid + "/command/" + command.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, NO_CONTENT, null);
         assertNotNull(response);
         TimeUnit.SECONDS.sleep(3);
 
         // try get processed command
         Map<String, Object> params = new HashMap<>();
         params.put("waitTimeout", 0);
-        DeviceCommand updatedCommand = performRequest("/device/" + guid + "/command/" + command.getId() + "/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, OK, DeviceCommand.class);
+        DeviceCommand updatedCommand = performRequest("/device/" + guid + "/command/" + command.getId() + "/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, OK, DeviceCommand.class);
         assertNotNull(updatedCommand);
     }
 
     @Test
     public void should_get_response_with_status_200_and_updated_command_when_command_was_processed_and_waitTimeout_is_0_and_polling_for_device() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
         TimeUnit.SECONDS.sleep(1);
 
         // create command
         DeviceCommand command = DeviceFixture.createDeviceCommand();
-        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), command, CREATED, DeviceCommand.class);
+        command = performRequest("/device/" + guid + "/command", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), command, CREATED, DeviceCommand.class);
         assertNotNull(command.getId());
         TimeUnit.SECONDS.sleep(1);
 
@@ -162,7 +155,7 @@ public class DeviceCommandResourceTest extends AbstractResourceTest {
         params.put("waitTimeout", 0);
         params.put("timestamp", timeStamp);
         ArrayList updatedCommands = new ArrayList();
-        updatedCommands = performRequest("/device/" + guid + "/command/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), null, OK, updatedCommands.getClass());
+        updatedCommands = performRequest("/device/" + guid + "/command/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), null, OK, updatedCommands.getClass());
         assertNotNull(updatedCommands);
         assertEquals(1, updatedCommands.size());
 

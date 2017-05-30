@@ -24,10 +24,8 @@ import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
@@ -51,71 +49,53 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_save_device_with_key() {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device
-        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, OK, DeviceVO.class);
+        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
         assertThat(device.getNetworkId(), notNullValue());
-        DeviceClassVO savedClass = device.getDeviceClass();
-        assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
-        assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getData(), notNullValue());
     }
 
     @Test
     public void should_save_device_as_admin() {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device
-        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)), deviceUpdate, OK, DeviceVO.class);
+        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
         assertThat(device.getGuid(), is(guid));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
         assertThat(device.getNetworkId(), notNullValue());
-        DeviceClassVO savedClass = device.getDeviceClass();
-        assertThat(savedClass, notNullValue());
-        assertThat(savedClass.getId(), notNullValue());
-        assertThat(savedClass.getName(), is(deviceClass.getName().get()));
-        assertThat(savedClass.getIsPermanent(), is(deviceClass.getPermanent().get()));
-        assertThat(savedClass.getData(), notNullValue());
     }
 
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device without authentication
@@ -124,12 +104,10 @@ public class DeviceResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_return_403_for_basic_authorized_user_that_has_no_access_to_device() throws Exception {
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
+    public void should_return_403_for_token_authorized_user_that_has_no_access_to_device() throws Exception {
         NetworkVO network = DeviceFixture.createNetwork();
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(deviceClass);
         deviceUpdate.setNetworkId(network.getId());
 
         String login = RandomStringUtils.randomAlphabetic(10);
@@ -142,15 +120,16 @@ public class DeviceResourceTest extends AbstractResourceTest {
         testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         //register user
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(ADMIN_LOGIN, ADMIN_PASS)), testUser, CREATED, UserVO.class);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         assertThat(user.getId(), Matchers.notNullValue());
 
+        String testAccessToken = accessTokenRequest(login, password);
         //testing that user has no access to device
-        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, basicAuthHeader(login, password)), deviceUpdate, FORBIDDEN, null);
+        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(testAccessToken)), deviceUpdate, FORBIDDEN, null);
         assertNotNull(response);
     }
 }

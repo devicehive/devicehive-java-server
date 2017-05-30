@@ -60,8 +60,6 @@ public class DeviceService {
     @Autowired
     private UserService userService;
     @Autowired
-    private DeviceClassService deviceClassService;
-    @Autowired
     private TimestampService timestampService;
     @Autowired
     private DeviceDao deviceDao;
@@ -92,19 +90,10 @@ public class DeviceService {
         //todo: rework when migration to VO will be done
         Long networkId = deviceUpdate.getNetworkId()
         		.orElse(networkService.findDefaultNetworkByUserId(user.getId()));
-        DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo();
-            if (deviceClass != null) {
-                //TODO [rafa] changed
-                DeviceClassVO dc = new DeviceClassVO();
-                dc.setId(deviceClass.getId());
-                dc.setName(deviceClass.getName());
-                dc.setIsPermanent(deviceClass.getIsPermanent());
-                device.setDeviceClass(dc);
-            }
             device.setNetworkId(networkId);
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
@@ -115,13 +104,6 @@ public class DeviceService {
             if (!userService.hasAccessToDevice(user, existingDevice.getGuid())) {
                 logger.error("User {} has no access to device {}", user.getId(), existingDevice.getGuid());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
-            }
-            if (deviceUpdate.getDeviceClass().isPresent()) {
-                DeviceClassVO dc = new DeviceClassVO();
-                dc.setId(deviceClass.getId());
-                dc.setName(deviceClass.getName());
-                dc.setIsPermanent(deviceClass.getIsPermanent());
-                existingDevice.setDeviceClass(dc);
             }
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
@@ -140,40 +122,19 @@ public class DeviceService {
         }
     }
 
-    private DeviceClassVO prepareDeviceClassForNewlyCreatedDevice(DeviceUpdate deviceUpdate) {
-        DeviceClassVO deviceClass = null;
-        if (deviceUpdate.getDeviceClass() != null && deviceUpdate.getDeviceClass().isPresent()) {
-            deviceClass = deviceClassService.createOrUpdateDeviceClass(deviceUpdate.getDeviceClass());
-        }
-        return deviceClass;
-    }
-
     @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
-        DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo();
-            if (deviceClass != null) {
-                DeviceClassVO dc = new DeviceClassVO();
-                dc.setId(deviceClass.getId());
-                dc.setName(deviceClass.getName());
-                device.setDeviceClass(dc);
-            }
             device.setNetworkId(networkId);
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
-            if (deviceUpdate.getDeviceClass().isPresent()) {
-                DeviceClassVO dc = new DeviceClassVO();
-                dc.setId(deviceClass.getId());
-                dc.setName(deviceClass.getName());
-                existingDevice.setDeviceClass(dc);
-            }
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
@@ -221,8 +182,6 @@ public class DeviceService {
                                                  String namePattern,
                                                  Long networkId,
                                                  String networkName,
-                                                 Long deviceClassId,
-                                                 String deviceClassName,
                                                  String sortField,
                                                  boolean sortOrderAsc,
                                                  Integer take,
@@ -233,8 +192,6 @@ public class DeviceService {
         request.setNamePattern(namePattern);
         request.setNetworkId(networkId);
         request.setNetworkName(networkName);
-        request.setDeviceClassId(deviceClassId);
-        request.setDeviceClassName(deviceClassName);
         request.setSortField(sortField);
         request.setSortOrderAsc(sortOrderAsc);
         request.setTake(take);

@@ -99,7 +99,7 @@ public class NotificationHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, null, null, true, null, null, principal).join();
+            actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
             devices = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
         }
 
@@ -153,8 +153,7 @@ public class NotificationHandlers {
         Set<String> deviceGuids = gson.fromJson(request.get(DEVICE_GUIDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceGuids == null) {
-            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, null, null, true, null, null,
-                    principal).join();
+            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
             deviceGuids = actualDevices.stream().map(DeviceVO::getGuid).collect(Collectors.toSet());
             notificationService.unsubscribe(null, deviceGuids);
         } else if (subId.isPresent()) {

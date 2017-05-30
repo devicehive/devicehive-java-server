@@ -29,7 +29,6 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
-import com.devicehive.vo.IdentityProviderConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -41,8 +40,6 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Provide API information

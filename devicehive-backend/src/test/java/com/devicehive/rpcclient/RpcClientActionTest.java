@@ -170,22 +170,6 @@ public class RpcClientActionTest extends AbstractSpringTest {
     }
 
     @Test
-    public void testListDeviceClassAction() throws Exception {
-        ListDeviceClassRequest deviceClassRequest = new ListDeviceClassRequest();
-        deviceClassRequest.setName(UUID.randomUUID().toString()); // nonexistent name
-
-        Request request = Request.newBuilder()
-                .withBody(deviceClassRequest)
-                .build();
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        client.call(request, future::complete);
-
-        Response response = future.get(10, TimeUnit.SECONDS);
-        ListDeviceClassResponse responseBody = (ListDeviceClassResponse) response.getBody();
-        assertNotNull(responseBody.getDeviceClasses().isEmpty());
-    }
-
-    @Test
     public void testListDeviceAction() throws Exception {
         ListDeviceRequest deviceRequest = new ListDeviceRequest();
         deviceRequest.setName(UUID.randomUUID().toString()); // nonexistent name

@@ -62,7 +62,7 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public void list(String name, String namePattern, Long networkId, String networkName,
-                     Long deviceClassId, String deviceClassName, String sortField, String sortOrderSt, Integer take,
+                     String sortField, String sortOrderSt, Integer take,
                      Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Device list requested");
@@ -71,8 +71,7 @@ public class DeviceResourceImpl implements DeviceResource {
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
-                && !NETWORK.equalsIgnoreCase(sortField)
-                && !DEVICE_CLASS.equalsIgnoreCase(sortField)) {
+                && !NETWORK.equalsIgnoreCase(sortField)) {
             final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
@@ -88,8 +87,7 @@ public class DeviceResourceImpl implements DeviceResource {
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
         } else {
-            deviceService.list(name, namePattern, networkId, networkName, deviceClassId,
-                    deviceClassName, sortField, sortOrder, take, skip, principal)
+            deviceService.list(name, namePattern, networkId, networkName, sortField, sortOrder, take, skip, principal)
                     .thenApply(devices -> {
                         logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
                         return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);

@@ -46,17 +46,6 @@ curl -XPOST \
 
 curl -XPUT \
     -H "Content-Type: application/json" \
-    -H 'x-riak-index-name_bin: Sample VirtualLed Device' \
-    -d "{\"id\":1, \"name\":\"Sample VirtualLed Device\", \"permanent\": false, \"offlineTimeout\": 600, \"data\":null,\"equipment\":[]}" \
-    http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/device_class/keys/1
-
-curl -XPOST \
-    -H "Content-Type: application/json" \
-    -d '{"increment": 100}' \
-    http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/counters/buckets/dh_counters/datatypes/deviceClassCounter
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
     -H 'x-riak-index-name_bin: VirtualLed Sample Network' \
     -d "{\"id\":1,\"key\":null,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}" \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/network/keys/1
@@ -69,7 +58,7 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-guid_bin: e50d6085-2aba-48e9-b1c3-73c673e414be' \
-    -d "{\"id\":1, \"guid\":\"e50d6085-2aba-48e9-b1c3-73c673e414be\", \"name\":\"Sample VirtualLed Device\", \"status\":\"Offline\", \"network\": {\"id\":1,\"key\":null,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}, \"deviceClass\":{\"id\":1, \"name\":\"Sample VirtualLed Device\", \"permanent\": false, \"offlineTimeout\": 600, \"data\":null,\"equipment\":null}, \"blocked\":null}" \
+    -d "{\"id\":1, \"guid\":\"e50d6085-2aba-48e9-b1c3-73c673e414be\", \"name\":\"Sample VirtualLed Device\", \"status\":\"Offline\", \"network\": {\"id\":1,\"key\":null,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}, \"blocked\":null}" \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/device/keys/1
 
 curl -XPOST \

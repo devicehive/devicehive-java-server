@@ -209,6 +209,9 @@ public class UserService {
         if (userToUpdate.getData().isPresent()) {
             existing.setData(userToUpdate.getData().get());
         }
+        if (userToUpdate.getIntroReviewed().isPresent()) {
+            existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
+        }
         hiveValidator.validate(existing);
         return userDao.merge(existing);
     }
@@ -313,6 +316,9 @@ public class UserService {
             user.setPasswordHash(hash);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
+        if (user.getIntroReviewed() == null) {
+            user.setIntroReviewed(false);
+        }
         userDao.persist(user);
         return user;
     }

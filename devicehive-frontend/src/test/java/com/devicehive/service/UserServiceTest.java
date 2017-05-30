@@ -32,7 +32,6 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.shim.api.Request;
@@ -725,13 +724,9 @@ public class UserServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), network.getId());
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(randomUUID().toString());
-
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
         device.setGuid(randomUUID().toString());
-        device.setDeviceClass(dc);
         device.setNetworkId(network.getId());
         deviceService.deviceSave(device);
 
@@ -750,13 +745,9 @@ public class UserServiceTest extends AbstractResourceTest {
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(randomUUID().toString());
-
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
         device.setGuid(randomUUID().toString());
-        device.setDeviceClass(dc);
         device.setNetworkId(network.getId());
         deviceService.deviceSave(device);
 
@@ -775,13 +766,9 @@ public class UserServiceTest extends AbstractResourceTest {
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(randomUUID().toString());
-
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
         device.setGuid(randomUUID().toString());
-        device.setDeviceClass(dc);
         device.setNetworkId(network.getId());
         deviceService.deviceSave(device);
 

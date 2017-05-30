@@ -46,8 +46,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "Network.findWithUsers", query = "select n from Network n left join fetch n.users where n.id = :id"),
         @NamedQuery(name = "Network.findByUserOrderedById", query = "select n from Network n left outer join n.users u where u.id = :id order by n.id"),
         @NamedQuery(name = "Network.deleteById", query = "delete from Network n where n.id = :id"),
-        @NamedQuery(name = "Network.getWithDevicesAndDeviceClasses", query = "select n from Network n left join fetch n.devices where n.id = :id"),
-        @NamedQuery(name = "Network.getNetworksByIdsAndUsers", query = "select n from Network n left outer join n.users u left join fetch n.devices d left join fetch d.deviceClass dc " +
+        @NamedQuery(name = "Network.getWithDevices", query = "select n from Network n left join fetch n.devices where n.id = :id"),
+        @NamedQuery(name = "Network.getNetworksByIdsAndUsers", query = "select n from Network n left outer join n.users u left join fetch n.devices d " +
                 "where n.id in :networkIds and (u.id = :userId or :userId is null) and (n.id in :permittedNetworks or :permittedNetworks is null)")
 })
 @Cacheable

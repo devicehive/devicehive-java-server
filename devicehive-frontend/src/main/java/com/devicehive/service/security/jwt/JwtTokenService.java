@@ -86,15 +86,18 @@ public class JwtTokenService {
         }
 
         JwtTokenVO tokenVO = new JwtTokenVO();
-        JwtPayload payload = JwtPayload.newBuilder()
+        JwtPayload accessPayload = JwtPayload.newBuilder()
                 .withUserId(user.getId())
                 .withActions(actions)
                 .withNetworkIds(networkIds)
                 .withDeviceGuids(deviceGuids)
                 .buildPayload();
 
-        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
-        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload));
+        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(accessPayload)
+                .buildPayload();
+
+        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(accessPayload));
+        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(refreshPayload));
         return tokenVO;
     }
 }

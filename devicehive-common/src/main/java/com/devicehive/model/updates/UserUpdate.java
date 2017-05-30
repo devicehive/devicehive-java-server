@@ -25,6 +25,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
+import com.google.gson.annotations.SerializedName;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -53,6 +54,8 @@ public class UserUpdate implements HiveEntity {
     private String oldPassword;
 
     private JsonStringWrapper data;
+
+    private Boolean introReviewed;
 
     public Optional<String> getLogin() {
         return Optional.ofNullable(login);
@@ -102,6 +105,14 @@ public class UserUpdate implements HiveEntity {
         this.data = data;
     }
 
+    public Optional<Boolean> getIntroReviewed() {
+        return Optional.ofNullable(introReviewed);
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
+    }
+
     public UserRole getRoleEnum() {
         return getRole().map(UserRole::getValueForIndex).orElse(null);
     }
@@ -117,6 +128,9 @@ public class UserUpdate implements HiveEntity {
         }
         if (data != null) {
             result.setData(data);
+        }
+        if (introReviewed != null) {
+            result.setIntroReviewed(introReviewed);
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());
