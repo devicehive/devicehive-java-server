@@ -94,7 +94,8 @@ public class DeviceService {
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
-        Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
+        Long networkId = deviceUpdate.getNetworkId()
+        		.orElse(networkService.findDefaultNetworkByUserId(user.getId()));
         DeviceClassVO deviceClass = prepareDeviceClassForNewlyCreatedDevice(deviceUpdate);
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));

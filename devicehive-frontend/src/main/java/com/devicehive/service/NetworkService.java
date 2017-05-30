@@ -242,6 +242,13 @@ public class NetworkService {
     }
 
     @Transactional
+    public Long findDefaultNetworkByUserId(Long userId) {
+    	return networkDao.findDefaultByUser(userId)
+    			.map(nvo -> nvo.getId())
+    			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
+    }
+
+    @Transactional
     public NetworkVO createOrUpdateNetworkByUser(UserVO user) {
         NetworkVO networkVO = new NetworkVO();
         networkVO.setKey(java.util.UUID.randomUUID().toString());
