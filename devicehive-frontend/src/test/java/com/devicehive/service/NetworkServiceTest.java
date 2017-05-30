@@ -61,7 +61,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.contains;
@@ -116,6 +115,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setId(1L);
+        network.setName("myNetwork" + RandomStringUtils.randomAlphabetic(10));
         networkService.create(network);
     }
 
@@ -760,39 +760,30 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_do_nothing_when_creates_or_verifies_network_if_network_is_null() throws Exception {
-        assertThat(networkService.createOrVerifyNetwork(Optional.ofNullable(null)), nullValue());
-    }
-
-    @Test
-    public void should_throw_IllegalParametersException_if_id_provided_when_creates_or_verifies_network() throws Exception {
-        expectedException.expect(IllegalParametersException.class);
-        expectedException.expectMessage(Messages.INVALID_REQUEST_PARAMETERS);
-
-        NetworkVO network = new NetworkVO();
-        network.setId(-1L);
-        networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        assertThat(networkService.verifyNetwork(Optional.ofNullable(null)), nullValue());
     }
 
     @Ignore("JavaScript integration test '#Create Auto Create (incl. Legacy Equipment) should auto-create network and device class' fails with such behavior")
     @Test
     public void should_throw_ActionNotAllowedException_if_network_auto_creation_is_not_allowed_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
-
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        networkService.verifyNetwork(Optional.ofNullable(network));
     }
 
     @Test
-    public void should_create_new_network_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
+    public void should_throw_NoSuchElementException_when_verifies_network_which_does_not_exist() throws Exception {
+    	Long networkId = null;
+    	expectedException.expect(NoSuchElementException.class);
+        expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, networkId));
 
         NetworkVO network = new NetworkVO();
+        network.setId(networkId);
         network.setName(namePrefix + randomUUID());
-        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        NetworkVO created = networkService.verifyNetwork(Optional.ofNullable(network));
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
         assertThat(created.getName(), equalTo(network.getName()));
@@ -800,57 +791,35 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_key_by_id_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+        NetworkVO created = networkService.create(network);
         assertThat(created, notNullValue());
 
-        NetworkVO verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
+        NetworkVO verified = networkService.verifyNetwork(Optional.ofNullable(created));
         assertThat(verified, notNullValue());
         assertThat(verified.getId(), equalTo(created.getId()));
         assertThat(verified.getName(), equalTo(created.getName()));
     }
 
     @Test
-    public void should_verify_network_key_by_name_when_creates_or_verifies_network() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
-        assertThat(created, notNullValue());
-
-        Long networkId = created.getId();
-        created.setId(null);
-
-        NetworkVO verified = networkService.createOrVerifyNetwork(Optional.ofNullable(created));
-        assertThat(verified, notNullValue());
-        assertThat(verified.getId(), equalTo(networkId));
-        assertThat(verified.getName(), equalTo(created.getName()));
-    }
-
-    @Test
     public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
         network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.createOrVerifyNetwork(Optional.of(network));
+        NetworkVO created = networkService.create(network);
         assertThat(created, notNullValue());
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.INVALID_NETWORK_KEY);
 
         created.setKey(randomUUID().toString());
-        networkService.createOrVerifyNetwork(Optional.of(created));
+        networkService.verifyNetwork(Optional.of(created));
     }
 
     @Test
     public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
-
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
@@ -868,8 +837,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_exception_when_updates_network_by_user_if_user_is_client() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, false);
-
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
@@ -887,8 +854,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_verify_network_if_client_has_access() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
-
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
@@ -908,8 +873,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
-        configurationService.save(ALLOW_NETWORK_AUTO_CREATE, true);
-
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);

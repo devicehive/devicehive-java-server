@@ -142,7 +142,7 @@ public class DeviceService {
         }
 
         NetworkVO nw = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO network = networkService.createOrVerifyNetwork(Optional.ofNullable(nw));
+        NetworkVO network = networkService.verifyNetwork(Optional.ofNullable(nw));
         network = findNetworkForAuth(network);
 
         if (existingDevice == null) {
@@ -177,7 +177,7 @@ public class DeviceService {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
         NetworkVO network = (deviceUpdate.getNetwork().isPresent())? deviceUpdate.getNetwork().get() : null;
         if (network != null) {
-            network = networkService.createOrVerifyNetwork(Optional.ofNullable(network));
+            network = networkService.verifyNetwork(Optional.ofNullable(network));
         }
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));

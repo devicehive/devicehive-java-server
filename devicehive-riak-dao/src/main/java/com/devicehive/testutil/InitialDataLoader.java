@@ -64,8 +64,7 @@ public class InitialDataLoader {
         user.setLoginAttempts(0);
         userDao.persist(user);
 
-        ConfigurationVO cfg;
-        cfg = new ConfigurationVO("allowNetworkAutoCreate", "true");
+        ConfigurationVO cfg = new ConfigurationVO();
         configurationDao.persist(cfg);
         //INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
