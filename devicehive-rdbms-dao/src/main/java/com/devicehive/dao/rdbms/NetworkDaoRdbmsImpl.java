@@ -147,7 +147,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public Optional<NetworkVO> findDefaultByUser(long userId) {
-        return createNamedQuery(Network.class, "Network.findDefaultByUser", Optional.of(CacheConfig.refresh()))
+        return createNamedQuery(Network.class, "Network.findByUserOrderedById", Optional.of(CacheConfig.refresh()))
                 .setParameter("id", userId)
                 .getResultList().stream()
                 .findFirst()
