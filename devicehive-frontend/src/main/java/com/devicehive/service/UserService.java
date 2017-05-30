@@ -316,7 +316,9 @@ public class UserService {
             user.setPasswordHash(hash);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        user.setIntroReviewed(false);
+        if (user.getIntroReviewed() == null) {
+            user.setIntroReviewed(false);
+        }
         userDao.persist(user);
         return user;
     }

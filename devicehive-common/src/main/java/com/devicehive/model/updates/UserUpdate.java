@@ -129,6 +129,9 @@ public class UserUpdate implements HiveEntity {
         if (data != null) {
             result.setData(data);
         }
+        if (introReviewed != null) {
+            result.setIntroReviewed(introReviewed);
+        }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());
         return result;
