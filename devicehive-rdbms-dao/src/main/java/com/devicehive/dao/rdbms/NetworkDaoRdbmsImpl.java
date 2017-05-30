@@ -144,4 +144,14 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
                 .getResultList();
         return networks.isEmpty() ? Optional.empty() : Optional.ofNullable(Network.convertWithDevicesAndUsers(networks.get(0)));
     }
+
+    @Override
+    public Optional<NetworkVO> findDefaultByUser(long userId) {
+        return createNamedQuery(Network.class, "Network.findByUserOrderedById", Optional.of(CacheConfig.refresh()))
+                .setParameter("id", userId)
+                .getResultList().stream()
+                .findFirst()
+                .map(n -> Network.convertNetwork(n));
+    }
+
 }

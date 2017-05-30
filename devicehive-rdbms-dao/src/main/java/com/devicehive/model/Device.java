@@ -83,7 +83,7 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
-    @SerializedName("network")
+    @SerializedName("networkId")
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "network_id")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
@@ -162,7 +162,7 @@ public class Device implements HiveEntity {
             vo.setData(dc.getData());
             vo.setBlocked(dc.getBlocked());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
-            vo.setNetwork(networkVO);
+            vo.setNetworkId(networkVO.getId());
         }
         return vo;
     }
@@ -176,7 +176,8 @@ public class Device implements HiveEntity {
             entity.setName(dc.getName());
             entity.setData(dc.getData());
             entity.setBlocked(dc.getBlocked());
-            Network network = Network.convert(dc.getNetwork());
+            Network network = new Network();
+            network.setId(dc.getNetworkId());
             entity.setNetwork(network);
         }
         return entity;

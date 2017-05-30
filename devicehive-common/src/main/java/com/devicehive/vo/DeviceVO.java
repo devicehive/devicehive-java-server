@@ -50,9 +50,9 @@ public class DeviceVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
-    @SerializedName("network")
+    @SerializedName("networkId")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private NetworkVO network;
+    private Long networkId;
 
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
@@ -91,12 +91,12 @@ public class DeviceVO implements HiveEntity {
         this.data = data;
     }
 
-    public NetworkVO getNetwork() {
-        return network;
+    public Long getNetworkId() {
+        return networkId;
     }
 
-    public void setNetwork(NetworkVO network) {
-        this.network = network;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
     public Boolean getBlocked() {

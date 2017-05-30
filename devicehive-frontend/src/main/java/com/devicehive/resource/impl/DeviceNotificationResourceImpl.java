@@ -258,7 +258,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                         String.format(Messages.DEVICE_NOT_FOUND, guid)));
                 asyncResponse.resume(response);
             } else {
-                if (device.getNetwork() == null) {
+                if (device.getNetworkId() == null) {
                     logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
                     Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
                             String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
