@@ -102,6 +102,11 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private JsonStringWrapper data;
 
+    @Column(name = "intro_reviewed")
+    @SerializedName("introReviewed")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean introReviewed;
+
     /**
      * @return true, if user is admin
      */
@@ -189,6 +194,14 @@ public class User implements HiveEntity {
         this.data = data;
     }
 
+    public Boolean getIntroReviewed() {
+        return introReviewed;
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -225,6 +238,7 @@ public class User implements HiveEntity {
             vo.setPasswordSalt(dc.getPasswordSalt());
             vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
+            vo.setIntroReviewed(dc.getIntroReviewed());
         }
         return vo;
     }
@@ -243,6 +257,7 @@ public class User implements HiveEntity {
             vo.setPasswordSalt(dc.getPasswordSalt());
             vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
+            vo.setIntroReviewed(dc.getIntroReviewed());
         }
         return vo;
     }
