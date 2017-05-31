@@ -160,7 +160,6 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         assert network.getId() != null;
 
         RiakNetwork existing = get(network.getId());
-        existing.setKey(network.getKey());
         existing.setName(network.getName());
         existing.setDescription(network.getDescription());
 

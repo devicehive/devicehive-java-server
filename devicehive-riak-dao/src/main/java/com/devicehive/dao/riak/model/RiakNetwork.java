@@ -23,7 +23,6 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 
 public class RiakNetwork {
 
@@ -85,7 +84,6 @@ public class RiakNetwork {
         if (network != null) {
             vo = new NetworkVO();
             vo.setId(network.getId());
-            vo.setKey(network.getKey());
             vo.setName(network.getName());
             vo.setDescription(network.getDescription());
             vo.setEntityVersion(network.getEntityVersion());
@@ -98,7 +96,6 @@ public class RiakNetwork {
         if (network != null) {
             vo = new RiakNetwork();
             vo.setId(network.getId());
-            vo.setKey(network.getKey());
             vo.setName(network.getName());
             vo.setDescription(network.getDescription());
             vo.setEntityVersion(network.getEntityVersion());

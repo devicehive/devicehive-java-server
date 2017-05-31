@@ -60,11 +60,6 @@ public class Network implements HiveEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
-    @SerializedName("key")
-    @Column
-    @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String key;
     @SerializedName("name")
     @Column
     @NotNull(message = "name field cannot be null.")
@@ -104,14 +99,6 @@ public class Network implements HiveEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getName() {
@@ -170,7 +157,6 @@ public class Network implements HiveEntity {
     public String toString() {
         return "Network{" +
                 "id=" + id +
-                ", key='" + key + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 '}';
@@ -180,7 +166,6 @@ public class Network implements HiveEntity {
         if (network != null) {
             NetworkVO vo = new NetworkVO();
             vo.setId(network.getId());
-            vo.setKey(network.getKey());
             vo.setName(network.getName());
             vo.setDescription(network.getDescription());
             vo.setEntityVersion(network.getEntityVersion());
@@ -213,7 +198,6 @@ public class Network implements HiveEntity {
         if (vo != null) {
             Network network = new Network();
             network.setId(vo.getId());
-            network.setKey(vo.getKey());
             network.setName(vo.getName());
             network.setDescription(vo.getDescription());
             network.setEntityVersion(vo.getEntityVersion());

@@ -195,12 +195,10 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), is(updated.getId()));
         assertThat(update.getName().get(), is(updated.getName()));
         assertThat(update.getDescription().get(), is(updated.getDescription()));
-        assertThat(update.getKey().get(), is(updated.getKey()));
 
         network = networkDao.find(updated.getId());
         assertThat(update.getName().get(), is(network.getName()));
         assertThat(update.getDescription().get(), is(network.getDescription()));
-        assertThat(update.getKey().get(), is(network.getKey()));
     }
 
     @Test
@@ -790,35 +788,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_verify_network_key_by_id_when_creates_or_verifies_network() throws Exception {
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.create(network);
-        assertThat(created, notNullValue());
-
-        NetworkVO verified = networkService.verifyNetwork(Optional.ofNullable(created));
-        assertThat(verified, notNullValue());
-        assertThat(verified.getId(), equalTo(created.getId()));
-        assertThat(verified.getName(), equalTo(created.getName()));
-    }
-
-    @Test
-    public void should_throw_ActionNotAllowedException_when_creates_or_verifies_network_if_network_key_is_corrupted() throws Exception {
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
-        NetworkVO created = networkService.create(network);
-        assertThat(created, notNullValue());
-
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.INVALID_NETWORK_KEY);
-
-        created.setKey(randomUUID().toString());
-        networkService.verifyNetwork(Optional.of(created));
-    }
-
-    @Test
     public void should_check_whether_user_is_admin_when_creates_or_updates_network_by_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
@@ -827,7 +796,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
 
         NetworkVO created = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(network), user);
         assertThat(created, notNullValue());
@@ -844,7 +812,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
 
         expectedException.expect(ActionNotAllowedException.class);
         expectedException.expectMessage(Messages.NETWORK_CREATION_NOT_ALLOWED);
@@ -861,7 +828,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
@@ -880,7 +846,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
-        network.setKey(randomUUID().toString());
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
