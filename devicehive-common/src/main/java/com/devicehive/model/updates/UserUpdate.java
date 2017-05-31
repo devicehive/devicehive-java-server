@@ -26,6 +26,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -39,10 +40,12 @@ public class UserUpdate implements HiveEntity {
     @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 symbols.")
     private String login;
 
+    @ApiModelProperty(value = "0 for 'ADMIN', 1 for 'CLIENT'")
     @Max(value = 1, message = "The value of role should not be more than 1.")
     @Min(value = 0, message = "The value of role should not be less than 0.")
     private Integer role;
 
+    @ApiModelProperty(value = "0 for 'ACTIVE', 1 for 'LOCKED_OUT', 2 for 'DISABLED', 3 for 'DELETED'")
     @Max(value = 3, message = "The value of status should not be more than 3.")
     @Min(value = 0, message = "The value of status should not be less than 0.")
     private Integer status;
@@ -113,10 +116,12 @@ public class UserUpdate implements HiveEntity {
         this.introReviewed = introReviewed;
     }
 
+    @ApiModelProperty(hidden = true)
     public UserRole getRoleEnum() {
         return getRole().map(UserRole::getValueForIndex).orElse(null);
     }
 
+    @ApiModelProperty(hidden = true)
     public UserStatus getStatusEnum() {
         return getStatus().map(UserStatus::getValueForIndex).orElse(null);
     }
