@@ -837,24 +837,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), equalTo(stored.getId()));
     }
 
-    @Test
-    public void should_throw_ActionNotAllowedException_if_client_does_not_have_access_to_verifies_network() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
-
-        NetworkVO network = new NetworkVO();
-        network.setName(namePrefix + randomUUID());
-        NetworkVO created = networkService.create(network);
-        assertThat(created.getId(), notNullValue());
-
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
-
-        networkService.createOrUpdateNetworkByUser(Optional.ofNullable(created), user);
-    }
-
     private void handleListNetworkRequest() {
         when(requestHandler.handle(any(Request.class))).thenAnswer(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);

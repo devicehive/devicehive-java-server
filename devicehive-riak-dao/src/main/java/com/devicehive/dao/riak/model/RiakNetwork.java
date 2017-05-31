@@ -27,7 +27,6 @@ import com.devicehive.vo.NetworkVO;
 public class RiakNetwork {
 
     private Long id;
-    private String key;
     private String name;
     private String description;
     private Long entityVersion;
@@ -40,14 +39,6 @@ public class RiakNetwork {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getName() {
