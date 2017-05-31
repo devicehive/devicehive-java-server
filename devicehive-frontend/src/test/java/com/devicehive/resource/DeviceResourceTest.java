@@ -26,12 +26,14 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.service.NetworkService;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -39,6 +41,7 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.UUID.randomUUID;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -47,12 +50,18 @@ import static org.junit.Assert.assertThat;
 
 public class DeviceResourceTest extends AbstractResourceTest {
 
+	@Autowired
+    private NetworkService networkService;
+
     @Test
     public void should_save_device_with_key() {
         NetworkVO network = DeviceFixture.createNetwork();
+        network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetworkId(network.getId());
+        deviceUpdate.setNetworkId(created.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
@@ -70,9 +79,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     @Test
     public void should_save_device_as_admin() {
         NetworkVO network = DeviceFixture.createNetwork();
+        network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetworkId(network.getId());
+        deviceUpdate.setNetworkId(created.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
@@ -90,9 +102,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     @Test
     public void should_return_401_status_for_anonymous() throws Exception {
         NetworkVO network = DeviceFixture.createNetwork();
+        network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetworkId(network.getId());
+        deviceUpdate.setNetworkId(created.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
@@ -106,9 +121,12 @@ public class DeviceResourceTest extends AbstractResourceTest {
     @Test
     public void should_return_403_for_token_authorized_user_that_has_no_access_to_device() throws Exception {
         NetworkVO network = DeviceFixture.createNetwork();
+        network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetworkId(network.getId());
+        deviceUpdate.setNetworkId(created.getId());
 
         String login = RandomStringUtils.randomAlphabetic(10);
         String password = RandomStringUtils.randomAlphabetic(10);
