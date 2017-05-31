@@ -103,7 +103,7 @@ public interface UserResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Get user", notes = "Gets information about user and its assigned networks.\n" +
             "Only administrators are allowed to get information about any user. User-level accounts can only retrieve information about themselves.")
     @ApiImplicitParams({
