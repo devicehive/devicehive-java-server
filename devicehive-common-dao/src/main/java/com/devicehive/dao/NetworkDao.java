@@ -52,4 +52,7 @@ public interface NetworkDao {
     Optional<NetworkVO> findFirstByName(String name);
 
     Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId);
+
+    Optional<NetworkVO> findDefaultByUser(long userId);
+
 }

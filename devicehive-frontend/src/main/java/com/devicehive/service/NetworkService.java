@@ -228,12 +228,25 @@ public class NetworkService {
     }
 
     @Transactional
+    public Long findDefaultNetworkByUserId(Long userId) {
+    	return networkDao.findDefaultByUser(userId)
+    			.map(nvo -> nvo.getId())
+    			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
+    }
+
+    @Transactional
     public NetworkVO createOrUpdateNetworkByUser(UserVO user) {
         NetworkVO networkVO = new NetworkVO();
         networkVO.setKey(java.util.UUID.randomUUID().toString());
         networkVO.setName(user.getLogin());
         networkVO.setDescription(String.format("User %s default network", user.getLogin()));
         return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
+    }
+
+    public boolean isNetworkExists(Long networkId) {
+    	return ofNullable(networkId)
+        	.map(id -> networkDao.find(id) != null)
+        	.orElse(false);
     }
 
     private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {

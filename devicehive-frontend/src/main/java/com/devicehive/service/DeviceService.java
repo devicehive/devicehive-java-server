@@ -34,13 +34,11 @@ import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.util.HiveValidator;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,8 +62,6 @@ public class DeviceService {
     @Autowired
     private TimestampService timestampService;
     @Autowired
-    private HiveValidator hiveValidator;
-    @Autowired
     private DeviceDao deviceDao;
     @Autowired
     private RpcClient rpcClient;
@@ -78,8 +74,6 @@ public class DeviceService {
         if (principal != null && principal.isAuthenticated()) {
             if (principal.getUser() != null) {
                 dn = deviceSaveByUser(device, principal.getUser());
-            } else if (principal.getNetworkIds() != null && principal.getDeviceGuids() != null) {
-                dn = deviceSaveByPrincipalPermissions(device, principal);
             } else {
                 throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
             }
@@ -94,17 +88,13 @@ public class DeviceService {
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
-        NetworkVO vo = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO nwVo = networkService.createOrUpdateNetworkByUser(Optional.ofNullable(vo), user);
-        NetworkVO network = nwVo != null ? findNetworkForAuth(nwVo) : null;
-        network = findNetworkForAuth(network);
+        Long networkId = deviceUpdate.getNetworkId()
+        		.orElse(networkService.findDefaultNetworkByUserId(user.getId()));
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo();
-            if (network != null) {
-                device.setNetwork(network);
-            }
+            device.setNetworkId(networkId);
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
             }
@@ -118,48 +108,8 @@ public class DeviceService {
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
-            }
-            if (deviceUpdate.getName().isPresent()){
-                existingDevice.setName(deviceUpdate.getName().get());
-            }
-            if (deviceUpdate.getBlocked().isPresent()){
-                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
-            }
-            deviceDao.merge(existingDevice);
-            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
-        }
-    }
-
-    private DeviceNotification deviceSaveByPrincipalPermissions(DeviceUpdate deviceUpdate, HivePrincipal principal) {
-        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), principal.getName());
-        //TODO [requires a lot of details]
-        DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
-        if (existingDevice != null && !principal.hasAccessToNetwork(existingDevice.getNetwork().getId())) {
-            logger.error("Principal {} has no access to device network {}", principal.getName(), existingDevice.getNetwork().getId());
-            throw new HiveException(Messages.NO_ACCESS_TO_NETWORK, FORBIDDEN.getStatusCode());
-        }
-
-        NetworkVO nw = deviceUpdate.getNetwork().isPresent() ? deviceUpdate.getNetwork().get() : null;
-        NetworkVO network = networkService.verifyNetwork(Optional.ofNullable(nw));
-        network = findNetworkForAuth(network);
-
-        if (existingDevice == null) {
-            DeviceVO device = deviceUpdate.convertTo();
-            device.setNetwork(network);
-            deviceDao.persist(device);
-            return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
-        } else {
-            if (!principal.hasAccessToDevice(deviceUpdate.getGuid().orElse(null))) {
-                logger.error("Principal {} has no access to device {}", principal, existingDevice.getGuid());
-                throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
-            }
-            if (deviceUpdate.getData().isPresent()){
-                existingDevice.setData(deviceUpdate.getData().get());
-            }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
             }
             if (deviceUpdate.getName().isPresent()){
                 existingDevice.setName(deviceUpdate.getName().get());
@@ -175,26 +125,21 @@ public class DeviceService {
     @Transactional
     public DeviceNotification deviceSave(DeviceUpdate deviceUpdate) {
         logger.debug("Device save executed for device update: id {}", deviceUpdate.getGuid());
-        NetworkVO network = (deviceUpdate.getNetwork().isPresent())? deviceUpdate.getNetwork().get() : null;
-        if (network != null) {
-            network = networkService.verifyNetwork(Optional.ofNullable(network));
-        }
+        Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
         //TODO [requires a lot of details]
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
 
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo();
-            if (network != null) {
-                device.setNetwork(network);
-            }
+            device.setNetworkId(networkId);
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
         } else {
             if (deviceUpdate.getData().isPresent()){
                 existingDevice.setData(deviceUpdate.getData().get());
             }
-            if (deviceUpdate.getNetwork().isPresent()){
-                existingDevice.setNetwork(network);
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
             }
             if (deviceUpdate.getBlocked().isPresent()){
                 existingDevice.setBlocked(deviceUpdate.getBlocked().get());
@@ -267,26 +212,6 @@ public class DeviceService {
 
     private List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
         return deviceDao.getDeviceList(guids, principal);
-    }
-
-
-    private NetworkVO findNetworkForAuth(NetworkVO network) {
-        if (network == null) {
-            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            UserVO user = findUserFromAuth(principal);
-            if (user != null) {
-                Set<NetworkVO> userNetworks = userService.findUserWithNetworks(user.getId()).getNetworks();
-                if (userNetworks.isEmpty()) {
-                    throw new HiveException(Messages.NO_NETWORKS_ASSIGNED_TO_USER, PRECONDITION_FAILED.getStatusCode());
-                }
-                return userNetworks.iterator().next();
-            }
-        }
-        return network;
-    }
-
-    private UserVO findUserFromAuth(HivePrincipal principal) {
-        return principal.getUser();
     }
 
 }

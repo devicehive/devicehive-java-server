@@ -202,7 +202,7 @@ public class NotificationHandlers {
         WebSocketResponse response = new WebSocketResponse();
 
         for (DeviceVO device : devices) {
-            if (device.getNetwork() == null) {
+            if (device.getNetworkId() == null) {
                 logger.debug("notification/insert. No network specified for device with guid = {}", deviceGuid);
                 throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceGuid), SC_FORBIDDEN);
             }

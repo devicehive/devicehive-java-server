@@ -163,7 +163,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                 deviceList = deviceList
                         .stream()
-                        .filter(d -> networks.contains(d.getNetwork().getId()))
+                        .filter(d -> networks.contains(d.getNetworkId()))
                         .collect(Collectors.toList());
             }
 
@@ -175,7 +175,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
             if (principal.getNetworkIds() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getNetworkIds().contains(d.getNetwork().getId()))
+                        .filter(d -> principal.getNetworkIds().contains(d.getNetworkId()))
                         .collect(Collectors.toList());
             }
         }
@@ -230,10 +230,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     private DeviceVO refreshRefs(DeviceVO device) {
         if (device != null) {
-            if (device.getNetwork() != null) {
+            if (device.getNetworkId() != null) {
                 // todo: remove when migrate Device->DeviceVO
-                NetworkVO networkVO = networkDao.find(device.getNetwork().getId());
-                device.setNetwork(networkVO);
+                NetworkVO networkVO = networkDao.find(device.getNetworkId());
+                device.setNetworkId(networkVO.getId());
             }
         }
 

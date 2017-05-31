@@ -84,7 +84,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
     public void prepareNotifications() {
         NetworkVO network = DeviceFixture.createNetwork();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetwork(network);
+        deviceUpdate.setNetworkId(network.getId());
 
         // register device
         Response response = performRequest("/device/" + guid, "PUT", emptyMap(),

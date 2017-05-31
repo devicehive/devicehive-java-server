@@ -266,4 +266,11 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<NetworkVO> findDefaultByUser(long userId) {
+    	// TODO: implement
+        return Optional.empty();
+    }
+
 }
