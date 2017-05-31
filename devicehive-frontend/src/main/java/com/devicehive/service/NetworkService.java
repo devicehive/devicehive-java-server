@@ -21,7 +21,6 @@ package com.devicehive.service;
  */
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
-import static com.devicehive.configuration.Constants.ALLOW_NETWORK_AUTO_CREATE;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -29,7 +28,6 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -60,8 +58,6 @@ public class NetworkService {
     private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
     @Autowired
     private UserService userService;
-    @Autowired
-    private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
     @Autowired
@@ -184,7 +180,7 @@ public class NetworkService {
     }
 
     @Transactional
-    public NetworkVO createOrVerifyNetwork(Optional<NetworkVO> networkNullable) {
+    public NetworkVO verifyNetwork(Optional<NetworkVO> networkNullable) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
@@ -194,18 +190,9 @@ public class NetworkService {
         Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
             return validateNetworkKey(storedOpt.get(), network);
-        } else {
-            if (network.getId() != null) {
-                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
-            }
-            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (allowed) {
-                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
-                networkDao.persist(newNetwork);
-                network.setId(newNetwork.getId());
-            }
-            return network;
         }
+
+        throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, network.getId()));
     }
 
     @Transactional
@@ -228,8 +215,7 @@ public class NetworkService {
             if (network.getId() != null) {
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
-            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (user.isAdmin() || allowed) {
+            if (user.isAdmin()) {
                 NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
                 networkDao.persist(newNetwork);
                 network.setId(newNetwork.getId());

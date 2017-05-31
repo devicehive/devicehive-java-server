@@ -101,11 +101,6 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -d "{\"value\":\"true\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/allowNetworkAutoCreate'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
     'http://127.0.0.1:8098/types/default/buckets/configuration/keys/user.anonymous_creation'
 
 curl -XPUT \

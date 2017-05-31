@@ -69,11 +69,6 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -d "{\"value\":\"true\"}" \
-    http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/configuration/keys/allowNetworkAutoCreate
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/configuration/keys/user.anonymous_creation
 
 curl -XPUT \
