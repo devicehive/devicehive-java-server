@@ -26,6 +26,7 @@ import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.base.handler.MockNotificationHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.NetworkService;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
 import org.joda.time.DateTime;
@@ -46,6 +47,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.UUID.randomUUID;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -56,6 +58,9 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
 
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Autowired
+    private NetworkService networkService;
 
     @Mock
     private RequestHandler requestHandler;
@@ -79,10 +84,13 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_response_with_status_200_and_notification_when_waitTimeout_is_0_and_polling_for_device() {
-        NetworkVO network = DeviceFixture.createNetwork();
+    	NetworkVO network = DeviceFixture.createNetwork();
+    	network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
         String guid = UUID.randomUUID().toString();
         DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setNetworkId(network.getId());
+        deviceUpdate.setNetworkId(created.getId());
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device
@@ -98,7 +106,7 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         Map<String, Object> params = new HashMap<>();
         params.put("waitTimeout", 0);
         params.put("timestamp", timeStamp);
-        ArrayList notifications = new ArrayList();
+        List<?> notifications = new ArrayList<>();
         notifications = performRequest("/device/" + guid + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), null, OK, notifications.getClass());
         assertNotNull(notifications);
         assertEquals(1, notifications.size());

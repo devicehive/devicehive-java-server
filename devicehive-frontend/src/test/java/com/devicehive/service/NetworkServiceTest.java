@@ -116,6 +116,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         NetworkVO network = new NetworkVO();
         network.setId(1L);
+        network.setName("myNetwork" + RandomStringUtils.randomAlphabetic(10));
         networkService.create(network);
     }
 
