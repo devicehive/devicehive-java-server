@@ -19,7 +19,6 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
-import static com.devicehive.auth.HiveAction.MANAGE_USER;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -51,8 +50,6 @@ import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.LOGIN;
-import static com.devicehive.configuration.Constants.USER_ANONYMOUS_CREATION;
-import com.devicehive.service.configuration.ConfigurationService;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
@@ -62,9 +59,6 @@ public class UserResourceImpl implements UserResource {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private ConfigurationService configurationService;
 
     @Autowired
     private HiveValidator hiveValidator;
@@ -141,23 +135,9 @@ public class UserResourceImpl implements UserResource {
     @Override
     public Response insertUser(UserUpdate userToCreate) {
         hiveValidator.validate(userToCreate);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Boolean isAnonymousCreateAllowed = configurationService.getBoolean(USER_ANONYMOUS_CREATION, false);
-        Boolean isAuthenticatedAndHasPermission = (principal.isAuthenticated() && principal.getActions() != null && 
-                principal.getActions().contains(MANAGE_USER));
-        Boolean isCreateAllowed = isAnonymousCreateAllowed || isAuthenticatedAndHasPermission;
-        if (isCreateAllowed) {
-            String password = !userToCreate.getPassword().isPresent() ? null : userToCreate.getPassword().orElse(null);
-            if (isAuthenticatedAndHasPermission) {
-                UserVO created = userService.createUser(userToCreate.convertTo(), password);
-                return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
-            } else {
-                UserWithNetworkVO created = userService.createUserWithNetwork(userToCreate.convertTo(), password);
-                return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_PUBLISHED);
-            }
-        } else {
-            return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(), Messages.FORBIDDEN_INSERT_USER));
-        }
+        String password = !userToCreate.getPassword().isPresent() ? null : userToCreate.getPassword().orElse(null);
+        UserVO created = userService.createUser(userToCreate.convertTo(), password);
+        return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
     }
 
     /**

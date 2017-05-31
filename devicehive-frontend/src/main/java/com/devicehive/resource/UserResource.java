@@ -145,9 +145,12 @@ public interface UserResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("permitAll")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     @ApiOperation(value = "Create user", notes = "Creates new user.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 201, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
