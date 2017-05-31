@@ -79,7 +79,7 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-name_bin: VirtualLed Sample Network' \
-    -d "{\"id\":1,\"key\":null,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}" \
+    -d "{\"id\":1,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}" \
     'http://127.0.0.1:8098/types/default/buckets/network/keys/1'
 
 curl -XPOST \
@@ -90,18 +90,13 @@ curl -XPOST \
 curl -XPUT \
     -H "Content-Type: application/json" \
     -H 'x-riak-index-guid_bin: E50D6085-2ABA-48E9-B1C3-73C673E414BE' \
-    -d "{\"id\":1, \"guid\":\"E50D6085-2ABA-48E9-B1C3-73C673E414BE\", \"name\":\"Sample VirtualLed Device\", \"status\":\"Offline\", \"network\": {\"id\":1,\"key\":null,\"name\":\"VirtualLed Sample Network\", \"description\":\"A DeviceHive network for VirtualLed sample\",\"entityVersion\":null}, \"blocked\":null}" \
+    -d "{\"id\":1, \"guid\":\"E50D6085-2ABA-48E9-B1C3-73C673E414BE\", \"name\":\"Sample VirtualLed Device\", \"status\":\"Offline\", \"networkId\": 1, \"blocked\":null}" \
     'http://127.0.0.1:8098/types/default/buckets/device/keys/1'
 
 curl -XPOST \
     -H "Content-Type: application/json" \
     -d '{"increment": 100}' \
     'http://127.0.0.1:8098/types/counters/buckets/dh_counters/datatypes/deviceCounter'
-
-curl -XPUT \
-    -H "Content-Type: application/json" \
-    -d "{\"value\":\"true\"}" \
-    'http://127.0.0.1:8098/types/default/buckets/configuration/keys/user.anonymous_creation'
 
 curl -XPUT \
     -H "Content-Type: application/json" \

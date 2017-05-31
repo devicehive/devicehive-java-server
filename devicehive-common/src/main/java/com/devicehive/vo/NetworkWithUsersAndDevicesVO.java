@@ -38,7 +38,6 @@ public class NetworkWithUsersAndDevicesVO extends NetworkVO {
 
     public NetworkWithUsersAndDevicesVO(NetworkVO vo) {
         setId(vo.getId());
-        setKey(vo.getKey());
         setName(vo.getName());
         setDescription(vo.getDescription());
         setEntityVersion(vo.getEntityVersion());

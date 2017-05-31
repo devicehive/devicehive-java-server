@@ -85,16 +85,6 @@ public class NetworkService {
                     Collections.singleton(networkId), permittedNetworks);
             return found.stream().findFirst();
         }).map(network -> {
-            //fixme - important, restore functionality once permission evaluator is switched to jwt
-            /*if (principal.getKey() != null) {
-                        Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                        Set<AccessKeyPermissionVO> filtered = CheckPermissionsHelper
-                                .filterPermissions(principal.getKey(), permissions, AccessKeyAction.GET_DEVICE,
-                                        details.getClientInetAddress(), details.getOrigin());
-                        if (filtered.isEmpty()) {
-                            network.setDevices(Collections.emptySet());
-                        }
-                    }*/
             if (permittedDevices != null && !permittedDevices.isEmpty()) {
                 Set<DeviceVO> allowed = network.getDevices().stream()
                         .filter(device -> permittedDevices.contains(device.getGuid()))
@@ -138,9 +128,6 @@ public class NetworkService {
         NetworkVO existing = networkDao.find(networkId);
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
-        }
-        if (networkUpdate.getKey().isPresent()){
-            existing.setKey(networkUpdate.getKey().get());
         }
         if (networkUpdate.getName().isPresent()){
             existing.setName(networkUpdate.getName().get());
@@ -189,7 +176,7 @@ public class NetworkService {
 
         Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            return validateNetworkKey(storedOpt.get(), network);
+            return storedOpt.get();
         }
 
         throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, network.getId()));
@@ -206,11 +193,7 @@ public class NetworkService {
 
         Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            NetworkVO stored = validateNetworkKey(storedOpt.get(), network);
-            if (!userService.hasAccessToNetwork(user, stored)) {
-                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-            }
-            return stored;
+            return storedOpt.get();
         } else {
             if (network.getId() != null) {
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
@@ -237,7 +220,6 @@ public class NetworkService {
     @Transactional
     public NetworkVO createOrUpdateNetworkByUser(UserVO user) {
         NetworkVO networkVO = new NetworkVO();
-        networkVO.setKey(java.util.UUID.randomUUID().toString());
         networkVO.setName(user.getLogin());
         networkVO.setDescription(String.format("User %s default network", user.getLogin()));
         return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
@@ -253,14 +235,5 @@ public class NetworkService {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(networkDao.find(id)))
                 .orElseGet(() -> networkDao.findFirstByName(network.getName()));
-    }
-
-    private NetworkVO validateNetworkKey(NetworkVO stored, NetworkVO received) {
-        if (stored.getKey() != null
-                && !stored.getKey().isEmpty()
-                && !stored.getKey().equals(received.getKey())) {
-            throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
-        }
-        return stored;
     }
 }

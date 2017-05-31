@@ -92,7 +92,6 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     public NetworkVO merge(NetworkVO existing) {
         Network network = find(Network.class, existing.getId());
         network.setName(existing.getName());
-        network.setKey(existing.getKey());
         network.setDescription(existing.getDescription());
         network.setEntityVersion(existing.getEntityVersion());
         super.merge(network);
