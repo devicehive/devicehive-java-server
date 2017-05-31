@@ -27,6 +27,7 @@ import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.*;
 import com.devicehive.model.enums.UserRole;
@@ -106,7 +107,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_throw_HiveException_when_role_client_creates_device_without_network() throws Exception {
-        expectedException.expect(HiveException.class);
+    	expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
@@ -178,8 +180,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_throw_HiveException_when_role_admin_without_networks_and_token_authorized_create_device_without_network() {
-        expectedException.expect(HiveException.class);
-        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+        expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
@@ -200,8 +202,8 @@ public class DeviceServiceTest extends AbstractResourceTest {
      */
     @Test
     public void should_throw_HiveException_when_role_admin_without_networks_and_key_authorized_create_device_without_network() {
-        expectedException.expect(HiveException.class);
-        expectedException.expectMessage(Messages.NO_NETWORKS_ASSIGNED_TO_USER);
+    	expectedException.expect(ActionNotAllowedException.class);
+        expectedException.expectMessage(Messages.NO_ACCESS_TO_NETWORK);
 
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
@@ -428,20 +430,27 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_name() throws Exception {
+    	final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String deviceName1 = RandomStringUtils.randomAlphabetic(10);
         device.setName(deviceName1);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device);
+        deviceUpdate.setNetworkId(created.getId());
 
         final DeviceVO device1 = DeviceFixture.createDeviceVO();
         String deviceName2 = RandomStringUtils.randomAlphabetic(10);
         device1.setName(deviceName2);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1);
+        deviceUpdate1.setNetworkId(created.getId());
 
         final DeviceVO device2 = DeviceFixture.createDeviceVO();
         String deviceName3 = RandomStringUtils.randomAlphabetic(10);
         device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2);
+        deviceUpdate2.setNetworkId(created.getId());
 
         deviceService.deviceSave(deviceUpdate);
         deviceService.deviceSave(deviceUpdate1);
@@ -511,6 +520,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
 
+        final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+
+        deviceUpdate.setNetworkId(created.getId());
         deviceService.deviceSave(deviceUpdate);
         DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
@@ -564,6 +578,10 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
+        final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+        deviceUpdate.setNetworkId(created.getId());
         deviceService.deviceSave(deviceUpdate);
 
         final HivePrincipal principal = new HivePrincipal();

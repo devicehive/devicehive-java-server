@@ -70,16 +70,13 @@ public class DeviceService {
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", device.getGuid(), principal == null ? null : principal.getName());
-        DeviceNotification dn;
-        if (principal != null && principal.isAuthenticated()) {
-            if (principal.getUser() != null) {
-                dn = deviceSaveByUser(device, principal.getUser());
-            } else {
-                throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
-            }
-        } else {
-            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
+
+        boolean principalHasUserAndAuthenticated = principal != null && principal.getUser() != null && principal.isAuthenticated();
+        if (!principalHasUserAndAuthenticated) {
+        	throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
+
+        DeviceNotification dn = deviceSaveByUser(device, principal.getUser());
         dn.setTimestamp(timestampService.getDate());
         deviceNotificationService.insert(dn, device.convertTo());
     }
@@ -89,7 +86,7 @@ public class DeviceService {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
         Long networkId = deviceUpdate.getNetworkId()
-        		.orElse(networkService.findDefaultNetworkByUserId(user.getId()));
+        		.orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
