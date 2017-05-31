@@ -428,20 +428,27 @@ public class DeviceServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_save_and_find_by_device_name() throws Exception {
+    	final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+
         final DeviceVO device = DeviceFixture.createDeviceVO();
         String deviceName1 = RandomStringUtils.randomAlphabetic(10);
         device.setName(deviceName1);
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device);
+        deviceUpdate.setNetworkId(created.getId());
 
         final DeviceVO device1 = DeviceFixture.createDeviceVO();
         String deviceName2 = RandomStringUtils.randomAlphabetic(10);
         device1.setName(deviceName2);
         final DeviceUpdate deviceUpdate1 = DeviceFixture.createDevice(device1);
+        deviceUpdate1.setNetworkId(created.getId());
 
         final DeviceVO device2 = DeviceFixture.createDeviceVO();
         String deviceName3 = RandomStringUtils.randomAlphabetic(10);
         device2.setName(deviceName3);
         final DeviceUpdate deviceUpdate2 = DeviceFixture.createDevice(device2);
+        deviceUpdate2.setNetworkId(created.getId());
 
         deviceService.deviceSave(deviceUpdate);
         deviceService.deviceSave(deviceUpdate1);
@@ -511,6 +518,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
         final DeviceVO device = DeviceFixture.createDeviceVO();
         final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getGuid());
 
+        final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+
+        deviceUpdate.setNetworkId(created.getId());
         deviceService.deviceSave(deviceUpdate);
         DeviceVO existingDevice = deviceService.findByGuidWithPermissionsCheck(device.getGuid(), null);
         assertNotNull(existingDevice);
