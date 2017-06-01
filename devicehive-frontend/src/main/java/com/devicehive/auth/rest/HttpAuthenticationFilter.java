@@ -110,7 +110,8 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
     }
 
     private void processAnonymousAuth() {
-        AnonymousAuthenticationToken requestAuth = new AnonymousAuthenticationToken(UUID.randomUUID().toString(), "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+        AnonymousAuthenticationToken requestAuth = new AnonymousAuthenticationToken(UUID.randomUUID().toString(),
+                "anonymousUser",  AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         tryAuthenticate(requestAuth);
     }
 

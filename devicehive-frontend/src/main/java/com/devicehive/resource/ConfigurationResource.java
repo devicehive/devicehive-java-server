@@ -20,6 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
+import com.devicehive.vo.ConfigurationVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -35,20 +36,33 @@ public interface ConfigurationResource {
 
     @GET
     @Path("/{name}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Get property", notes = "Returns requested property value")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(
+                    code = 201,
+                    message = "If successful, this method returns a Configuration resource in the response body.",
+                    response = ConfigurationVO.class
+            ),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response get(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
                     String name);
 
-    @PUT
+    @POST
     @Path("/{name}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     Response setProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
@@ -56,24 +70,9 @@ public interface ConfigurationResource {
             @ApiParam(value = "Property value", required = true)
                     String value);
 
-    @GET
-    @Path("/{name}/set")
-    @PreAuthorize("isAuthenticated()")
-    @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
-    })
-    Response setPropertyGet(
-            @ApiParam(name = "name", required = true, value = "Property name")
-            @PathParam("name")
-                    String name,
-            @ApiParam(name = "value", value = "Property value", required = true)
-            @QueryParam("value")
-                    String value);
-
     @DELETE
     @Path("/{name}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Delete property", notes = "Deletes property")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")

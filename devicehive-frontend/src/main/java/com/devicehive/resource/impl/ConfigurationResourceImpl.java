@@ -23,6 +23,7 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.resource.ConfigurationResource;
+import com.devicehive.vo.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,17 +41,11 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
 
     @Override
     public Response get(String name) {
-        return Response.ok().entity(configurationService.get(name)).build();
+        return Response.ok().entity(new ConfigurationVO(name, configurationService.get(name))).build();
     }
 
     @Override
     public Response setProperty(String name, String value) {
-        configurationService.save(name, value);
-        return Response.ok().build();
-    }
-
-    @Override
-    public Response setPropertyGet(String name, String value) {
         configurationService.save(name, value);
         return Response.ok().build();
     }
