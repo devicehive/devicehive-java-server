@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
+import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
@@ -86,7 +87,15 @@ public class DeviceService {
         logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getGuid(), user.getId());
         //todo: rework when migration to VO will be done
         Long networkId = deviceUpdate.getNetworkId()
-        		.orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
+                .map(id -> {
+                    NetworkVO networkVo = new NetworkVO();
+                    networkVo.setId(id);
+                    if (!userService.hasAccessToNetwork(user, networkVo)) {
+                        throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
+                    }
+                    return id;
+                })
+                .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findByUUID(deviceUpdate.getGuid().orElse(null));
         if (existingDevice == null) {
