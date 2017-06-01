@@ -66,26 +66,26 @@ public class DeviceNotificationService {
         this.hiveValidator = hiveValidator;
     }
 
-    public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String guid) {
+    public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String deviceId) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(id);
-        searchRequest.setGuid(guid);
+        searchRequest.setDeviceId(deviceId);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(searchRequest)
-                .withPartitionKey(searchRequest.getGuid())
+                .withPartitionKey(searchRequest.getDeviceId())
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
     }
 
     @SuppressWarnings("unchecked")
-    public CompletableFuture<List<DeviceNotification>> find(Set<String> guids, Set<String> names,
+    public CompletableFuture<List<DeviceNotification>> find(Set<String> deviceIds, Set<String> names,
                                                             Date timestampSt, Date timestampEnd) {
-        List<CompletableFuture<Response>> futures = guids.stream()
-                .map(guid -> {
+        List<CompletableFuture<Response>> futures = deviceIds.stream()
+                .map(deviceId -> {
                     NotificationSearchRequest searchRequest = new NotificationSearchRequest();
-                    searchRequest.setGuid(guid);
+                    searchRequest.setDeviceId(deviceId);
                     searchRequest.setNames(names);
                     searchRequest.setTimestampStart(timestampSt);
                     searchRequest.setTimestampEnd(timestampEnd);
@@ -95,7 +95,7 @@ public class DeviceNotificationService {
                     CompletableFuture<Response> future = new CompletableFuture<>();
                     rpcClient.call(Request.newBuilder()
                             .withBody(searchRequest)
-                            .withPartitionKey(searchRequest.getGuid())
+                            .withPartitionKey(searchRequest.getDeviceId())
                             .build(), new ResponseConsumer(future));
                     return future;
                 })
@@ -118,7 +118,7 @@ public class DeviceNotificationService {
                     CompletableFuture<Response> future = new CompletableFuture<>();
                     rpcClient.call(Request.newBuilder()
                             .withBody(new NotificationInsertRequest(n))
-                            .withPartitionKey(device.getGuid())
+                            .withPartitionKey(device.getDeviceId())
                             .build(), new ResponseConsumer(future));
                     return future;
                 })
@@ -175,8 +175,8 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void unsubscribe(String subId, Set<String> deviceGuids) {
-        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceGuids);
+    public void unsubscribe(String subId, Set<String> deviceIds) {
+        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
@@ -186,7 +186,7 @@ public class DeviceNotificationService {
     public DeviceNotification convertWrapperToNotification(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(Math.abs(new Random().nextInt()));
-        notification.setDeviceGuid(device.getGuid());
+        notification.setDeviceId(device.getDeviceId());
         if (notificationSubmit.getTimestamp() == null) {
             notification.setTimestamp(timestampService.getDate());
         } else {

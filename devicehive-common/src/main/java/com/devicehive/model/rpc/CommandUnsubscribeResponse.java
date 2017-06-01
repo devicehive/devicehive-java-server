@@ -28,12 +28,12 @@ import java.util.Set;
 public class CommandUnsubscribeResponse extends Body {
 
     private String subscriptionId;
-    private Set<String> deviceGuids;
+    private Set<String> deviceIds;
 
-    public CommandUnsubscribeResponse(String subscriptionId, Set<String> deviceGuids) {
+    public CommandUnsubscribeResponse(String subscriptionId, Set<String> deviceIds) {
         super(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name());
         this.subscriptionId = subscriptionId;
-        this.deviceGuids = deviceGuids;
+        this.deviceIds = deviceIds;
     }
 
     public String getSubscriptionId() {
@@ -44,12 +44,12 @@ public class CommandUnsubscribeResponse extends Body {
         this.subscriptionId = subscriptionId;
     }
 
-    public Set<String> getDeviceGuids() {
-        return deviceGuids;
+    public Set<String> getDeviceIds() {
+        return deviceIds;
     }
 
-    public void setDeviceGuids(Set<String> deviceGuids) {
-        this.deviceGuids = deviceGuids;
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
     }
 
     @Override
@@ -59,20 +59,20 @@ public class CommandUnsubscribeResponse extends Body {
         if (!super.equals(o)) return false;
         CommandUnsubscribeResponse that = (CommandUnsubscribeResponse) o;
         return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(deviceGuids, that.deviceGuids);
+                && Objects.equals(deviceIds, that.deviceIds);
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, deviceGuids);
+        return Objects.hash(super.hashCode(), subscriptionId, deviceIds);
     }
 
     @Override
     public String toString() {
         return "CommandUnsubscribeResponse{" +
                 "subscriptionId='" + subscriptionId + '\'' +
-                ", deviceGuids=" + deviceGuids +
+                ", deviceIds=" + deviceIds +
                 '}';
     }
 }

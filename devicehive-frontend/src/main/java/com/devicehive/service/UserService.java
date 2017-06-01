@@ -346,9 +346,9 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToDevice(UserVO user, String deviceGuid) {
+    public boolean hasAccessToDevice(UserVO user, String deviceId) {
         if (!user.isAdmin()) {
-            long count = userDao.hasAccessToDevice(user, deviceGuid);
+            long count = userDao.hasAccessToDevice(user, deviceId);
             return count > 0;
         }
         return true;

@@ -28,12 +28,12 @@ import java.util.Set;
 public class NotificationUnsubscribeResponse extends Body {
 
     private String subscriptionId;
-    private Set<String> deviceGuids;
+    private Set<String> deviceIds;
 
-    public NotificationUnsubscribeResponse(String subscriptionId, Set<String> deviceGuids) {
+    public NotificationUnsubscribeResponse(String subscriptionId, Set<String> deviceIds) {
         super(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name());
         this.subscriptionId = subscriptionId;
-        this.deviceGuids = deviceGuids;
+        this.deviceIds = deviceIds;
     }
 
     public String getSubscriptionId() {
@@ -44,12 +44,12 @@ public class NotificationUnsubscribeResponse extends Body {
         this.subscriptionId = subscriptionId;
     }
 
-    public Set<String> getDeviceGuids() {
-        return deviceGuids;
+    public Set<String> getDeviceIds() {
+        return deviceIds;
     }
 
-    public void setDeviceGuids(Set<String> deviceGuids) {
-        this.deviceGuids = deviceGuids;
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
     }
 
     @Override
@@ -59,20 +59,20 @@ public class NotificationUnsubscribeResponse extends Body {
         if (!super.equals(o)) return false;
         NotificationUnsubscribeResponse that = (NotificationUnsubscribeResponse) o;
         return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(deviceGuids, that.deviceGuids);
+                && Objects.equals(deviceIds, that.deviceIds);
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, deviceGuids);
+        return Objects.hash(super.hashCode(), subscriptionId, deviceIds);
     }
 
     @Override
     public String toString() {
         return "NotificationUnsubscribeResponse{" +
                 "subscriptionId='" + subscriptionId + '\'' +
-                ", deviceGuids=" + deviceGuids +
+                ", deviceIds=" + deviceIds +
                 '}';
     }
 

@@ -25,11 +25,11 @@ import com.devicehive.shim.api.Body;
 import java.util.Date;
 import java.util.Set;
 
-//TODO [rafa] That object to be split into two different objects. The first would contain id+guid, the second the rest of the fields.
+//TODO [rafa] That object to be split into two different objects. The first would contain id+deviceId, the second the rest of the fields.
 public class NotificationSearchRequest extends Body {
 
     private Long id;
-    private String guid;
+    private String deviceId;
     private Set<String> names;
     private Date timestampStart;
     private Date timestampEnd;
@@ -47,12 +47,12 @@ public class NotificationSearchRequest extends Body {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public Set<String> getNames() {

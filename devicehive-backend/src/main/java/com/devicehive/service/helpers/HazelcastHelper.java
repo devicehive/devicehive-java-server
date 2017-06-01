@@ -38,25 +38,25 @@ import static com.devicehive.model.enums.SearchableField.*;
 @Component
 public class HazelcastHelper {
 
-    public Predicate prepareFilters(final Long id, final String guid) {
-        return prepareFilters(id, guid, null, null, null, null, null, null);
+    public Predicate prepareFilters(final Long id, final String deviceId) {
+        return prepareFilters(id, deviceId, null, null, null, null, null, null);
     }
 
-    public <T extends HazelcastEntity> Predicate prepareFilters(final String guid,
+    public <T extends HazelcastEntity> Predicate prepareFilters(final String deviceId,
                                                                 final Collection<String> names,
                                                                 final Collection<String> devices,
                                                                 final Date timestampSt, final Date timestampEnd,
                                                                 final String status, Class<T> entityClass) {
         if (entityClass.equals(DeviceCommand.class)) {
-            return prepareFilters(null, guid, devices, null, names, timestampSt, timestampEnd, status);
+            return prepareFilters(null, deviceId, devices, null, names, timestampSt, timestampEnd, status);
         }
         if (entityClass.equals(DeviceNotification.class)) {
-            return prepareFilters(null, guid, devices, names, null, timestampSt, timestampEnd, status);
+            return prepareFilters(null, deviceId, devices, names, null, timestampSt, timestampEnd, status);
         }
         return null;
     }
 
-    private Predicate prepareFilters(Long id, String guid, Collection<String> devices, Collection<String> notifications,
+    private Predicate prepareFilters(Long id, String deviceId, Collection<String> devices, Collection<String> notifications,
                                      Collection<String> commands, Date timestampSt, Date timestampEnd,
                                      String status) {
         final List<Predicate> predicates = new ArrayList<>();
@@ -64,12 +64,12 @@ public class HazelcastHelper {
             predicates.add(Predicates.equal(ID.getField(), id));
         }
 
-        if (StringUtils.isNotEmpty(guid)) {
-            predicates.add(Predicates.equal(GUID.getField(), guid));
+        if (StringUtils.isNotEmpty(deviceId)) {
+            predicates.add(Predicates.equal(DEVICE_ID.getField(), deviceId));
         }
 
         if (devices != null && !devices.isEmpty()) {
-            predicates.add(Predicates.in(DEVICE_GUID.getField(), devices.toArray(new String[devices.size()])));
+            predicates.add(Predicates.in(DEVICE_IDS.getField(), devices.toArray(new String[devices.size()])));
         }
 
         if (notifications != null && !notifications.isEmpty()) {

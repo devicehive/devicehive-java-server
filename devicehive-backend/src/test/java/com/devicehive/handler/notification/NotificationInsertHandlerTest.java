@@ -22,18 +22,14 @@ package com.devicehive.handler.notification;
 
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.handler.command.CommandInsertHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.rpc.NotificationInsertResponse;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.RpcClient;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,14 +39,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
 public class NotificationInsertHandlerTest extends AbstractSpringTest {
@@ -73,13 +65,13 @@ public class NotificationInsertHandlerTest extends AbstractSpringTest {
 
     @Test
     public void testInsertNotification() throws ExecutionException, InterruptedException, TimeoutException {
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
         final long id = System.nanoTime();
 
         DeviceNotification originalNotification = new DeviceNotification();
         originalNotification.setTimestamp(Date.from(Instant.now()));
         originalNotification.setId(id);
-        originalNotification.setDeviceGuid(guid);
+        originalNotification.setDeviceId(deviceId);
         originalNotification.setNotification("SOME TEST DATA");
         originalNotification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
         NotificationInsertRequest nir = new NotificationInsertRequest(originalNotification);
@@ -89,7 +81,7 @@ public class NotificationInsertHandlerTest extends AbstractSpringTest {
                         .build()
         );
 
-        assertTrue(hazelcastService.find(id, guid, DeviceNotification.class)
+        assertTrue(hazelcastService.find(id, deviceId, DeviceNotification.class)
                 .filter(notification -> notification.equals(originalNotification))
                 .isPresent());
 

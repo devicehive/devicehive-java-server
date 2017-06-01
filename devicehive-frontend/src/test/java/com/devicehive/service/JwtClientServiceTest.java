@@ -60,10 +60,10 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
         String token = jwtClientService.generateJwtAccessToken(payload);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
@@ -79,10 +79,10 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
         String token = jwtClientService.generateJwtRefreshToken(payload);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
@@ -98,10 +98,10 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         // Generate key without expiration date and token type
         Map<String, Object> jwtMap = new HashMap<>();

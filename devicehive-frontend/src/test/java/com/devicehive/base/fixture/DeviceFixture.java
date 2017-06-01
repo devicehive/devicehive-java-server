@@ -39,17 +39,17 @@ public class DeviceFixture {
         return network;
     }
 
-    public static DeviceUpdate createDevice(String guid) {
+    public static DeviceUpdate createDevice(String deviceId) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setGuid(guid);
-        device.setName("device-" + guid);
-        device.setData(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", guid)));
+        device.setId(deviceId);
+        device.setName("device-" + deviceId);
+        device.setData(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceId)));
         return device;
     }
 
     public static DeviceUpdate createDevice(DeviceVO device) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
-        deviceUpdate.setGuid(device.getGuid());
+        deviceUpdate.setId(device.getDeviceId());
         deviceUpdate.setName(device.getName());
         return deviceUpdate;
     }
@@ -57,7 +57,7 @@ public class DeviceFixture {
     public static DeviceVO createDeviceVO() {
         final UUID uuid = UUID.randomUUID();
         final DeviceVO device = new DeviceVO();
-        device.setGuid(uuid.toString());
+        device.setDeviceId(uuid.toString());
         device.setName("name-" + uuid.toString());
         return device;
     }

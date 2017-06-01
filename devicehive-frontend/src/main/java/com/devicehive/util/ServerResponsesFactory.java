@@ -42,7 +42,7 @@ public class ServerResponsesFactory {
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDeviceGuid());
+        resultMessage.addProperty(Constants.DEVICE_ID, deviceNotification.getDeviceId());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
         resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultMessage;
@@ -55,7 +55,7 @@ public class ServerResponsesFactory {
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDeviceGuid());
+        resultJsonObject.addProperty(Constants.DEVICE_ID, deviceCommand.getDeviceId());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultJsonObject;
@@ -74,7 +74,7 @@ public class ServerResponsesFactory {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(Math.abs(new Random().nextInt())); // TODO: remove this when id generation will be moved to backend
         notification.setNotification(notificationName);
-        notification.setDeviceGuid(device.getGuid());
+        notification.setDeviceId(device.getDeviceId());
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());

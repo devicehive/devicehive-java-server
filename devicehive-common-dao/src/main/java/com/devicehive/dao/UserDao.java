@@ -33,7 +33,7 @@ public interface UserDao {
 
     long hasAccessToNetwork(UserVO user, NetworkVO network);
 
-    long hasAccessToDevice(UserVO user, String deviceGuid);
+    long hasAccessToDevice(UserVO user, String deviceId);
 
     UserWithNetworkVO getWithNetworksById(long id);
 

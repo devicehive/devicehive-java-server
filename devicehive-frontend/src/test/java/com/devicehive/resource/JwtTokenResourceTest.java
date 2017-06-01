@@ -72,10 +72,10 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
         assertNotNull(jwtTokenVO.getAccessToken());
@@ -91,10 +91,10 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
         // Generate refresh token
         String refreshToken = jwtClientService.generateJwtRefreshToken(payload);
         JwtTokenVO tokenVO = new JwtTokenVO();
@@ -122,10 +122,10 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         JwtTokenVO token = new JwtTokenVO();
         String refreshToken = jwtClientService.generateJwtAccessToken(payload);
@@ -153,10 +153,10 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         // Generate token with access type instead of refresh
         String accessToken = jwtClientService.generateJwtAccessToken(payload);
@@ -184,10 +184,10 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         // Generate expired refresh token
         payload.setExpiration(new Date(System.currentTimeMillis() - 100));

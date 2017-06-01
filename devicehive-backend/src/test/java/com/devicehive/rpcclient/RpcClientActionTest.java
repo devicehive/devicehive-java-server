@@ -48,10 +48,10 @@ public class RpcClientActionTest extends AbstractSpringTest {
     public void testNotificationSearchAction() throws Exception {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(Long.MAX_VALUE); // nonexistent id
-        searchRequest.setGuid(UUID.randomUUID().toString()); // random guid
+        searchRequest.setDeviceId(UUID.randomUUID().toString()); // random revice id
 
         Request request = Request.newBuilder()
-                .withPartitionKey(searchRequest.getGuid())
+                .withPartitionKey(searchRequest.getDeviceId())
                 .withBody(searchRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -66,10 +66,10 @@ public class RpcClientActionTest extends AbstractSpringTest {
     public void testCommandSearchAction() throws Exception {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(Long.MAX_VALUE); // nonexistent id
-        searchRequest.setGuid(UUID.randomUUID().toString()); // random guid
+        searchRequest.setDeviceId(UUID.randomUUID().toString()); // random device id
 
         Request request = Request.newBuilder()
-                .withPartitionKey(searchRequest.getGuid())
+                .withPartitionKey(searchRequest.getDeviceId())
                 .withBody(searchRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -84,11 +84,11 @@ public class RpcClientActionTest extends AbstractSpringTest {
     public void testCommandInsertAction() throws Exception {
         DeviceCommand command = new DeviceCommand();
         command.setCommand("test_command");
-        command.setDeviceGuid(UUID.randomUUID().toString());
+        command.setDeviceId(UUID.randomUUID().toString());
         CommandInsertRequest insertRequest = new CommandInsertRequest(command);
 
         Request request = Request.newBuilder()
-                .withPartitionKey(insertRequest.getDeviceCommand().getDeviceGuid())
+                .withPartitionKey(insertRequest.getDeviceCommand().getDeviceId())
                 .withBody(insertRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -104,11 +104,11 @@ public class RpcClientActionTest extends AbstractSpringTest {
         DeviceCommand command = new DeviceCommand();
         command.setCommand("test_command");
         command.setResult(new JsonStringWrapper("{\"result\": \"OK\"}"));
-        command.setDeviceGuid(UUID.randomUUID().toString());
+        command.setDeviceId(UUID.randomUUID().toString());
         CommandUpdateRequest updateRequest = new CommandUpdateRequest(command);
 
         Request request = Request.newBuilder()
-                .withPartitionKey(updateRequest.getDeviceCommand().getDeviceGuid())
+                .withPartitionKey(updateRequest.getDeviceCommand().getDeviceId())
                 .withBody(updateRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -122,11 +122,11 @@ public class RpcClientActionTest extends AbstractSpringTest {
     public void testNotificationInsertAction() throws Exception {
         DeviceNotification notification = new DeviceNotification();
         notification.setNotification("test_notification");
-        notification.setDeviceGuid(UUID.randomUUID().toString());
+        notification.setDeviceId(UUID.randomUUID().toString());
         NotificationInsertRequest insertRequest = new NotificationInsertRequest(notification);
 
         Request request = Request.newBuilder()
-                .withPartitionKey(insertRequest.getDeviceNotification().getDeviceGuid())
+                .withPartitionKey(insertRequest.getDeviceNotification().getDeviceId())
                 .withBody(insertRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();

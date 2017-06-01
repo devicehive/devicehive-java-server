@@ -242,7 +242,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
         if (result.isPresent()) {
             Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
-                    .map(deviceDao::findByUUID)
+                    .map(deviceDao::findById)
                     .collect(Collectors.toSet());
             result.get().setDevices(devices);
             return result;

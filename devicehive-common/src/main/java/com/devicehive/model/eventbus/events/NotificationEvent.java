@@ -48,9 +48,9 @@ public class NotificationEvent extends Event {
     @Override
     public Collection<Subscription> getApplicableSubscriptions() {
         Subscription deviceOnly =
-                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceGuid());
+                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceId());
         Subscription deviceWithName =
-                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceGuid(), notification.getNotification());
+                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceId(), notification.getNotification());
         return Arrays.asList(deviceOnly, deviceWithName);
     }
 

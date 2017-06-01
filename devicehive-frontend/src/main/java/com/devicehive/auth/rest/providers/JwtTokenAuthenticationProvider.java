@@ -31,7 +31,6 @@ import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.UserVO;
-import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,12 +87,12 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceGuids = jwtPayload.getDeviceGuids();
-            if (deviceGuids != null) {
-                if (deviceGuids.contains("*")) {
+            Set<String> deviceIds = jwtPayload.getDeviceIds();
+            if (deviceIds != null) {
+                if (deviceIds.contains("*")) {
                     principal.setAllDevicesAvailable(true);
                 } else {
-                    principal.setDeviceGuids(deviceGuids);
+                    principal.setDeviceIds(deviceIds);
                 }
             }
 

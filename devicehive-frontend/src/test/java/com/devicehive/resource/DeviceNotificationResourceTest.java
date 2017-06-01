@@ -88,18 +88,18 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
     	network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        String guid = UUID.randomUUID().toString();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        String deviceId = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
         DateTime timeStamp = new DateTime(DateTimeZone.UTC);
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // Create notification
         DeviceNotification notification = DeviceFixture.createDeviceNotification();
-        notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), notification, CREATED, DeviceNotification.class);
+        notification = performRequest("/device/" + deviceId + "/notification", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), notification, CREATED, DeviceNotification.class);
         assertNotNull(notification.getId());
 
         // poll notification
@@ -107,7 +107,7 @@ public class DeviceNotificationResourceTest extends AbstractResourceTest {
         params.put("waitTimeout", 0);
         params.put("timestamp", timeStamp);
         List<?> notifications = new ArrayList<>();
-        notifications = performRequest("/device/" + guid + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), null, OK, notifications.getClass());
+        notifications = performRequest("/device/" + deviceId + "/notification/poll", "GET", params, singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), null, OK, notifications.getClass());
         assertNotNull(notifications);
         assertEquals(1, notifications.size());
     }

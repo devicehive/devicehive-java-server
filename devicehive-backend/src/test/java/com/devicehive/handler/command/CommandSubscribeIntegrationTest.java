@@ -96,7 +96,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
                 DeviceCommand command = new DeviceCommand();
                 command.setId(0);
                 command.setCommand(name);
-                command.setDeviceGuid(device);
+                command.setDeviceId(device);
                 CommandInsertRequest event = new CommandInsertRequest(command);
                 CompletableFuture<Response> f = new CompletableFuture<>();
                 client.call(Request.newBuilder().withBody(event).build(), f::complete);
@@ -111,7 +111,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         assertThat(c1.commands, hasSize(2));
         c1.commands.forEach(event -> {
             assertNotNull(event.getCommand());
-            assertEquals(event.getCommand().getDeviceGuid(), device1);
+            assertEquals(event.getCommand().getDeviceId(), device1);
             assertEquals(event.getCommand().getId(), Long.valueOf(0));
         });
         Set<String> names = c1.commands.stream()
@@ -122,14 +122,14 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         assertThat(c2.commands, hasSize(1));
         CommandEvent e = c2.commands.stream().findFirst().get();
         assertNotNull(e.getCommand());
-        assertEquals(e.getCommand().getDeviceGuid(), device2);
+        assertEquals(e.getCommand().getDeviceId(), device2);
         assertEquals(e.getCommand().getId(), Long.valueOf(0));
         assertEquals(e.getCommand().getCommand(), "increase_temperature");
 
         assertThat(c3.commands, hasSize(2));
         c3.commands.forEach(event -> {
             assertNotNull(event.getCommand());
-            assertEquals(event.getCommand().getDeviceGuid(), device2);
+            assertEquals(event.getCommand().getDeviceId(), device2);
             assertEquals(event.getCommand().getId(), Long.valueOf(0));
         });
         names = c3.commands.stream()
@@ -140,7 +140,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         assertThat(c4.commands, hasSize(1));
         e = c4.commands.stream().findFirst().get();
         assertNotNull(e.getCommand());
-        assertEquals(e.getCommand().getDeviceGuid(), device1);
+        assertEquals(e.getCommand().getDeviceId(), device1);
         assertEquals(e.getCommand().getId(), Long.valueOf(0));
         assertEquals(e.getCommand().getCommand(), "toggle_lights");
 
@@ -170,7 +170,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         DeviceCommand command = new DeviceCommand();
         command.setId(0);
         command.setCommand("increase_temperature");
-        command.setDeviceGuid(device1);
+        command.setDeviceId(device1);
         CommandInsertRequest event = new CommandInsertRequest(command);
         CompletableFuture<Response> f1 = new CompletableFuture<>();
         client.call(Request.newBuilder().withBody(event).build(), f1::complete);
@@ -189,7 +189,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         DeviceCommand command2 = new DeviceCommand();
         command2.setId(1);
         command2.setCommand("increase_temperature");
-        command2.setDeviceGuid(device1);
+        command2.setDeviceId(device1);
         CommandInsertRequest event2 = new CommandInsertRequest(command2);
         CompletableFuture<Response> f2 = new CompletableFuture<>();
         client.call(Request.newBuilder().withBody(event2).build(), f2::complete);

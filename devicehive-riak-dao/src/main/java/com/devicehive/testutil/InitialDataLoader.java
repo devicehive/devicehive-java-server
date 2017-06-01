@@ -21,18 +21,22 @@ package com.devicehive.testutil;
  */
 
 
-import com.devicehive.dao.*;
-import com.devicehive.model.enums.AccessKeyType;
+import com.devicehive.dao.ConfigurationDao;
+import com.devicehive.dao.DeviceDao;
+import com.devicehive.dao.NetworkDao;
+import com.devicehive.dao.UserDao;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.vo.*;
+import com.devicehive.vo.ConfigurationVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashSet;
 
 @Profile("test")
 @Component
@@ -77,7 +81,7 @@ public class InitialDataLoader {
         // ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 'Offline', 1, 1, 1);
         DeviceVO device = new DeviceVO();
         device.setId(1L);
-        device.setGuid("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
+        device.setDeviceId("E50D6085-2ABA-48E9-B1C3-73C673E414BE");
         device.setName("Sample VirtualLed Device");
         device.setNetworkId(network.getId());
         deviceDao.persist(device);

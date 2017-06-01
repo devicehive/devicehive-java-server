@@ -35,7 +35,7 @@ import java.util.Set;
  *     "userId": user_id,
  *     "actions": ["action1","action2","actionN"],
  *     "networkIds": ["id1","id2","idN"],
- *     "deviceGuids": ["guid1","guid2","guidN"]
+ *     "deviceIds": ["id1","id2","idN"]
  * }
  *
  * To get admin permissions (to all actions, networks, etc) you have to specify "*" for string parameters:
@@ -43,7 +43,7 @@ import java.util.Set;
  *     "userId": user_id,
  *     "actions": ["*"],
  *     "networkIds": ["*"],
- *     "deviceGuids": ["*"]
+ *     "deviceIds": ["*"]
  * }
  */
 public class JwtPayload implements HiveEntity {
@@ -54,7 +54,7 @@ public class JwtPayload implements HiveEntity {
     public final static String USER_ID = "userId";
     public final static String ACTIONS = "actions";
     public final static String NETWORK_IDS = "networkIds";
-    public final static String DEVICE_GUIDS = "deviceGuids";
+    public final static String DEVICE_IDS = "deviceIds";
     public final static String EXPIRATION = "expiration";
     public final static String TOKEN_TYPE = "tokenType";
 
@@ -70,8 +70,8 @@ public class JwtPayload implements HiveEntity {
     @SerializedName("networkIds")
     private Set<String> networkIds;
 
-    @SerializedName("deviceGuids")
-    private Set<String> deviceGuids;
+    @SerializedName("deviceIds")
+    private Set<String> deviceIds;
 
     //Registered claims
 
@@ -83,11 +83,11 @@ public class JwtPayload implements HiveEntity {
     private TokenType tokenType;
 
     private JwtPayload(Long userId, Set<String> actions, Set<String> networkIds,
-                       Set<String> deviceGuids, Date expiration, TokenType tokenType) {
+                       Set<String> deviceIds, Date expiration, TokenType tokenType) {
         this.userId = userId;
         this.actions = actions;
         this.networkIds = networkIds;
-        this.deviceGuids = deviceGuids;
+        this.deviceIds = deviceIds;
         this.expiration = expiration;
         this.tokenType = tokenType;
     }
@@ -116,12 +116,12 @@ public class JwtPayload implements HiveEntity {
         this.networkIds = networkIds;
     }
 
-    public Set<String> getDeviceGuids() {
-        return deviceGuids;
+    public Set<String> getDeviceIds() {
+        return deviceIds;
     }
 
-    public void setDeviceGuids(Set<String> deviceGuids) {
-        this.deviceGuids = deviceGuids;
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
     }
 
     public Date getExpiration() {
@@ -148,16 +148,16 @@ public class JwtPayload implements HiveEntity {
         private Long userId;
         private Set<String> actions;
         private Set<String> networkIds;
-        private Set<String> deviceGuids;
+        private Set<String> deviceIds;
         private Date expiration;
         private TokenType tokenType;
 
         public Builder withPublicClaims(Long userId, Set<String> actions,
-                                        Set<String> networkIds, Set<String> deviceGuids) {
+                                        Set<String> networkIds, Set<String> deviceIds) {
             this.userId = userId;
             this.actions = actions;
             this.networkIds = networkIds;
-            this.deviceGuids = deviceGuids;
+            this.deviceIds = deviceIds;
             return this;
         }
 
@@ -165,7 +165,7 @@ public class JwtPayload implements HiveEntity {
             this.userId = payload.getUserId();
             this.actions = payload.getActions();
             this.networkIds = payload.getNetworkIds();
-            this.deviceGuids = payload.getDeviceGuids();
+            this.deviceIds = payload.getDeviceIds();
             this.expiration = payload.getExpiration();
             return this;
         }
@@ -185,8 +185,8 @@ public class JwtPayload implements HiveEntity {
             return this;
         }
 
-        public Builder withDeviceGuids(Set<String> deviceGuids) {
-            this.deviceGuids = deviceGuids;
+        public Builder withDeviceIds(Set<String> deviceIds) {
+            this.deviceIds = deviceIds;
             return this;
         }
 
@@ -201,7 +201,7 @@ public class JwtPayload implements HiveEntity {
         }
 
         public JwtPayload buildPayload() {
-            return new JwtPayload(userId, actions, networkIds, deviceGuids, expiration, tokenType);
+            return new JwtPayload(userId, actions, networkIds, deviceIds, expiration, tokenType);
         }
     }
 }

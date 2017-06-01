@@ -59,18 +59,18 @@ public class DeviceResourceTest extends AbstractResourceTest {
         network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        String guid = UUID.randomUUID().toString();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        String deviceId = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device
-        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
+        DeviceVO device = performRequest("/device/" + deviceId, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
-        assertThat(device.getGuid(), is(guid));
+        assertThat(device.getDeviceId(), is(deviceId));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
         assertThat(device.getNetworkId(), notNullValue());
@@ -82,18 +82,18 @@ public class DeviceResourceTest extends AbstractResourceTest {
         network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        String guid = UUID.randomUUID().toString();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        String deviceId = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device
-        DeviceVO device = performRequest("/device/" + guid, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
+        DeviceVO device = performRequest("/device/" + deviceId, "GET", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, OK, DeviceVO.class);
         assertNotNull(device);
-        assertThat(device.getGuid(), is(guid));
+        assertThat(device.getDeviceId(), is(deviceId));
         assertThat(device.getName(), is(device.getName()));
         assertThat(device.getData(), notNullValue());
         assertThat(device.getNetworkId(), notNullValue());
@@ -105,16 +105,16 @@ public class DeviceResourceTest extends AbstractResourceTest {
         network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        String guid = UUID.randomUUID().toString();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        String deviceId = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         // get device without authentication
-        response = performRequest("/device/" + guid, "GET", emptyMap(), emptyMap(), deviceUpdate, UNAUTHORIZED, null);
+        response = performRequest("/device/" + deviceId, "GET", emptyMap(), emptyMap(), deviceUpdate, UNAUTHORIZED, null);
         assertNotNull(response);
     }
 
@@ -124,8 +124,8 @@ public class DeviceResourceTest extends AbstractResourceTest {
         network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        String guid = UUID.randomUUID().toString();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        String deviceId = UUID.randomUUID().toString();
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
 
         String login = RandomStringUtils.randomAlphabetic(10);
@@ -138,7 +138,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
         testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         //register user
@@ -147,7 +147,7 @@ public class DeviceResourceTest extends AbstractResourceTest {
 
         String testAccessToken = accessTokenRequest(login, password);
         //testing that user has no access to device
-        response = performRequest("/device/" + guid, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(testAccessToken)), deviceUpdate, FORBIDDEN, null);
+        response = performRequest("/device/" + deviceId, "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(testAccessToken)), deviceUpdate, FORBIDDEN, null);
         assertNotNull(response);
     }
 }
