@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
  */
 @Api(tags = {"Configuration"}, description = "Configuration operations", consumes="application/json")
 @Path("/configuration")
+@Produces({"application/json"})
 public interface ConfigurationResource {
 
     @GET
@@ -56,7 +57,7 @@ public interface ConfigurationResource {
             @PathParam("name")
                     String name);
 
-    @POST
+    @PUT
     @Path("/{name}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")

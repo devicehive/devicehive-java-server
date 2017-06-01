@@ -21,6 +21,7 @@ package com.devicehive.resource.impl;
  */
 
 
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.resource.ConfigurationResource;
 import com.devicehive.vo.ConfigurationVO;
@@ -29,6 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
+
+import java.util.Optional;
+
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Service
 public class ConfigurationResourceImpl implements ConfigurationResource {
@@ -41,19 +48,23 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
 
     @Override
     public Response get(String name) {
-        return Response.ok().entity(new ConfigurationVO(name, configurationService.get(name))).build();
+        Optional<ConfigurationVO> configurationVO = configurationService.findByName(name);
+        if (configurationVO.isPresent()) {
+            return ResponseFactory.response(OK, configurationVO.get());
+        }
+
+        return ResponseFactory.response(NOT_FOUND);
     }
 
     @Override
     public Response setProperty(String name, String value) {
-        configurationService.save(name, value);
-        return Response.ok().build();
+        return ResponseFactory.response(OK, configurationService.save(name, value));
     }
 
     @Override
     public Response deleteProperty(String name) {
         configurationService.delete(name);
-        return Response.noContent().build();
+        return ResponseFactory.response(NO_CONTENT);
     }
 
 }

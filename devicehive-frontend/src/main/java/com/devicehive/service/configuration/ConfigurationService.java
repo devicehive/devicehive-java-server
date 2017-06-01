@@ -42,23 +42,27 @@ public class ConfigurationService {
     private ConfigurationDao configurationDao;
 
     @Transactional
-    public <T> void save(@NotNull String name, T value) {
+    public <T> ConfigurationVO save(@NotNull String name, T value) {
         //TODO check keys are same
         String str = value != null ? value.toString() : null;
         Optional<ConfigurationVO> existingOpt = findByName(name);
+
         if (existingOpt.isPresent()) {
             ConfigurationVO existing = existingOpt.get();
             existing.setValue(str);
-            configurationDao.merge(existing);
-        } else {
-            ConfigurationVO configuration = new ConfigurationVO();
-            configuration.setName(name);
-            configuration.setValue(str);
-            configurationDao.persist(configuration);
+
+            return configurationDao.merge(existing);
         }
+
+        ConfigurationVO configuration = new ConfigurationVO();
+        configuration.setName(name);
+        configuration.setValue(str);
+        configurationDao.persist(configuration);
+
+        return configuration;
     }
 
-    private Optional<ConfigurationVO> findByName(String name) {
+    public Optional<ConfigurationVO> findByName(String name) {
         return configurationDao.getByName(name);
     }
 
