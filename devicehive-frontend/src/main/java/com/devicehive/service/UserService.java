@@ -1,5 +1,6 @@
 package com.devicehive.service;
 
+import com.devicehive.auth.HivePrincipal;
 /*
  * #%L
  * DeviceHive Java Server Common business logic
@@ -48,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -155,15 +157,18 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO existing = userDao.find(id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
+
         if (userToUpdate == null) {
             return existing;
         }
+
         if (userToUpdate.getLogin().isPresent()) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);
@@ -173,10 +178,12 @@ public class UserService {
             }
             existing.setLogin(newLogin);
         }
-        if (userToUpdate.getPassword().isPresent()) {
-            if (userToUpdate.getOldPassword().isPresent() && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
-                final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().orElse(null),
-                        existing.getPasswordSalt());
+
+        String password = userToUpdate.getPassword().orElse(null);
+        if (password != null) {
+            String oldPassword = userToUpdate.getOldPassword().orElse(null);
+            if (StringUtils.isNotBlank(oldPassword)) {
+                final String hash = passwordService.hashPassword(oldPassword, existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
                     throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
@@ -185,17 +192,24 @@ public class UserService {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
+
             String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(userToUpdate.getPassword().orElse(null), salt);
+            String hash = passwordService.hashPassword(password, salt);
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
-        if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
-            if (role != UserRole.ADMIN) {
+
+        if (role != UserRole.ADMIN) {
+            if (!id.equals(principal.getUser().getId())) {
+                logger.error("Can't update another user with id {}: users with the 'client' role are only allowed to change their password", id);
+                throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
+            }
+            if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
                 logger.error("Can't update user with id {}: users with the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
         }
+
         if (userToUpdate.getRoleEnum() != null) {
             existing.setRole(userToUpdate.getRoleEnum());
         } 
@@ -208,6 +222,7 @@ public class UserService {
         if (userToUpdate.getIntroReviewed().isPresent()) {
             existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
         }
+
         hiveValidator.validate(existing);
         return userDao.merge(existing);
     }
@@ -305,11 +320,13 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNoneEmpty(password)) {
+        if (StringUtils.isNotBlank(password)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);
             user.setPasswordHash(hash);
+        } else {
+            throw new IllegalParametersException(Messages.PASSWORD_REQUIRED);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         if (user.getIntroReviewed() == null) {
