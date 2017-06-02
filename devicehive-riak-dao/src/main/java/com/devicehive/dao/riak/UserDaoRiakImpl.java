@@ -223,7 +223,4 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         }
     }
 
-    private boolean doesUserAlreadyExist(UserVO user, String login) {
-        return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
-    }
 }

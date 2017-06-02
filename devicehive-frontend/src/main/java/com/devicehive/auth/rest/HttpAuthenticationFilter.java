@@ -117,7 +117,7 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
     private void tryAuthenticate(Authentication requestAuth) {
         Authentication authentication = authenticationManager.authenticate(requestAuth);
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new InternalAuthenticationServiceException("Unable to authenticate user with provided credetials");
+            throw new InternalAuthenticationServiceException("Unable to authenticate user with provided credentials");
         }
         logger.debug("Successfully authenticated");
         SecurityContextHolder.getContext().setAuthentication(authentication);
