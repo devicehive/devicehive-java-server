@@ -31,6 +31,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Set;
@@ -50,6 +51,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class User implements HiveEntity {
     private static final long serialVersionUID = -8980491502416082011L;
+    private static final String LOGIN_SIZE_MESSAGE = "Field cannot be empty. The length of login should be from 3 " +
+            "to 128 symbols.";
+    private static final String LOGIN_PATTERN_MESSAGE = "Login can contain only lowercase or uppercase letters, " +
+            "numbers, and some special symbols (_@.)";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,8 +65,8 @@ public class User implements HiveEntity {
     @Column
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
-            "symbols.")
+    @Size(min = 3, max = 128, message = LOGIN_SIZE_MESSAGE)
+    @Pattern(regexp = "^[\\w@.-]+$", message = LOGIN_PATTERN_MESSAGE)
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 

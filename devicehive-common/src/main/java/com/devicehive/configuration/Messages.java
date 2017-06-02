@@ -78,6 +78,7 @@ public class Messages {
     public static final String VALIDATION_FAILED = BidBundle.get("VALIDATION_FAILED");
     public static final String DUPLICATE_LOGIN = BidBundle.get("DUPLICATE_LOGIN");
     public static final String PASSWORD_REQUIRED = BidBundle.get("PASSWORD_REQUIRED");
+    public static final String PASSWORD_VALIDATION_FAILED = BidBundle.get("PASSWORD_VALIDATION_FAILED");
     public static final String OLD_PASSWORD_REQUIRED = BidBundle.get("OLD_PASSWORD_REQUIRED");
     public static final String INTERNAL_SERVER_ERROR = BidBundle.get("INTERNAL_SERVER_ERROR");
     public static final String INCORRECT_ACCESS_TYPE = BidBundle.get("INCORRECT_ACCESS_TYPE");
