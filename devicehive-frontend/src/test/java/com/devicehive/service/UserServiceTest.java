@@ -442,7 +442,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(AccessDeniedException.class);
         expectedException.expectMessage(Messages.USER_NOT_FOUND);
         try {
-            userService.findUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
+            userService.getActiveUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -459,7 +459,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(AccessDeniedException.class);
         expectedException.expectMessage(Messages.USER_NOT_ACTIVE);
 
-        userService.findUser(user.getLogin(), "123");
+        userService.getActiveUser(user.getLogin(), "123");
     }
 
     @Test
@@ -476,7 +476,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         try {
-            userService.findUser(user.getLogin(), "wrong_password");
+            userService.getActiveUser(user.getLogin(), "wrong_password");
             fail("should throw AccessDeniedException exception");
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -488,7 +488,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
         assertThat(updatedUser.getLastLogin(), nullValue());
 
-        user = userService.findUser(user.getLogin(), "123");
+        user = userService.getActiveUser(user.getLogin(), "123");
         assertThat(user, notNullValue());
         assertThat(user.getLoginAttempts(), equalTo(0));
         assertThat(user.getLastLogin(), notNullValue());
@@ -507,7 +507,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        user = userService.findUser(user.getLogin(), "123");
+        user = userService.getActiveUser(user.getLogin(), "123");
         assertThat(user, notNullValue());
         assertThat(user.getLoginAttempts(), equalTo(0));
         assertThat(user.getLastLogin(), notNullValue());
@@ -530,7 +530,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         IntStream.range(1, 5).forEach(attempt -> {
             try {
-                userService.findUser(user.getLogin(), "wrong_password");
+                userService.getActiveUser(user.getLogin(), "wrong_password");
                 fail("should throw login exception");
             } catch (AccessDeniedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -543,7 +543,7 @@ public class UserServiceTest extends AbstractResourceTest {
         });
 
         try {
-            userService.findUser(user.getLogin(), "wrong_password");
+            userService.getActiveUser(user.getLogin(), "wrong_password");
             fail("should throw login exception");
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -569,9 +569,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
-        UserVO authenticated1 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated1 = userService.getActiveUser(user.getLogin(), "123");
         TimeUnit.SECONDS.sleep(1);
-        UserVO authenticated2 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated2 = userService.getActiveUser(user.getLogin(), "123");
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
