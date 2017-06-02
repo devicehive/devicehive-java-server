@@ -23,6 +23,7 @@ package com.devicehive.resource;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.security.util.JwtSecretService;
@@ -57,11 +58,11 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_access_and_refresh_tokens_for_token_authorized_user() throws Exception {
         // Create test user
-        UserVO testUser = new UserVO();
+        UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_0");
-        testUser.setRole(UserRole.CLIENT);
-        testUser.setPasswordHash("string_0");
-        testUser.setStatus(UserStatus.ACTIVE);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(VALID_PASSWORD);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userId = user.getId();
@@ -108,11 +109,11 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_refresh_token_of_inactive_user() throws Exception {
         // Create test user
-        UserVO testUser = new UserVO();
+        UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_1");
-        testUser.setRole(UserRole.CLIENT);
-        testUser.setPasswordHash("string_1");
-        testUser.setStatus(UserStatus.DISABLED);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(VALID_PASSWORD);
+        testUser.setStatus(UserStatus.DISABLED.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userid = user.getId();
@@ -139,11 +140,11 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_400_after_providing_invalid_refresh_token() throws Exception {
         // Create test user
-        UserVO testUser = new UserVO();
+        UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_2");
-        testUser.setRole(UserRole.CLIENT);
-        testUser.setPasswordHash("string_2");
-        testUser.setStatus(UserStatus.ACTIVE);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(VALID_PASSWORD);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         final long userid = user.getId();
@@ -171,11 +172,11 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_expired_refresh_token() throws Exception {
         // Create test user
-        UserVO testUser = new UserVO();
+        UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_3");
-        testUser.setRole(UserRole.CLIENT);
-        testUser.setPasswordHash("string_3");
-        testUser.setStatus(UserStatus.ACTIVE);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword(VALID_PASSWORD);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         // Create payload

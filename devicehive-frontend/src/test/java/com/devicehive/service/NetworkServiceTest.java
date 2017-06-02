@@ -350,7 +350,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_networks_only_for_user() throws Exception {
         UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
-        user1 = userService.createUser(user1, "123");
+        user1 = userService.createUser(user1, VALID_PASSWORD);
         Set<String> expectedNames = new HashSet<>();
         for (int i = 0; i < 5; i++) {
             String name = namePrefix + randomUUID();
@@ -363,7 +363,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user2 = new UserVO();
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
-        user2 = userService.createUser(user2, "123");
+        user2 = userService.createUser(user2, VALID_PASSWORD);
         for (int i = 0; i < 5; i++) {
             NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
@@ -391,7 +391,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user1 = new UserVO();
         user1.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.ADMIN);
-        user1 = userService.createUser(user1, "123");
+        user1 = userService.createUser(user1, VALID_PASSWORD);
         for (int i = 0; i < 10; i++) {
             String name = namePrefix + randomUUID();
             NetworkVO network = new NetworkVO();
@@ -402,7 +402,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         UserVO user2 = new UserVO();
         user2.setLogin("user2" + RandomStringUtils.randomAlphabetic(10));
-        user2 = userService.createUser(user2, "123");
+        user2 = userService.createUser(user2, VALID_PASSWORD);
         for (int i = 0; i < 10; i++) {
             NetworkVO network = new NetworkVO();
             network.setName(namePrefix + randomUUID());
@@ -456,7 +456,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
     public void should_return_networks_for_access_key_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin("user1" + RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
@@ -492,7 +492,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -518,7 +518,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -544,7 +544,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -571,7 +571,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -600,7 +600,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -629,7 +629,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -652,7 +652,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -697,7 +697,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -729,7 +729,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -792,7 +792,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -808,7 +808,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -824,7 +824,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());

@@ -69,6 +69,7 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     @Autowired
     private PasswordProcessor passwordService;
@@ -187,12 +188,13 @@ public class UserService {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
-            if (StringUtils.isEmpty(userToUpdate.getPassword().orElse(null))) {
+            String password = userToUpdate.getPassword().orElse(null);
+            if (StringUtils.isEmpty(password) || !password.matches(PASSWORD_REGEXP)) {
                 logger.error("Can't update user with id {}: password required", id);
-                throw new IllegalParametersException(Messages.PASSWORD_REQUIRED);
+                throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
             }
             String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(userToUpdate.getPassword().orElse(null), salt);
+            String hash = passwordService.hashPassword(password, salt);
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
@@ -309,11 +311,13 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNoneEmpty(password)) {
+        if (StringUtils.isNoneEmpty(password) && password.matches(PASSWORD_REGEXP)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);
             user.setPasswordHash(hash);
+        } else {
+            throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         if (user.getIntroReviewed() == null) {
