@@ -69,6 +69,7 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     @Autowired
     private PasswordProcessor passwordService;
@@ -188,7 +189,7 @@ public class UserService {
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
             String password = userToUpdate.getPassword().orElse(null);
-            if (StringUtils.isEmpty(password) || !password.matches("^.{6,128}$")) {
+            if (StringUtils.isEmpty(password) || !password.matches(PASSWORD_REGEXP)) {
                 logger.error("Can't update user with id {}: password required", id);
                 throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
             }
@@ -310,7 +311,7 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNoneEmpty(password) && password.matches("^.{6,128}$")) {
+        if (StringUtils.isNoneEmpty(password) && password.matches(PASSWORD_REGEXP)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);
