@@ -46,6 +46,7 @@ public class AvailableActions {
 
     //admin
     public static final String MANAGE_USER = "ManageUser";
+    public static final String MANAGE_CONFIGURATION = "ManageConfiguration";
     public static final String MANAGE_NETWORK = "ManageNetwork";
     public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
     public static final String MANAGE_TOKEN = "ManageToken";
@@ -75,6 +76,7 @@ public class AvailableActions {
     private static Set<String> ADMIN_ACTIONS = new HashSet<String>() {
         {
             add(MANAGE_USER);
+            add(MANAGE_CONFIGURATION);
             add(MANAGE_NETWORK);
             add(MANAGE_OAUTH_CLIENT);
         }
