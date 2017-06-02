@@ -39,6 +39,7 @@ public enum HiveAction {
     MANAGE_OAUTH_GRANT(AvailableActions.MANAGE_OAUTH_GRANT),
 
     MANAGE_USER(AvailableActions.MANAGE_USER),
+    MANAGE_CONFIGURATION(AvailableActions.MANAGE_CONFIGURATION),
     MANAGE_NETWORK(AvailableActions.MANAGE_NETWORK),
     MANAGE_OAUTH_CLIENT(AvailableActions.MANAGE_OAUTH_CLIENT),
     MANAGE_TOKEN(AvailableActions.MANAGE_TOKEN),
