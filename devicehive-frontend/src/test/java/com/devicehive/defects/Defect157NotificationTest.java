@@ -56,7 +56,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class Defect157NotificationTest extends AbstractResourceTest {
 
-    private final String guid = UUID.randomUUID().toString();
+    private final String deviceId = UUID.randomUUID().toString();
 
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
@@ -91,18 +91,18 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         network.setName("" + randomUUID());
     	NetworkVO created = networkService.create(network);
 
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
         deviceUpdate.setNetworkId(created.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(),
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(),
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         {
             DeviceNotification notification = createDeviceNotification("c1");
-            notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
+            notification = performRequest("/device/" + deviceId + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     notification, CREATED, DeviceNotification.class);
 
@@ -111,7 +111,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
 
         {
             DeviceNotification notification = createDeviceNotification("c2");
-            notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
+            notification = performRequest("/device/" + deviceId + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     notification, CREATED, DeviceNotification.class);
 
@@ -120,7 +120,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
 
         {
             DeviceNotification notification = createDeviceNotification("c3");
-            notification = performRequest("/device/" + guid + "/notification", "POST", emptyMap(),
+            notification = performRequest("/device/" + deviceId + "/notification", "POST", emptyMap(),
                     singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     notification, CREATED, DeviceNotification.class);
 
@@ -133,7 +133,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "notification");
         vals.put("sortOrder", "asc");
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
@@ -150,7 +150,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "notification");
         vals.put("sortOrder", "desc");
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
@@ -168,7 +168,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         vals.put("sortField", "notification");
         vals.put("sortOrder", "desc");
         vals.put("skip", 1);
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
@@ -187,7 +187,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 0);
         vals.put("take", 1);
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
@@ -204,7 +204,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 5);
         vals.put("take", 3);
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
@@ -219,7 +219,7 @@ public class Defect157NotificationTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 3);
         vals.put("take", Integer.MAX_VALUE);
-        List<?> notifications = performRequest("/device/" + guid + "/notification", "GET",
+        List<?> notifications = performRequest("/device/" + deviceId + "/notification", "GET",
                 vals,
                 singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);

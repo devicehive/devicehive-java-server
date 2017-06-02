@@ -92,12 +92,12 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
                 .forEach(CompletableFuture::join);
 
         //devices send notifications
-        List<CompletableFuture<Response>> futures = Stream.of(device1, device2).flatMap(device -> {
+        List<CompletableFuture<Response>> futures = Stream.of(device1, device2).flatMap(deviceId -> {
             List<CompletableFuture<Response>> list = Stream.of("temperature", "vibration").map(name -> {
                 DeviceNotification notification = new DeviceNotification();
                 notification.setId(0);
                 notification.setNotification(name);
-                notification.setDeviceGuid(device);
+                notification.setDeviceId(deviceId);
                 NotificationInsertRequest event = new NotificationInsertRequest(notification);
                 CompletableFuture<Response> f = new CompletableFuture<>();
                 client.call(Request.newBuilder().withBody(event).build(), f::complete);
@@ -112,7 +112,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         assertThat(c1.notifications, hasSize(2));
         c1.notifications.forEach(event -> {
             assertNotNull(event.getNotification());
-            assertEquals(event.getNotification().getDeviceGuid(), device1);
+            assertEquals(event.getNotification().getDeviceId(), device1);
             assertEquals(event.getNotification().getId(), Long.valueOf(0));
         });
         Set<String> names = c1.notifications.stream()
@@ -123,14 +123,14 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         assertThat(c2.notifications, hasSize(1));
         NotificationEvent e = c2.notifications.stream().findFirst().get();
         assertNotNull(e.getNotification());
-        assertEquals(e.getNotification().getDeviceGuid(), device2);
+        assertEquals(e.getNotification().getDeviceId(), device2);
         assertEquals(e.getNotification().getId(), Long.valueOf(0));
         assertEquals(e.getNotification().getNotification(), "temperature");
 
         assertThat(c3.notifications, hasSize(2));
         c3.notifications.forEach(event -> {
             assertNotNull(event.getNotification());
-            assertEquals(event.getNotification().getDeviceGuid(), device2);
+            assertEquals(event.getNotification().getDeviceId(), device2);
             assertEquals(event.getNotification().getId(), Long.valueOf(0));
         });
         names = c3.notifications.stream()
@@ -141,7 +141,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         assertThat(c4.notifications, hasSize(1));
         e = c4.notifications.stream().findFirst().get();
         assertNotNull(e.getNotification());
-        assertEquals(e.getNotification().getDeviceGuid(), device1);
+        assertEquals(e.getNotification().getDeviceId(), device1);
         assertEquals(e.getNotification().getId(), Long.valueOf(0));
         assertEquals(e.getNotification().getNotification(), "vibration");
 
@@ -171,7 +171,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         DeviceNotification notification = new DeviceNotification();
         notification.setId(0);
         notification.setNotification("temperature");
-        notification.setDeviceGuid(device1);
+        notification.setDeviceId(device1);
         NotificationInsertRequest event = new NotificationInsertRequest(notification);
         CompletableFuture<Response> f1 = new CompletableFuture<>();
         client.call(Request.newBuilder().withBody(event).build(), f1::complete);
@@ -190,7 +190,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         DeviceNotification notification2 = new DeviceNotification();
         notification2.setId(1);
         notification2.setNotification("temperature");
-        notification2.setDeviceGuid(device1);
+        notification2.setDeviceId(device1);
         NotificationInsertRequest event2 = new NotificationInsertRequest(notification2);
         CompletableFuture<Response> f2 = new CompletableFuture<>();
         client.call(Request.newBuilder().withBody(event2).build(), f2::complete);

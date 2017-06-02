@@ -37,7 +37,7 @@ import javax.ws.rs.core.MediaType;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 
 /**
- * REST controller for device notifications: <i>/device/{deviceGuid}/notification</i> and <i>/device/notification</i>.
+ * REST controller for device notifications: <i>/device/{deviceId}/notification</i> and <i>/device/notification</i>.
  * See <a href="http://www.devicehive.com/restful#Reference/DeviceNotification">DeviceHive RESTful API:
  * DeviceNotification</a> for details.
  *
@@ -51,7 +51,7 @@ public interface DeviceNotificationResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/query">DeviceHive
      * RESTful API: DeviceNotification: query</a> Queries device notifications.
      *
-     * @param guid         Device unique identifier.
+     * @param deviceId     Device unique identifier.
      * @param startTs      Filter by notification start timestamp (UTC).
      * @param endTs        Filter by notification end timestamp (UTC).
      * @param notification Filter by notification name.
@@ -68,17 +68,17 @@ public interface DeviceNotificationResource {
      * structure</td> </tr> </table>
      */
     @GET
-    @Path("/{deviceGuid}/notification")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
+    @Path("/{deviceId}/notification")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Get notifications", notes = "Returns notifications by provided parameters",
             response = DeviceNotification.class)
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     void query(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "start", value = "Start timestamp")
             @QueryParam("start")
             String startTs,
@@ -110,7 +110,7 @@ public interface DeviceNotificationResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/get">DeviceHive RESTful
      * API: DeviceNotification: get</a> Gets information about device notification.
      *
-     * @param guid           Device unique identifier.
+     * @param deviceId       Device unique identifier.
      * @param notificationId Notification identifier.
      * @return If successful, this method returns a <a href="http://www.devicehive .com/restful#Reference/DeviceNotification">DeviceNotification</a>
      * resource in the response body. <table> <tr> <td>Property Name</td> <td>Type</td> <td>Description</td>
@@ -120,21 +120,21 @@ public interface DeviceNotificationResource {
      * JSON object with an arbitrary structure</td> </tr> </table>
      */
     @GET
-    @Path("/{deviceGuid}/notification/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Get notification", notes = "Returns notification by device guid and notification id")
+    @Path("/{deviceId}/notification/{id}")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
+    @ApiOperation(value = "Get notification", notes = "Returns notification by device deviceId and notification id")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returned notification by device guid and notification id",
+            @ApiResponse(code = 200, message = "Returned notification by device deviceId and notification id",
                     response = DeviceNotification.class),
             @ApiResponse(code = 404, message = "If device or notification not found")
     })
     void get(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "id", value = "Notification id", required = true)
             @PathParam("id")
             Long notificationId,
@@ -144,16 +144,16 @@ public interface DeviceNotificationResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/poll">DeviceHive
      * RESTful API: DeviceNotification: poll</a>
      *
-     * @param deviceGuid Device unique identifier.
+     * @param deviceId   Device unique identifier.
      * @param timestamp  Timestamp of the last received notification (UTC). If not specified, the server's timestamp is taken
      *                   instead.
      * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
      *                   waiting.
      */
     @GET
-    @Path("/{deviceGuid}/notification/poll")
+    @Path("/{deviceId}/notification/poll")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications for specified device Guid.\n" +
+    @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications for specified device id.\n" +
             "\n" +
             "This method returns all device notifications that were created after specified timestamp.\n" +
             "\n" +
@@ -171,9 +171,9 @@ public interface DeviceNotificationResource {
 
     })
     void poll(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String deviceGuid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "names", value = "Notification names")
             @QueryParam("names")
             String namesString,
@@ -214,9 +214,9 @@ public interface DeviceNotificationResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
-            @ApiParam(name = "deviceGuids", value = "Device guids")
-            @QueryParam("deviceGuids")
-            String deviceGuidsString,
+            @ApiParam(name = "deviceIds", value = "Device ids")
+            @QueryParam("deviceIds")
+            String deviceIdsString,
             @ApiParam(name = "names", value = "Notification names")
             @QueryParam("names")
             String namesString,
@@ -229,7 +229,7 @@ public interface DeviceNotificationResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceNotification/insert">DeviceHive
      * RESTful API: DeviceNotification: insert</a> Creates new device notification.
      *
-     * @param guid               Device unique identifier.
+     * @param deviceId               Device unique identifier.
      * @param notificationSubmit In the request body, supply a DeviceNotification resource. <table> <tr> <td>Property
      *                           Name</td> <td>Required</td> <td>Type</td> <td>Description</td> </tr> <tr>
      *                           <td>notification</td> <td>Yes</td> <td>string</td> <td>Notification name.</td> </tr> <tr>
@@ -241,9 +241,9 @@ public interface DeviceNotificationResource {
      * <td>datetime</td> <td>Notification timestamp (UTC).</td> </tr> </table>
      */
     @POST
-    @Path("/{deviceGuid}/notification")
+    @Path("/{deviceId}/notification")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'CREATE_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Create notification", notes = "Creates notification")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
@@ -255,9 +255,9 @@ public interface DeviceNotificationResource {
             @ApiResponse(code = 403, message = "If device is not connected to network")
     })
     void insert(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(value = "Notification body", required = true, defaultValue = "{}")
             @JsonPolicyDef(NOTIFICATION_FROM_DEVICE)
             DeviceNotificationWrapper notificationSubmit,

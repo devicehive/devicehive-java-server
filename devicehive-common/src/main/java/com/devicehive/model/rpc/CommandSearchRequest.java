@@ -28,7 +28,7 @@ import java.util.Set;
 public class CommandSearchRequest extends Body {
 
     private Long id;
-    private String guid;
+    private String deviceId;
     private Set<String> names;
     private Date timestampStart;
     private Date timestampEnd;
@@ -46,12 +46,12 @@ public class CommandSearchRequest extends Body {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public Set<String> getNames() {

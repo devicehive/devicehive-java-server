@@ -88,24 +88,24 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void testFindCommandsByGuid() throws Exception {
-        final List<String> guids = IntStream.range(0, 5)
+    public void testFindCommandsByDeviceId() throws Exception {
+        final List<String> deviceIds = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
         final Date timestampSt = timestampService.getDate();
         final Date timestampEnd = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
 
-        final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
-                guids.get(0),
-                guids.get(2),
-                guids.get(3)));
+        final Set<String> idsForSearch = new HashSet<>(Arrays.asList(
+                deviceIds.get(0),
+                deviceIds.get(2),
+                deviceIds.get(3)));
 
-        final Map<String, DeviceCommand> commandMap = guidsForSearch.stream()
-                .collect(Collectors.toMap(Function.identity(), guid -> {
+        final Map<String, DeviceCommand> commandMap = idsForSearch.stream()
+                .collect(Collectors.toMap(Function.identity(), deviceId -> {
                     DeviceCommand command = new DeviceCommand();
                     command.setId(System.nanoTime());
-                    command.setDeviceGuid(guid);
+                    command.setDeviceId(deviceId);
                     command.setCommand(RandomStringUtils.randomAlphabetic(10));
                     command.setTimestamp(timestampService.getDate());
                     command.setParameters(new JsonStringWrapper(parameters));
@@ -115,15 +115,15 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
-            String guid = request.getBody().cast(CommandSearchRequest.class).getGuid();
+            String deviceId = request.getBody().cast(CommandSearchRequest.class).getDeviceId();
             CommandSearchResponse response = new CommandSearchResponse();
-            response.setCommands(Collections.singletonList(commandMap.get(guid)));
+            response.setCommands(Collections.singletonList(commandMap.get(deviceId)));
             return Response.newBuilder()
                     .withBody(response)
                     .buildSuccess();
         });
 
-        deviceCommandService.find(guidsForSearch, Collections.emptySet(), timestampSt, timestampEnd, DEFAULT_STATUS)
+        deviceCommandService.find(idsForSearch, Collections.emptySet(), timestampSt, timestampEnd, DEFAULT_STATUS)
                 .thenAccept(commands -> {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandMap.values()), new HashSet<>(commands));
@@ -135,14 +135,14 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
-    public void testFindCommandsByGuidAndName() throws Exception {
+    public void testFindCommandsByDeviceIdAndName() throws Exception {
         final List<String> names = IntStream.range(0, 5)
                 .mapToObj(i -> RandomStringUtils.randomAlphabetic(10))
                 .collect(Collectors.toList());
         final Date timestampSt = timestampService.getDate();
         final Date timestampEnd = timestampService.getDate();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
 
         final Set<String> namesForSearch = new HashSet<>(Arrays.asList(
                 names.get(0),
@@ -153,7 +153,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                 .map(name -> {
                     DeviceCommand command = new DeviceCommand();
                     command.setId(System.nanoTime());
-                    command.setDeviceGuid(guid);
+                    command.setDeviceId(deviceId);
                     command.setCommand(name);
                     command.setTimestamp(timestampService.getDate());
                     command.setParameters(new JsonStringWrapper(parameters));
@@ -169,7 +169,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     .buildSuccess();
         });
 
-        deviceCommandService.find(Collections.singleton(guid), names, timestampSt, timestampEnd, DEFAULT_STATUS)
+        deviceCommandService.find(Collections.singleton(deviceId), names, timestampSt, timestampEnd, DEFAULT_STATUS)
                 .thenAccept(commands -> {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandList), new HashSet<>(commands));
@@ -182,12 +182,12 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindCommand() throws Exception {
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
         final long id = System.nanoTime();
 
         final DeviceCommand command = new DeviceCommand();
         command.setId(id);
-        command.setDeviceGuid(guid);
+        command.setDeviceId(deviceId);
         command.setCommand(RandomStringUtils.randomAlphabetic(10));
         command.setTimestamp(timestampService.getDate());
         command.setStatus(DEFAULT_STATUS);
@@ -200,7 +200,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
                     .buildSuccess();
         });
 
-        deviceCommandService.findOne(id, guid)
+        deviceCommandService.findOne(id, deviceId)
                 .thenAccept(deviceCommand -> assertTrue(deviceCommand.isPresent()))
                 .get(15, TimeUnit.SECONDS);
 
@@ -226,7 +226,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
 
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
-        deviceVO.setGuid(UUID.randomUUID().toString());
+        deviceVO.setDeviceId(UUID.randomUUID().toString());
 
         for (int i = 0; i < num; i++) {
             final DeviceCommandWrapper deviceCommand = new DeviceCommandWrapper();
@@ -250,7 +250,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
     public void testUpdateCommand() throws Exception {
         final DeviceCommand deviceCommand = new DeviceCommand();
         deviceCommand.setId(System.nanoTime());
-        deviceCommand.setDeviceGuid(UUID.randomUUID().toString());
+        deviceCommand.setDeviceId(UUID.randomUUID().toString());
         deviceCommand.setCommand("command");
         deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
         deviceCommand.setStatus(DEFAULT_STATUS);

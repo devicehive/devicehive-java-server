@@ -23,13 +23,12 @@ package com.devicehive.dao.riak.model;
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 
 public class RiakDevice {
 
     private Long id;
 
-    private String guid;
+    private String deviceId;
 
     private String name;
 
@@ -57,12 +56,12 @@ public class RiakDevice {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {
@@ -98,9 +97,9 @@ public class RiakDevice {
     }
 
     //Riak indexes
-    @RiakIndex(name = "guid")
+    @RiakIndex(name = "deviceId")
     public String getGuidSi() {
-        return guid;
+        return deviceId;
     }
 
     public static DeviceVO convertToVo(RiakDevice dc) {
@@ -109,7 +108,7 @@ public class RiakDevice {
             vo = new DeviceVO();
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
-            vo.setGuid(dc.getGuid());
+            vo.setDeviceId(dc.getDeviceId());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
             vo.setNetworkId(dc.getNetwork().getId());
@@ -123,7 +122,7 @@ public class RiakDevice {
             entity = new RiakDevice();
             entity.setBlocked(dc.getBlocked());
             entity.setData(dc.getData());
-            entity.setGuid(dc.getGuid());
+            entity.setDeviceId(dc.getDeviceId());
             entity.setId(dc.getId());
             entity.setName(dc.getName());
             RiakNetwork network = new RiakNetwork();

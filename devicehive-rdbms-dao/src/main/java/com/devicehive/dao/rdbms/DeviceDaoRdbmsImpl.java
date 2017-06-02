@@ -26,7 +26,6 @@ import com.devicehive.model.Device;
 import com.devicehive.model.Network;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -36,9 +35,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.sql.DataSource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -56,9 +53,9 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public DeviceVO findByUUID(String uuid) {
-        Device deviceEntity = createNamedQuery(Device.class, "Device.findByUUID", Optional.of(CacheConfig.refresh()))
-                .setParameter("guid", uuid)
+    public DeviceVO findById(String id) {
+        Device deviceEntity = createNamedQuery(Device.class, "Device.findById", Optional.of(CacheConfig.refresh()))
+                .setParameter("deviceId", id)
                 .getResultList()
                 .stream().findFirst().orElse(null);
         return Device.convertToVo(deviceEntity);
@@ -86,18 +83,18 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public int deleteByUUID(String guid) {
-        return createNamedQuery("Device.deleteByUUID", Optional.<CacheConfig>empty())
-                .setParameter("guid", guid)
+    public int deleteById(String deviceId) {
+        return createNamedQuery("Device.deleteById", Optional.<CacheConfig>empty())
+                .setParameter("deviceId", deviceId)
                 .executeUpdate();
     }
 
     @Override
-    public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
+    public List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
         final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, guids, Optional.ofNullable(principal));
+        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, deviceIds, Optional.ofNullable(principal));
         criteria.where(predicates);
         final TypedQuery<Device> query = createQuery(criteria);
         CacheHelper.cacheable(query);
@@ -105,11 +102,11 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> guids) {
+    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
         final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, guids, Optional.ofNullable(principal));
+        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, deviceIds, Optional.ofNullable(principal));
         criteria.where(predicates);
         final TypedQuery<Device> query = createQuery(criteria);
         return query.getResultList().size();

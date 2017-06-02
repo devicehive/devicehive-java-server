@@ -90,7 +90,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
         Subscription subscription = subscriptionCaptor.getValue();
         assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
-        assertEquals(subscription.getGuid(), device);
+        assertEquals(subscription.getDeviceId(), device);
         assertNull(subscription.getName());
 
         verifyZeroInteractions(hazelcastService);
@@ -124,7 +124,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         List<Subscription> subscriptions = subscriptionCaptor.getAllValues();
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
-            assertEquals(subscription.getGuid(), device);
+            assertEquals(subscription.getDeviceId(), device);
             assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
@@ -163,7 +163,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         List<Subscription> subscriptions = subscriptionCaptor.getAllValues();
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
-            assertEquals(subscription.getGuid(), device);
+            assertEquals(subscription.getDeviceId(), device);
             assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
@@ -202,9 +202,9 @@ public class NotificationSubscribeRequestHandlerUnitTest {
     }
 
     @Test
-    public void shouldThrowIfDeviceGuidIsNull() throws Exception {
+    public void shouldThrowIfDeviceIdIsNull() throws Exception {
         ex.expect(IllegalArgumentException.class);
-        ex.expectMessage("Device guid is null");
+        ex.expectMessage("Device id is null");
 
         NotificationSubscribeRequest sr =
                 new NotificationSubscribeRequest(randomUUID().toString(), null, null, null);

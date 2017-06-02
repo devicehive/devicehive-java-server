@@ -27,7 +27,7 @@ import com.devicehive.vo.UserVO;
 import javax.persistence.criteria.*;
 import java.util.*;
 
-import static com.devicehive.model.Device.Queries.Parameters.GUID;
+import static com.devicehive.model.Device.Queries.Parameters.DEVICE_ID;
 import static java.util.Optional.ofNullable;
 
 public class CriteriaHelper {
@@ -105,11 +105,11 @@ public class CriteriaHelper {
 
     public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
                                                    Root<Device> from,
-                                                   List<String> guids,
+                                                   List<String> deviceIds,
                                                    Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = deviceSpecificPrincipalPredicates(cb, from, principal);
-        if (guids != null && !guids.isEmpty()) {
-            predicates.add(from.get(GUID).in(guids));
+        if (deviceIds != null && !deviceIds.isEmpty()) {
+            predicates.add(from.get(DEVICE_ID).in(deviceIds));
         }
 
         return predicates.toArray(new Predicate[predicates.size()]);
@@ -155,8 +155,8 @@ public class CriteriaHelper {
                 predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
             }
 
-            if (p.getDeviceGuids() != null) {
-                predicates.add(from.<String>get("guid").in(p.getDeviceGuids()));
+            if (p.getDeviceIds() != null) {
+                predicates.add(from.<String>get("deviceId").in(p.getDeviceIds()));
             }
         });
 

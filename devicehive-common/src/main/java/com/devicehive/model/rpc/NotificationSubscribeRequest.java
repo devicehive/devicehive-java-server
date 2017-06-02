@@ -21,14 +21,10 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.shim.api.Body;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
-
-import static com.devicehive.configuration.Constants.DEVICE_GUIDS;
-import static com.devicehive.configuration.Constants.NAMES;
 
 public class NotificationSubscribeRequest extends Body {
 

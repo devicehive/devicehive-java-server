@@ -64,12 +64,12 @@ public class DeviceHandlers {
         WebSocketResponse response = new WebSocketResponse();
 
         if (deviceId != null) {
-            DeviceVO toResponse = deviceService.findByGuidWithPermissionsCheck(deviceId, principal);
+            DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
             response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
             return response;
         } else {
-            for (String device : principal.getDeviceGuids()) {
-                DeviceVO toResponse = deviceService.findByGuidWithPermissionsCheck(device, principal);
+            for (String device : principal.getDeviceIds()) {
+                DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(device, principal);
                 response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
             }
             return response;
@@ -84,9 +84,9 @@ public class DeviceHandlers {
 
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
-            throw new HiveException(Messages.DEVICE_GUID_REQUIRED, SC_BAD_REQUEST);
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setGuid(deviceId);
+        device.setId(deviceId);
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();

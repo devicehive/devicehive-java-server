@@ -60,7 +60,7 @@ public class Messages {
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
     public static final String ID_NOT_ALLOWED = BidBundle.get("ID_NOT_ALLOWED");
     public static final String INCORRECT_CREDENTIALS = BidBundle.get("INCORRECT_CREDENTIALS");
-    public static final String DEVICE_GUID_REQUIRED = BidBundle.get("DEVICE_GUID_REQUIRED");
+    public static final String DEVICE_ID_REQUIRED = BidBundle.get("DEVICE_ID_REQUIRED");
     public static final String EMPTY_DEVICE = BidBundle.get("EMPTY_DEVICE");
     public static final String EMPTY_DEVICE_NAME = BidBundle.get("EMPTY_DEVICE_NAME");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");

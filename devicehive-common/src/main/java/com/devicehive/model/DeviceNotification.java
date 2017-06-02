@@ -41,9 +41,9 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private String notification;
 
-    @SerializedName("deviceGuid")
+    @SerializedName("deviceId")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
-    private String deviceGuid;
+    private String deviceId;
 
     @SerializedName("timestamp")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
@@ -86,12 +86,12 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
         this.parameters = parameters;
     }
 
-    public String getDeviceGuid() {
-        return deviceGuid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setDeviceGuid(String deviceGuid) {
-        this.deviceGuid = deviceGuid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
 
         DeviceNotification message = (DeviceNotification) o;
 
-        if (deviceGuid != null ? !deviceGuid.equals(message.deviceGuid) : message.deviceGuid != null) return false;
+        if (deviceId != null ? !deviceId.equals(message.deviceId) : message.deviceId != null) return false;
         if (id != null ? !id.equals(message.id) : message.id != null) return false;
         if (notification != null ? !notification.equals(message.notification) : message.notification != null)
             return false;
@@ -115,7 +115,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (notification != null ? notification.hashCode() : 0);
-        result = 31 * result + (deviceGuid != null ? deviceGuid.hashCode() : 0);
+        result = 31 * result + (deviceId != null ? deviceId.hashCode() : 0);
         result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
         result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
         return result;
@@ -126,7 +126,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
         return "DeviceNotification{" +
                 "id=" + id +
                 ", notification='" + notification + '\'' +
-                ", deviceGuid='" + deviceGuid + '\'' +
+                ", deviceId='" + deviceId + '\'' +
                 ", timestamp=" + timestamp +
                 ", parameters='" + parameters + '\'' +
                 '}';
@@ -134,6 +134,6 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
 
     @Override
     public String getHazelcastKey() {
-        return id+"-"+deviceGuid+"-"+timestamp;
+        return id+"-"+deviceId+"-"+timestamp;
     }
 }

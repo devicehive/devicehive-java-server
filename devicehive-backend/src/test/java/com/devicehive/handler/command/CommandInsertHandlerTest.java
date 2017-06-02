@@ -29,7 +29,6 @@ import com.devicehive.model.rpc.CommandInsertResponse;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -39,9 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
 public class CommandInsertHandlerTest extends AbstractSpringTest {
@@ -67,7 +64,7 @@ public class CommandInsertHandlerTest extends AbstractSpringTest {
         DeviceCommand command = new DeviceCommand();
         command.setId(System.currentTimeMillis());
         command.setCommand("do work");
-        command.setDeviceGuid(UUID.randomUUID().toString());
+        command.setDeviceId(UUID.randomUUID().toString());
         CommandInsertRequest cir = new CommandInsertRequest(command);
         Response response = handler.handle(
                 Request.newBuilder()
@@ -80,7 +77,7 @@ public class CommandInsertHandlerTest extends AbstractSpringTest {
         CommandInsertResponse body = (CommandInsertResponse) response.getBody();
         assertEquals(body.getDeviceCommand(), command);
 
-        Optional<DeviceCommand> cmd = hazelcastService.find(command.getId(), command.getDeviceGuid(), DeviceCommand.class);
+        Optional<DeviceCommand> cmd = hazelcastService.find(command.getId(), command.getDeviceId(), DeviceCommand.class);
         assertTrue(cmd.isPresent());
         assertEquals(cmd.get(), command);
 

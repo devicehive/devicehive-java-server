@@ -38,7 +38,7 @@ public class DeviceVO implements HiveEntity {
 
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String guid;
+    private String deviceId;
 
     @NotNull
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
@@ -67,12 +67,12 @@ public class DeviceVO implements HiveEntity {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {

@@ -44,7 +44,6 @@ import org.springframework.util.CollectionUtils;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Base64;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -59,7 +58,7 @@ import static org.junit.Assert.assertThat;
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE1MDk3MDc2Njg3MzAsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.J1sd66JL5jLwW_NKHX6d5LClHMuc4mlr77htGrsAZFo";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5NDExOTQwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.LNaJdW1g3gGHyus3dWgn3IljNJpHnGTj_-cBon4M3ig";
 
     @Value("${local.server.port}")
     protected Integer port;

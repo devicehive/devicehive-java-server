@@ -41,17 +41,17 @@ public class HivePrincipal implements Principal {
     private Set<String> subnets;
     private Set<String> domains;
     private Set<Long> networkIds;
-    private Set<String> deviceGuids;
+    private Set<String> deviceIds;
     private Boolean allNetworksAvailable = false;
     private Boolean allDevicesAvailable = false;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceGuids, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceIds, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
         this.user = user;
         this.actions = actions;
         this.subnets = subnets;
         this.domains = domains;
         this.networkIds = networkIds;
-        this.deviceGuids = deviceGuids;
+        this.deviceIds = deviceIds;
         if (allNetworksAvailable != null) {
             this.allNetworksAvailable = allNetworksAvailable;
         }
@@ -120,12 +120,12 @@ public class HivePrincipal implements Principal {
         this.allNetworksAvailable = allNetworksAvailable;
     }
 
-    public Set<String> getDeviceGuids() {
-        return deviceGuids;
+    public Set<String> getDeviceIds() {
+        return deviceIds;
     }
 
-    public void setDeviceGuids(Set<String> deviceGuids) {
-        this.deviceGuids = deviceGuids;
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
     }
 
     public Boolean areAllDevicesAvailable() {
@@ -136,19 +136,19 @@ public class HivePrincipal implements Principal {
         this.allDevicesAvailable = allDevicesAvailable;
     }
 
-    public void addDevice(String device) {
-        if (deviceGuids == null) {
-            deviceGuids = new HashSet<>();
+    public void addDevice(String deviceId) {
+        if (deviceIds == null) {
+            deviceIds = new HashSet<>();
         }
-        deviceGuids.add(device);
+        deviceIds.add(deviceId);
     }
 
     public boolean hasAccessToNetwork(long networkId) {
         return allNetworksAvailable || networkIds.contains(networkId);
     }
 
-    public boolean hasAccessToDevice(String deviceGuid) {
-        return allDevicesAvailable || deviceGuids.contains(deviceGuid);
+    public boolean hasAccessToDevice(String deviceId) {
+        return allDevicesAvailable || deviceIds.contains(deviceId);
     }
 
     @Override
@@ -165,15 +165,15 @@ public class HivePrincipal implements Principal {
         if (networkIds != null) {
             return networkIds.toString();
         }
-        if (deviceGuids != null) {
-            return deviceGuids.toString();
+        if (deviceIds != null) {
+            return deviceIds.toString();
         }
 
         return "anonymousPrincipal";
     }
 
     public boolean isAuthenticated() {
-        return user != null || actions != null || subnets != null || networkIds != null || deviceGuids != null;
+        return user != null || actions != null || subnets != null || networkIds != null || deviceIds != null;
     }
 
     @Override

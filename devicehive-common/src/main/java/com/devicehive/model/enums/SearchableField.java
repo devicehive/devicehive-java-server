@@ -22,9 +22,9 @@ package com.devicehive.model.enums;
 
 public enum SearchableField {
     ID("id"),
-    GUID("deviceGuid"),
+    DEVICE_ID("deviceId"),
     TIMESTAMP("timestamp"),
-    DEVICE_GUID("deviceGuid"),  //need this duplication to separate cases of single and multiple deviceGuid usage
+    DEVICE_IDS("deviceId"), //need this duplication to separate cases of single and multiple deviceId usage
     NOTIFICATION("notification"),
     COMMAND("command"),
     STATUS("status"),

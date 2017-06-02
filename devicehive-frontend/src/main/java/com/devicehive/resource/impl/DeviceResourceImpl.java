@@ -82,7 +82,7 @@ public class DeviceResourceImpl implements DeviceResource {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
-                !principal.areAllDevicesAvailable() && (principal.getDeviceGuids() == null || principal.getDeviceGuids().isEmpty())) {
+                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
@@ -99,20 +99,20 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response register(DeviceUpdate deviceUpdate, String deviceGuid) {
+    public Response register(DeviceUpdate deviceUpdate, String deviceId) {
         if (deviceUpdate == null){
             return ResponseFactory.response(
                     BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
             );
         }
-        logger.debug("Device register method requested. Guid : {}, Device: {}", deviceGuid, deviceUpdate);
+        logger.debug("Device register method requested. Device ID : {}, Device: {}", deviceId, deviceUpdate);
 
-        deviceUpdate.setGuid(deviceGuid);
+        deviceUpdate.setId(deviceId);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         deviceService.deviceSaveAndNotify(deviceUpdate, principal);
-        logger.debug("Device register finished successfully. Guid : {}", deviceGuid);
+        logger.debug("Device register finished successfully. Device ID: {}", deviceId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
@@ -121,12 +121,12 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response get(String guid) {
-        logger.debug("Device get requested. Guid {}", guid);
+    public Response get(String deviceId) {
+        logger.debug("Device get requested. Device ID: {}", deviceId);
 
-        DeviceVO device = deviceService.findById(guid);
+        DeviceVO device = deviceService.findById(deviceId);
 
-        logger.debug("Device get proceed successfully. Guid {}", guid);
+        logger.debug("Device get proceed successfully. Device ID: {}", deviceId);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
     }
 
@@ -134,9 +134,9 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response delete(String guid) {
-        deviceService.deleteDevice(guid);
-        logger.debug("Device with id = {} is deleted", guid);
+    public Response delete(String deviceId) {
+        deviceService.deleteDevice(deviceId);
+        logger.debug("Device with id = {} is deleted", deviceId);
         return ResponseFactory.response(NO_CONTENT);
     }
 }

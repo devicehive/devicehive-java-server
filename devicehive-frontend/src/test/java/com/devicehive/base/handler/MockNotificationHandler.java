@@ -57,7 +57,7 @@ public class MockNotificationHandler {
                 NotificationSearchRequest body = (NotificationSearchRequest) request.getBody();
                 List<DeviceNotification> notifications = notificationSet
                         .stream()
-                        .filter(n -> n.getDeviceGuid().equals(body.getGuid()))
+                        .filter(n -> n.getDeviceId().equals(body.getDeviceId()))
                         .collect(Collectors.toList());
 
                 NotificationSearchResponse subscribeResponse = new NotificationSearchResponse(notifications);
@@ -70,7 +70,7 @@ public class MockNotificationHandler {
                 NotificationSubscribeRequest body = (NotificationSubscribeRequest) request.getBody();
                 Set<DeviceNotification> notifications = notificationSet
                         .stream()
-                        .filter(n -> n.getDeviceGuid().equals(body.getDevice()))
+                        .filter(n -> n.getDeviceId().equals(body.getDevice()))
                         .collect(Collectors.toSet());
                 NotificationSubscribeResponse subscribeResponse = new NotificationSubscribeResponse(body.getSubscriptionId(), notifications);
 

@@ -24,26 +24,24 @@ package com.devicehive.dao;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.vo.DeviceVO;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Gleb on 07.07.2016.
  */
 public interface DeviceDao {
 
-    DeviceVO findByUUID(String uuid);
+    DeviceVO findById(String id);
 
     void persist(DeviceVO device);
 
     DeviceVO merge(DeviceVO device);
 
-    int deleteByUUID(String guid);
+    int deleteById(String id);
 
-    List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal);
+    List<DeviceVO> getDeviceList(List<String> ids, HivePrincipal principal);
 
-    long getAllowedDeviceCount(HivePrincipal principal, List<String> guids);
+    long getAllowedDeviceCount(HivePrincipal principal, List<String> ids);
 
     List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
                          String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal);

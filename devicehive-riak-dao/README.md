@@ -61,11 +61,11 @@ Stores the Device entities.
 **Bucket name:** _device_
 
 **Secondary indexes:**
-* _guid_ - bin
+* _deviceId_ - bin
 
 **Expected model:**
 * Long id - key
-* String guid
+* String device_id
 * String name
 * String status
 * JsonStringWrapper data
@@ -86,7 +86,7 @@ Stores the DeviceEquipment entities.
 * String code
 * Date timestamp
 * JsonStringWrapper parameters
-* String deviceGuid
+* String device_id
 * long entityVersion
 
 IdentityProvider bucket

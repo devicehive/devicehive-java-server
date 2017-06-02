@@ -41,17 +41,17 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-                  @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
+                  @NamedQuery(name = "Device.findById", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
-                                                                  "where d.guid = :guid"),
-                  @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid")
+                                                                  "where d.deviceId = :deviceId"),
+                  @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.deviceId = :deviceId")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Device implements HiveEntity {
 
     public static final String NETWORK_COLUMN = "network";
-    public static final String GUID_COLUMN = "guid";
+    public static final String DEVICE_ID_COLUMN = "device_id";
 
     private static final long serialVersionUID = 2959997451631843298L;
 
@@ -61,11 +61,11 @@ public class Device implements HiveEntity {
     private Long id;
 
     @SerializedName("id")
-    @Column
-    @NotNull(message = "guid field cannot be null.")
+    @Column(name = "device_id")
+    @NotNull(message = "id field cannot be null.")
     @Size(min = 1, max = 48, message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String guid;
+    private String deviceId;
 
     @SerializedName("name")
     @Column
@@ -111,12 +111,12 @@ public class Device implements HiveEntity {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {
@@ -147,7 +147,7 @@ public class Device implements HiveEntity {
 
         public static interface Parameters {
 
-            static final String GUID = "guid";
+            static final String DEVICE_ID = "deviceId";
             static final String ID = "id";
         }
     }
@@ -157,7 +157,7 @@ public class Device implements HiveEntity {
         if (dc != null) {
             vo = new DeviceVO();
             vo.setId(dc.getId());
-            vo.setGuid(dc.getGuid());
+            vo.setDeviceId(dc.getDeviceId());
             vo.setName(dc.getName());
             vo.setData(dc.getData());
             vo.setBlocked(dc.getBlocked());
@@ -172,7 +172,7 @@ public class Device implements HiveEntity {
         if (dc != null) {
             entity = new Device();
             entity.setId(dc.getId());
-            entity.setGuid(dc.getGuid());
+            entity.setDeviceId(dc.getDeviceId());
             entity.setName(dc.getName());
             entity.setData(dc.getData());
             entity.setBlocked(dc.getBlocked());
