@@ -79,23 +79,23 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public void query(String guid, String startTs, String endTs, String notification, String sortField,
+    public void query(String deviceId, String startTs, String endTs, String notification, String sortField,
                       String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
-        logger.debug("Device notification query requested for device {}", guid);
+        logger.debug("Device notification query requested for device {}", deviceId);
 
         final Date timestampSt = TimestampQueryParamParser.parse(startTs);
         final Date timestampEnd = TimestampQueryParamParser.parse(endTs);
 
-        DeviceVO byGuidWithPermissionsCheck = deviceService.findById(guid);
-        if (byGuidWithPermissionsCheck == null) {
-            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
+        DeviceVO byIdWithPermissionsCheck = deviceService.findById(deviceId);
+        if (byIdWithPermissionsCheck == null) {
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
             Set<String> notificationNames = StringUtils.isNoneEmpty(notification)
                     ? Collections.singleton(notification)
                     : Collections.emptySet();
-            notificationService.find(Collections.singleton(guid), notificationNames, timestampSt, timestampEnd)
+            notificationService.find(Collections.singleton(deviceId), notificationNames, timestampSt, timestampEnd)
                     .thenApply(notifications -> {
                         final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
@@ -111,29 +111,29 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public void get(String guid, Long notificationId, @Suspended final AsyncResponse asyncResponse) {
-        logger.debug("Device notification requested. Guid {}, notification id {}", guid, notificationId);
+    public void get(String deviceId, Long notificationId, @Suspended final AsyncResponse asyncResponse) {
+        logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
 
-        DeviceVO device = deviceService.findById(guid);
+        DeviceVO device = deviceService.findById(deviceId);
 
         if (device == null) {
-            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, guid));
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            notificationService.findOne(notificationId, guid)
+            notificationService.findOne(notificationId, deviceId)
                     .thenApply(notification -> notification
                             .map(n -> {
                                 logger.debug("Device notification proceed successfully");
                                 return ResponseFactory.response(Response.Status.OK, n, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
                             }).orElseGet(() -> {
-                                logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
+                                logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with deviceId = {}", notificationId, deviceId);
                                 ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
                                 return ResponseFactory.response(NOT_FOUND, errorCode);
                             }))
                     .exceptionally(e -> {
                         //TODO: change error message here
-                        logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with guid = {}", notificationId, guid);
+                        logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with deviceId = {}", notificationId, deviceId);
                         ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
                         return ResponseFactory.response(NOT_FOUND, errorCode);
                     })
@@ -145,17 +145,17 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceGuid, final String namesString, final String timestamp, final long timeout, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuid, namesString, timestamp, asyncResponse);
+    public void poll(final String deviceId, final String namesString, final String timestamp, final long timeout, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceId, namesString, timestamp, asyncResponse);
     }
 
     @Override
-    public void pollMany(final long timeout, String deviceGuidsString, final String namesString, final String timestamp, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceGuidsString, namesString, timestamp, asyncResponse);
+    public void pollMany(final long timeout, String deviceIdsString, final String namesString, final String timestamp, final AsyncResponse asyncResponse) throws Exception {
+        poll(timeout, deviceIdsString, namesString, timestamp, asyncResponse);
     }
 
     private void poll(final long timeout,
-                      final String deviceGuidsString,
+                      final String deviceIdsString,
                       final String namesString,
                       final String timestamp,
                       final AsyncResponse asyncResponse) throws InterruptedException {
@@ -170,17 +170,17 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
         Set<String> availableDevices;
-        if (deviceGuidsString == null) {
-            availableDevices = deviceService.findByGuidWithPermissionsCheck(Collections.emptyList(), principal)
+        if (deviceIdsString == null) {
+            availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
                     .stream()
-                    .map(DeviceVO::getGuid)
+                    .map(DeviceVO::getDeviceId)
                     .collect(Collectors.toSet());
 
         } else {
-            availableDevices = Optional.ofNullable(StringUtils.split(deviceGuidsString, ','))
+            availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsString, ','))
                     .map(Arrays::asList)
-                    .map(list -> deviceService.findByGuidWithPermissionsCheck(list, principal))
-                    .map(list -> list.stream().map(DeviceVO::getGuid).collect(Collectors.toSet()))
+                    .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
+                    .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
                     .orElse(Collections.emptySet());
         }
 
@@ -234,7 +234,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
      * {@inheritDoc}
      */
     @Override
-    public void insert(String guid, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
+    public void insert(String deviceId, DeviceNotificationWrapper notificationSubmit, @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(notificationSubmit);
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
         final String notificationName = notificationSubmit.getNotification();
@@ -251,24 +251,24 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(FORBIDDEN, errorCode);
             asyncResponse.resume(response);
         } else {
-            DeviceVO device = deviceService.findById(guid);
+            DeviceVO device = deviceService.findById(deviceId);
             if (device == null) {
-                logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", guid);
+                logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", deviceId);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                        String.format(Messages.DEVICE_NOT_FOUND, guid)));
+                        String.format(Messages.DEVICE_NOT_FOUND, deviceId)));
                 asyncResponse.resume(response);
             } else {
                 if (device.getNetworkId() == null) {
-                    logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", guid);
+                    logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", deviceId);
                     Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
-                            String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, guid)));
+                            String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId)));
                     asyncResponse.resume(response);
                 } else {
                     DeviceNotification toInsert = notificationService.convertWrapperToNotification(notificationSubmit, device);
                     notificationService.insert(toInsert, device)
                             .thenAccept(notification -> {
                                 logger.debug("Device notification insert proceed successfully. deviceId = {} notification = {}",
-                                        guid, notification.getNotification());
+                                        deviceId, notification.getNotification());
 
                                 asyncResponse.resume(ResponseFactory.response(
                                         Response.Status.CREATED,
@@ -276,8 +276,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                             })
                             .exceptionally(e -> {
-                                logger.warn("Device notification insert failed for device with guid = {}.", guid);
-                                ErrorResponse errorCode = new ErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(), String.format(Messages.NOTIFICATION_INSERT_FAILED, guid));
+                                logger.warn("Device notification insert failed for device with deviceId = {}.", deviceId);
+                                ErrorResponse errorCode = new ErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(), String.format(Messages.NOTIFICATION_INSERT_FAILED, deviceId));
                                 Response jaxResponse = ResponseFactory.response(INTERNAL_SERVER_ERROR, errorCode);
                                 asyncResponse.resume(jaxResponse);
                                 return null;

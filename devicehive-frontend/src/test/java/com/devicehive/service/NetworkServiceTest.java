@@ -502,7 +502,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
@@ -529,7 +529,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
@@ -555,7 +555,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
@@ -581,7 +581,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
@@ -611,7 +611,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(network.getId());
             deviceService.deviceSave(device);
         }
@@ -664,20 +664,20 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(created.getId());
             deviceService.deviceSave(device);
         }
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName("allowed_device");
-        device.setGuid(randomUUID().toString());
+        device.setId(randomUUID().toString());
         device.setNetworkId(created.getId());
         DeviceNotification notification = deviceService.deviceSave(device);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
-        principal.setDeviceGuids(new HashSet<>(Collections.singleton(notification.getDeviceGuid())));
+        principal.setDeviceIds(new HashSet<>(Collections.singleton(notification.getDeviceId())));
         HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -687,13 +687,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(returnedNetwork.getDevices(), hasItem(new CustomTypeSafeMatcher<DeviceVO>("expect device") {
             @Override
             protected boolean matchesSafely(DeviceVO item) {
-                return item.getGuid().equals(notification.getDeviceGuid());
+                return item.getDeviceId().equals(notification.getDeviceId());
             }
         }));
     }
 
     @Test
-    public void should_return_network_without_devices_if_access_key_does_not_have_device_guid_in_permissions() throws Exception {
+    public void should_return_network_without_devices_if_access_key_does_not_have_device_id_in_permissions() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
@@ -709,13 +709,13 @@ public class NetworkServiceTest extends AbstractResourceTest {
         for (int i = 0; i < 5; i++) {
             DeviceUpdate device = new DeviceUpdate();
             device.setName(randomUUID().toString());
-            device.setGuid(randomUUID().toString());
+            device.setId(randomUUID().toString());
             device.setNetworkId(created.getId());
             deviceService.deviceSave(device);
         }
 
         HivePrincipal principal = new HivePrincipal(user);
-        principal.setDeviceGuids(new HashSet<>(Collections.singleton("-1")));
+        principal.setDeviceIds(new HashSet<>(Collections.singleton("-1")));
         HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 

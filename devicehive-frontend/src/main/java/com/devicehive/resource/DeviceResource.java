@@ -107,7 +107,7 @@ public interface DeviceResource {
      *
      * @param deviceUpdate In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                     .com/restful#Reference/Device/register">
-     * @param deviceGuid   Device unique identifier.
+     * @param deviceId   Device unique identifier.
      * @return response code 201, if successful
      */
     @PUT
@@ -130,19 +130,19 @@ public interface DeviceResource {
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String deviceGuid);
+            String deviceId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:
      * Device: get</a> Gets information about device.
      *
-     * @param guid Device unique identifier
+     * @param deviceId Device unique identifier
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
      * resource in the response body.
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
             response = DeviceVO.class)
     @ApiImplicitParams({
@@ -158,18 +158,18 @@ public interface DeviceResource {
     Response get(
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String guid);
+            String deviceId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/delete">DeviceHive RESTful API:
      * Device: delete</a> Deletes an existing device.
      *
-     * @param guid Device unique identifier
+     * @param deviceId Device unique identifier
      * @return If successful, this method returns an empty response body.
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
@@ -184,5 +184,5 @@ public interface DeviceResource {
     Response delete(
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String guid);
+            String deviceId);
 }

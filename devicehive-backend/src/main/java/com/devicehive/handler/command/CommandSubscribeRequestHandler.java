@@ -77,7 +77,7 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private void validate(CommandSubscribeRequest request) {
         Assert.notNull(request, "Request body is null");
-        Assert.notNull(request.getDevice(), "Device guid is null");
+        Assert.notNull(request.getDevice(), "Device deviceId is null");
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 

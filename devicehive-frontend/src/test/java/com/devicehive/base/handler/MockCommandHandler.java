@@ -59,7 +59,7 @@ public class MockCommandHandler {
                 CommandSubscribeRequest body = (CommandSubscribeRequest) request.getBody();
                 Set<DeviceCommand> commands = commandMap.values()
                         .stream()
-                        .filter(n -> n.getDeviceGuid().equals(body.getDevice()))
+                        .filter(n -> n.getDeviceId().equals(body.getDevice()))
                         .collect(Collectors.toSet());
                 CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
@@ -74,7 +74,7 @@ public class MockCommandHandler {
                 final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
                 final List<DeviceCommand> commands =  commandMap.values()
                         .stream()
-                        .filter(command -> command.getId().equals(body.getId()) || command.getDeviceGuid().equals(body.getGuid()))
+                        .filter(command -> command.getId().equals(body.getId()) || command.getDeviceId().equals(body.getDeviceId()))
                         .collect(Collectors.toList());
 
                 commandSearchResponse.setCommands(commands);
@@ -86,7 +86,7 @@ public class MockCommandHandler {
                 final CommandUpdateSubscribeRequest body = request.getBody().cast(CommandUpdateSubscribeRequest.class);
                 final DeviceCommand deviceCommand = commandMap.values()
                         .stream()
-                        .filter(command -> command.getDeviceGuid().equals(body.getGuid()))
+                        .filter(command -> command.getDeviceId().equals(body.getDeviceId()))
                         .findFirst()
                         .get();
 

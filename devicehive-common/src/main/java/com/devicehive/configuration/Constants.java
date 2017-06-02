@@ -56,8 +56,7 @@ public class Constants {
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
     //API constants
     public static final String DEVICE_ID = "deviceId";
-    public static final String DEVICE_GUID = "deviceGuid";
-    public static final String DEVICE_GUIDS = "deviceGuids";
+    public static final String DEVICE_IDS = "deviceIds";
     public static final String DEVICE_KEY = "deviceKey";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";

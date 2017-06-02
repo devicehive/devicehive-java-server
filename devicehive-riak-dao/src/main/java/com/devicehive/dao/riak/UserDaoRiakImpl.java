@@ -37,13 +37,14 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
@@ -91,20 +92,20 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToDevice(UserVO user, String deviceGuid) {
+    public long hasAccessToDevice(UserVO user, String deviceId) {
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
         for (Long networkId : networkIds) {
             Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
-                    .map(deviceDao::findByUUID)
+                    .map(deviceDao::findById)
                     .collect(Collectors.toSet());
             if (devices != null) {
-                long guidCount = devices
+                long idCount = devices
                         .stream()
-                        .map(DeviceVO::getGuid)
-                        .filter(g -> g.equals(deviceGuid))
+                        .map(DeviceVO::getId)
+                        .filter(g -> g.equals(deviceId))
                         .count();
-                if (guidCount > 0) {
-                    return guidCount;
+                if (idCount > 0) {
+                    return idCount;
                 }
             }
         }

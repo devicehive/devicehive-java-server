@@ -64,10 +64,10 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToDevice(UserVO user, String deviceGuid) {
+    public long hasAccessToDevice(UserVO user, String deviceId) {
         return createNamedQuery(Long.class, "User.hasAccessToDevice", empty())
                 .setParameter("user", user.getId())
-                .setParameter("guid", deviceGuid)
+                .setParameter("deviceId", deviceId)
                 .getSingleResult();
     }
 

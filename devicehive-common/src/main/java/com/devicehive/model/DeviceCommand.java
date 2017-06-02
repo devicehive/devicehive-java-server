@@ -54,10 +54,10 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
 
-    @SerializedName("deviceGuid")
+    @SerializedName("deviceId")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
-    private String deviceGuid;
+    private String deviceId;
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
@@ -118,12 +118,12 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         this.userId = userId;
     }
 
-    public String getDeviceGuid() {
-        return deviceGuid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setDeviceGuid(String deviceGuid) {
-        this.deviceGuid = deviceGuid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public JsonStringWrapper getParameters() {
@@ -174,7 +174,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         DeviceCommand message = (DeviceCommand) o;
 
         if (command != null ? !command.equals(message.command) : message.command != null) return false;
-        if (deviceGuid != null ? !deviceGuid.equals(message.deviceGuid) : message.deviceGuid != null) return false;
+        if (deviceId != null ? !deviceId.equals(message.deviceId) : message.deviceId != null) return false;
         if (id != null ? !id.equals(message.id) : message.id != null) return false;
         if (isUpdated != null ? !isUpdated.equals(message.isUpdated) : message.isUpdated != null) return false;
         if (lifetime != null ? !lifetime.equals(message.lifetime) : message.lifetime != null) return false;
@@ -193,7 +193,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
         result1 = 31 * result1 + (command != null ? command.hashCode() : 0);
         result1 = 31 * result1 + (timestamp != null ? timestamp.hashCode() : 0);
         result1 = 31 * result1 + (userId != null ? userId.hashCode() : 0);
-        result1 = 31 * result1 + (deviceGuid != null ? deviceGuid.hashCode() : 0);
+        result1 = 31 * result1 + (deviceId != null ? deviceId.hashCode() : 0);
         result1 = 31 * result1 + (parameters != null ? parameters.hashCode() : 0);
         result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
@@ -209,7 +209,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
                 ", command='" + command + '\'' +
                 ", timestamp=" + timestamp +
                 ", userId=" + userId +
-                ", deviceGuid='" + deviceGuid + '\'' +
+                ", deviceId='" + deviceId + '\'' +
                 ", parameters=" + parameters +
                 ", lifetime=" + lifetime +
                 ", status='" + status + '\'' +
@@ -220,6 +220,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
 
     @Override
     public String getHazelcastKey() {
-        return id+"-"+deviceGuid+"-"+timestamp;
+        return id+"-"+deviceId+"-"+timestamp;
     }
 }

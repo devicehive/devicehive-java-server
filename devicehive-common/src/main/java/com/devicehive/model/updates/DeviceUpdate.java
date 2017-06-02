@@ -22,9 +22,9 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
 
 import javax.validation.constraints.Size;
@@ -38,7 +38,7 @@ public class DeviceUpdate implements HiveEntity {
 
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String guid;
+    private String id;
 
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
@@ -57,12 +57,12 @@ public class DeviceUpdate implements HiveEntity {
     @SerializedName("isBlocked")
     private Boolean blocked;
 
-    public Optional<String> getGuid() {
-        return Optional.ofNullable(guid);
+    public Optional<String> getId() {
+        return Optional.ofNullable(id);
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Optional<String> getName() {
@@ -99,8 +99,8 @@ public class DeviceUpdate implements HiveEntity {
 
     public DeviceVO convertTo() {
         DeviceVO device = new DeviceVO();
-        if (this.guid != null){
-            device.setGuid(this.guid);
+        if (this.id != null){
+            device.setDeviceId(this.id);
         }
         if (this.data != null){
             device.setData(this.data);

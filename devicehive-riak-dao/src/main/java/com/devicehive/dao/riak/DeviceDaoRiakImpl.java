@@ -72,8 +72,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public DeviceVO findByUUID(String uuid) {
-        BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", uuid).build();
+    public DeviceVO findById(String id) {
+        BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "device_id", id).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
             List<BinIndexQuery.Response.Entry> entries = response.getEntries();
@@ -118,9 +118,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
         RiakNetwork network = device.getNetwork();
         if (network != null && network.getId() != null) {
-            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
-            networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
-            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
+            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getDeviceId());
+            networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getDeviceId()));
+            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getDeviceId());
         }
     }
 
@@ -131,9 +131,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public int deleteByUUID(String guid) {
+    public int deleteById(String id) {
         try {
-            BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", guid).build();
+            BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "device_id", id).build();
             BinIndexQuery.Response response = client.execute(biq);
             List<BinIndexQuery.Response.Entry> entries = response.getEntries();
             if (entries.isEmpty()) {
@@ -150,11 +150,11 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
-        if (guids.isEmpty()) {
+    public List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
+        if (deviceIds.isEmpty()) {
             return list(null, null, null, null, null, true, null, null, principal);
         }
-        List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
+        List<DeviceVO> deviceList = deviceIds.stream().map(this::findById).collect(Collectors.toList());
 
         if (principal != null) {
             UserVO user = principal.getUser();
@@ -167,9 +167,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                         .collect(Collectors.toList());
             }
 
-            if (principal.getDeviceGuids() != null) {
+            if (principal.getDeviceIds() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getDeviceGuids().contains(d.getGuid()))
+                        .filter(d -> principal.getDeviceIds().contains(d.getDeviceId()))
                         .collect(Collectors.toList());
             }
 
@@ -184,8 +184,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> guids) {
-        return getDeviceList(guids, principal).size();
+    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
+        return getDeviceList(deviceIds, principal).size();
     }
 
     @Override
@@ -211,9 +211,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 }
                 addReduceFilter(builder, "network.id", FilterOperator.IN, networks);
             }
-            if (principal.getDeviceGuids() != null) {
-                Set<String> deviceGuids = principal.getDeviceGuids();
-                addReduceFilter(builder, "guid", FilterOperator.IN, deviceGuids);
+            if (principal.getDeviceIds() != null) {
+                Set<String> deviceIds = principal.getDeviceIds();
+                addReduceFilter(builder, "device_id", FilterOperator.IN, deviceIds);
             }
         }
         addReduceSort(builder, sortField, isSortOrderAsc);

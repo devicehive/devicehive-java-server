@@ -33,8 +33,6 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.UUID;
-
 public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
 
     @Autowired
@@ -53,7 +51,7 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
         eventBus.subscribe(subscriber, subscription);
 
         final DeviceCommand deviceCommand = hazelcastService
-                .find(body.getCommandId(), body.getGuid(), DeviceCommand.class)
+                .find(body.getCommandId(), body.getDeviceId(), DeviceCommand.class)
                 .orElse(null);
 
         return Response.newBuilder()

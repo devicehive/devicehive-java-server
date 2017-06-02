@@ -74,7 +74,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         JwtPayload payload = jwtClientService.getPayload(jwtTokenVO.getAccessToken());
         assertThat(payload.getActions(), hasItem("*"));
         assertThat(payload.getNetworkIds(), hasItem("*"));
-        assertThat(payload.getDeviceGuids(), hasItem("*"));
+        assertThat(payload.getDeviceIds(), hasItem("*"));
     }
 
     @Test
@@ -98,7 +98,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         JwtPayload payload = jwtClientService.getPayload(jwtTokenVO.getAccessToken());
         Set<String> networkIds = payload.getNetworkIds();
         if (networkIds != null && !networkIds.isEmpty()) {
-        	assertThat(payload.getDeviceGuids(), hasItem("*"));
+        	assertThat(payload.getDeviceIds(), hasItem("*"));
         }
     }
 

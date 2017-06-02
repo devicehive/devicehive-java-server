@@ -43,8 +43,8 @@ public class CommandEvent extends Event {
 
     @Override
     public Collection<Subscription> getApplicableSubscriptions() {
-        Subscription device = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceGuid());
-        Subscription deviceWithName = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceGuid(), command.getCommand());
+        Subscription device = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceId());
+        Subscription deviceWithName = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceId(), command.getCommand());
         return Arrays.asList(device, deviceWithName);
     }
 

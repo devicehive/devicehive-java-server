@@ -86,7 +86,7 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
 
     private void validate(NotificationSubscribeRequest request) {
         Assert.notNull(request, "Request body is null");
-        Assert.notNull(request.getDevice(), "Device guid is null");
+        Assert.notNull(request.getDevice(), "Device id is null");
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 

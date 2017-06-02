@@ -63,10 +63,10 @@ public class DeviceCommandService {
         this.rpcClient = rpcClient;
     }
 
-    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String guid) {
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
-        searchRequest.setGuid(guid);
+        searchRequest.setDeviceId(deviceId);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
@@ -75,12 +75,12 @@ public class DeviceCommandService {
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
     }
 
-    public CompletableFuture<List<DeviceCommand>> find(Collection<String> guids, Collection<String> names,
+    public CompletableFuture<List<DeviceCommand>> find(Collection<String> deviceIds, Collection<String> names,
                                                        Date timestampSt, Date timestampEnd, String status) {
-        List<CompletableFuture<Response>> futures = guids.stream()
-                .map(guid -> {
+        List<CompletableFuture<Response>> futures = deviceIds.stream()
+                .map(deviceId -> {
                     CommandSearchRequest searchRequest = new CommandSearchRequest();
-                    searchRequest.setGuid(guid);
+                    searchRequest.setDeviceId(deviceId);
                     if (names != null) {
                         searchRequest.setNames(new HashSet<>(names));
                     }
@@ -93,7 +93,7 @@ public class DeviceCommandService {
                     CompletableFuture<Response> future = new CompletableFuture<>();
                     rpcClient.call(Request.newBuilder()
                             .withBody(searchRequest)
-                            .withPartitionKey(searchRequest.getGuid())
+                            .withPartitionKey(searchRequest.getDeviceId())
                             .build(), new ResponseConsumer(future));
                     return future;
                 })
@@ -115,7 +115,7 @@ public class DeviceCommandService {
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandInsertRequest(command))
-                .withPartitionKey(device.getGuid())
+                .withPartitionKey(device.getDeviceId())
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
@@ -160,15 +160,15 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(String subId, Set<String> deviceGuids) {
-        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceGuids);
+    public void sendUnsubscribeRequest(String subId, Set<String> deviceIds) {
+        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         rpcClient.push(request);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String guid, BiConsumer<DeviceCommand, String> callback) {
+    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, String> callback) {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
         final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {
@@ -182,7 +182,7 @@ public class DeviceCommandService {
             }
         };
         rpcClient.call(Request.newBuilder()
-                .withBody(new CommandUpdateSubscribeRequest(commandId, guid, subscriptionId))
+                .withBody(new CommandUpdateSubscribeRequest(commandId, deviceId, subscriptionId))
                 .build(), responseConsumer);
         return future;
     }
@@ -225,7 +225,7 @@ public class DeviceCommandService {
     private DeviceCommand convertWrapperToCommand(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
-        command.setDeviceGuid(device.getGuid());
+        command.setDeviceId(device.getDeviceId());
         command.setIsUpdated(false);
 
         if (commandWrapper.getTimestamp().isPresent()) {

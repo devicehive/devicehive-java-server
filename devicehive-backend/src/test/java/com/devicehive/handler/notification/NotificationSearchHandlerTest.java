@@ -47,17 +47,17 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
     @Autowired
     private RpcClient client;
 
-    private String guid;
+    private String deviceId;
     private List<DeviceNotification> notifications;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
 
-        guid = UUID.randomUUID().toString();
+        deviceId = UUID.randomUUID().toString();
         // create notifications
         notifications = LongStream.range(0, 3)
-                .mapToObj(i -> createNotification(i, guid))
+                .mapToObj(i -> createNotification(i, deviceId))
                 .collect(Collectors.toList());
 
         // insert notifications
@@ -67,13 +67,13 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
     }
 
     @Test
-    public void shouldNotFindSingleNotificationByIdAndGuid() throws Exception {
+    public void shouldNotFindSingleNotificationByIdAndDeviceId() throws Exception {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(Long.MAX_VALUE); // nonexistent id
-        searchRequest.setGuid(UUID.randomUUID().toString()); // random guid
+        searchRequest.setDeviceId(UUID.randomUUID().toString()); // random device id
 
         Request request = Request.newBuilder()
-                .withPartitionKey(searchRequest.getGuid())
+                .withPartitionKey(searchRequest.getDeviceId())
                 .withBody(searchRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -85,13 +85,13 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
     }
 
     @Test
-    public void shouldFindSingleNotificationByIdAndGuid() throws Exception {
+    public void shouldFindSingleNotificationByIdAndDeviceId() throws Exception {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(notifications.get(0).getId());
-        searchRequest.setGuid(notifications.get(0).getDeviceGuid());
+        searchRequest.setDeviceId(notifications.get(0).getDeviceId());
 
         Request request = Request.newBuilder()
-                .withPartitionKey(notifications.get(0).getDeviceGuid())
+                .withPartitionKey(notifications.get(0).getDeviceId())
                 .withBody(searchRequest)
                 .build();
         CompletableFuture<Response> future = new CompletableFuture<>();
@@ -104,9 +104,9 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
     }
 
     @Test
-    public void shouldHandleNotificationInsertAndQueryByDeviceGuidAndNotificationName() throws Exception {
+    public void shouldHandleNotificationInsertAndQueryByDeviceIdAndNotificationName() throws Exception {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
-        searchRequest.setGuid(notifications.get(0).getDeviceGuid());
+        searchRequest.setDeviceId(notifications.get(0).getDeviceId());
         searchRequest.setNames(Collections.singleton(notifications.get(0).getNotification()));
 
         Request request = Request.newBuilder()
@@ -121,11 +121,11 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
         assertEquals(notifications.get(0), responseBody.getNotifications().get(0));
     }
 
-    private DeviceNotification createNotification(long id, String guid) {
+    private DeviceNotification createNotification(long id, String deviceId) {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(id);
         notification.setTimestamp(Date.from(Instant.now()));
-        notification.setDeviceGuid(guid);
+        notification.setDeviceId(deviceId);
         notification.setNotification("SOME TEST DATA_" + id);
         notification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
         return notification;
@@ -135,7 +135,7 @@ public class NotificationSearchHandlerTest extends AbstractSpringTest {
         final CompletableFuture<Response> future = new CompletableFuture<>();
         client.call(Request.newBuilder()
                 .withBody(new NotificationInsertRequest(notification))
-                .withPartitionKey(notification.getDeviceGuid()) // partitioning by guid
+                .withPartitionKey(notification.getDeviceId()) // partitioning by device id
                 .build(), future::complete);
         return future;
     }

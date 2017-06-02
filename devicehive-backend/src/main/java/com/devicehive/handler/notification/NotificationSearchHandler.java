@@ -44,8 +44,8 @@ public class NotificationSearchHandler implements RequestHandler {
     public Response handle(Request request) {
         NotificationSearchRequest searchRequest = (NotificationSearchRequest) request.getBody();
 
-        NotificationSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getGuid())
-                ? searchSingleNotificationByDeviceAndId(searchRequest.getId(), searchRequest.getGuid())
+        NotificationSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getDeviceId())
+                ? searchSingleNotificationByDeviceAndId(searchRequest.getId(), searchRequest.getDeviceId())
                 : searchMultipleNotifications(searchRequest);
 
         return Response.newBuilder()
@@ -56,7 +56,7 @@ public class NotificationSearchHandler implements RequestHandler {
     private NotificationSearchResponse searchMultipleNotifications(NotificationSearchRequest searchRequest) {
         //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
         final Collection<DeviceNotification> notifications = storageService.find(
-                searchRequest.getGuid(),
+                searchRequest.getDeviceId(),
                 searchRequest.getNames(),
                 null,
                 0,
@@ -68,8 +68,8 @@ public class NotificationSearchHandler implements RequestHandler {
         return new NotificationSearchResponse(new ArrayList<>(notifications));
     }
 
-    private NotificationSearchResponse searchSingleNotificationByDeviceAndId(long id, String guid) {
-        final List<DeviceNotification> notifications = storageService.find(id, guid, DeviceNotification.class)
+    private NotificationSearchResponse searchSingleNotificationByDeviceAndId(long id, String deviceId) {
+        final List<DeviceNotification> notifications = storageService.find(id, deviceId, DeviceNotification.class)
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
         return new NotificationSearchResponse(notifications);

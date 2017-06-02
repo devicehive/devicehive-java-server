@@ -48,8 +48,8 @@ public class CommandSearchHandler implements RequestHandler {
     public Response handle(Request request) {
         CommandSearchRequest searchRequest = (CommandSearchRequest) request.getBody();
 
-        CommandSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getGuid())
-                ? searchSingleCommandByDeviceAndId(searchRequest.getId(), searchRequest.getGuid())
+        CommandSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getDeviceId())
+                ? searchSingleCommandByDeviceAndId(searchRequest.getId(), searchRequest.getDeviceId())
                 : searchMultipleCommands(searchRequest);
 
         return Response.newBuilder()
@@ -57,9 +57,9 @@ public class CommandSearchHandler implements RequestHandler {
                 .buildSuccess();
     }
 
-    private CommandSearchResponse searchSingleCommandByDeviceAndId(long id, String guid) {
+    private CommandSearchResponse searchSingleCommandByDeviceAndId(long id, String deviceId) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
-        final List<DeviceCommand> commands = hazelcastService.find(id, guid, DeviceCommand.class)
+        final List<DeviceCommand> commands = hazelcastService.find(id, deviceId, DeviceCommand.class)
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
 
@@ -70,7 +70,7 @@ public class CommandSearchHandler implements RequestHandler {
     private CommandSearchResponse searchMultipleCommands(CommandSearchRequest searchRequest) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
         final Collection<DeviceCommand> commands = hazelcastService.find(
-                searchRequest.getGuid(),
+                searchRequest.getDeviceId(),
                 searchRequest.getNames(),
                 null,
                 0,

@@ -33,9 +33,9 @@ public abstract class Event extends Body {
 
     /**
      * Returns applicable to this event subscriptions.
-     * For example, if event is device_notification { deviceGuid = a, notificationName = b },
-     * then subscriptions on { guid = a, name = null } and { guid = a, name = b } will be returned,
-     * but not { guid = a, name = c }, cause it is not applicable to this event.
+     * For example, if event is device_notification { deviceId = a, notificationName = b },
+     * then subscriptions on { deviceId = a, name = null } and { deviceId = a, name = b } will be returned,
+     * but not { deviceId = a, name = c }, cause it is not applicable to this event.
      *
      * @return collection of potentially valid subscriptions, for which this event can be routed.
      */

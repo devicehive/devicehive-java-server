@@ -21,18 +21,18 @@ package com.devicehive.auth.rest;
  */
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.configuration.Constants;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.UrlPathHelper;
@@ -44,7 +44,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -72,7 +71,12 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
 
         try {
             if (authHeader.isPresent()) {
-                processJwtAuth(authHeader.get().substring(6).trim());
+                if (authHeader.get().length() > 6 && authHeader.get().substring(0,6).equals("Bearer")) {
+                    processJwtAuth(authHeader.get().substring(6).trim());
+                } else {
+                    SecurityContextHolder.clearContext();
+                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                }
             } else {
                 processAnonymousAuth();
             }

@@ -91,12 +91,12 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceGuids = jwtPayload.getDeviceGuids();
-            if (deviceGuids != null) {
-                if (deviceGuids.contains("*")) {
+            Set<String> deviceIds = jwtPayload.getDeviceIds();
+            if (deviceIds != null) {
+                if (deviceIds.contains("*")) {
                     principal.setAllDevicesAvailable(true);
                 } else {
-                    principal.setDeviceGuids(deviceGuids);
+                    principal.setDeviceIds(deviceIds);
                 }
             }
 
