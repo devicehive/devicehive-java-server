@@ -4,7 +4,7 @@ set -x
 
 # Check if backend is ready
 while true; do
-    `nc $DH_BACKEND_ADDRESS $DH_BACKEND_HAZELCAST_PORT`
+    `nc -N $DH_BACKEND_ADDRESS $DH_BACKEND_HAZELCAST_PORT`
     result=$?
 
     if [ "$result" -eq 0 ]; then
