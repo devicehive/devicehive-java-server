@@ -55,7 +55,7 @@ public class DeviceHandlers {
     private Gson gson;
 
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceGet(JsonObject request) {
         final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
                 .map(JsonElement::getAsString)
