@@ -65,7 +65,7 @@ public class UserResponse implements HiveEntity {
 
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
-    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2, 3")
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2")
     private UserStatus status;
 
     @JsonPolicyDef({USER_PUBLISHED})
