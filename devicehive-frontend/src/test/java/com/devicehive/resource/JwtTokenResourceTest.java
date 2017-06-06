@@ -173,7 +173,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     public void should_return_401_after_providing_expired_refresh_token() throws Exception {
         // Create test user
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin("string_3");
+        testUser.setLogin("string_1");
         testUser.setRole(UserRole.CLIENT.getValue());
         testUser.setPassword(VALID_PASSWORD);
         testUser.setStatus(UserStatus.ACTIVE.getValue());

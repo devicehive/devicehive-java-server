@@ -57,7 +57,7 @@ public class JwtTokenService {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
-        final UserVO user = userService.findUser(request.getLogin(), request.getPassword());
+        final UserVO user = userService.getActiveUser(request.getLogin(), request.getPassword());
         return createJwtToken(user);
     }
 

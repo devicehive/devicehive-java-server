@@ -19,7 +19,6 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -40,7 +39,6 @@ import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;

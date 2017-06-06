@@ -135,7 +135,7 @@ public class UserResourceImpl implements UserResource {
     @Override
     public Response insertUser(UserUpdate userToCreate) {
         hiveValidator.validate(userToCreate);
-        String password = !userToCreate.getPassword().isPresent() ? null : userToCreate.getPassword().orElse(null);
+        String password = userToCreate.getPassword().orElse(null);
         UserVO created = userService.createUser(userToCreate.convertTo(), password);
         return ResponseFactory.response(CREATED, created, JsonPolicyDef.Policy.USER_SUBMITTED);
     }
@@ -145,14 +145,15 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public Response updateUser(UserUpdate user, Long userId) {
-        userService.updateUser(userId, user, UserRole.ADMIN);
+        UserVO curUser = findCurrentUserFromAuthContext();
+        userService.updateUser(userId, user, curUser);
         return ResponseFactory.response(NO_CONTENT);
     }
 
     @Override
     public Response updateCurrentUser(UserUpdate user) {
         UserVO curUser = findCurrentUserFromAuthContext();
-        userService.updateUser(curUser.getId(), user, curUser.getRole());
+        userService.updateUser(curUser.getId(), user, curUser);
         return ResponseFactory.response(NO_CONTENT);
     }
 

@@ -25,6 +25,7 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.model.AvailableActions;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
@@ -75,6 +76,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             HivePrincipal principal = new HivePrincipal();
             if (jwtPayload.getUserId() != null) {
                 UserVO userVO = userService.findById(jwtPayload.getUserId());
+                if (!UserStatus.ACTIVE.equals(userVO.getStatus())) {
+                    throw new BadCredentialsException("Unauthorized: user is not active");
+                }
                 principal.setUser(userVO);
             }
 
