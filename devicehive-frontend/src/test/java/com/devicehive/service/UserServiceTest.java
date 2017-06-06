@@ -34,9 +34,12 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.TokenType;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -61,7 +64,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.ws.rs.core.HttpHeaders;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static java.util.UUID.randomUUID;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
@@ -683,10 +694,13 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_create_user_without_password() throws Exception {
+    public void should_throw_ActionNotAllowedException_if_create_user_without_password() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+
+        expectedException.expect(IllegalParametersException.class);
+        expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
 
         user = userService.createUser(user, null);
         assertThat(user, notNullValue());
@@ -858,15 +872,14 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_NoSuchElementException_if_user_does_not_exist_when_update() throws Exception {
-        expectedException.expect(NoSuchElementException.class);
-        expectedException.expectMessage(Messages.USER_NOT_FOUND);
-
-        userService.updateUser(-1L, new UserUpdate(), UserRole.ADMIN);
+    public void should_fail_to_update_user_which_does_not_exist() throws Exception {
+        UserUpdate update = new UserUpdate();
+        update.setLogin(RandomStringUtils.randomAlphabetic(10));
+        performRequest("/user/-1", "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), update, NOT_FOUND, UserVO.class);
     }
 
     @Test
-    public void should_throw_ActionNotAllowedException_trying_to_set_existing_login_when_update() throws Exception {
+    public void should_not_allow_to_set_existing_login_when_update() throws Exception {
         String existingLogin = RandomStringUtils.randomAlphabetic(10);
 
         UserVO first = new UserVO();
@@ -881,41 +894,58 @@ public class UserServiceTest extends AbstractResourceTest {
         second.setRole(UserRole.CLIENT);
         second = userService.createUser(second, "123");
 
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
-
         UserUpdate update = new UserUpdate();
         update.setLogin(existingLogin);
-        userService.updateUser(second.getId(), update, UserRole.ADMIN);
+        performRequest("/user/" + second.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), update, FORBIDDEN, UserVO.class);
     }
 
     @Test
     public void should_update_user_identity_logins() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String newLogin = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        UserUpdate update = new UserUpdate();
-        update.setLogin(RandomStringUtils.random(10));
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setRole(UserRole.CLIENT.getValue());
 
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(newLogin);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
+
+        UserVO updatedUser = userService.getActiveUser(newLogin, pwd);
+
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
-        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
+        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(updatedUser.getLogin())));
     }
 
     @Test
     public void should_update_password_with_admin_role() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
+        String newPwd = RandomStringUtils.randomAlphabetic(10);
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword("new_pass");
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(newPwd);
+        testUser.setOldPassword(pwd);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
+
+        UserVO updatedUser = userService.getActiveUser(login, newPwd);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -923,18 +953,23 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_without_old_password() throws Exception {
+    public void should_not_allow_updating_password_with_client_role_without_old_password() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, "123");
 
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.OLD_PASSWORD_REQUIRED);
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
 
         UserUpdate update = new UserUpdate();
         update.setPassword("new_pass");
-        userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, FORBIDDEN, UserVO.class);
     }
 
     @Test
@@ -944,10 +979,19 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setStatus(UserStatus.ACTIVE);
         user = userService.createUser(user, "123");
 
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
+
         UserUpdate update = new UserUpdate();
         update.setPassword("new_pass");
         update.setOldPassword("123");
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, NO_CONTENT, UserVO.class);
+        UserVO updatedUser = userService.getActiveUser(user.getLogin(), "new_pass");
+
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -956,33 +1000,48 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_with_wrong_old_password() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.INCORRECT_CREDENTIALS);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setPassword(pwd);
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword("new_pass");
-        update.setOldPassword("old");
-        userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword("new_pass");
+        testUser.setOldPassword("wrong_pass");
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, FORBIDDEN, UserVO.class);
     }
 
     @Test
-    public void should_throw_IllegalParametersException_if_() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+    public void should_throw_IllegalParametersException_if_client_updates_his_account_and_old_password_was_not_provided() throws Exception {
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        expectedException.expect(IllegalParametersException.class);
-        expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword("");
-        userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
+
+        testUser.setPassword(null);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), testUser, FORBIDDEN, UserVO.class);
     }
 
     @Test

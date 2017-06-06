@@ -1,6 +1,5 @@
 package com.devicehive.service;
 
-import com.devicehive.auth.HivePrincipal;
 /*
  * #%L
  * DeviceHive Java Server Common business logic
@@ -49,7 +48,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,8 +154,7 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserVO curUser) {
         UserVO existing = userDao.find(id);
 
         if (existing == null) {
@@ -179,8 +176,14 @@ public class UserService {
             existing.setLogin(newLogin);
         }
 
+        UserRole curRole = curUser.getRole();
         String password = userToUpdate.getPassword().orElse(null);
-        if (password != null) {
+        if (StringUtils.isBlank(password)) {
+            if (curRole == UserRole.CLIENT) {
+                logger.error("Can't update user with id {}: incorrect password provided", id);
+                throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
+            }
+        } else {
             String oldPassword = userToUpdate.getOldPassword().orElse(null);
             if (StringUtils.isNotBlank(oldPassword)) {
                 final String hash = passwordService.hashPassword(oldPassword, existing.getPasswordSalt());
@@ -188,7 +191,7 @@ public class UserService {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
                     throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
                 }
-            } else if (role == UserRole.CLIENT) {
+            } else if (curRole == UserRole.CLIENT) {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
@@ -199,8 +202,8 @@ public class UserService {
             existing.setPasswordHash(hash);
         }
 
-        if (role != UserRole.ADMIN) {
-            if (!id.equals(principal.getUser().getId())) {
+        if (curRole != UserRole.ADMIN) {
+            if (!id.equals(curUser.getId())) {
                 logger.error("Can't update another user with id {}: users with the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
