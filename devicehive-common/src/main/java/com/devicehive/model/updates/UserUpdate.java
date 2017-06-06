@@ -25,7 +25,6 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
-import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.Max;
@@ -45,7 +44,7 @@ public class UserUpdate implements HiveEntity {
     @Min(value = 0, message = "The value of role should not be less than 0.")
     private Integer role;
 
-    @ApiModelProperty(value = "0 for 'ACTIVE', 1 for 'LOCKED_OUT', 2 for 'DISABLED', 3 for 'DELETED'")
+    @ApiModelProperty(value = "0 for 'ACTIVE', 1 for 'LOCKED_OUT', 2 for 'DISABLED'")
     @Max(value = 3, message = "The value of status should not be more than 3.")
     @Min(value = 0, message = "The value of status should not be less than 0.")
     private Integer status;
