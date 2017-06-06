@@ -26,8 +26,8 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -48,18 +48,23 @@ public class UserVO implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
+    @ApiModelProperty(hidden = true)
     private String passwordHash;
 
+    @ApiModelProperty(hidden = true)
     private String passwordSalt;
 
+    @ApiModelProperty(hidden = true)
     private Integer loginAttempts;
 
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1")
     private UserRole role;
 
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2")
     private UserStatus status;
 
     @SerializedName("lastLogin")
@@ -77,6 +82,7 @@ public class UserVO implements HiveEntity {
     /**
      * @return true, if user is admin
      */
+    @ApiModelProperty(hidden = true)
     public boolean isAdmin() {
         return UserRole.ADMIN.equals(role);
     }

@@ -36,7 +36,6 @@ public class JwtTokenVO implements HiveEntity {
     private static final long serialVersionUID = 1934838110938833117L;
 
     @JsonPolicyDef({JWT_REFRESH_TOKEN_SUBMITTED, JWT_ACCESS_TOKEN_SUBMITTED})
-    @ApiModelProperty(hidden = true)
     @SerializedName("accessToken")
     private String accessToken; 
 

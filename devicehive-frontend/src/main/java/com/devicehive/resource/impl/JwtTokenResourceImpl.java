@@ -32,6 +32,7 @@ import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -92,7 +93,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     }
 
     @Override
-    public Response refreshTokenRequest(JwtTokenVO requestTokenVO) {
+    public Response refreshTokenRequest(JwtRefreshTokenVO requestTokenVO) {
         hiveValidator.validate(requestTokenVO);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
         JwtPayload payload;

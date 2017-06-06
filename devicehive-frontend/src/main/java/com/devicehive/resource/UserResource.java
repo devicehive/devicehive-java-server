@@ -21,9 +21,11 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.response.UserNetworkResponse;
+import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -110,7 +112,7 @@ public interface UserResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserResponse.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -129,7 +131,7 @@ public interface UserResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserWithNetworkVO.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 409, message = "If user is not signed in")
@@ -249,7 +251,7 @@ public interface UserResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = UserNetworkResponse.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user or network not found")

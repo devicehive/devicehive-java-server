@@ -22,6 +22,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Temporal;
@@ -133,6 +134,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity {
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public String getHazelcastKey() {
         return id+"-"+deviceId+"-"+timestamp;
     }

@@ -24,6 +24,7 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -46,6 +47,7 @@ public class NetworkVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED,
             NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
+    @ApiModelProperty(hidden = true)
     private Long entityVersion;
 
     public Long getId() {
