@@ -59,9 +59,9 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     public void should_return_access_and_refresh_tokens_for_token_authorized_user() throws Exception {
         // Create test user
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin("string_1");
+        testUser.setLogin("string_0");
         testUser.setRole(UserRole.CLIENT.getValue());
-        testUser.setPassword("string_1");
+        testUser.setPassword(VALID_PASSWORD);
         testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
@@ -112,7 +112,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_1");
         testUser.setRole(UserRole.CLIENT.getValue());
-        testUser.setPassword("string_1");
+        testUser.setPassword(VALID_PASSWORD);
         testUser.setStatus(UserStatus.DISABLED.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
@@ -141,9 +141,9 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     public void should_return_400_after_providing_invalid_refresh_token() throws Exception {
         // Create test user
         UserUpdate testUser = new UserUpdate();
-        testUser.setLogin("string_1");
+        testUser.setLogin("string_2");
         testUser.setRole(UserRole.CLIENT.getValue());
-        testUser.setPassword("string_1");
+        testUser.setPassword(VALID_PASSWORD);
         testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
@@ -175,7 +175,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         UserUpdate testUser = new UserUpdate();
         testUser.setLogin("string_1");
         testUser.setRole(UserRole.CLIENT.getValue());
-        testUser.setPassword("string_1");
+        testUser.setPassword(VALID_PASSWORD);
         testUser.setStatus(UserStatus.ACTIVE.getValue());
 
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);

@@ -61,12 +61,12 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.ADMIN);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         // Get JWT token for the user
         JwtRequestVO jwtRequestVO = new JwtRequestVO();
         jwtRequestVO.setLogin(user.getLogin());
-        jwtRequestVO.setPassword("123");
+        jwtRequestVO.setPassword(VALID_PASSWORD);
         JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), jwtRequestVO, CREATED, JwtTokenVO.class);
 
         // Check the given user rights
@@ -85,12 +85,12 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         user.setRole(UserRole.CLIENT);
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         // Get JWT token for the user
         JwtRequestVO jwtRequestVO = new JwtRequestVO();
         jwtRequestVO.setLogin(user.getLogin());
-        jwtRequestVO.setPassword("123");
+        jwtRequestVO.setPassword(VALID_PASSWORD);
         JwtTokenVO jwtTokenVO = performRequest("/token", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), jwtRequestVO, CREATED, JwtTokenVO.class);
 
         // Check the given user rights
