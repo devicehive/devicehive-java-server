@@ -21,6 +21,8 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.vo.JwtAccessTokenVO;
+import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import io.swagger.annotations.*;
@@ -67,12 +69,12 @@ public interface JwtTokenResource {
     @ApiResponses({
             @ApiResponse(code = 201,
                     message = "If successful, this method returns a JWT access token in the response body.",
-                    response = JwtTokenVO.class),
+                    response = JwtAccessTokenVO.class),
             @ApiResponse(code = 404, message = "If access token not found")
     })
     Response refreshTokenRequest(
             @ApiParam(name = "refreshToken", value = "Refresh token", required = true)
-            JwtTokenVO jwtTokenVO);
+                    JwtRefreshTokenVO jwtTokenVO);
 
     @POST
     @PreAuthorize("permitAll")

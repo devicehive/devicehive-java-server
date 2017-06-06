@@ -23,6 +23,7 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 
@@ -36,14 +37,17 @@ public class ClusterConfigVO implements HiveEntity {
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)
     @SerializedName("bootstrap.servers")
+    @ApiModelProperty(name = "bootstrap.servers")
     private String bootstrapServers;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)
     @SerializedName("zookeeper.connect")
+    @ApiModelProperty(name = "zookeeper.connect")
     private String zookeeperConnect;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)
     @SerializedName("threads.count")
+    @ApiModelProperty(name = "threads.count")
     private Integer threadsCount;
 
     public String getBootstrapServers() {

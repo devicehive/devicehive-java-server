@@ -26,6 +26,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserWithNetworkVO;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Column;
@@ -54,14 +55,17 @@ public class UserResponse implements HiveEntity {
     private String login;
 
     @Column(name = "login_attempts")
+    @ApiModelProperty(hidden = true)
     private Integer loginAttempts;
 
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1")
     private UserRole role;
 
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2, 3")
     private UserStatus status;
 
     @JsonPolicyDef({USER_PUBLISHED})

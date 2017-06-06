@@ -22,11 +22,11 @@ package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.io.Serializable;
 import java.util.Date;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_INFO;
@@ -50,6 +50,7 @@ public class ApiInfoVO implements HiveEntity {
     @JsonPolicyDef(REST_SERVER_INFO)
     private String webSocketServerUrl;
 
+    @ApiModelProperty(hidden = true)
     @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
