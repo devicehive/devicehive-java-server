@@ -177,10 +177,10 @@ public class UserService {
             existing.setLogin(newLogin);
         }
 
-        UserRole curRole = curUser.getRole();
+        final boolean IS_ADMIN = UserRole.ADMIN.equals(curUser.getRole());
         String password = userToUpdate.getPassword().orElse(null);
         if (StringUtils.isBlank(password)) {
-            if (curRole == UserRole.CLIENT) {
+            if (!IS_ADMIN) {
                 logger.error("Can't update user with id {}: incorrect password provided", id);
                 throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
             }
@@ -192,7 +192,7 @@ public class UserService {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
                     throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
                 }
-            } else if (curRole == UserRole.CLIENT) {
+            } else if (!IS_ADMIN) {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
@@ -203,7 +203,7 @@ public class UserService {
             existing.setPasswordHash(hash);
         }
 
-        if (curRole != UserRole.ADMIN) {
+        if (!IS_ADMIN) {
             if (!id.equals(curUser.getId())) {
                 logger.error("Can't update another user with id {}: users with the 'client' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());

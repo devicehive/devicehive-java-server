@@ -17,4 +17,4 @@
 -- limitations under the License.
 -- #L%
 ---
-DELETE FROM user WHERE status = 3;
+UPDATE user SET status = 2 WHERE status = 3;
