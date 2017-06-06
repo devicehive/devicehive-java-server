@@ -4,7 +4,7 @@ package com.devicehive.vo;
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 DataArt
+ * (C) 2016-2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ package com.devicehive.vo;
 import io.swagger.annotations.ApiModelProperty;
 
 /**
- * JWT token refresh response entity
+ * JWT access token response entity
  */
 public class JwtAccessTokenVO extends JwtTokenVO {
 
