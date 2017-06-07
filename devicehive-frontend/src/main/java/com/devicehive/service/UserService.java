@@ -191,7 +191,8 @@ public class UserService {
             }
 
             if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
-                logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
+                logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
+                        "status or role", id);
                 throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
             }
         }
