@@ -31,7 +31,6 @@ public class AvailableActions {
 
     public static final String GET_NETWORK = "GetNetwork";
     public static final String GET_DEVICE = "GetDevice";
-    public static final String GET_DEVICE_STATE = "GetDeviceState";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
     public static final String REGISTER_DEVICE = "RegisterDevice";
@@ -41,21 +40,17 @@ public class AvailableActions {
 
     public static final String GET_CURRENT_USER = "GetCurrentUser";
     public static final String UPDATE_CURRENT_USER = "UpdateCurrentUser";
-    public static final String MANAGE_ACCESS_KEY = "ManageAccessKey";
-    public static final String MANAGE_OAUTH_GRANT = "ManageOAuthGrant";
 
     //admin
     public static final String MANAGE_USER = "ManageUser";
     public static final String MANAGE_CONFIGURATION = "ManageConfiguration";
     public static final String MANAGE_NETWORK = "ManageNetwork";
-    public static final String MANAGE_OAUTH_CLIENT = "ManageOAuthClient";
     public static final String MANAGE_TOKEN = "ManageToken";
 
     private static Set<String> CLIENT_ACTIONS = new HashSet<String>() {
         {
             add(GET_NETWORK);
             add(GET_DEVICE);
-            add(GET_DEVICE_STATE);
             add(GET_DEVICE_NOTIFICATION);
             add(GET_DEVICE_COMMAND);
             add(REGISTER_DEVICE);
@@ -65,8 +60,6 @@ public class AvailableActions {
 
             add(GET_CURRENT_USER);
             add(UPDATE_CURRENT_USER);
-            add(MANAGE_ACCESS_KEY);
-            add(MANAGE_OAUTH_GRANT);
             add(MANAGE_TOKEN);
         }
 
@@ -78,7 +71,6 @@ public class AvailableActions {
             add(MANAGE_USER);
             add(MANAGE_CONFIGURATION);
             add(MANAGE_NETWORK);
-            add(MANAGE_OAUTH_CLIENT);
         }
 
         private static final long serialVersionUID = -1946208903850253584L;
