@@ -56,7 +56,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -186,11 +185,6 @@ public class UserService {
         final boolean oldPasswordNotEmpty = oldPassword.isPresent() && StringUtils.isNotBlank(oldPassword.get());
 
         if (isClient) {
-            if (!Objects.equals(existing.getId(), curUser.getId())) {
-                logger.error("Can't update user with id {}: users with the 'client' role are not allowed to change other users", id);
-                throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
-            }
-
             if (newPassword.isPresent() && !oldPasswordNotEmpty) {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
@@ -198,7 +192,7 @@ public class UserService {
 
             if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
                 logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
-                throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
+                throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
             }
         }
 
