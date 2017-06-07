@@ -158,13 +158,55 @@ public class UserService {
     public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserVO curUser) {
         UserVO existing = userDao.find(id);
 
+        if (!validate(id, userToUpdate, curUser, existing)) {
+            return existing;
+        }
+
+        if (userToUpdate.getLogin().isPresent()) {
+            existing.setLogin(StringUtils.trim(userToUpdate.getLogin().orElse(null)));
+        }
+
+        String password = userToUpdate.getPassword().orElse(null);
+        if (!StringUtils.isBlank(password)) {
+            String salt = passwordService.generateSalt();
+            String hash = passwordService.hashPassword(password, salt);
+            existing.setPasswordSalt(salt);
+            existing.setPasswordHash(hash);
+        }
+
+        if (userToUpdate.getRoleEnum() != null) {
+            existing.setRole(userToUpdate.getRoleEnum());
+        } 
+        if (userToUpdate.getStatusEnum() != null) {
+            existing.setStatus(userToUpdate.getStatusEnum());
+        }
+        if (userToUpdate.getData().isPresent()) {
+            existing.setData(userToUpdate.getData().get());
+        }
+        if (userToUpdate.getIntroReviewed().isPresent()) {
+            existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
+        }
+
+        hiveValidator.validate(existing);
+        return userDao.merge(existing);
+    }
+
+    /**
+     * Throws exception, if data is not valid, returns false, if update object is empty, or true in other case
+     * @param id
+     * @param userToUpdate
+     * @param curUser
+     * @param existing
+     * @return data validation boolean status
+     */
+    private boolean validate(Long id, UserUpdate userToUpdate, UserVO curUser, UserVO existing) {
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
 
         if (userToUpdate == null) {
-            return existing;
+            return false;
         }
 
         if (userToUpdate.getLogin().isPresent()) {
@@ -174,7 +216,6 @@ public class UserService {
             if (withSuchLogin.isPresent() && !withSuchLogin.get().getId().equals(id)) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
             }
-            existing.setLogin(newLogin);
         }
 
         final boolean IS_ADMIN = UserRole.ADMIN.equals(curUser.getRole());
@@ -196,39 +237,20 @@ public class UserService {
                 logger.error("Can't update user with id {}: old password required", id);
                 throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
-
-            String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(password, salt);
-            existing.setPasswordSalt(salt);
-            existing.setPasswordHash(hash);
         }
 
         if (!IS_ADMIN) {
             if (!id.equals(curUser.getId())) {
-                logger.error("Can't update another user with id {}: users with the 'client' role are only allowed to change their password", id);
+                logger.error("Can't update another user with id {}: users with not the 'Admin' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
             if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
-                logger.error("Can't update user with id {}: users with the 'client' role are only allowed to change their password", id);
+                logger.error("Can't update user with id {}: users with not the 'Admin' role are only allowed to change their password", id);
                 throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
             }
         }
 
-        if (userToUpdate.getRoleEnum() != null) {
-            existing.setRole(userToUpdate.getRoleEnum());
-        } 
-        if (userToUpdate.getStatusEnum() != null) {
-            existing.setStatus(userToUpdate.getStatusEnum());
-        }
-        if (userToUpdate.getData().isPresent()) {
-            existing.setData(userToUpdate.getData().get());
-        }
-        if (userToUpdate.getIntroReviewed().isPresent()) {
-            existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
-        }
-
-        hiveValidator.validate(existing);
-        return userDao.merge(existing);
+        return true;
     }
 
     /**
