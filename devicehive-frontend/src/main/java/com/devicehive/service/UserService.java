@@ -179,14 +179,14 @@ public class UserService {
 
         final boolean IS_ADMIN = UserRole.ADMIN.equals(curUser.getRole());
         String password = userToUpdate.getPassword().orElse(null);
-        if (StringUtils.isBlank(password)) {
+        if (StringUtils.isEmpty(password)) {
             if (!IS_ADMIN) {
                 logger.error("Can't update user with id {}: incorrect password provided", id);
                 throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
             }
         } else {
             String oldPassword = userToUpdate.getOldPassword().orElse(null);
-            if (StringUtils.isNotBlank(oldPassword)) {
+            if (StringUtils.isNotEmpty(oldPassword)) {
                 final String hash = passwordService.hashPassword(oldPassword, existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
@@ -324,7 +324,7 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNotBlank(password) && password.matches(PASSWORD_REGEXP)) {
+        if (StringUtils.isNotEmpty(password) && password.matches(PASSWORD_REGEXP)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);

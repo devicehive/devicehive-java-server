@@ -53,7 +53,7 @@ public class JwtTokenService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public JwtTokenVO createJwtToken(@NotNull final JwtRequestVO request) {
         hiveValidator.validate(request);
-        if (StringUtils.isBlank(request.getLogin()) || StringUtils.isBlank(request.getPassword())) {
+        if (StringUtils.isBlank(request.getLogin()) || StringUtils.isEmpty(request.getPassword())) {
             logger.error(Messages.INVALID_AUTH_REQUEST_PARAMETERS);
             throw new HiveException(Messages.INVALID_AUTH_REQUEST_PARAMETERS, Response.Status.BAD_REQUEST.getStatusCode());
         }
