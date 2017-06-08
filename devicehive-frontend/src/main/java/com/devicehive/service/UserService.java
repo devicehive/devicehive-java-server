@@ -182,7 +182,7 @@ public class UserService {
 
         final Optional<String> newPassword = userToUpdate.getPassword();
         final Optional<String> oldPassword = userToUpdate.getOldPassword();
-        final boolean oldPasswordNotEmpty = oldPassword.isPresent() && StringUtils.isNotBlank(oldPassword.get());
+        final boolean oldPasswordNotEmpty = oldPassword.isPresent() && StringUtils.isNotEmpty(oldPassword.get());
 
         if (isClient) {
             if (newPassword.isPresent() && !oldPasswordNotEmpty) {
@@ -197,7 +197,7 @@ public class UserService {
             }
         }
 
-        if (newPassword.isPresent() && StringUtils.isNoneBlank(newPassword.get())) {
+        if (newPassword.isPresent() && StringUtils.isNotEmpty(newPassword.get())) {
             if (oldPasswordNotEmpty) {
                 final String hash = passwordService.hashPassword(oldPassword.get(),
                         existing.getPasswordSalt());
@@ -330,7 +330,7 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNotBlank(password) && password.matches(PASSWORD_REGEXP)) {
+        if (StringUtils.isNotEmpty(password) && password.matches(PASSWORD_REGEXP)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);
