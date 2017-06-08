@@ -3,13 +3,8 @@
 set -x
 
 # Check if backend is ready
-while true; do
-    `nc -N $DH_BACKEND_ADDRESS $DH_BACKEND_HAZELCAST_PORT`
-    result=$?
-
-    if [ "$result" -eq 0 ]; then
-        break
-    fi
+until nc -v -z -w1 $DH_BACKEND_ADDRESS ${DH_BACKEND_HAZELCAST_PORT:-5701}
+do
     sleep 3
 done
 

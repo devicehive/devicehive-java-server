@@ -4,12 +4,12 @@ set -x
 
 # Check if Zookeper, Kafka and Postgres are ready
 while true; do
-    `nc -N $DH_ZK_ADDRESS $DH_ZK_PORT`
+    nc -v -z -w1 $DH_ZK_ADDRESS $DH_ZK_PORT
     result_zk=$?
-    `nc -N $DH_POSTGRES_ADDRESS $DH_POSTGRES_PORT`
-    result_postgres=$?
-    `nc -N $DH_KAFKA_ADDRESS $DH_KAFKA_PORT`
+    nc -v -z -w1 $DH_KAFKA_ADDRESS $DH_KAFKA_PORT
     result_kafka=$?
+    nc -v -z -w1 $DH_POSTGRES_ADDRESS $DH_POSTGRES_PORT
+    result_postgres=$?
 
     if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
         break
