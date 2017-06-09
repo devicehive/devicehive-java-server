@@ -29,7 +29,7 @@ while true; do
     curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"
     result_riak=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_riak" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 -a "$result_zk" -eq 0 -a "$result_riak" -eq 0 ]; then
         break
     fi
     sleep 5

@@ -29,7 +29,7 @@ while true; do
     nc -v -z -w1 $DH_POSTGRES_ADDRESS ${DH_POSTGRES_PORT:=5432}
     result_postgres=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 -a "$result_postgres" -eq 0 -a "$result_zk" -eq 0 ]; then
         break
     fi
     sleep 3
