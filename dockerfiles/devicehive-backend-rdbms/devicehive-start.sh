@@ -2,13 +2,31 @@
 
 set -x
 
+# Check if all required parameters are set
+if [ -z "$DH_ZK_ADDRESS" \
+  -o -z "$DH_KAFKA_ADDRESS" \
+  -o -z "$DH_POSTGRES_ADDRESS" \
+  -o -z "$DH_POSTGRES_USERNAME" \
+  -o -z "$DH_POSTGRES_PASSWORD" \
+  -o -z "$DH_POSTGRES_DB" ]
+then
+    echo "Some of required environment variables are not set or empty."
+    echo "Please check following vars are passed to container:"
+    echo "- DH_ZK_ADDRESS"
+    echo "- DH_KAFKA_ADDRESS"
+    echo "- DH_POSTGRES_ADDRESS"
+    echo "- DH_POSTGRES_USERNAME"
+    echo "- DH_POSTGRES_PASSWORD"
+    echo "- DH_POSTGRES_DB"
+    exit 1
+fi
 # Check if Zookeper, Kafka and Postgres are ready
 while true; do
-    nc -v -z -w1 $DH_ZK_ADDRESS $DH_ZK_PORT
+    nc -v -z -w1 $DH_ZK_ADDRESS ${DH_ZK_PORT:=2181}
     result_zk=$?
-    nc -v -z -w1 $DH_KAFKA_ADDRESS $DH_KAFKA_PORT
+    nc -v -z -w1 $DH_KAFKA_ADDRESS ${DH_KAFKA_PORT:=9092}
     result_kafka=$?
-    nc -v -z -w1 $DH_POSTGRES_ADDRESS $DH_POSTGRES_PORT
+    nc -v -z -w1 $DH_POSTGRES_ADDRESS ${DH_POSTGRES_PORT:=5432}
     result_postgres=$?
 
     if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then

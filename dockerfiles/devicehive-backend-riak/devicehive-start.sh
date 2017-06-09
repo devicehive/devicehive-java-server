@@ -2,11 +2,29 @@
 
 set -x
 
+# Check if all required parameters are set
+if [ -z "$DH_ZK_ADDRESS" \
+  -o -z "$DH_KAFKA_ADDRESS" \
+  -o -z "$DH_RIAK_HOST" \
+  -o -z "$DH_RIAK_PORT" \
+  -o -z "$DH_RIAK_HOST_MEMBER" \
+  -o -z "$DH_RIAK_HTTP_PORT" ]
+then
+    echo "Some of required environment variables are not set or empty."
+    echo "Please check following vars are passed to container:"
+    echo "- DH_ZK_ADDRESS"
+    echo "- DH_KAFKA_ADDRESS"
+    echo "- DH_RIAK_HOST"
+    echo "- DH_RIAK_PORT"
+    echo "- DH_RIAK_HOST_MEMBER"
+    echo "- DH_RIAK_HTTP_PORT"
+    exit 1
+fi
 # Check if Zookeper, Kafka and riak are ready
 while true; do
-    nc -v -z -w1 $DH_ZK_ADDRESS $DH_ZK_PORT
+    nc -v -z -w1 $DH_ZK_ADDRESS ${DH_ZK_PORT:=2181}
     result_zk=$?
-    nc -v -z -w1 $DH_KAFKA_ADDRESS $DH_KAFKA_PORT
+    nc -v -z -w1 $DH_KAFKA_ADDRESS ${DH_KAFKA_PORT:=9092}
     result_kafka=$?
     curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"
     result_riak=$?
