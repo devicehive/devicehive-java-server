@@ -25,11 +25,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
-@Path("/info")
+@Path("/ping")
 @Produces({"application/json"})
 public interface HealthResource {
 
     @GET
-    @Path("/config/cluster")
     Response getHealthStatus();
 }

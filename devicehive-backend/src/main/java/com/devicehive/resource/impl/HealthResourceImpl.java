@@ -20,19 +20,49 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.HealthResource;
+import com.devicehive.service.HazelcastService;
+import com.devicehive.shim.api.client.RpcClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
+
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+import static javax.ws.rs.core.Response.Status.OK;
 
 /**
  * Provide API information
  */
 @Service
 public class HealthResourceImpl implements HealthResource {
+    private static final Logger logger = LoggerFactory.getLogger(HealthResource.class);
+
+    @Autowired
+    private HazelcastService hazelcastService;
+
+    @Autowired
+    private RpcClient rpcClient;
 
     @Override
     public Response getHealthStatus() {
-        return Response.status(Response.Status.OK).build();
+        logger.debug("Start Hazelcast health check");
+        if (!hazelcastService.isRunning()) {
+            return Response
+                    .status(SERVICE_UNAVAILABLE)
+                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "Hazelcast isn't available"))
+                    .build();
+        }
+        logger.debug("Start Hazelcast health check");
+        if (!rpcClient.ping()) {
+            return Response
+                    .status(SERVICE_UNAVAILABLE)
+                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "RcpServer isn't available"))
+                    .build();
+        }
+        return Response.status(OK).build();
     }
 }

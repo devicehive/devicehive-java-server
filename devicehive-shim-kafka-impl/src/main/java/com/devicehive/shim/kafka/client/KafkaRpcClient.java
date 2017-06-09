@@ -85,6 +85,33 @@ public class KafkaRpcClient implements RpcClient {
     }
 
     @Override
+    public boolean ping() {
+        Request request = Request.newBuilder().build();
+        request.setReplyTo(replyToTopic);
+        request.setType(RequestType.ping);
+
+        logger.debug("Ping RpcServer");
+
+        CompletableFuture<Response> pingFuture = new CompletableFuture<>();
+
+        requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
+        requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
+
+        Response response = null;
+        try {
+            response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Exception occured while trying to ping RpcServer ", e);
+        } catch (TimeoutException e) {
+            logger.warn("RpcServer didn't respond to ping request");
+        } finally {
+            requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
+        }
+
+        return response != null && !response.isFailed();
+    }
+
+    @Override
     public void shutdown() {
         requestProducer.close();
         responseListener.shutdown();
