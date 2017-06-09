@@ -22,10 +22,13 @@ package com.devicehive.application;
 
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
+import io.swagger.jaxrs.config.BeanConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.shim.api.server.RpcServer;
+import org.springframework.context.annotation.Lazy;
 
 @Configuration
 public class BackendConfig {
@@ -38,5 +41,18 @@ public class BackendConfig {
     @Bean
     public EventBus eventBus(RpcServer rpcServer) {
         return new EventBus(rpcServer.getDispatcher());
+    }
+
+    @Bean
+    @Lazy(false)
+    public BeanConfig apiConfig(@Value("${build.version}") String buildVersion) {
+
+        BeanConfig beanConfig = new BeanConfig();
+        beanConfig.setTitle("Device Hive REST API");
+        beanConfig.setVersion(buildVersion);
+        beanConfig.setBasePath(JerseyConfig.REST_PATH);
+        beanConfig.setResourcePackage("com.devicehive.resource");
+        beanConfig.setScan(true);
+        return beanConfig;
     }
 }
