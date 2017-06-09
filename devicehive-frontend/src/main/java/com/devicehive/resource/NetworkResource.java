@@ -43,13 +43,11 @@ public interface NetworkResource {
      *  {
      *    "description":"Network Description",
      *    "id":1,
-     *    "key":"Network Key",
      *    "name":"Network Name"
      *   },
      *   {
      *    "description":"Network Description",
      *    "id":2,
-     *    "key":"Network Key",
      *    "name":"Network Name"
      *   }
      * ]
@@ -103,7 +101,6 @@ public interface NetworkResource {
      *     {
      *      "description":"Network Description",
      *      "id":1,
-     *      "key":"Network Key",
      *      "name":"Network Name"
      *     }
      * </pre>
@@ -133,22 +130,20 @@ public interface NetworkResource {
      * Inserts new Network into database. Consumes next input:
      * <pre>
      *     {
-     *       "key":"Network Key",
      *       "name":"Network Name",
      *       "description":"Network Description"
      *     }
      * </pre>
-     * Where "key" is not required "description" is not required "name" is required <p/> In case of success will produce
+     * Where is not required "name" is required <p/> In case of success will produce
      * following output:
      * <pre>
      *     {
      *      "description":"Network Description",
      *      "id":1,
-     *      "key":"Network Key",
      *      "name":"Network Name"
      *     }
      * </pre>
-     * Where "description" and "key" will be provided, if they are specified in request. Fields "id" and "name" will be
+     * Where "description"will be provided, if they are specified in request. Fields "id" and "name" will be
      * provided anyway.
      */
     @POST
