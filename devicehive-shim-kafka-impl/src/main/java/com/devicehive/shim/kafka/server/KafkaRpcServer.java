@@ -56,4 +56,5 @@ public class KafkaRpcServer implements RpcServer {
     public MessageDispatcher getDispatcher() {
         return eventHandler;
     }
+
 }
