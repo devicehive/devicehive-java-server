@@ -22,17 +22,18 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.HealthResource;
-import com.devicehive.service.HazelcastService;
-import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.api.client.RpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.DataSourceHealthIndicator;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 /**
  * Provide health status
@@ -42,22 +43,22 @@ public class HealthResourceImpl implements HealthResource {
     private static final Logger logger = LoggerFactory.getLogger(HealthResourceImpl.class);
 
     @Autowired
-    private HazelcastService hazelcastService;
+    private RpcClient rpcClient;
 
     @Autowired
-    private RpcServer rpcServer;
+    private DataSourceHealthIndicator dataSourceHealthIndicator;
 
     @Override
     public Response getHealthStatus() {
-        logger.debug("Start Hazelcast health check");
-        if (!hazelcastService.isRunning()) {
+        logger.debug("Start DataSource health check");
+        if (dataSourceHealthIndicator.health().getStatus() != Status.UP) {
             return Response
                     .status(SERVICE_UNAVAILABLE)
-                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "Hazelcast isn't available"))
+                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "Data source isn't available"))
                     .build();
         }
         logger.debug("Start RpcServer health check");
-        if (!rpcServer.isRunning()) {
+        if (!rpcClient.ping()) {
             return Response
                     .status(SERVICE_UNAVAILABLE)
                     .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "RpcServer isn't available"))

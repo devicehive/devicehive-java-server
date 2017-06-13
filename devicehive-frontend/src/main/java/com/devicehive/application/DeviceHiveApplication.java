@@ -23,7 +23,9 @@ package com.devicehive.application;
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.DataSourceHealthIndicator;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,6 +38,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import javax.sql.DataSource;
 import javax.validation.Validator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,6 +51,9 @@ import java.util.concurrent.Executors;
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication {
+
+    @Autowired
+    private DataSource dataSource;
 
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
@@ -90,5 +96,10 @@ public class DeviceHiveApplication {
     @Bean
     public Validator localValidator() {
         return new LocalValidatorFactoryBean();
+    }
+
+    @Bean
+    public DataSourceHealthIndicator dbHealthIndicator() {
+        return new DataSourceHealthIndicator(dataSource);
     }
 }
