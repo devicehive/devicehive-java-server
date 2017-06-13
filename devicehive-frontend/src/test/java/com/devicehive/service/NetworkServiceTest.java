@@ -187,7 +187,6 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         NetworkUpdate update = new NetworkUpdate();
-        update.setKey("key");
         update.setName("name");
         update.setDescription("description");
 
