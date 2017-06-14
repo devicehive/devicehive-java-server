@@ -97,7 +97,7 @@ public interface UserResource {
 
     /**
      * Method will generate following output: <p/> <code> { "id": 2, "login": "login", "status": 0, "networks": [ {
-     * "network": { "id": 5, "key": "network key", "name": "name of network", "description": "short description of
+     * "network": { "id": 5, "name": "name of network", "description": "short description of
      * network" } } ], "lastLogin": "1970-01-01 03:00:00.0" } </code> <p/> If success, response with status 200, if user
      * is not found 400
      *
@@ -228,7 +228,6 @@ public interface UserResource {
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response deleteUser(
             @ApiParam(name = "id", value = "User identifier.", required = true)
@@ -236,7 +235,7 @@ public interface UserResource {
             long userId);
 
     /**
-     * Method returns following body in case of success (status 200): <code> { "id": 5, "key": "network_key", "name":
+     * Method returns following body in case of success (status 200): <code> { "id": 5, "name":
      * "network name", "description": "short description of net" } </code> in case, there is no such network, or user,
      * or user doesn't have access
      *

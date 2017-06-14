@@ -85,7 +85,6 @@ public class CommonHandlers {
         return response;
     }
 
-    //TODO - replace with jwt authentication
     @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
 
