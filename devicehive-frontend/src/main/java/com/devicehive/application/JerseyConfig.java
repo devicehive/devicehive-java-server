@@ -41,6 +41,7 @@ public class JerseyConfig extends ResourceConfig {
                 "com.devicehive.resource.filter");
 
         registerClasses(ApiInfoResourceImpl.class,
+                HealthResourceImpl.class,
                 ConfigurationResourceImpl.class,
                 DeviceCommandResourceImpl.class,
                 DeviceNotificationResourceImpl.class,

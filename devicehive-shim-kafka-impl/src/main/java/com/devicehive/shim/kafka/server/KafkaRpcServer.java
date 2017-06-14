@@ -56,4 +56,9 @@ public class KafkaRpcServer implements RpcServer {
     public MessageDispatcher getDispatcher() {
         return eventHandler;
     }
+
+    @Override
+    public boolean isRunning() {
+        return requestConsumer.isRunning();
+    }
 }

@@ -86,6 +86,10 @@ public class RequestConsumer {
         }
     }
 
+    public boolean isRunning() {
+        return !(consumerExecutor.isShutdown() || consumerExecutor.isTerminated());
+    }
+
     public static class RequestConsumerWorker implements Runnable {
 
         private String topic;

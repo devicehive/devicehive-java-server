@@ -1,8 +1,8 @@
-package com.devicehive.shim.api.client;
+package com.devicehive.application;
 
 /*
  * #%L
- * DeviceHive Shim  API Interfaces
+ * DeviceHive Java Server Common business logic
  * %%
  * Copyright (C) 2016 DataArt
  * %%
@@ -20,20 +20,18 @@ package com.devicehive.shim.api.client;
  * #L%
  */
 
-import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.Response;
+import com.devicehive.resource.impl.HealthResourceImpl;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
+import javax.ws.rs.ApplicationPath;
 
-public interface RpcClient {
+@Component
+@ApplicationPath(JerseyConfig.REST_PATH)
+public class JerseyConfig extends ResourceConfig {
+    public static final String REST_PATH = "/rest";
 
-    void call(Request request, Consumer<Response> callback);
-
-    void push(Request request);
-
-    boolean ping();
-
-    default void start() { }
-
-    default void shutdown() { }
+    public JerseyConfig() {
+        registerClasses(HealthResourceImpl.class);
+    }
 }

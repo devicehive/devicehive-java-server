@@ -87,6 +87,10 @@ public class HazelcastService {
         mapsHolder.get(hzEntity.getClass()).set(hzEntity.getHazelcastKey(), hzEntity);
     }
 
+    public boolean isRunning() {
+        return hazelcastInstance.getLifecycleService().isRunning();
+    }
+
     @SuppressWarnings("unchecked")
     private <T extends HazelcastEntity> Collection<T> find(Predicate predicate, int pageSize, Class<T> tClass) {
         final Predicate pagingPredicate = (pageSize > 0)

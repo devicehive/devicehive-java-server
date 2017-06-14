@@ -33,7 +33,7 @@ public class DeviceHiveApplication {
     public static void main(String... args) {
         ConfigurableApplicationContext context = new SpringApplicationBuilder()
                 .sources(DeviceHiveApplication.class)
-                .web(false)
+                .web(true)
                 .run(args);
 
         DeviceHiveApplication app = context.getBean(DeviceHiveApplication.class);
