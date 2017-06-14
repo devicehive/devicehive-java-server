@@ -58,10 +58,9 @@ public class JwtTokenGenerator {
      * @param payload the payload entity with which the token will be generated
      * @return the JWT token
      */
-    public String generateToken(JwtPayload payload, TokenType tokenType) {
-        
+    public String generateToken(JwtPayload payload, TokenType tokenType, boolean useExpiration) {
         long maxAge = tokenType.equals(TokenType.ACCESS) ? accessTokenMaxAge : refreshTokenMaxAge;
-        Date expiration = payload.getExpiration() != null ? payload.getExpiration() :
+        Date expiration = useExpiration && payload.getExpiration() != null ? payload.getExpiration() :
                 timestampService.getDate(System.currentTimeMillis() + maxAge);
         
         payload.setExpiration(expiration);
@@ -76,4 +75,5 @@ public class JwtTokenGenerator {
                 .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
     }
+
 }

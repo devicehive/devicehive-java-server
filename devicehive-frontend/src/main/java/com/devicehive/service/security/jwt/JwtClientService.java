@@ -43,12 +43,12 @@ public class JwtClientService {
     @Autowired
     private JwtSecretService jwtSecretService;
 
-    public String generateJwtAccessToken(JwtPayload payload) {
-        return tokenGenerator.generateToken(payload, TokenType.ACCESS);
+    public String generateJwtAccessToken(JwtPayload payload, boolean useExpiration) {
+        return tokenGenerator.generateToken(payload, TokenType.ACCESS, useExpiration);
     }
 
-    public String generateJwtRefreshToken(JwtPayload payload) {
-        return tokenGenerator.generateToken(payload, TokenType.REFRESH);
+    public String generateJwtRefreshToken(JwtPayload payload, boolean useExpiration) {
+        return tokenGenerator.generateToken(payload, TokenType.REFRESH, useExpiration);
     }
 
     public JwtPayload getPayload(String jwtToken) {
