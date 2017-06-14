@@ -36,10 +36,6 @@ public class NetworkUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private Long id;
 
-    @Size(max = 128, message = "The length of key should not be more than 128 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String key;
-
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
@@ -54,14 +50,6 @@ public class NetworkUpdate implements HiveEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Optional<String> getKey() {
-        return Optional.ofNullable(key);
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public Optional<String> getName() {

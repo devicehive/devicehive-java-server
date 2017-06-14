@@ -44,7 +44,7 @@ public interface ConfigurationResource {
     })
     @ApiResponses({
             @ApiResponse(
-                    code = 201,
+                    code = 200,
                     message = "If successful, this method returns a Configuration resource in the response body.",
                     response = ConfigurationVO.class
             ),
@@ -64,6 +64,16 @@ public interface ConfigurationResource {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
+    @ApiResponses({
+        @ApiResponse(
+                code = 200,
+                message = "If successful, this method returns a Configuration resource in the response body.",
+                response = ConfigurationVO.class
+        ),
+        @ApiResponse(code = 400, message = "If request is malformed"),
+        @ApiResponse(code = 401, message = "If request is not authorized"),
+        @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response setProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
@@ -77,6 +87,12 @@ public interface ConfigurationResource {
     @ApiOperation(value = "Delete property", notes = "Deletes property")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+        @ApiResponse(code = 400, message = "If request is malformed"),
+        @ApiResponse(code = 401, message = "If request is not authorized"),
+        @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
     Response deleteProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
