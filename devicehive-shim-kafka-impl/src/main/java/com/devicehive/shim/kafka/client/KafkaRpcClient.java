@@ -99,7 +99,7 @@ public class KafkaRpcClient implements RpcClient {
         try {
             response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException e) {
-            logger.error("Exception occured while trying to ping RpcServer ", e);
+            logger.error("Exception occurred while trying to ping RpcServer ", e);
         } catch (TimeoutException e) {
             logger.warn("RpcServer didn't respond to ping request");
         } finally {
@@ -116,31 +116,12 @@ public class KafkaRpcClient implements RpcClient {
     }
 
     private void pingServer() {
-        Request request = Request.newBuilder().build();
-        request.setReplyTo(replyToTopic);
-        request.setType(RequestType.ping);
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
             logger.info("Ping RpcServer attempt {}", i);
 
-            CompletableFuture<Response> pingFuture = new CompletableFuture<>();
-
-            requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
-            requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
-
-            Response response = null;
-            try {
-                response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception occured while trying to ping RpcServer ", e);
-            } catch (TimeoutException e) {
-                logger.warn("RpcServer didn't respond to ping request");
-                continue;
-            } finally {
-                requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
-            }
-            if (response != null && !response.isFailed()) {
+            if (ping()) {
                 connected = true;
                 break;
             } else {
