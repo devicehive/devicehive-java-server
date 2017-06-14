@@ -30,7 +30,6 @@ public class KafkaRpcServer implements RpcServer {
     private Disruptor<ServerEvent> disruptor;
     private RequestConsumer requestConsumer;
     private ServerEventHandler eventHandler;
-    private boolean running = false;
 
     public KafkaRpcServer(Disruptor<ServerEvent> disruptor, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
         this.disruptor = disruptor;
@@ -45,14 +44,12 @@ public class KafkaRpcServer implements RpcServer {
 
         RingBuffer<ServerEvent> ringBuffer = disruptor.getRingBuffer();
         requestConsumer.startConsumers(ringBuffer);
-        running = true;
     }
 
     @Override
     public void shutdown() {
         requestConsumer.shutdownConsumers();
         disruptor.shutdown();
-        running = false;
     }
 
     @Override
@@ -62,6 +59,6 @@ public class KafkaRpcServer implements RpcServer {
 
     @Override
     public boolean isRunning() {
-        return running;
+        return requestConsumer.isRunning();
     }
 }

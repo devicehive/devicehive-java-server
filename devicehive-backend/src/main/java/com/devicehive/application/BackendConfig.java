@@ -23,15 +23,22 @@ package com.devicehive.application;
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.health.DataSourceHealthIndicator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.shim.api.server.RpcServer;
 import org.springframework.context.annotation.Lazy;
 
+import javax.sql.DataSource;
+
 @Configuration
 public class BackendConfig {
+
+    @Autowired
+    private DataSource dataSource;
 
     @Bean
     public Gson gson() {
@@ -54,5 +61,10 @@ public class BackendConfig {
         beanConfig.setResourcePackage("com.devicehive.resource");
         beanConfig.setScan(true);
         return beanConfig;
+    }
+
+    @Bean
+    public DataSourceHealthIndicator dbHealthIndicator() {
+        return new DataSourceHealthIndicator(dataSource);
     }
 }

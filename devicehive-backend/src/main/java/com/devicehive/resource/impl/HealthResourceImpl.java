@@ -27,6 +27,8 @@ import com.devicehive.shim.api.server.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.DataSourceHealthIndicator;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
@@ -47,8 +49,18 @@ public class HealthResourceImpl implements HealthResource {
     @Autowired
     private RpcServer rpcServer;
 
+    @Autowired
+    private DataSourceHealthIndicator dataSourceHealthIndicator;
+
     @Override
     public Response getHealthStatus() {
+        logger.debug("Start DataSource health check");
+        if (dataSourceHealthIndicator.health().getStatus() != Status.UP) {
+            return Response
+                    .status(SERVICE_UNAVAILABLE)
+                    .entity(new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), "Data source isn't available"))
+                    .build();
+        }
         logger.debug("Start Hazelcast health check");
         if (!hazelcastService.isRunning()) {
             return Response
