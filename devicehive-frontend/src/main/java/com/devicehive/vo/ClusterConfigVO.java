@@ -25,8 +25,6 @@ import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.io.Serializable;
-
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_CLUSTER_CONFIG;
 
 /**
@@ -45,11 +43,6 @@ public class ClusterConfigVO implements HiveEntity {
     @ApiModelProperty(name = "zookeeper.connect")
     private String zookeeperConnect;
 
-    @JsonPolicyDef(REST_CLUSTER_CONFIG)
-    @SerializedName("threads.count")
-    @ApiModelProperty(name = "threads.count")
-    private Integer threadsCount;
-
     public String getBootstrapServers() {
         return bootstrapServers;
     }
@@ -66,11 +59,4 @@ public class ClusterConfigVO implements HiveEntity {
         this.zookeeperConnect = zookeeperConnect;
     }
 
-    public Integer getThreadsCount() {
-        return threadsCount;
-    }
-
-    public void setThreadsCount(Integer threadsCount) {
-        this.threadsCount = threadsCount;
-    }
 }

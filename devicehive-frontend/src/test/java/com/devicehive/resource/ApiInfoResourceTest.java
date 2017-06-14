@@ -52,6 +52,5 @@ public class ApiInfoResourceTest extends AbstractResourceTest {
         assertThat(clusterConfig, notNullValue());
         assertThat(clusterConfig.getBootstrapServers(), is(env.getProperty(Constants.BOOTSTRAP_SERVERS)));
         assertThat(clusterConfig.getZookeeperConnect(), is(env.getProperty(Constants.ZOOKEEPER_CONNECT)));
-        assertThat(clusterConfig.getThreadsCount(), is(1));
     }
 }
