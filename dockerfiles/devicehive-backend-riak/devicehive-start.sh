@@ -2,16 +2,34 @@
 
 set -x
 
+# Check if all required parameters are set
+if [ -z "$DH_ZK_ADDRESS" \
+  -o -z "$DH_KAFKA_ADDRESS" \
+  -o -z "$DH_RIAK_HOST" \
+  -o -z "$DH_RIAK_PORT" \
+  -o -z "$DH_RIAK_HOST_MEMBER" \
+  -o -z "$DH_RIAK_HTTP_PORT" ]
+then
+    echo "Some of required environment variables are not set or empty."
+    echo "Please check following vars are passed to container:"
+    echo "- DH_ZK_ADDRESS"
+    echo "- DH_KAFKA_ADDRESS"
+    echo "- DH_RIAK_HOST"
+    echo "- DH_RIAK_PORT"
+    echo "- DH_RIAK_HOST_MEMBER"
+    echo "- DH_RIAK_HTTP_PORT"
+    exit 1
+fi
 # Check if Zookeper, Kafka and riak are ready
 while true; do
-    `nc -N $DH_ZK_ADDRESS $DH_ZK_PORT`
+    nc -v -z -w1 $DH_ZK_ADDRESS ${DH_ZK_PORT:=2181}
     result_zk=$?
-    `nc -N $DH_KAFKA_ADDRESS $DH_KAFKA_PORT`
+    nc -v -z -w1 $DH_KAFKA_ADDRESS ${DH_KAFKA_PORT:=9092}
     result_kafka=$?
-    `curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"`
+    curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"
     result_riak=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_riak" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 -a "$result_zk" -eq 0 -a "$result_riak" -eq 0 ]; then
         break
     fi
     sleep 5
@@ -76,8 +94,8 @@ curl -XPUT \
     -d "{\"value\":1000}" \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/configuration/keys/user.login.lastTimeout
 
-echo "Starting DeviceHive"
-java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+echo "Starting DeviceHive backend"
+exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
 -Dflyway.enabled=false \
 -Driak.host=${DH_RIAK_HOST} \
 -Driak.port=${DH_RIAK_PORT} \
@@ -88,5 +106,3 @@ java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParal
 -Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-1} \
 -Drpc.server.disruptor.wait-strategy=${DH_RPC_SERVER_DISR_WAIT_STRATEGY:-blocking} \
 ./devicehive-backend-${DH_VERSION}-boot.jar
-
-set +x
