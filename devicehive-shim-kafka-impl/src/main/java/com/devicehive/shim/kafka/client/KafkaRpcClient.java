@@ -29,6 +29,8 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -83,45 +85,37 @@ public class KafkaRpcClient implements RpcClient {
     }
 
     @Override
-    public boolean ping() {
-        Request request = Request.newBuilder().build();
-        request.setReplyTo(replyToTopic);
-        request.setType(RequestType.ping);
-
-        logger.debug("Ping RpcServer");
-
-        CompletableFuture<Response> pingFuture = new CompletableFuture<>();
-
-        requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
-        requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
-
-        Response response = null;
-        try {
-            response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException e) {
-            logger.error("Exception occurred while trying to ping RpcServer ", e);
-        } catch (TimeoutException e) {
-            logger.warn("RpcServer didn't respond to ping request");
-        } finally {
-            requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
-        }
-
-        return response != null && !response.isFailed();
-    }
-
-    @Override
     public void shutdown() {
         requestProducer.close();
         responseListener.shutdown();
     }
 
     private void pingServer() {
+        Request request = Request.newBuilder().build();
+        request.setReplyTo(replyToTopic);
+        request.setType(RequestType.ping);
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
             logger.info("Ping RpcServer attempt {}", i);
 
-            if (ping()) {
+            CompletableFuture<Response> pingFuture = new CompletableFuture<>();
+
+            requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
+            requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
+
+            Response response = null;
+            try {
+                response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("Exception occured while trying to ping RpcServer ", e);
+            } catch (TimeoutException e) {
+                logger.warn("RpcServer didn't respond to ping request");
+                continue;
+            } finally {
+                requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
+            }
+            if (response != null && !response.isFailed()) {
                 connected = true;
                 break;
             } else {

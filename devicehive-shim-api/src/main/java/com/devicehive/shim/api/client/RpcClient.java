@@ -31,8 +31,6 @@ public interface RpcClient {
 
     void push(Request request);
 
-    boolean ping();
-
     default void start() { }
 
     default void shutdown() { }

@@ -22,6 +22,7 @@ package com.devicehive.shim.config.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
