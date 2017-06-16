@@ -37,13 +37,14 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
@@ -81,54 +82,6 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public UserVO findByGoogleName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("googleLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public UserVO findByFacebookName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("facebookLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public UserVO findByGithubName(String name) {
-        RiakUser riakUser = findBySecondaryIndex("githubLogin", name, USER_NS, RiakUser.class);
-        RiakUser.convertToVo(riakUser);
-        return RiakUser.convertToVo(riakUser);
-    }
-
-    @Override
-    public Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin) {
-        UserVO userToCheck;
-        userToCheck = findByGoogleName(googleLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        userToCheck = findByFacebookName(facebookLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        userToCheck = findByGithubName(githubLogin);
-        if (userToCheck != null) {
-            if (doesUserAlreadyExist(userToCheck, login)) {
-                return Optional.of(userToCheck);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
     public long hasAccessToNetwork(UserVO user, NetworkVO network) {
         Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
         if (networks != null && networks.contains(network.getId())) {
@@ -139,20 +92,20 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
-    public long hasAccessToDevice(UserVO user, String deviceGuid) {
+    public long hasAccessToDevice(UserVO user, String deviceId) {
         Set<Long> networkIds = userNetworkDao.findNetworksForUser(user.getId());
         for (Long networkId : networkIds) {
             Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
-                    .map(deviceDao::findByUUID)
+                    .map(deviceDao::findById)
                     .collect(Collectors.toSet());
             if (devices != null) {
-                long guidCount = devices
+                long idCount = devices
                         .stream()
-                        .map(DeviceVO::getGuid)
-                        .filter(g -> g.equals(deviceGuid))
+                        .map(DeviceVO::getId)
+                        .filter(g -> g.equals(deviceId))
                         .count();
-                if (guidCount > 0) {
-                    return guidCount;
+                if (idCount > 0) {
+                    return idCount;
                 }
             }
         }
@@ -239,7 +192,7 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     @Override
     public List<UserVO> list(String login, String loginPattern,
             Integer role, Integer status,
-            String sortField, Boolean isSortOrderAsc,
+            String sortField, boolean isSortOrderAsc,
             Integer take, Integer skip) {
 
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
@@ -271,7 +224,4 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
         }
     }
 
-    private boolean doesUserAlreadyExist(UserVO user, String login) {
-        return (!user.getLogin().equals(login) && user.getStatus() != UserStatus.DELETED);
-    }
 }

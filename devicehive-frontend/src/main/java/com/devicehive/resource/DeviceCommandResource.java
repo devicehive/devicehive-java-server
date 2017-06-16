@@ -36,7 +36,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
 /**
- * REST controller for device commands: <i>/device/{deviceGuid}/command</i>. See <a
+ * REST controller for device commands: <i>/device/{deviceId}/command</i>. See <a
  * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
  * details.
  */
@@ -48,24 +48,29 @@ public interface DeviceCommandResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/poll">DeviceHive RESTful
      * API: DeviceCommand: poll</a>
      *
-     * @param deviceGuid Device unique identifier.
-     * @param timestamp  Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
-     *                   instead.
-     * @param timeout    Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
-     *                   waiting.
+     * @param deviceId  Device unique identifier.
+     * @param namesString Command names
+     * @param timestamp   Timestamp of the last received command (UTC). If not specified, the server's timestamp is taken
+     *                    instead.
+     * @param timeout     Waiting timeout in seconds (default: 30 seconds, maximum: 60 seconds). Specify 0 to disable
+     *                    waiting.
+     * @param limit       Limit number of commands
      */
     @GET
-    @Path("/{deviceGuid}/command/poll")
+    @Path("/{deviceId}/command/poll")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void poll(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String deviceGuid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "names", value = "Command names")
             @QueryParam("names")
             String namesString,
@@ -78,6 +83,11 @@ public interface DeviceCommandResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
+            @ApiParam(name = "limit", value = "Limit number of commands", defaultValue = Constants.DEFAULT_TAKE_STR)
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            @Min(value = 0L, message = "Limit can't be less than " + 0L + ".")
+            @QueryParam("limit")
+            int limit,
             @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
@@ -88,10 +98,13 @@ public interface DeviceCommandResource {
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void pollMany(
-            @ApiParam(name = "deviceGuids", value = "List of device GUIDs")
-            @QueryParam("deviceGuids")
-            String deviceGuidsString,
+            @ApiParam(name = "deviceIds", value = "List of device IDs")
+            @QueryParam("deviceIds")
+            String deviceIdsString,
             @ApiParam(name = "names", value = "Command names")
             @QueryParam("names")
             String namesString,
@@ -104,11 +117,16 @@ public interface DeviceCommandResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
+            @ApiParam(name = "limit", value = "Limit number of commands", defaultValue = Constants.DEFAULT_TAKE_STR)
+            @DefaultValue(Constants.DEFAULT_TAKE_STR)
+            @Min(value = 0L, message = "Limit can't be less than " + 0L + ".")
+            @QueryParam("limit")
+            int limit,
             @Suspended AsyncResponse asyncResponse) throws Exception;
 
     @GET
-    @Path("/{deviceGuid}/command/{commandId}/poll")
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceGuid, 'GET_DEVICE_COMMAND')")
+    @Path("/{deviceId}/command/{commandId}/poll")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Waits for a command to be processed.",
             notes = "Waits for a command to be processed.<br>" +
                     "<br>" +
@@ -116,15 +134,18 @@ public interface DeviceCommandResource {
                     "<br>" +
                     "In the case when command is not processed, the method blocks until device acknowledges command execution. If the command is not processed within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "Command was not processed during waitTimeout."),
-            @ApiResponse(code = 400, message = "Command with commandId was not sent for device with deviceGuid or wrong input parameters."),
+            @ApiResponse(code = 400, message = "Command with commandId was not sent for device with deviceId or wrong input parameters."),
             @ApiResponse(code = 404, message = "Device or command was not found.")
     })
     void wait(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String deviceGuid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
@@ -137,16 +158,19 @@ public interface DeviceCommandResource {
             @Suspended AsyncResponse asyncResponse);
 
     @GET
-    @Path("/{deviceGuid}/command")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_COMMAND')")
+    @Path("/{deviceId}/command")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Query commands.",
             notes = "Gets list of commands that has been received in specified time range.",
             response = DeviceCommand.class,
             responseContainer = "List")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     void query(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "start", value = "Start timestamp")
             @QueryParam("start")
             String startTs,
@@ -181,22 +205,25 @@ public interface DeviceCommandResource {
      * "command":   "command_name" "parameters":    {/ * JSON Object * /} "lifetime":  100 "flags":     1 "status":
      * "comand_status" "result":    { / * JSON Object* /} } </code>
      *
-     * @param guid      String with Device GUID like "550e8400-e29b-41d4-a716-446655440000"
+     * @param deviceId  String with Device ID
      * @param commandId command id
      */
     @GET
-    @Path("/{deviceGuid}/command/{commandId}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_COMMAND')")
+    @Path("/{deviceId}/command/{commandId}")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Get command ",
-            notes = "Gets command by device GUID and command id",
+            notes = "Gets command by device ID and command id",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
     void get(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
@@ -210,23 +237,26 @@ public interface DeviceCommandResource {
      * flags, and optional value that could be supplied for device or related infrastructure. is not required\ </p> <p>
      * <i>Example response:</i> </p> <code> { "id": 1, "timestamp": "1970-01-01 00:00:00.0", "userId":    1 } </code>
      *
-     * @param guid          device guid
+     * @param deviceId      device guid
      * @param deviceCommand device command resource
      */
     @POST
-    @Path("/{deviceGuid}/command")
+    @Path("/{deviceId}/command")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'CREATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Creates new device command.",
             notes = "Creates new device command, stores and returns command with generated id.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device not found")
     })
     void insert(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(value = "Command body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_FROM_CLIENT)
             DeviceCommandWrapper deviceCommand,
@@ -237,7 +267,7 @@ public interface DeviceCommandResource {
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/DeviceCommand/update">DeviceHive RESTful
      * API: DeviceCommand: update</a> Updates an existing device command.
      *
-     * @param guid      Device unique identifier.
+     * @param deviceId  Device unique identifier.
      * @param commandId Device command identifier.
      * @param command   In the request body, supply a <a href="http://www.devicehive .com/restful#Reference/DeviceCommand">DeviceCommand</a>
      *                  resource. All fields are not required: flags - Command flags, and optional value that could be
@@ -247,19 +277,22 @@ public interface DeviceCommandResource {
      * @return If successful, this method returns an empty response body.
      */
     @PUT
-    @Path("/{deviceGuid}/command/{commandId}")
+    @Path("/{deviceId}/command/{commandId}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'UPDATE_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'UPDATE_DEVICE_COMMAND')")
     @ApiOperation(value = "Updates an existing device command.",
             notes = "Updates an existing device command.",
             response = DeviceCommand.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses(value = {
             @ApiResponse(code = 404, message = "If device or command not found")
     })
     void update(
-            @ApiParam(name = "deviceGuid", value = "Device GUID", required = true)
-            @PathParam("deviceGuid")
-            String guid,
+            @ApiParam(name = "deviceId", value = "Device ID", required = true)
+            @PathParam("deviceId")
+            String deviceId,
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             Long commandId,

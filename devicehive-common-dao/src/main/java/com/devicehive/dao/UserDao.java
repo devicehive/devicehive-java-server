@@ -31,17 +31,9 @@ import java.util.Optional;
 public interface UserDao {
     Optional<UserVO> findByName(String name);
 
-    UserVO findByGoogleName(String name);
-
-    UserVO findByFacebookName(String name);
-
-    UserVO findByGithubName(String name);
-
-    Optional<UserVO> findByIdentityName(String login, String googleLogin, String facebookLogin, String githubLogin);
-
     long hasAccessToNetwork(UserVO user, NetworkVO network);
 
-    long hasAccessToDevice(UserVO user, String deviceGuid);
+    long hasAccessToDevice(UserVO user, String deviceId);
 
     UserWithNetworkVO getWithNetworksById(long id);
 
@@ -56,5 +48,5 @@ public interface UserDao {
     void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId);
 
     List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                       Boolean sortOrderAsc, Integer take, Integer skip);
+                       boolean sortOrderAsc, Integer take, Integer skip);
 }

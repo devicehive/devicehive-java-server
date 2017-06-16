@@ -11,7 +11,6 @@ separate counter within the Counters bucket, identified by a key.
 
 **Keys:**
 * accessKeyCounter
-* deviceClassCounter
 * deviceCounter
 * deviceEquipmentCounter
 * networkCounter
@@ -55,23 +54,6 @@ none
 * long entityVersion
 * String value
 
-DeviceClass bucket
-------------------
-Stores the DeviceClass entities.
-
-**Bucket name:** _device_class_
-
-**Secondary indexes:**
-* _name_ - bin
-
-**Expected model:**
-* Long id - key
-* String name
-* Boolean isPermanent
-* Integer offlineTimeout
-* JsonStringWrapper data
-* Set<RiakDeviceClassEquipment> equipment
-
 Device bucket
 -------------
 Stores the Device entities.
@@ -79,16 +61,15 @@ Stores the Device entities.
 **Bucket name:** _device_
 
 **Secondary indexes:**
-* _guid_ - bin
+* _deviceId_ - bin
 
 **Expected model:**
 * Long id - key
-* String guid
+* String device_id
 * String name
 * String status
 * JsonStringWrapper data
 * RiakNetwork network
-* RiakDeviceClass deviceClass
 * Boolean blocked
 
 DeviceEquipment bucket
@@ -105,7 +86,7 @@ Stores the DeviceEquipment entities.
 * String code
 * Date timestamp
 * JsonStringWrapper parameters
-* String deviceGuid
+* String device_id
 * long entityVersion
 
 IdentityProvider bucket

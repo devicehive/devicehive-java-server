@@ -35,10 +35,10 @@ import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
-import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -64,12 +64,19 @@ public class CommonHandlers {
     @Autowired
     private TimestampService timestampService;
 
+    @Value("${server.context-path}")
+    private String contextPath;
+
 
     @PreAuthorize("permitAll")
     public WebSocketResponse processServerInfo(WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfoVO apiInfo = new ApiInfoVO();
         apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
+        session.getHandshakeHeaders().get("Host").stream()
+                .findFirst()
+                .ifPresent(host -> apiInfo.setRestServerUrl("http://" + host + contextPath + "/rest"));
+
         //TODO: Replace with timestamp service
         apiInfo.setServerTimestamp(timestampService.getDate());
         WebSocketResponse response = new WebSocketResponse();
@@ -78,7 +85,6 @@ public class CommonHandlers {
         return response;
     }
 
-    //TODO - replace with jwt authentication
     @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
 
@@ -143,7 +149,7 @@ public class CommonHandlers {
         }
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload));
+        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, false));
         return response;
     }
 }

@@ -26,6 +26,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserWithNetworkVO;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Column;
@@ -54,14 +55,17 @@ public class UserResponse implements HiveEntity {
     private String login;
 
     @Column(name = "login_attempts")
+    @ApiModelProperty(hidden = true)
     private Integer loginAttempts;
 
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1")
     private UserRole role;
 
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2")
     private UserStatus status;
 
     @JsonPolicyDef({USER_PUBLISHED})
@@ -72,6 +76,9 @@ public class UserResponse implements HiveEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin = new Date(0);
 
+    @SerializedName("introReviewed")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean introReviewed;
 
     public static UserResponse createFromUser(UserWithNetworkVO u) {
         UserResponse response = new UserResponse();
@@ -83,6 +90,7 @@ public class UserResponse implements HiveEntity {
         response.networks = new HashSet<>();
         response.networks.addAll(u.getNetworks().stream().map(UserNetworkResponse::fromNetwork).collect(Collectors.toList()));
         response.setLastLogin(u.getLastLogin());
+        response.setIntroReviewed(u.getIntroReviewed());
         return response;
     }
 
@@ -140,5 +148,13 @@ public class UserResponse implements HiveEntity {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
+    }
+
+    public Boolean getIntroReviewed() {
+        return introReviewed;
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
     }
 }

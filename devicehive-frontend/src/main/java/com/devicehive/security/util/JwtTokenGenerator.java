@@ -22,9 +22,11 @@ package com.devicehive.security.util;
 
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.service.time.TimestampService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -38,14 +40,16 @@ import java.util.Map;
 @Component
 public class JwtTokenGenerator {
 
-    @Value("${jwt.secret}")
-    String secret;
-
     @Value("${jwt.refresh-token-max-age}")
     long refreshTokenMaxAge;
 
     @Value("${jwt.access-token-max-age}")
     long accessTokenMaxAge;
+
+    @Autowired
+    private TimestampService timestampService;
+    @Autowired
+    private JwtSecretService jwtSecretService;
 
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified
@@ -54,10 +58,10 @@ public class JwtTokenGenerator {
      * @param payload the payload entity with which the token will be generated
      * @return the JWT token
      */
-    public String generateToken(JwtPayload payload, TokenType tokenType) {
-        
+    public String generateToken(JwtPayload payload, TokenType tokenType, boolean useExpiration) {
         long maxAge = tokenType.equals(TokenType.ACCESS) ? accessTokenMaxAge : refreshTokenMaxAge;
-        Date expiration = new Date(System.currentTimeMillis() + maxAge);
+        Date expiration = useExpiration && payload.getExpiration() != null ? payload.getExpiration() :
+                timestampService.getDate(System.currentTimeMillis() + maxAge);
         
         payload.setExpiration(expiration);
         payload.setTokenType(tokenType);
@@ -68,7 +72,8 @@ public class JwtTokenGenerator {
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
     }
+
 }

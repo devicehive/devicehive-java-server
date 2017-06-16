@@ -41,8 +41,6 @@ public class Constants {
     public static final int MAX_LOGIN_ATTEMPTS_DEFAULT = 10;
     public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
-    public static final String WEBSOCKET_SESSION_PING_TIMEOUT = "websocket.ping.timeout";
-    public static final long WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT = 2 * 60 * 1000; //2 minutes
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final Integer DEFAULT_TAKE = 100;
     public static final String DEFAULT_TAKE_STR = "100";
@@ -54,13 +52,15 @@ public class Constants {
     public static final String AUTH_DEVICE_KEY_HEADER = "Auth-DeviceKey";
     public static final ByteBuffer PING = ByteBuffer.wrap("devicehive-ping".getBytes(Charset.forName(UTF8)));
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
+    public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
+    public static final String DB_SECRET_VAR_NAME = "jwt.secret";
     //API constants
     public static final String DEVICE_ID = "deviceId";
-    public static final String DEVICE_GUID = "deviceGuid";
-    public static final String DEVICE_GUIDS = "deviceGuids";
+    public static final String DEVICE_IDS = "deviceIds";
     public static final String DEVICE_KEY = "deviceKey";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";
+    public static final String LIMIT = "limit";
     public static final String COMMAND_ID = "commandId";
     public static final String NOTIFICATION = "notification";
     public static final String COMMAND = "command";
@@ -70,27 +70,10 @@ public class Constants {
     public static final String LABEL = "label";
     public static final String STATUS = "status";
     public static final String NETWORK = "network";
-    public static final String DEVICE_CLASS = "deviceClass";
-    public static final String EQUIPMENT = "equipment";
     public static final String DOMAIN = "domain";
-    public static final String OAUTH_ID = "oauthId";
     public static final String LOGIN = "login";
     public static final String DEVICE = "device";
-    public static final String SESSION_TIMEOUT = "session.timeout";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
-
-    public static final String GOOGLE_IDENTITY_PROVIDER_ID = "google";
-    public static final String GOOGLE_IDENTITY_CLIENT_ID = "google.identity.client.id";
-    public static final String GOOGLE_IDENTITY_CLIENT_SECRET = "google.identity.client.secret";
-    public static final String GOOGLE_IDENTITY_ALLOWED = "google.identity.allowed";
-    public static final String FACEBOOK_IDENTITY_PROVIDER_ID = "facebook";
-    public static final String FACEBOOK_IDENTITY_CLIENT_ID = "facebook.identity.client.id";
-    public static final String FACEBOOK_IDENTITY_CLIENT_SECRET = "facebook.identity.client.secret";
-    public static final String FACEBOOK_IDENTITY_ALLOWED = "facebook.identity.allowed";
-    public static final String GITHUB_IDENTITY_PROVIDER_ID = "github";
-    public static final String GITHUB_IDENTITY_CLIENT_ID = "github.identity.client.id";
-    public static final String GITHUB_IDENTITY_CLIENT_SECRET = "github.identity.client.secret";
-    public static final String GITHUB_IDENTITY_ALLOWED = "github.identity.allowed";
 
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
     public static final String NOTIFICATION_TOPIC_NAME = "device_notification";

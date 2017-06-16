@@ -22,11 +22,9 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
-import com.devicehive.configuration.Constants;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.*;
 import com.devicehive.service.exception.BackendException;
 import com.devicehive.shim.api.Request;
@@ -36,7 +34,6 @@ import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -84,7 +81,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithResponse() throws Exception {
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String notification = "Expected notification";
         final Date timestamp = new Date();
@@ -92,7 +89,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         final DeviceNotification deviceNotification = new DeviceNotification();
         deviceNotification.setId(id);
-        deviceNotification.setDeviceGuid(guid);
+        deviceNotification.setDeviceId(deviceId);
         deviceNotification.setNotification(notification);
         deviceNotification.setTimestamp(timestamp);
         deviceNotification.setParameters(new JsonStringWrapper(parameters));
@@ -103,10 +100,10 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .buildSuccess());
 
         // call service method
-        notificationService.findOne(id, guid)
+        notificationService.findOne(id, deviceId)
                 .thenAccept(opt -> {
                     assertTrue(opt.isPresent());
-                    assertEquals(guid, opt.get().getDeviceGuid());
+                    assertEquals(deviceId, opt.get().getDeviceId());
                     assertEquals(timestamp, opt.get().getTimestamp());
                     assertEquals(parameters, opt.get().getParameters().getJsonString());
                     assertEquals(notification, opt.get().getNotification());
@@ -122,7 +119,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
-        assertEquals(guid, request.getGuid());
+        assertEquals(deviceId, request.getDeviceId());
         assertNull(request.getStatus());
         assertNull(request.getNames());
         assertNull(request.getTimestampStart());
@@ -133,7 +130,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithEmptyResponse() throws Exception {
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
 
         // return empty response for any request
@@ -142,7 +139,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .buildSuccess());
 
         // call service method
-        notificationService.findOne(id, guid)
+        notificationService.findOne(id, deviceId)
                 .thenAccept(opt -> assertFalse(opt.isPresent()))
                 .exceptionally(ex -> {
                     fail(ex.toString());
@@ -154,7 +151,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
-        assertEquals(guid, request.getGuid());
+        assertEquals(deviceId, request.getDeviceId());
         assertNull(request.getStatus());
         assertNull(request.getNames());
         assertNull(request.getTimestampStart());
@@ -164,7 +161,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindOneWithErrorResponse() throws Exception {
-        final String guid = UUID.randomUUID().toString();
+        final String deviceId = UUID.randomUUID().toString();
         final long id = System.currentTimeMillis();
         final String expectedErrorMessage = "EXPECTED ERROR MESSAGE";
         final int errorCode = 500;
@@ -175,7 +172,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 .buildFailed(errorCode));
 
         // call service method
-        notificationService.findOne(id, guid)
+        notificationService.findOne(id, deviceId)
                 .thenAccept(opt -> fail("Must be completed exceptionally"))
                 .exceptionally(ex -> {
                     assertEquals(BackendException.class, ex.getCause().getClass());
@@ -189,7 +186,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
-        assertEquals(guid, request.getGuid());
+        assertEquals(deviceId, request.getDeviceId());
         assertNull(request.getStatus());
         assertNull(request.getNames());
         assertNull(request.getTimestampStart());
@@ -199,23 +196,23 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithEmptyResponse() throws Exception {
-        final List<String> guids = IntStream.range(0, 5)
+        final List<String> deviceIds = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
         final Date timestampSt = new Date();
         final Date timestampEnd = new Date();
 
-        final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
-                guids.get(0),
-                guids.get(2),
-                guids.get(3)));
+        final Set<String> idsForSearch = new HashSet<>(Arrays.asList(
+                deviceIds.get(0),
+                deviceIds.get(2),
+                deviceIds.get(3)));
 
         // return empty response for any request
         when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder()
                 .withBody(new NotificationSearchResponse(Collections.emptyList()))
                 .buildSuccess());
 
-        notificationService.find(guidsForSearch, Collections.emptySet(), timestampSt, timestampEnd)
+        notificationService.find(idsForSearch, Collections.emptySet(), timestampSt, timestampEnd)
                 .thenAccept(notifications -> assertTrue(notifications.isEmpty()))
                 .exceptionally(ex -> {
                     fail(ex.toString());
@@ -226,7 +223,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertNull(request.getId());
-        assertTrue(guidsForSearch.contains(request.getGuid()));
+        assertTrue(idsForSearch.contains(request.getDeviceId()));
         assertTrue(request.getNames().isEmpty());
         assertEquals(timestampSt, request.getTimestampStart());
         assertEquals(timestampEnd, request.getTimestampEnd());
@@ -235,24 +232,24 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testFindWithResponse() throws Exception {
-        final List<String> guids = IntStream.range(0, 5)
+        final List<String> deviceIds = IntStream.range(0, 5)
                 .mapToObj(i -> UUID.randomUUID().toString())
                 .collect(Collectors.toList());
         final Date timestampSt = new Date();
         final Date timestampEnd = new Date();
         final String parameters = "{\"param1\":\"value1\",\"param2\":\"value2\"}";
 
-        final Set<String> guidsForSearch = new HashSet<>(Arrays.asList(
-                guids.get(0),
-                guids.get(2),
-                guids.get(3)));
+        final Set<String> idsForSearch = new HashSet<>(Arrays.asList(
+                deviceIds.get(0),
+                deviceIds.get(2),
+                deviceIds.get(3)));
 
         // return response for any request
-        Map<String, DeviceNotification> notificationMap = guidsForSearch.stream()
-                .collect(Collectors.toMap(Function.identity(), guid -> {
+        Map<String, DeviceNotification> notificationMap = idsForSearch.stream()
+                .collect(Collectors.toMap(Function.identity(), deviceId -> {
                     DeviceNotification notification = new DeviceNotification();
                     notification.setId(System.nanoTime());
-                    notification.setDeviceGuid(guid);
+                    notification.setDeviceId(deviceId);
                     notification.setNotification(RandomStringUtils.randomAlphabetic(10));
                     notification.setTimestamp(new Date());
                     notification.setParameters(new JsonStringWrapper(parameters));
@@ -261,14 +258,14 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
-            String guid = request.getBody().cast(NotificationSearchRequest.class).getGuid();
+            String deviceId = request.getBody().cast(NotificationSearchRequest.class).getDeviceId();
             return Response.newBuilder()
-                    .withBody(new NotificationSearchResponse(Collections.singletonList(notificationMap.get(guid))))
+                    .withBody(new NotificationSearchResponse(Collections.singletonList(notificationMap.get(deviceId))))
                     .buildSuccess();
         });
 
 
-        notificationService.find(guidsForSearch, Collections.emptySet(), timestampSt, timestampEnd)
+        notificationService.find(idsForSearch, Collections.emptySet(), timestampSt, timestampEnd)
                 .thenAccept(notifications -> {
                     assertEquals(3, notifications.size());
                     assertEquals(new HashSet<>(notificationMap.values()), new HashSet<>(notifications)); // using HashSet to ignore order
@@ -286,13 +283,13 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     public void testSubmitDeviceNotificationShouldInsertSingleNotification() throws Exception {
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
-        deviceVO.setGuid(UUID.randomUUID().toString());
+        deviceVO.setDeviceId(UUID.randomUUID().toString());
 
         final DeviceNotification deviceNotification = new DeviceNotification();
         deviceNotification.setId(System.nanoTime());
         deviceNotification.setTimestamp(new Date());
         deviceNotification.setNotification(RandomStringUtils.randomAlphabetic(10));
-        deviceNotification.setDeviceGuid(deviceVO.getGuid());
+        deviceNotification.setDeviceId(deviceVO.getDeviceId());
 
         when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder()
                 .withBody(new NotificationInsertResponse(deviceNotification))
@@ -316,19 +313,18 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationWithRefreshEquipmentShouldInsertSingleNotification() throws Exception {
         // mock DeviceDao
-        final DeviceEquipmentService equipmentServiceMock = Mockito.mock(DeviceEquipmentService.class);
-        Whitebox.setInternalState(notificationService, "deviceEquipmentService", equipmentServiceMock);
+        final DeviceDao deviceDaoMock = Mockito.mock(DeviceDao.class);
+        Whitebox.setInternalState(notificationService, "deviceDao", deviceDaoMock);
 
         // create inputs
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
-        deviceVO.setGuid(UUID.randomUUID().toString());
+        deviceVO.setDeviceId(UUID.randomUUID().toString());
 
         final DeviceNotification deviceNotification = new DeviceNotification();
         deviceNotification.setId(System.nanoTime());
         deviceNotification.setTimestamp(new Date());
-        deviceNotification.setNotification(SpecialNotifications.EQUIPMENT);
-        deviceNotification.setDeviceGuid(deviceVO.getGuid());
+        deviceNotification.setDeviceId(deviceVO.getDeviceId());
 
         // define returns
         when(requestHandler.handle(any(Request.class))).thenReturn(Response.newBuilder()
@@ -345,7 +341,6 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
 
         // check
         verify(requestHandler, times(1)).handle(argument.capture());
-        verify(equipmentServiceMock, times(1)).refreshDeviceEquipment(eq(deviceNotification), eq(deviceVO));
 
         NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
         assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());

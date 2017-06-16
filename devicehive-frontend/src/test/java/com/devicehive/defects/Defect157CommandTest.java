@@ -26,10 +26,9 @@ import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.base.fixture.DeviceFixture;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.NetworkService;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceClassEquipmentVO;
 import com.devicehive.vo.NetworkVO;
 import org.junit.After;
 import org.junit.Before;
@@ -47,6 +46,7 @@ import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
+import static java.util.UUID.randomUUID;
 import static javax.ws.rs.core.Response.Status.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -56,10 +56,13 @@ import static org.junit.Assert.assertNotNull;
  */
 public class Defect157CommandTest extends AbstractResourceTest {
 
-    private final String guid = UUID.randomUUID().toString();
+    private final String deviceId = UUID.randomUUID().toString();
 
     @Autowired
     private RequestDispatcherProxy requestDispatcherProxy;
+
+    @Autowired
+    private NetworkService networkService;
 
     @Mock
     private RequestHandler requestHandler;
@@ -82,24 +85,23 @@ public class Defect157CommandTest extends AbstractResourceTest {
 
     @Before
     public void prepareCommands() {
-        DeviceClassEquipmentVO equipment = DeviceFixture.createEquipmentVO();
-        DeviceClassUpdate deviceClass = DeviceFixture.createDeviceClass();
-        deviceClass.setEquipment(Optional.of(Collections.singleton(equipment)));
         NetworkVO network = DeviceFixture.createNetwork();
-        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(guid);
-        deviceUpdate.setDeviceClass(Optional.of(deviceClass));
-        deviceUpdate.setNetwork(Optional.of(network));
+        network.setName("" + randomUUID());
+    	NetworkVO created = networkService.create(network);
+
+        DeviceUpdate deviceUpdate = DeviceFixture.createDevice(deviceId);
+        deviceUpdate.setNetworkId(created.getId());
 
         // register device
-        Response response = performRequest("/device/" + guid, "PUT", emptyMap(),
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+        Response response = performRequest("/device/" + deviceId, "PUT", emptyMap(),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 deviceUpdate, NO_CONTENT, null);
         assertNotNull(response);
 
         {
             DeviceCommand command = createDeviceCommand("c1", "s2");
-            command = performRequest("/device/" + guid + "/command", "POST", emptyMap(),
-                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+            command = performRequest("/device/" + deviceId + "/command", "POST", emptyMap(),
+                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     command, CREATED, DeviceCommand.class);
 
             assertNotNull(command.getId());
@@ -107,8 +109,8 @@ public class Defect157CommandTest extends AbstractResourceTest {
 
         {
             DeviceCommand command = createDeviceCommand("c2", "s1");
-            command = performRequest("/device/" + guid + "/command", "POST", emptyMap(),
-                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+            command = performRequest("/device/" + deviceId + "/command", "POST", emptyMap(),
+                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     command, CREATED, DeviceCommand.class);
 
             assertNotNull(command.getId());
@@ -116,8 +118,8 @@ public class Defect157CommandTest extends AbstractResourceTest {
 
         {
             DeviceCommand command = createDeviceCommand("c3", "s3");
-            command = performRequest("/device/" + guid + "/command", "POST", emptyMap(),
-                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+            command = performRequest("/device/" + deviceId + "/command", "POST", emptyMap(),
+                    singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                     command, CREATED, DeviceCommand.class);
 
             assertNotNull(command.getId());
@@ -129,19 +131,19 @@ public class Defect157CommandTest extends AbstractResourceTest {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "asc");
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(3, commands.size());
 
-        assertEquals("s3", ((Map) commands.get(2)).get("status"));
-        assertEquals("c3", ((Map) commands.get(2)).get("command"));
-        assertEquals("s2", ((Map) commands.get(1)).get("status"));
-        assertEquals("c1", ((Map) commands.get(1)).get("command"));
-        assertEquals("s1", ((Map) commands.get(0)).get("status"));
-        assertEquals("c2", ((Map) commands.get(0)).get("command"));
+        assertEquals("s3", ((Map<?, ?>) commands.get(2)).get("status"));
+        assertEquals("c3", ((Map<?, ?>) commands.get(2)).get("command"));
+        assertEquals("s2", ((Map<?, ?>) commands.get(1)).get("status"));
+        assertEquals("c1", ((Map<?, ?>) commands.get(1)).get("command"));
+        assertEquals("s1", ((Map<?, ?>) commands.get(0)).get("status"));
+        assertEquals("c2", ((Map<?, ?>) commands.get(0)).get("command"));
     }
 
     @Test
@@ -149,19 +151,19 @@ public class Defect157CommandTest extends AbstractResourceTest {
         Map<String, Object> vals = new HashMap<>();
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(3, commands.size());
 
-        assertEquals("s3", ((Map) commands.get(0)).get("status"));
-        assertEquals("c3", ((Map) commands.get(0)).get("command"));
-        assertEquals("s2", ((Map) commands.get(1)).get("status"));
-        assertEquals("c1", ((Map) commands.get(1)).get("command"));
-        assertEquals("s1", ((Map) commands.get(2)).get("status"));
-        assertEquals("c2", ((Map) commands.get(2)).get("command"));
+        assertEquals("s3", ((Map<?, ?>) commands.get(0)).get("status"));
+        assertEquals("c3", ((Map<?, ?>) commands.get(0)).get("command"));
+        assertEquals("s2", ((Map<?, ?>) commands.get(1)).get("status"));
+        assertEquals("c1", ((Map<?, ?>) commands.get(1)).get("command"));
+        assertEquals("s1", ((Map<?, ?>) commands.get(2)).get("status"));
+        assertEquals("c2", ((Map<?, ?>) commands.get(2)).get("command"));
     }
 
     @Test
@@ -170,17 +172,17 @@ public class Defect157CommandTest extends AbstractResourceTest {
         vals.put("sortField", "status");
         vals.put("sortOrder", "desc");
         vals.put("skip", 1);
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(2, commands.size());
 
-        assertEquals("s2", ((Map) commands.get(0)).get("status"));
-        assertEquals("c1", ((Map) commands.get(0)).get("command"));
-        assertEquals("s1", ((Map) commands.get(1)).get("status"));
-        assertEquals("c2", ((Map) commands.get(1)).get("command"));
+        assertEquals("s2", ((Map<?, ?>) commands.get(0)).get("status"));
+        assertEquals("c1", ((Map<?, ?>) commands.get(0)).get("command"));
+        assertEquals("s1", ((Map<?, ?>) commands.get(1)).get("status"));
+        assertEquals("c2", ((Map<?, ?>) commands.get(1)).get("command"));
     }
 
 
@@ -191,15 +193,15 @@ public class Defect157CommandTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 1);
         vals.put("take", 1);
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(1, commands.size());
 
-        assertEquals("s2", ((Map) commands.get(0)).get("status"));
-        assertEquals("c1", ((Map) commands.get(0)).get("command"));
+        assertEquals("s2", ((Map<?, ?>) commands.get(0)).get("status"));
+        assertEquals("c1", ((Map<?, ?>) commands.get(0)).get("command"));
     }
 
     @Test
@@ -209,9 +211,9 @@ public class Defect157CommandTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 5);
         vals.put("take", 3);
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(0, commands.size());
@@ -224,9 +226,9 @@ public class Defect157CommandTest extends AbstractResourceTest {
         vals.put("sortOrder", "desc");
         vals.put("skip", 2);
         vals.put("take", Integer.MAX_VALUE);
-        List commands = performRequest("/device/" + guid + "/command", "GET",
+        List<?> commands = performRequest("/device/" + deviceId + "/command", "GET",
                 vals,
-                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ACCESS_KEY)),
+                singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)),
                 null, OK, List.class);
         assertNotNull(commands);
         assertEquals(1, commands.size());

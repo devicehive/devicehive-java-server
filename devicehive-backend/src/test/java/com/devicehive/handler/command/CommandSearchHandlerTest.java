@@ -36,12 +36,9 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class CommandSearchHandlerTest extends AbstractSpringTest {
 
@@ -68,12 +65,12 @@ public class CommandSearchHandlerTest extends AbstractSpringTest {
         DeviceCommand command = new DeviceCommand();
         command.setId(System.currentTimeMillis());
         command.setCommand("do_work");
-        command.setDeviceGuid(UUID.randomUUID().toString());
+        command.setDeviceId(UUID.randomUUID().toString());
         return command;
     }
 
     @Test
-    public void shouldHandleCommandInsertAndQueryByCommandNameAndDeviceGuid() throws Exception {
+    public void shouldHandleCommandInsertAndQueryByCommandNameAndDeviceId() throws Exception {
         DeviceCommand command = generateCommand();
 
         CommandInsertRequest cir = new CommandInsertRequest(command);
@@ -89,7 +86,7 @@ public class CommandSearchHandlerTest extends AbstractSpringTest {
         assertEquals(command, body.getDeviceCommand());
 
         CommandSearchRequest csr = new CommandSearchRequest();
-        csr.setGuid(command.getDeviceGuid());
+        csr.setDeviceId(command.getDeviceId());
         csr.setNames(Collections.singleton(command.getCommand()));
 
         response = handlerSearch.handle(
@@ -106,7 +103,7 @@ public class CommandSearchHandlerTest extends AbstractSpringTest {
     }
 
     @Test
-    public void shouldHandleCommandInsertAndGetByCommandIdAndDeviceGuid() throws Exception {
+    public void shouldHandleCommandInsertAndGetByCommandIdAndDeviceId() throws Exception {
          DeviceCommand command = generateCommand();
 
         CommandInsertRequest cir = new CommandInsertRequest(command);
@@ -122,7 +119,7 @@ public class CommandSearchHandlerTest extends AbstractSpringTest {
         assertEquals(command, body.getDeviceCommand());
 
         CommandSearchRequest csr = new CommandSearchRequest();
-        csr.setGuid(command.getDeviceGuid());
+        csr.setDeviceId(command.getDeviceId());
         csr.setId(command.getId());
         response = handlerSearch.handle(
                 Request.newBuilder()

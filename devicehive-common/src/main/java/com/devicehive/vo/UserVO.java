@@ -25,10 +25,9 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -44,48 +43,46 @@ public class UserVO implements HiveEntity {
 
     @SerializedName("login")
     @NotNull(message = "login field cannot be null.")
-    @Size(min = 1, max = 128, message = "Field cannot be empty. The length of login should not be more than 128 " +
+    @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 " +
             "symbols.")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
     private String login;
 
+    @ApiModelProperty(hidden = true)
     private String passwordHash;
 
+    @ApiModelProperty(hidden = true)
     private String passwordSalt;
 
+    @ApiModelProperty(hidden = true)
     private Integer loginAttempts;
 
     @SerializedName("role")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1")
     private UserRole role;
 
     @SerializedName("status")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED})
+    @ApiModelProperty(dataType = "int", allowableValues = "0, 1, 2")
     private UserStatus status;
 
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Date lastLogin;
 
-    @SerializedName("googleLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String googleLogin;
-
-    @SerializedName("facebookLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String facebookLogin;
-
-    @SerializedName("githubLogin")
-    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
-    private String githubLogin;
-
     @SerializedName("data")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private JsonStringWrapper data;
 
+    @SerializedName("introReviewed")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean introReviewed;
+
     /**
      * @return true, if user is admin
      */
+    @ApiModelProperty(hidden = true)
     public boolean isAdmin() {
         return UserRole.ADMIN.equals(role);
     }
@@ -154,36 +151,20 @@ public class UserVO implements HiveEntity {
         this.loginAttempts = loginAttempts;
     }
 
-    public String getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(String googleLogin) {
-        this.googleLogin = StringUtils.trim(googleLogin);
-    }
-
-    public String getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(String facebookLogin) {
-        this.facebookLogin = StringUtils.trim(facebookLogin);
-    }
-
-    public String getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(String githubLogin) {
-        this.githubLogin = StringUtils.trim(githubLogin);
-    }
-
     public JsonStringWrapper getData() {
         return data;
     }
 
     public void setData(JsonStringWrapper data) {
         this.data = data;
+    }
+
+    public Boolean getIntroReviewed() {
+        return introReviewed;
+    }
+
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
     }
 
     @Override

@@ -24,6 +24,7 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -35,10 +36,6 @@ public class NetworkVO implements HiveEntity {
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED, NETWORK_SUBMITTED})
     private Long id;
-    @SerializedName("key")
-    @Size(max = 64, message = "The length of key should not be more than 64 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private String key;
     @SerializedName("name")
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
@@ -50,6 +47,7 @@ public class NetworkVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED,
             NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
+    @ApiModelProperty(hidden = true)
     private Long entityVersion;
 
     public Long getId() {
@@ -58,14 +56,6 @@ public class NetworkVO implements HiveEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
     }
 
     public String getName() {

@@ -20,9 +20,8 @@ package com.devicehive.resource;
  * #L%
  */
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import com.devicehive.vo.ConfigurationVO;
+import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
@@ -33,21 +32,48 @@ import javax.ws.rs.core.Response;
  */
 @Api(tags = {"Configuration"}, description = "Configuration operations", consumes="application/json")
 @Path("/configuration")
+@Produces({"application/json"})
 public interface ConfigurationResource {
 
     @GET
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Get property", notes = "Returns requested property value")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(
+                    code = 200,
+                    message = "If successful, this method returns a Configuration resource in the response body.",
+                    response = ConfigurationVO.class
+            ),
+            @ApiResponse(code = 400, message = "If request is malformed"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response get(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
                     String name);
 
     @PUT
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+        @ApiResponse(
+                code = 200,
+                message = "If successful, this method returns a Configuration resource in the response body.",
+                response = ConfigurationVO.class
+        ),
+        @ApiResponse(code = 400, message = "If request is malformed"),
+        @ApiResponse(code = 401, message = "If request is not authorized"),
+        @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response setProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
@@ -55,22 +81,19 @@ public interface ConfigurationResource {
             @ApiParam(value = "Property value", required = true)
                     String value);
 
-    @GET
-    @PreAuthorize("isAuthenticated()")
-    @Path("/{name}/set")
-    @ApiOperation(value = "Create or update property", notes = "Creates new or updates existing property")
-    Response setPropertyGet(
-            @ApiParam(name = "name", required = true, value = "Property name")
-            @PathParam("name")
-                    String name,
-            @ApiParam(name = "value", value = "Property value", required = true)
-            @QueryParam("value")
-                    String value);
-
     @DELETE
-    @PreAuthorize("isAuthenticated()")
     @Path("/{name}")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     @ApiOperation(value = "Delete property", notes = "Deletes property")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+        @ApiResponse(code = 400, message = "If request is malformed"),
+        @ApiResponse(code = 401, message = "If request is not authorized"),
+        @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
     Response deleteProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")

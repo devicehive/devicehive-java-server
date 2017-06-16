@@ -28,26 +28,26 @@ import java.util.Objects;
 public class Subscription {
 
     private String type;
-    private String guid;
+    private String deviceId;
     private String name;
 
     /**
      * @param type - type of event to subscribe to (notification, command, command update)
-     * @param guid - guid of event to subscribe to (id of device, command)
+     * @param deviceId - deviceId of event to subscribe to (id of device, command)
      */
-    public Subscription(String type, String guid) {
+    public Subscription(String type, String deviceId) {
         this.type = type;
-        this.guid = guid;
+        this.deviceId = deviceId;
     }
 
     /**
      * @param type - type of event to subscribe to (notification, command, command update)
-     * @param guid - guid of event to subscribe to (id of device, command)
+     * @param deviceId - deviceId of event to subscribe to (id of device, command)
      * @param name - specific event name to subscribe to (notification name, command name)
      */
-    public Subscription(String type, String guid, String name) {
+    public Subscription(String type, String deviceId, String name) {
         this.type = type;
-        this.guid = guid;
+        this.deviceId = deviceId;
         this.name = name;
     }
 
@@ -55,8 +55,8 @@ public class Subscription {
         return type;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
     public String getName() {
@@ -69,20 +69,20 @@ public class Subscription {
         if (!(o instanceof Subscription)) return false;
         Subscription that = (Subscription) o;
         return Objects.equals(type, that.type) &&
-                Objects.equals(guid, that.guid) &&
+                Objects.equals(deviceId, that.deviceId) &&
                 Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, guid, name);
+        return Objects.hash(type, deviceId, name);
     }
 
     @Override
     public String toString() {
         return "Subscription{" +
                 "type='" + type + '\'' +
-                ", guid='" + guid + '\'' +
+                ", deviceId='" + deviceId + '\'' +
                 ", name='" + name + '\'' +
                 '}';
     }

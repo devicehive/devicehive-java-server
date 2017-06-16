@@ -19,7 +19,6 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
-
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
@@ -29,7 +28,6 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -56,12 +54,10 @@ import static java.util.Optional.*;
 
 @Component
 public class NetworkService {
-    public static final String ALLOW_NETWORK_AUTO_CREATE = "allowNetworkAutoCreate";
+
     private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
     @Autowired
     private UserService userService;
-    @Autowired
-    private ConfigurationService configurationService;
     @Autowired
     private HiveValidator hiveValidator;
     @Autowired
@@ -70,42 +66,33 @@ public class NetworkService {
     private RpcClient rpcClient;
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public NetworkWithUsersAndDevicesVO getWithDevicesAndDeviceClasses(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
+    public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
         Set<Long> permittedNetworks = principal.getNetworkIds();
-        Set<String> permittedDevices = principal.getDeviceGuids();
+        Set<String> permittedDevices = principal.getDeviceIds();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
-                    if (pr.getUser() != null)
+                    if (pr.getUser() != null) {
                         return of(pr.getUser());
-                    else
+                    } else {
                         return empty();
-                }).flatMap(user -> {
-                    Long idForFiltering = user.isAdmin() ? null : user.getId();
-                    List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
-                            Collections.singleton(networkId), permittedNetworks);
-                    return found.stream().findFirst();
-                }).map(network -> {
-                    //fixme - important, restore functionality once permission evaluator is switched to jwt
-                    /*if (principal.getKey() != null) {
-                        Set<AccessKeyPermissionVO> permissions = principal.getKey().getPermissions();
-                        Set<AccessKeyPermissionVO> filtered = CheckPermissionsHelper
-                                .filterPermissions(principal.getKey(), permissions, AccessKeyAction.GET_DEVICE,
-                                        details.getClientInetAddress(), details.getOrigin());
-                        if (filtered.isEmpty()) {
-                            network.setDevices(Collections.emptySet());
-                        }
-                    }*/
-                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
-                        Set<DeviceVO> allowed = network.getDevices().stream()
-                                .filter(device -> permittedDevices.contains(device.getGuid()))
-                                .collect(Collectors.toSet());
-                        network.setDevices(allowed);
                     }
-                    return network;
-                });
+                }).flatMap(user -> {
+            Long idForFiltering = user.isAdmin() ? null : user.getId();
+            List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
+                    Collections.singleton(networkId), permittedNetworks);
+            return found.stream().findFirst();
+        }).map(network -> {
+            if (permittedDevices != null && !permittedDevices.isEmpty()) {
+                Set<DeviceVO> allowed = network.getDevices().stream()
+                        .filter(device -> permittedDevices.contains(device.getDeviceId()))
+                        .collect(Collectors.toSet());
+                network.setDevices(allowed);
+            }
+            return network;
+        });
 
         return result.orElse(null);
     }
@@ -120,6 +107,7 @@ public class NetworkService {
 
     @Transactional
     public NetworkVO create(NetworkVO newNetwork) {
+        hiveValidator.validate(newNetwork);
         logger.debug("Creating network {}", newNetwork);
         if (newNetwork.getId() != null) {
             logger.error("Can't create network entity with id={} specified", newNetwork.getId());
@@ -130,7 +118,6 @@ public class NetworkService {
             logger.error("Network with name {} already exists", newNetwork.getName());
             throw new ActionNotAllowedException(Messages.DUPLICATE_NETWORK);
         }
-        hiveValidator.validate(newNetwork);
         networkDao.persist(newNetwork);
         logger.info("Entity {} created successfully", newNetwork);
         return newNetwork;
@@ -142,14 +129,11 @@ public class NetworkService {
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
         }
-        if (networkUpdate.getKey() != null) {
-            existing.setKey(networkUpdate.getKey().orElse(null));
+        if (networkUpdate.getName().isPresent()){
+            existing.setName(networkUpdate.getName().get());
         }
-        if (networkUpdate.getName() != null) {
-            existing.setName(networkUpdate.getName().orElse(null));
-        }
-        if (networkUpdate.getDescription() != null) {
-            existing.setDescription(networkUpdate.getDescription().orElse(null));
+        if (networkUpdate.getDescription().isPresent()){
+            existing.setDescription(networkUpdate.getDescription().get());
         }
         hiveValidator.validate(existing);
 
@@ -158,12 +142,12 @@ public class NetworkService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<NetworkVO>> list(String name,
-                                                   String namePattern,
-                                                   String sortField,
-                                                   boolean sortOrderAsc,
-                                                   Integer take,
-                                                   Integer skip,
-                                                   HivePrincipal principal) {
+            String namePattern,
+            String sortField,
+            boolean sortOrderAsc,
+            Integer take,
+            Integer skip,
+            HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListNetworkRequest request = new ListNetworkRequest();
@@ -183,7 +167,7 @@ public class NetworkService {
     }
 
     @Transactional
-    public NetworkVO createOrVerifyNetwork(Optional<NetworkVO> networkNullable) {
+    public NetworkVO verifyNetwork(Optional<NetworkVO> networkNullable) {
         //case network is not defined
         if (networkNullable == null || networkNullable.orElse(null) == null) {
             return null;
@@ -192,19 +176,10 @@ public class NetworkService {
 
         Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            return validateNetworkKey(storedOpt.get(), network);
-        } else {
-            if (network.getId() != null) {
-                throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
-            }
-            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (allowed) {
-                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
-                networkDao.persist(newNetwork);
-                network.setId(newNetwork.getId());
-            }
-            return network;
+            return storedOpt.get();
         }
+
+        throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, network.getId()));
     }
 
     @Transactional
@@ -218,17 +193,12 @@ public class NetworkService {
 
         Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
         if (storedOpt.isPresent()) {
-            NetworkVO stored = validateNetworkKey(storedOpt.get(), network);
-            if (!userService.hasAccessToNetwork(user, stored)) {
-                throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-            }
-            return stored;
+            return storedOpt.get();
         } else {
             if (network.getId() != null) {
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
-            boolean allowed = configurationService.getBoolean(ALLOW_NETWORK_AUTO_CREATE, false);
-            if (user.isAdmin() || allowed) {
+            if (user.isAdmin()) {
                 NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
                 networkDao.persist(newNetwork);
                 network.setId(newNetwork.getId());
@@ -240,16 +210,30 @@ public class NetworkService {
         }
     }
 
+    @Transactional
+    public Long findDefaultNetworkByUserId(Long userId) {
+    	return networkDao.findDefaultByUser(userId)
+    			.map(nvo -> nvo.getId())
+    			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
+    }
+
+    @Transactional
+    public NetworkVO createOrUpdateNetworkByUser(UserVO user) {
+        NetworkVO networkVO = new NetworkVO();
+        networkVO.setName(user.getLogin());
+        networkVO.setDescription(String.format("User %s default network", user.getLogin()));
+        return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
+    }
+
+    public boolean isNetworkExists(Long networkId) {
+    	return ofNullable(networkId)
+        	.map(id -> networkDao.find(id) != null)
+        	.orElse(false);
+    }
+
     private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(networkDao.find(id)))
                 .orElseGet(() -> networkDao.findFirstByName(network.getName()));
-    }
-
-    private NetworkVO validateNetworkKey(NetworkVO stored, NetworkVO received) {
-        if (stored.getKey() != null && !stored.getKey().equals(received.getKey())) {
-            throw new ActionNotAllowedException(Messages.INVALID_NETWORK_KEY);
-        }
-        return stored;
     }
 }

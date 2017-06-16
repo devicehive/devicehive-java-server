@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -33,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,10 +46,9 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
     
     @Autowired
     private JwtClientService jwtClientService;
+    @Autowired
+    private JwtSecretService jwtSecretService;
             
-    @Value("${jwt.secret}")
-    private String secret;
-
     @Rule
     public ExpectedException expectedEx = ExpectedException.none();
 
@@ -61,12 +60,12 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        String token = jwtClientService.generateJwtAccessToken(payload);
+        String token = jwtClientService.generateJwtAccessToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.ACCESS);
@@ -80,12 +79,12 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        String token = jwtClientService.generateJwtRefreshToken(payload);
+        String token = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.REFRESH);
@@ -99,10 +98,10 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceGuids = new HashSet<>();
-        deviceGuids.add("string");
+        Set<String> deviceIds = new HashSet<>();
+        deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceGuids).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         // Generate key without expiration date and token type
         Map<String, Object> jwtMap = new HashMap<>();
@@ -110,7 +109,7 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         Claims claims = Jwts.claims(jwtMap);
         String malformedToken = Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
         jwtClientService.getPayload(malformedToken);
     }

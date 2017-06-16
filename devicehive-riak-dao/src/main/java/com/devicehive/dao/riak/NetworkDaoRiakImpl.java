@@ -160,7 +160,6 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
         assert network.getId() != null;
 
         RiakNetwork existing = get(network.getId());
-        existing.setKey(network.getKey());
         existing.setName(network.getName());
         existing.setDescription(network.getDescription());
 
@@ -243,7 +242,7 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
 
         if (result.isPresent()) {
             Set<DeviceVO> devices = networkDeviceDao.findDevicesForNetwork(networkId).stream()
-                    .map(deviceDao::findByUUID)
+                    .map(deviceDao::findById)
                     .collect(Collectors.toSet());
             result.get().setDevices(devices);
             return result;
@@ -266,4 +265,11 @@ public class NetworkDaoRiakImpl extends RiakGenericDao implements NetworkDao {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<NetworkVO> findDefaultByUser(long userId) {
+    	// TODO: implement
+        return Optional.empty();
+    }
+
 }

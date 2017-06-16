@@ -57,11 +57,11 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
                     .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
-        } else if (body.getDeviceGuids() != null) {
+        } else if (body.getDeviceIds() != null) {
             Set<Subscription> subscriptions = new HashSet<>();
             Set<Subscriber> subscribers = new HashSet<>();
 
-            for (String name : body.getDeviceGuids()) {
+            for (String name : body.getDeviceIds()) {
                 Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), name);
                 subscriptions.add(subscription);
             }
@@ -69,14 +69,14 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
             subscriptions.forEach(subscription -> subscribers.addAll(eventBus.getSubscribers(subscription)));
             subscribers.forEach(subscriber -> eventBus.unsubscribe(subscriber));
 
-            CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(null, body.getDeviceGuids());
+            CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(null, body.getDeviceIds());
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
                     .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else {
-            throw new IllegalArgumentException("Both subscription id and device guids are null");
+            throw new IllegalArgumentException("Both subscription id and device deviceIds are null");
         }
     }
 

@@ -154,13 +154,8 @@ public class RiakGenericDao {
         return addReduceSort(builder, false, sortField, order);
     }
 
-    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, Boolean keep, String sortField, Boolean isSortOrderAsc) {
-        SortOrder sortOrder;
-        if (isSortOrderAsc == null) {
-            sortOrder = SortOrder.ASC;
-        } else {
-            sortOrder = (isSortOrderAsc) ? SortOrder.ASC : SortOrder.DESC;
-        }
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, Boolean keep, String sortField, boolean isSortOrderAsc) {
+        SortOrder sortOrder = (isSortOrderAsc) ? SortOrder.ASC : SortOrder.DESC;
         if ((sortField == null) || (sortField.isEmpty())) {
             return addReduceSort(builder, keep, "id", sortOrder);
         } else {
@@ -168,7 +163,7 @@ public class RiakGenericDao {
         }
     }
 
-    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, String sortField, Boolean isSortOrderAsc) {
+    protected BucketMapReduce.Builder addReduceSort(BucketMapReduce.Builder builder, String sortField, boolean isSortOrderAsc) {
         return addReduceSort(builder, false, sortField, isSortOrderAsc);
     }
 

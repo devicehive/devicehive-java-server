@@ -24,12 +24,8 @@ import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.vo.DeviceClassVO;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 
@@ -50,12 +46,6 @@ public class RiakUser {
     private UserStatus status;
 
     private Date lastLogin;
-
-    private String googleLogin;
-
-    private String facebookLogin;
-
-    private String githubLogin;
 
     private long entityVersion;
 
@@ -125,30 +115,6 @@ public class RiakUser {
         this.loginAttempts = loginAttempts;
     }
 
-    public String getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(String googleLogin) {
-        this.googleLogin = StringUtils.trim(googleLogin);
-    }
-
-    public String getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(String facebookLogin) {
-        this.facebookLogin = StringUtils.trim(facebookLogin);
-    }
-
-    public String getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(String githubLogin) {
-        this.githubLogin = StringUtils.trim(githubLogin);
-    }
-
     public long getEntityVersion() {
         return entityVersion;
     }
@@ -169,21 +135,6 @@ public class RiakUser {
     @RiakIndex(name = "login")
     public String getLoginSi() {
         return login;
-    }
-
-    @RiakIndex(name = "googleLogin")
-    public String getGoogleLoginSi() {
-        return googleLogin;
-    }
-
-    @RiakIndex(name = "facebookLogin")
-    public String getFacebookLoginSi() {
-        return facebookLogin;
-    }
-
-    @RiakIndex(name = "githubLogin")
-    public String getGithubLoginSi() {
-        return githubLogin;
     }
 
     @Override
@@ -212,9 +163,6 @@ public class RiakUser {
         if (dc != null) {
             vo = new UserVO();
             vo.setData(dc.getData());
-            vo.setFacebookLogin(dc.getFacebookLogin());
-            vo.setGithubLogin(dc.getGithubLogin());
-            vo.setGoogleLogin(dc.getGoogleLogin());
             vo.setId(dc.getId());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());
@@ -233,9 +181,6 @@ public class RiakUser {
         if (dc != null) {
             vo = new RiakUser();
             vo.setData(dc.getData());
-            vo.setFacebookLogin(dc.getFacebookLogin());
-            vo.setGithubLogin(dc.getGithubLogin());
-            vo.setGoogleLogin(dc.getGoogleLogin());
             vo.setId(dc.getId());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());

@@ -68,12 +68,16 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
  */
 @Component
 public class UserService {
+
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     @Autowired
     private PasswordProcessor passwordService;
     @Autowired
     private NetworkDao networkDao;
+    @Autowired
+    private NetworkService networkService;
     @Autowired
     private UserDao userDao;
     @Autowired
@@ -101,7 +105,7 @@ public class UserService {
     }
 
     @Transactional(noRollbackFor = AccessDeniedException.class)
-    public UserVO findUser(String login, String password) {
+    public UserVO getActiveUser(String login, String password) {
         Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
@@ -127,8 +131,8 @@ public class UserService {
             return of(user1);
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts() >=
-                    configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+            if (user.getLoginAttempts()
+                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
                 user.setLoginAttempts(0);
             }
@@ -152,78 +156,83 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserRole role) {
+    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate, UserVO curUser) {
         UserVO existing = userDao.find(id);
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
             throw new NoSuchElementException(Messages.USER_NOT_FOUND);
         }
+
         if (userToUpdate == null) {
             return existing;
         }
-        if (userToUpdate.getLogin() != null) {
+
+        if (userToUpdate.getLogin().isPresent()) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
-            final String oldLogin = existing.getLogin();
             Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);
 
             if (withSuchLogin.isPresent() && !withSuchLogin.get().getId().equals(id)) {
                 throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
             }
             existing.setLogin(newLogin);
-
-            final String googleLogin = StringUtils.isNotBlank(userToUpdate.getGoogleLogin().orElse(null)) ?
-                    userToUpdate.getGoogleLogin().orElse(null) : null;
-            final String facebookLogin = StringUtils.isNotBlank(userToUpdate.getFacebookLogin().orElse(null)) ?
-                    userToUpdate.getFacebookLogin().orElse(null) : null;
-            final String githubLogin = StringUtils.isNotBlank(userToUpdate.getGithubLogin().orElse(null)) ?
-                    userToUpdate.getGithubLogin().orElse(null) : null;
-
-            if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-                Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(oldLogin, googleLogin,
-                        facebookLogin, githubLogin);
-                if (userWithSameIdentity.isPresent()) {
-                    throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-                }
-            }
-            existing.setGoogleLogin(googleLogin);
-            existing.setFacebookLogin(facebookLogin);
-            existing.setGithubLogin(githubLogin);
         }
-        if (userToUpdate.getPassword() != null) {
-            if (userToUpdate.getOldPassword() != null && StringUtils.isNotBlank(userToUpdate.getOldPassword().orElse(null))) {
-                final String hash = passwordService.hashPassword(userToUpdate.getOldPassword().orElse(null),
+
+        final boolean isClient = UserRole.CLIENT.equals(curUser.getRole());
+
+        final Optional<String> newPassword = userToUpdate.getPassword();
+        final Optional<String> oldPassword = userToUpdate.getOldPassword();
+        final boolean oldPasswordNotEmpty = oldPassword.isPresent() && StringUtils.isNotEmpty(oldPassword.get());
+
+        if (isClient) {
+            if (newPassword.isPresent() && !oldPasswordNotEmpty) {
+                logger.error("Can't update user with id {}: old password required", id);
+                throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
+            }
+
+            if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
+                logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
+                        "status or role", id);
+                throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
+            }
+        }
+
+        if (newPassword.isPresent() && StringUtils.isNotEmpty(newPassword.get())) {
+            if (oldPasswordNotEmpty) {
+                final String hash = passwordService.hashPassword(oldPassword.get(),
                         existing.getPasswordSalt());
                 if (!hash.equals(existing.getPasswordHash())) {
                     logger.error("Can't update user with id {}: incorrect password provided", id);
                     throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
                 }
-            } else if (role == UserRole.CLIENT) {
-                logger.error("Can't update user with id {}: old password required", id);
-                throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
             }
-            if (StringUtils.isEmpty(userToUpdate.getPassword().orElse(null))) {
+
+            final String password = newPassword.get();
+            if (StringUtils.isEmpty(password) || !password.matches(PASSWORD_REGEXP)) {
                 logger.error("Can't update user with id {}: password required", id);
-                throw new IllegalParametersException(Messages.PASSWORD_REQUIRED);
+                throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
             }
             String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(userToUpdate.getPassword().orElse(null), salt);
+            String hash = passwordService.hashPassword(password, salt);
             existing.setPasswordSalt(salt);
             existing.setPasswordHash(hash);
         }
-        if (userToUpdate.getStatus() != null || userToUpdate.getRole() != null) {
-            if (role != UserRole.ADMIN) {
-                logger.error("Can't update user with id {}: users eith the 'client' role are only allowed to change their password", id);
-                throw new HiveException(Messages.INVALID_USER_ROLE, FORBIDDEN.getStatusCode());
-            } else if (userToUpdate.getRoleEnum() != null) {
-                existing.setRole(userToUpdate.getRoleEnum());
-            } else {
-                existing.setStatus(userToUpdate.getStatusEnum());
-            }
+
+        if (userToUpdate.getRoleEnum() != null) {
+            existing.setRole(userToUpdate.getRoleEnum());
         }
-        if (userToUpdate.getData() != null) {
-            existing.setData(userToUpdate.getData().orElse(null));
+
+        if (userToUpdate.getStatusEnum() != null) {
+            existing.setStatus(userToUpdate.getStatusEnum());
         }
+
+        if (userToUpdate.getData().isPresent()) {
+            existing.setData(userToUpdate.getData().get());
+        }
+        if (userToUpdate.getIntroReviewed().isPresent()) {
+            existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
+        }
+
         hiveValidator.validate(existing);
         return userDao.merge(existing);
     }
@@ -231,7 +240,7 @@ public class UserService {
     /**
      * Allows user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -249,7 +258,7 @@ public class UserService {
     /**
      * Revokes user access to given network
      *
-     * @param userId    id of user
+     * @param userId id of user
      * @param networkId id of network
      */
     @Transactional(propagation = Propagation.REQUIRED)
@@ -264,7 +273,7 @@ public class UserService {
 
     //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-                                                  Boolean sortOrderAsc, Integer take, Integer skip) {
+            boolean sortOrderAsc, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);
@@ -297,13 +306,13 @@ public class UserService {
     }
 
     /**
-     * Retrieves user with networks by id, if there is no networks user hass access to networks will be represented by
-     * empty set
+     * Retrieves user with networks by id, if there is no networks user hass
+     * access to networks will be represented by empty set
      *
      * @param id user id
      * @return User model with networks, or null, if there is no such user
      */
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public UserWithNetworkVO findUserWithNetworks(@NotNull long id) {
         return userDao.getWithNetworksById(id);
 
@@ -311,6 +320,7 @@ public class UserService {
 
     @Transactional(propagation = Propagation.REQUIRED)
     public UserVO createUser(@NotNull UserVO user, String password) {
+        hiveValidator.validate(user);
         if (user.getId() != null) {
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
         }
@@ -320,29 +330,30 @@ public class UserService {
         if (existing.isPresent()) {
             throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
         }
-        if (StringUtils.isNoneEmpty(password)) {
+        if (StringUtils.isNotEmpty(password) && password.matches(PASSWORD_REGEXP)) {
             String salt = passwordService.generateSalt();
             String hash = passwordService.hashPassword(password, salt);
             user.setPasswordSalt(salt);
             user.setPasswordHash(hash);
-        }
-        final String googleLogin = StringUtils.isNotBlank(user.getGoogleLogin()) ? user.getGoogleLogin() : null;
-        final String facebookLogin = StringUtils.isNotBlank(user.getFacebookLogin()) ? user.getFacebookLogin() : null;
-        final String githubLogin = StringUtils.isNotBlank(user.getGithubLogin()) ? user.getGithubLogin() : null;
-        if (googleLogin != null || facebookLogin != null || githubLogin != null) {
-            Optional<UserVO> userWithSameIdentity = userDao.findByIdentityName(userLogin, googleLogin,
-                    facebookLogin, githubLogin);
-            if (userWithSameIdentity.isPresent()) {
-                throw new ActionNotAllowedException(Messages.DUPLICATE_IDENTITY_LOGIN);
-            }
-            user.setGoogleLogin(googleLogin);
-            user.setFacebookLogin(facebookLogin);
-            user.setGithubLogin(githubLogin);
+        } else {
+            throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
         }
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        hiveValidator.validate(user);
+        if (user.getIntroReviewed() == null) {
+            user.setIntroReviewed(false);
+        }
         userDao.persist(user);
         return user;
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
+        hiveValidator.validate(convertTo);
+        UserVO createdUser = createUser(convertTo, password);
+        NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
+        UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);
+        result.getNetworks().add(createdNetwork);
+        return result;
     }
 
     /**
@@ -358,9 +369,9 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public boolean hasAccessToDevice(UserVO user, String deviceGuid) {
+    public boolean hasAccessToDevice(UserVO user, String deviceId) {
         if (!user.isAdmin()) {
-            long count = userDao.hasAccessToDevice(user, deviceGuid);
+            long count = userDao.hasAccessToDevice(user, deviceId);
             return count > 0;
         }
         return true;
@@ -373,21 +384,6 @@ public class UserService {
             return count > 0;
         }
         return true;
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGoogleUser(String login) {
-        return userDao.findByGoogleName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findFacebookUser(String login) {
-        return userDao.findByFacebookName(login);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public UserVO findGithubUser(String login) {
-        return userDao.findByGithubName(login);
     }
 
     @Transactional

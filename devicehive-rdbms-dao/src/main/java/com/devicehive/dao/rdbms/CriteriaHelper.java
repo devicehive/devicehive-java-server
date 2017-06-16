@@ -27,7 +27,7 @@ import com.devicehive.vo.UserVO;
 import javax.persistence.criteria.*;
 import java.util.*;
 
-import static com.devicehive.model.Device.Queries.Parameters.GUID;
+import static com.devicehive.model.Device.Queries.Parameters.DEVICE_ID;
 import static java.util.Optional.ofNullable;
 
 public class CriteriaHelper {
@@ -105,11 +105,11 @@ public class CriteriaHelper {
 
     public static Predicate[] deviceListPredicates(CriteriaBuilder cb,
                                                    Root<Device> from,
-                                                   List<String> guids,
+                                                   List<String> deviceIds,
                                                    Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = deviceSpecificPrincipalPredicates(cb, from, principal);
-        if (guids != null && !guids.isEmpty()) {
-            predicates.add(from.get(GUID).in(guids));
+        if (deviceIds != null && !deviceIds.isEmpty()) {
+            predicates.add(from.get(DEVICE_ID).in(deviceIds));
         }
 
         return predicates.toArray(new Predicate[predicates.size()]);
@@ -122,8 +122,6 @@ public class CriteriaHelper {
                                                    Optional<String> namePattern,
                                                    Optional<Long> networkId,
                                                    Optional<String> networkName,
-                                                   Optional<Long> deviceClassId,
-                                                   Optional<String> deviceClassName,
                                                    Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
 
@@ -134,23 +132,7 @@ public class CriteriaHelper {
         networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));
         networkName.ifPresent(nName ->  predicates.add(cb.equal(networkJoin.<String>get("name"), nName)));
 
-        final Join<Device, DeviceClass> dcJoin = (Join) from.fetch("deviceClass", JoinType.LEFT);
-        deviceClassId.ifPresent(dcId -> predicates.add(cb.equal(dcJoin.<Long>get("id"), dcId)));
-        deviceClassName.ifPresent(dcName -> predicates.add(cb.equal(dcJoin.<String>get("name"), dcName)));
-
         predicates.addAll(deviceSpecificPrincipalPredicates(cb, from, principal));
-
-        return predicates.toArray(new Predicate[predicates.size()]);
-    }
-
-    public static Predicate[] deviceClassListPredicates(CriteriaBuilder cb, Root<DeviceClass> from, Optional<String> name,
-                                                 Optional<String>  namePattern) {
-        final List<Predicate> predicates = new LinkedList<>();
-        if (namePattern.isPresent()) {
-            namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));
-        } else {
-            name.ifPresent(n -> predicates.add(cb.equal(from.get("name"), n)));
-        }
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
@@ -159,7 +141,6 @@ public class CriteriaHelper {
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
-        from.fetch("deviceClass", JoinType.LEFT); //need this fetch to populate deviceClass
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
 
@@ -174,8 +155,8 @@ public class CriteriaHelper {
                 predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
             }
 
-            if (p.getDeviceGuids() != null) {
-                predicates.add(from.<String>get("guid").in(p.getDeviceGuids()));
+            if (p.getDeviceIds() != null) {
+                predicates.add(from.<String>get("deviceId").in(p.getDeviceIds()));
             }
         });
 

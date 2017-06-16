@@ -24,6 +24,7 @@ package com.devicehive.model.updates;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -34,12 +35,14 @@ public class NetworkUpdate implements HiveEntity {
 
     @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private Long id;
+
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private Optional<String> key;
+    private String name;
+
+    @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private Optional<String> name;
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private Optional<String> description;
+    private String description;
 
     public Long getId() {
         return id;
@@ -49,27 +52,19 @@ public class NetworkUpdate implements HiveEntity {
         this.id = id;
     }
 
-    public Optional<String> getKey() {
-        return key;
-    }
-
-    public void setKey(Optional<String> key) {
-        this.key = key;
-    }
-
     public Optional<String> getName() {
-        return name;
+        return Optional.ofNullable(name);
     }
 
-    public void setName(Optional<String> name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public Optional<String> getDescription() {
-        return description;
+        return Optional.ofNullable(description);
     }
 
-    public void setDescription(Optional<String> description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 }

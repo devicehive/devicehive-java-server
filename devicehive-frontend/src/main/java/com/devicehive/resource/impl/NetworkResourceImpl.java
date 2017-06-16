@@ -42,6 +42,8 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
+import java.util.Collections;
+
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
@@ -75,11 +77,18 @@ public class NetworkResourceImpl implements NetworkResource {
             sortField = sortField.toLowerCase();
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
-                .thenApply(networks -> {
-                    logger.debug("Network list request proceed successfully.");
-                    return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
-                }).thenAccept(asyncResponse::resume);
+
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty())) {
+            logger.warn("Unable to get list for empty networks");
+            final Response response = ResponseFactory.response(OK, Collections.<NetworkVO>emptyList(), NETWORKS_LISTED);
+            asyncResponse.resume(response);
+        } else {
+            networkService.list(name, namePattern, sortField, sortOrder, take, skip, principal)
+                    .thenApply(networks -> {
+                        logger.debug("Network list request proceed successfully.");
+                        return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
+                    }).thenAccept(asyncResponse::resume);
+        }
     }
 
     /**
@@ -88,7 +97,7 @@ public class NetworkResourceImpl implements NetworkResource {
     @Override
     public Response get(long id) {
         logger.debug("Network get requested.");
-        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevicesAndDeviceClasses(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
         if (existing == null) {
             logger.error("Network with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

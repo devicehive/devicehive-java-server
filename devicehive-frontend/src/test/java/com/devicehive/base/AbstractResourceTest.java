@@ -23,6 +23,9 @@ package com.devicehive.base;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
+import com.devicehive.service.security.jwt.JwtTokenService;
+import com.devicehive.vo.JwtRequestVO;
+import com.devicehive.vo.JwtTokenVO;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
@@ -41,7 +44,6 @@ import org.springframework.util.CollectionUtils;
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Base64;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -54,10 +56,11 @@ import static org.junit.Assert.assertThat;
 @WebIntegrationTest("server.port=0")
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
+    public static final String VALID_PASSWORD = "123456";
+    public static final String INVALID_PASSWORD = "12345";
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ACCESS_KEY = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VHdWlkcyI6WyIqIl0sImV4cGlyYXRpb24iOjE0OTQzMzExNzI2MzgsInRva2VuVHlwZSI6IkFDQ0VTUyJ9fQ.9ONdK2wKHmRxwNVXz3jJx076wddjP-nO_T2VnjhhZ88";
-    public static final String DEVICE_ID = "E50D6085-2ABA-48E9-B1C3-73C673E414BE";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5NDExOTQwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.LNaJdW1g3gGHyus3dWgn3IljNJpHnGTj_-cBon4M3ig";
 
     @Value("${local.server.port}")
     protected Integer port;
@@ -69,6 +72,9 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     @Autowired
     protected Gson gson;
+
+    @Autowired
+    protected JwtTokenService jwtTokenService;
 
     @Before
     public void initSpringBootIntegrationTest() {
@@ -97,14 +103,16 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
         return wsBaseUrl;
     }
 
-    protected String basicAuthHeader(String login, String password) {
-        String str = String.format("%s:%s", login, password);
-        String base64 = Base64.getEncoder().encodeToString(str.getBytes());
-        return String.format("Basic %s", base64);
-    }
-
     protected String tokenAuthHeader(String key) {
         return "Bearer " + key;
+    }
+
+    protected String accessTokenRequest(String login, String password) {
+        JwtRequestVO request = new JwtRequestVO();
+        request.setLogin(login);
+        request.setPassword(password);
+        JwtTokenVO token = jwtTokenService.createJwtToken(request);
+        return token.getAccessToken();
     }
 
     @SuppressWarnings("unchecked")

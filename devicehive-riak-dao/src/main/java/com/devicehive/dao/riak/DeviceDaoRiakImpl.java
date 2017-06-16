@@ -28,7 +28,6 @@ import com.basho.riak.client.api.commands.mapreduce.MapReduce;
 import com.basho.riak.client.core.query.Location;
 import com.basho.riak.client.core.query.Namespace;
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.dao.DeviceClassDao;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.riak.model.NetworkDevice;
@@ -59,9 +58,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     private NetworkDao networkDao;
 
     @Autowired
-    private DeviceClassDao deviceClassDao;
-
-    @Autowired
     private UserNetworkDaoRiakImpl userNetworkDao;
 
     @Autowired
@@ -76,8 +72,8 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public DeviceVO findByUUID(String uuid) {
-        BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", uuid).build();
+    public DeviceVO findById(String id) {
+        BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "device_id", id).build();
         try {
             BinIndexQuery.Response response = client.execute(biq);
             List<BinIndexQuery.Response.Entry> entries = response.getEntries();
@@ -91,7 +87,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             RiakDevice device = getOrNull(client.execute(fetchOp), RiakDevice.class);
             //TODO [rafa] refreshRefs
             DeviceVO deviceVO = RiakDevice.convertToVo(device);
-//            deviceVO.setDeviceClass(device.getDeviceClass());
 //            deviceVO.setNetwork(device.getNetwork());
             //TODO [rafa] do we need next refresh commands? Seems that all references are reconstructed.
             refreshRefs(deviceVO);
@@ -109,9 +104,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             if (device.getId() == null) {
                 device.setId(getId());
             }
-            if (device.getDeviceClass() != null && device.getDeviceClass().getEquipment() != null) {
-                device.getDeviceClass().getEquipment().clear();
-            }
             Location location = new Location(DEVICE_NS, String.valueOf(device.getId()));
             StoreValue storeOp = new StoreValue.Builder(device)
                     .withLocation(location)
@@ -126,9 +118,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
         RiakNetwork network = device.getNetwork();
         if (network != null && network.getId() != null) {
-            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getGuid());
-            networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getGuid()));
-            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getGuid());
+            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getDeviceId());
+            networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getDeviceId()));
+            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getDeviceId());
         }
     }
 
@@ -139,9 +131,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public int deleteByUUID(String guid) {
+    public int deleteById(String id) {
         try {
-            BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "guid", guid).build();
+            BinIndexQuery biq = new BinIndexQuery.Builder(DEVICE_NS, "device_id", id).build();
             BinIndexQuery.Response response = client.execute(biq);
             List<BinIndexQuery.Response.Entry> entries = response.getEntries();
             if (entries.isEmpty()) {
@@ -158,14 +150,11 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> getDeviceList(List<String> guids, HivePrincipal principal) {
-        if (guids.isEmpty()) {
-            return list(null, null, null, null,
-                    null, null, null,
-                    true, null,
-                    null, principal);
+    public List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
+        if (deviceIds.isEmpty()) {
+            return list(null, null, null, null, null, true, null, null, principal);
         }
-        List<DeviceVO> deviceList = guids.stream().map(this::findByUUID).collect(Collectors.toList());
+        List<DeviceVO> deviceList = deviceIds.stream().map(this::findById).collect(Collectors.toList());
 
         if (principal != null) {
             UserVO user = principal.getUser();
@@ -174,19 +163,19 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 Set<Long> networks = userNetworkDao.findNetworksForUser(user.getId());
                 deviceList = deviceList
                         .stream()
-                        .filter(d -> networks.contains(d.getNetwork().getId()))
+                        .filter(d -> networks.contains(d.getNetworkId()))
                         .collect(Collectors.toList());
             }
 
-            if (principal.getDeviceGuids() != null) {
+            if (principal.getDeviceIds() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getDeviceGuids().contains(d.getGuid()))
+                        .filter(d -> principal.getDeviceIds().contains(d.getDeviceId()))
                         .collect(Collectors.toList());
             }
 
             if (principal.getNetworkIds() != null) {
                 deviceList = deviceList.stream()
-                        .filter(d -> principal.getNetworkIds().contains(d.getNetwork().getId()))
+                        .filter(d -> principal.getNetworkIds().contains(d.getNetworkId()))
                         .collect(Collectors.toList());
             }
         }
@@ -195,19 +184,13 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> guids) {
-        return getDeviceList(guids, principal).size();
+    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
+        return getDeviceList(deviceIds, principal).size();
     }
 
     @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
-            Long deviceClassId, String deviceClassName, String sortField,
-            Boolean isSortOrderAsc, Integer take,
-            Integer skip, HivePrincipal principal) {
-        //TODO [rafa] when filtering by device class name we have to instead query DeviceClass bucket for ids, and then use ids.
-        // here is what happens, since device class is not embeddable in case of Riak we need to either keep id only and perform the logic above.
-        // or we need to update device class embedded data in every device corresponding to the class, which is nighmare.
-
+            String sortField, boolean isSortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()
                 .withNamespace(DEVICE_NS);
         addMapValues(builder);
@@ -219,8 +202,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
         }
         addReduceFilter(builder, "network.id", FilterOperator.EQUAL, networkId);
         addReduceFilter(builder, "network.name", FilterOperator.EQUAL, networkName);
-        addReduceFilter(builder, "deviceClass.id", FilterOperator.EQUAL, deviceClassId);
-        addReduceFilter(builder, "deviceClass.name", FilterOperator.EQUAL, deviceClassName);
         if (principal != null) {
             UserVO user = principal.getUser();
             if (user != null && !user.isAdmin()) {
@@ -230,9 +211,9 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
                 }
                 addReduceFilter(builder, "network.id", FilterOperator.IN, networks);
             }
-            if (principal.getDeviceGuids() != null) {
-                Set<String> deviceGuids = principal.getDeviceGuids();
-                addReduceFilter(builder, "guid", FilterOperator.IN, deviceGuids);
+            if (principal.getDeviceIds() != null) {
+                Set<String> deviceIds = principal.getDeviceIds();
+                addReduceFilter(builder, "device_id", FilterOperator.IN, deviceIds);
             }
         }
         addReduceSort(builder, sortField, isSortOrderAsc);
@@ -249,15 +230,10 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
     private DeviceVO refreshRefs(DeviceVO device) {
         if (device != null) {
-            if (device.getNetwork() != null) {
+            if (device.getNetworkId() != null) {
                 // todo: remove when migrate Device->DeviceVO
-                NetworkVO networkVO = networkDao.find(device.getNetwork().getId());
-                device.setNetwork(networkVO);
-            }
-
-            if (device.getDeviceClass() != null) {
-                DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClassDao.find(device.getDeviceClass().getId());
-                device.setDeviceClass(deviceClassWithEquipmentVO);
+                NetworkVO networkVO = networkDao.find(device.getNetworkId());
+                device.setNetworkId(networkVO.getId());
             }
         }
 

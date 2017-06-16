@@ -21,21 +21,15 @@ package com.devicehive.util;
  */
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.springframework.util.Assert;
-
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.Random;
 
@@ -48,7 +42,7 @@ public class ServerResponsesFactory {
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
         resultMessage.addProperty("action", "notification/insert");
-        resultMessage.addProperty(Constants.DEVICE_GUID, deviceNotification.getDeviceGuid());
+        resultMessage.addProperty(Constants.DEVICE_ID, deviceNotification.getDeviceId());
         resultMessage.add(Constants.NOTIFICATION, deviceNotificationJson);
         resultMessage.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultMessage;
@@ -61,7 +55,7 @@ public class ServerResponsesFactory {
 
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
-        resultJsonObject.addProperty(Constants.DEVICE_GUID, deviceCommand.getDeviceGuid());
+        resultJsonObject.addProperty(Constants.DEVICE_ID, deviceCommand.getDeviceId());
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
         resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId);
         return resultJsonObject;
@@ -76,62 +70,15 @@ public class ServerResponsesFactory {
         return resultJsonObject;
     }
 
-    public static String parseNotificationStatus(DeviceNotification notificationMessage) {
-        Assert.notNull(notificationMessage.getParameters(), "Notification parameters are required.");
-        String jsonParametersString = notificationMessage.getParameters().getJsonString();
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(jsonParametersString, JsonElement.class);
-        JsonObject statusJsonObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            statusJsonObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-
-        JsonElement jsonElement = statusJsonObject.get(Constants.STATUS);
-        Assert.notNull(jsonElement, "Parameter " + Constants.STATUS + " is required.");
-
-        return jsonElement.getAsString();
-    }
-
     public static DeviceNotification createNotificationForDevice(DeviceVO device, String notificationName) {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(Math.abs(new Random().nextInt())); // TODO: remove this when id generation will be moved to backend
         notification.setNotification(notificationName);
-        notification.setDeviceGuid(device.getGuid());
+        notification.setDeviceId(device.getDeviceId());
         Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);
         return notification;
-    }
-
-    public static DeviceEquipmentVO parseDeviceEquipmentNotification(DeviceNotification notification, DeviceVO device) {
-        final String notificationParameters = notification.getParameters().getJsonString();
-        if (notificationParameters == null) {
-            throw new HiveException(Messages.NO_NOTIFICATION_PARAMS, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        Gson gson = GsonFactory.createGson();
-        JsonElement parametersJsonElement = gson.fromJson(notificationParameters, JsonElement.class);
-        JsonObject jsonEquipmentObject;
-        if (parametersJsonElement instanceof JsonObject) {
-            jsonEquipmentObject = (JsonObject) parametersJsonElement;
-        } else {
-            throw new HiveException(Messages.PARAMS_NOT_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        return constructDeviceEquipmentObject(jsonEquipmentObject, device);
-    }
-
-    private static DeviceEquipmentVO constructDeviceEquipmentObject(JsonObject jsonEquipmentObject, DeviceVO device) {
-        DeviceEquipmentVO result = new DeviceEquipmentVO();
-        final JsonElement jsonElement = jsonEquipmentObject.get(Constants.EQUIPMENT);
-        if (jsonElement == null) {
-            throw new HiveException(Messages.NO_EQUIPMENT_IN_JSON, HttpServletResponse.SC_BAD_REQUEST);
-        }
-        String deviceEquipmentCode = jsonElement.getAsString();
-        result.setCode(deviceEquipmentCode);
-        jsonEquipmentObject.remove(Constants.EQUIPMENT);
-        result.setParameters(new JsonStringWrapper(jsonEquipmentObject.toString()));
-        return result;
     }
 }

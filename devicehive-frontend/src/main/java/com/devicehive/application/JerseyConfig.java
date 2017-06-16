@@ -42,12 +42,9 @@ public class JerseyConfig extends ResourceConfig {
 
         registerClasses(ApiInfoResourceImpl.class,
                 ConfigurationResourceImpl.class,
-                AuthJwtTokenResourceImpl.class,
-                DeviceClassResourceImpl.class,
                 DeviceCommandResourceImpl.class,
                 DeviceNotificationResourceImpl.class,
                 DeviceResourceImpl.class,
-                EquipmentResourceImpl.class,
                 NetworkResourceImpl.class,
                 WelcomeResourceImpl.class,
                 UserResourceImpl.class,

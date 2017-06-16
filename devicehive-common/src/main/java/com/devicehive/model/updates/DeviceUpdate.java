@@ -22,12 +22,12 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.model.*;
-import com.devicehive.vo.DeviceClassWithEquipmentVO;
+import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
 
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -35,98 +35,84 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
+
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private Optional<String> guid;
+    private String id;
 
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private Optional<String> name;
+    private String name;
 
     @SerializedName("data")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private Optional<JsonStringWrapper> data;
+    private JsonStringWrapper data;
 
-    @SerializedName("network")
+    @SerializedName("networkId")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private Optional<NetworkVO> network;
-
-    @SerializedName("deviceClass")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private Optional<DeviceClassUpdate> deviceClass;
+    private Long networkId;
 
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("isBlocked")
-    private Optional<Boolean> blocked;
+    private Boolean blocked;
 
-    public Optional<DeviceClassUpdate> getDeviceClass() {
-        return deviceClass;
+    public Optional<String> getId() {
+        return Optional.ofNullable(id);
     }
 
-    public void setDeviceClass(Optional<DeviceClassUpdate> deviceClass) {
-        this.deviceClass = deviceClass;
-    }
-
-    public Optional<String> getGuid() {
-        return guid;
-    }
-
-    public void setGuid(Optional<String> guid) {
-        this.guid = guid;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Optional<String> getName() {
-        return name;
+        return Optional.ofNullable(name);
     }
 
-    public void setName(Optional<String> name) {
+    public void setName(String name) {
         this.name = name;
     }
 
     public Optional<JsonStringWrapper> getData() {
-        return data;
+        return Optional.ofNullable(data);
     }
 
-    public void setData(Optional<JsonStringWrapper> data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 
-    public Optional<NetworkVO> getNetwork() {
-        return network;
+    public Optional<Long> getNetworkId() {
+        return Optional.ofNullable(networkId);
     }
 
-    public void setNetwork(Optional<NetworkVO> network) {
-        this.network = network;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
     public Optional<Boolean> getBlocked() {
-        return blocked;
+        return Optional.ofNullable(blocked);
     }
 
-    public void setBlocked(Optional<Boolean> blocked) {
+    public void setBlocked(Boolean blocked) {
         this.blocked = blocked;
     }
 
     public DeviceVO convertTo() {
         DeviceVO device = new DeviceVO();
-        if (guid != null) {
-            device.setGuid(guid.orElse(null));
+        if (this.id != null){
+            device.setDeviceId(this.id);
         }
-        if (data != null) {
-            device.setData(data.orElse(null));
+        if (this.data != null){
+            device.setData(this.data);
         }
-        if (deviceClass != null) {
-            DeviceClassWithEquipmentVO deviceClassWithEquipmentVO = deviceClass.orElse(null).convertTo();
-            device.setDeviceClass(deviceClassWithEquipmentVO);
+        if (this.name != null){
+            device.setName(this.name);
         }
-        if (name != null) {
-            device.setName(name.orElse(null));
+        if (this.networkId != null){
+            device.setNetworkId(this.networkId);
         }
-        if (network != null) {
-            device.setNetwork(network.orElse(null));
-        }
-        if (blocked != null) {
-            device.setBlocked(Boolean.TRUE.equals(blocked.orElse(null)));
+        if (this.blocked != null){
+            device.setBlocked(this.blocked);
         }
         return device;
     }

@@ -25,13 +25,13 @@ import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.model.AvailableActions;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.UserVO;
-import io.jsonwebtoken.MalformedJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +76,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             HivePrincipal principal = new HivePrincipal();
             if (jwtPayload.getUserId() != null) {
                 UserVO userVO = userService.findById(jwtPayload.getUserId());
+                if (!UserStatus.ACTIVE.equals(userVO.getStatus())) {
+                    throw new BadCredentialsException("Unauthorized: user is not active");
+                }
                 principal.setUser(userVO);
             }
 
@@ -88,12 +91,12 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceGuids = jwtPayload.getDeviceGuids();
-            if (deviceGuids != null) {
-                if (deviceGuids.contains("*")) {
+            Set<String> deviceIds = jwtPayload.getDeviceIds();
+            if (deviceIds != null) {
+                if (deviceIds.contains("*")) {
                     principal.setAllDevicesAvailable(true);
                 } else {
-                    principal.setDeviceGuids(deviceGuids);
+                    principal.setDeviceIds(deviceIds);
                 }
             }
 

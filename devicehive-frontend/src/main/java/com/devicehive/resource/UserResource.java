@@ -21,9 +21,11 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.response.UserNetworkResponse;
+import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithNetworkVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -57,6 +59,9 @@ public interface UserResource {
     @GET
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "List users", notes = "Gets list of users.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of User resources in the response body.", response = UserVO.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "If request parameters invalid"),
@@ -92,7 +97,7 @@ public interface UserResource {
 
     /**
      * Method will generate following output: <p/> <code> { "id": 2, "login": "login", "status": 0, "networks": [ {
-     * "network": { "id": 5, "key": "network key", "name": "name of network", "description": "short description of
+     * "network": { "id": 5, "name": "name of network", "description": "short description of
      * network" } } ], "lastLogin": "1970-01-01 03:00:00.0" } </code> <p/> If success, response with status 200, if user
      * is not found 400
      *
@@ -100,11 +105,14 @@ public interface UserResource {
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Get user", notes = "Gets information about user and its assigned networks.\n" +
             "Only administrators are allowed to get information about any user. User-level accounts can only retrieve information about themselves.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserResponse.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
@@ -119,8 +127,11 @@ public interface UserResource {
     @Path("/current")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
     @ApiOperation(value = "Get current user", notes = "Get information about the current user.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserWithNetworkVO.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 409, message = "If user is not signed in")
@@ -139,6 +150,9 @@ public interface UserResource {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @JsonPolicyDef(JsonPolicyDef.Policy.USERS_LISTED)
     @ApiOperation(value = "Create user", notes = "Creates new user.")
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 201, message = "If successful, this method returns a User resource in the response body.", response = UserVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -163,6 +177,9 @@ public interface UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Update user")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 404, message = "If user not found")
     })
@@ -181,6 +198,9 @@ public interface UserResource {
             "Only administrators are allowed to update any property of any user. User-level accounts can only change their own password in case:\n" +
             "1. They already have a password.\n" +
             "2. They provide a valid current password in the 'oldPassword' property.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -201,11 +221,13 @@ public interface UserResource {
     @Path("/{id}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     @ApiOperation(value = "Delete user", notes = "Deletes an existing user.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If access key is not found")
     })
     Response deleteUser(
             @ApiParam(name = "id", value = "User identifier.", required = true)
@@ -213,7 +235,7 @@ public interface UserResource {
             long userId);
 
     /**
-     * Method returns following body in case of success (status 200): <code> { "id": 5, "key": "network_key", "name":
+     * Method returns following body in case of success (status 200): <code> { "id": 5, "name":
      * "network name", "description": "short description of net" } </code> in case, there is no such network, or user,
      * or user doesn't have access
      *
@@ -224,8 +246,11 @@ public interface UserResource {
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     @ApiOperation(value = "Get user's network", notes = "Gets information about user/network association.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = UserNetworkResponse.class),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If user or network not found")
@@ -248,6 +273,9 @@ public interface UserResource {
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Assign network", notes = "Associates network with the user.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),
@@ -273,6 +301,9 @@ public interface UserResource {
     @Path("/{id}/network/{networkId}")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     @ApiOperation(value = "Unassign network", notes = "Removes association between network and user.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 401, message = "If request is not authorized"),

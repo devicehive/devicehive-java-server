@@ -21,18 +21,18 @@ package com.devicehive.auth.rest;
  */
 
 import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.configuration.Constants;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.codec.Base64;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.util.UrlPathHelper;
@@ -44,7 +44,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Optional;
@@ -72,11 +71,11 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
 
         try {
             if (authHeader.isPresent()) {
-                String header = authHeader.get();
-                if (header.startsWith(Constants.BASIC_AUTH_SCHEME)) {
-                    processBasicAuth(header);
-                } else if (header.startsWith(Constants.TOKEN_SCHEME)) {
+                if (authHeader.get().length() > 6 && authHeader.get().substring(0,6).equals("Bearer")) {
                     processJwtAuth(authHeader.get().substring(6).trim());
+                } else {
+                    SecurityContextHolder.clearContext();
+                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
                 }
             } else {
                 processAnonymousAuth();
@@ -109,49 +108,23 @@ public class HttpAuthenticationFilter extends GenericFilterBean {
                 request.getHeader(HttpHeaders.AUTHORIZATION));
     }
 
-    private void processBasicAuth(String authHeader) throws UnsupportedEncodingException {
-        Pair<String, String> credentials = extractAndDecodeHeader(authHeader);
-        UsernamePasswordAuthenticationToken requestAuth = new UsernamePasswordAuthenticationToken(credentials.getLeft().trim(), credentials.getRight().trim());
-        tryAuthenticate(requestAuth);
-    }
-
     private void processJwtAuth(String token) {
         PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(token, null);
         tryAuthenticate(requestAuth);
     }
 
-    private void processKeyAuth(String key) {
-        PreAuthenticatedAuthenticationToken requestAuth = new PreAuthenticatedAuthenticationToken(key, null);
-        tryAuthenticate(requestAuth);
-    }
-
     private void processAnonymousAuth() {
-        AnonymousAuthenticationToken requestAuth = new AnonymousAuthenticationToken(UUID.randomUUID().toString(), "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+        AnonymousAuthenticationToken requestAuth = new AnonymousAuthenticationToken(UUID.randomUUID().toString(),
+                "anonymousUser",  AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
         tryAuthenticate(requestAuth);
     }
 
     private void tryAuthenticate(Authentication requestAuth) {
         Authentication authentication = authenticationManager.authenticate(requestAuth);
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new InternalAuthenticationServiceException("Unable to authenticate user with provided credetials");
+            throw new InternalAuthenticationServiceException("Unable to authenticate user with provided credentials");
         }
         logger.debug("Successfully authenticated");
         SecurityContextHolder.getContext().setAuthentication(authentication);
-    }
-
-    private Pair<String, String> extractAndDecodeHeader(String header) throws UnsupportedEncodingException {
-        byte[] base64Token = header.substring(6).getBytes("UTF-8");
-        byte[] decoded;
-        try {
-            decoded = Base64.decode(base64Token);
-        } catch (IllegalArgumentException e) {
-            throw new BadCredentialsException("Failed to decode basic authentication token");
-        }
-        String token = new String(decoded, "UTF-8");
-        int delim = token.indexOf(":");
-        if (delim == -1) {
-            throw new BadCredentialsException("Invalid basic authentication token");
-        }
-        return Pair.of(token.substring(0, delim), token.substring(delim + 1));
     }
 }

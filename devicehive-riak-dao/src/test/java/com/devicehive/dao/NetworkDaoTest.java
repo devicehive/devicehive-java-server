@@ -64,42 +64,39 @@ public class NetworkDaoTest {
     @Test
     public void shouldCreateNetwork() throws Exception {
         NetworkVO network = new NetworkVO();
-        network.setKey(RandomStringUtils.randomAlphabetic(10));
         network.setName(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
 
         NetworkVO created = networkDao.find(network.getId());
         assertThat(created, notNullValue());
-        assertThat(created.getKey(), equalTo(network.getKey()));
         assertThat(created.getName(), equalTo(network.getName()));
     }
 
     @Test
     public void shouldUpdateNetwork() throws Exception {
         NetworkVO network = new NetworkVO();
-        network.setKey(RandomStringUtils.randomAlphabetic(10));
+        network.setName(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
 
         NetworkVO created = networkDao.find(network.getId());
         assertThat(created, notNullValue());
-        assertThat(created.getKey(), equalTo(network.getKey()));
+        assertThat(created.getName(), equalTo(network.getName()));
 
-        created.setKey(RandomStringUtils.randomAlphabetic(20));
+        created.setName(RandomStringUtils.randomAlphabetic(20));
         networkDao.merge(created);
 
         NetworkVO updated = networkDao.find(created.getId());
         assertThat(updated, notNullValue());
         assertThat(updated.getId(), equalTo(created.getId()));
-        assertThat(updated.getKey(), equalTo(created.getKey()));
-        assertThat(updated.getKey(), not(equalTo(network.getKey())));
+        assertThat(updated.getName(), equalTo(created.getName()));
+        assertThat(updated.getName(), not(equalTo(network.getName())));
     }
 
     @Test
     public void shouldDeleteNetwork() throws Exception {
         NetworkVO network = new NetworkVO();
-        network.setKey(RandomStringUtils.randomAlphabetic(10));
 
         networkDao.persist(network);
 
@@ -116,7 +113,6 @@ public class NetworkDaoTest {
         int count = 0;
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
-            network.setKey(RandomStringUtils.randomAlphabetic(20));
             network.setDescription(RandomStringUtils.randomAlphabetic(20));
             if (i % 2 == 0) {
                 network.setName(name);
@@ -136,14 +132,14 @@ public class NetworkDaoTest {
     @Test
     public void shouldFindById() throws Exception {
         NetworkVO network = new NetworkVO();
-        network.setKey(RandomStringUtils.randomAlphabetic(10));
+        network.setName(RandomStringUtils.randomAlphabetic(10));
         networkDao.persist(network);
         assertThat(network.getId(), notNullValue());
 
         NetworkVO found = networkDao.find(network.getId());
         assertThat(found, notNullValue());
         assertThat(network.getId(), equalTo(found.getId()));
-        assertThat(network.getKey(), equalTo(found.getKey()));
+        assertThat(network.getName(), equalTo(found.getName()));
     }
 
     @Test
@@ -151,7 +147,6 @@ public class NetworkDaoTest {
         Set<Long> networkIds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
-            network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
                 networkIds.add(network.getId());
@@ -175,7 +170,6 @@ public class NetworkDaoTest {
         Set<Long> networkIds = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
-            network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
                 UserNetwork un = new UserNetwork();
@@ -202,7 +196,6 @@ public class NetworkDaoTest {
         Set<Long> permitted = new HashSet<>();
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
-            network.setKey(RandomStringUtils.randomAlphabetic(10));
             networkDao.persist(network);
             if (i % 2 == 0) {
                 permitted.add(network.getId());
@@ -222,7 +215,6 @@ public class NetworkDaoTest {
         String name = RandomStringUtils.randomAlphabetic(10);
         for (int i = 0; i < 100; i++) {
             NetworkVO network = new NetworkVO();
-            network.setKey(RandomStringUtils.randomAlphabetic(10));
             if (i % 2 == 0) {
                 network.setName(name);
             } else {

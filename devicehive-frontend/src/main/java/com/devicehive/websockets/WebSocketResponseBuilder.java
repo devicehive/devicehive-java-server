@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -52,7 +53,7 @@ public class WebSocketResponseBuilder {
         } catch (BadCredentialsException ex) {
             logger.error("Unauthorized access", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials").build();
-        } catch (AccessDeniedException ex) {
+        } catch (AccessDeniedException  | AuthenticationCredentialsNotFoundException ex) {
             logger.error("Access to action is denied", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized").build();
         } catch (HiveException ex) {

@@ -21,7 +21,6 @@ package com.devicehive.model;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
@@ -42,19 +41,17 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device")
 @NamedQueries({
-                  @NamedQuery(name = "Device.findByUUID", query = "select d from Device d " +
+                  @NamedQuery(name = "Device.findById", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
-                                                                  "left join fetch d.deviceClass dc " +
-                                                                  "left join fetch dc.equipment " +
-                                                                  "where d.guid = :guid"),
-                  @NamedQuery(name = "Device.deleteByUUID", query = "delete from Device d where d.guid = :guid")
+                                                                  "where d.deviceId = :deviceId"),
+                  @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.deviceId = :deviceId")
               })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Device implements HiveEntity {
 
     public static final String NETWORK_COLUMN = "network";
-    public static final String GUID_COLUMN = "guid";
+    public static final String DEVICE_ID_COLUMN = "device_id";
 
     private static final long serialVersionUID = 2959997451631843298L;
 
@@ -64,11 +61,11 @@ public class Device implements HiveEntity {
     private Long id;
 
     @SerializedName("id")
-    @Column
-    @NotNull(message = "guid field cannot be null.")
+    @Column(name = "device_id")
+    @NotNull(message = "id field cannot be null.")
     @Size(min = 1, max = 48, message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String guid;
+    private String deviceId;
 
     @SerializedName("name")
     @Column
@@ -86,18 +83,11 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
-    @SerializedName("network")
+    @SerializedName("networkId")
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "network_id")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
-
-    @SerializedName("deviceClass")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_class_id")
-    @NotNull(message = "deviceClass field cannot be null.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClass deviceClass;
 
     @Column(name = "blocked")
     @SerializedName("isBlocked")
@@ -121,12 +111,12 @@ public class Device implements HiveEntity {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {
@@ -145,14 +135,6 @@ public class Device implements HiveEntity {
         this.network = network;
     }
 
-    public DeviceClass getDeviceClass() {
-        return deviceClass;
-    }
-
-    public void setDeviceClass(DeviceClass deviceClass) {
-        this.deviceClass = deviceClass;
-    }
-
     public Boolean getBlocked() {
         return blocked;
     }
@@ -165,7 +147,7 @@ public class Device implements HiveEntity {
 
         public static interface Parameters {
 
-            static final String GUID = "guid";
+            static final String DEVICE_ID = "deviceId";
             static final String ID = "id";
         }
     }
@@ -175,17 +157,12 @@ public class Device implements HiveEntity {
         if (dc != null) {
             vo = new DeviceVO();
             vo.setId(dc.getId());
-            vo.setBlocked(dc.getBlocked());
-            vo.setData(dc.getData());
-            //TODO ???vo.setDeviceClass();
-            DeviceClassVO classVO = DeviceClass.convertToVo(dc.getDeviceClass());
-            vo.setDeviceClass(classVO);
-            vo.setGuid(dc.getGuid());
-            vo.setId(dc.getId());
+            vo.setDeviceId(dc.getDeviceId());
             vo.setName(dc.getName());
-            //TODO Network convert = Network.convertNetwork(dc.getNetwork());
+            vo.setData(dc.getData());
+            vo.setBlocked(dc.getBlocked());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
-            vo.setNetwork(networkVO);
+            vo.setNetworkId(networkVO.getId());
         }
         return vo;
     }
@@ -195,16 +172,12 @@ public class Device implements HiveEntity {
         if (dc != null) {
             entity = new Device();
             entity.setId(dc.getId());
-            entity.setBlocked(dc.getBlocked());
-            entity.setData(dc.getData());
-            //TODO ??? next lines conversion
-            DeviceClass deviceClass = DeviceClass.convertToEntity(dc.getDeviceClass());
-            entity.setDeviceClass(deviceClass);
-            entity.setGuid(dc.getGuid());
-            entity.setId(dc.getId());
+            entity.setDeviceId(dc.getDeviceId());
             entity.setName(dc.getName());
-            //TODO ???vo.setNetwork();
-            Network network = Network.convert(dc.getNetwork());
+            entity.setData(dc.getData());
+            entity.setBlocked(dc.getBlocked());
+            Network network = new Network();
+            network.setId(dc.getNetworkId());
             entity.setNetwork(network);
         }
         return entity;

@@ -29,10 +29,8 @@ public class ListDeviceRequest extends Body {
     private String namePattern;
     private Long networkId;
     private String networkName;
-    private Long deviceClassId;
-    private String deviceClassName;
     private String sortField;
-    private Boolean sortOrderAsc;
+    private boolean sortOrderAsc;
     private Integer take;
     private Integer skip;
     private HivePrincipal principal;
@@ -73,22 +71,6 @@ public class ListDeviceRequest extends Body {
         this.networkName = networkName;
     }
 
-    public Long getDeviceClassId() {
-        return deviceClassId;
-    }
-
-    public void setDeviceClassId(Long deviceClassId) {
-        this.deviceClassId = deviceClassId;
-    }
-
-    public String getDeviceClassName() {
-        return deviceClassName;
-    }
-
-    public void setDeviceClassName(String deviceClassName) {
-        this.deviceClassName = deviceClassName;
-    }
-
     public String getSortField() {
         return sortField;
     }
@@ -97,11 +79,11 @@ public class ListDeviceRequest extends Body {
         this.sortField = sortField;
     }
 
-    public Boolean getSortOrderAsc() {
+    public boolean getSortOrderAsc() {
         return sortOrderAsc;
     }
 
-    public void setSortOrderAsc(Boolean sortOrderAsc) {
+    public void setSortOrderAsc(boolean sortOrderAsc) {
         this.sortOrderAsc = sortOrderAsc;
     }
 

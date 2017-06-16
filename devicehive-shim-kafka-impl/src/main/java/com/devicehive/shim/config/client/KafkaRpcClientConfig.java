@@ -89,7 +89,7 @@ public class KafkaRpcClientConfig {
     @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
-    @Value("${zookeeper.servers:127.0.0.1:2181}")
+    @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
 
     @Bean

@@ -26,6 +26,8 @@ public interface TimestampService {
 
     Date getDate();
 
+    Date getDate(long ms);
+
     String getDateAsString();
 
     long getTimestamp();

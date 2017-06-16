@@ -23,7 +23,6 @@ package com.devicehive.resource;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.vo.DeviceEquipmentVO;
 import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,9 +52,7 @@ public interface DeviceResource {
      * @param namePattern        Device name pattern.
      * @param networkId          Associated network identifier
      * @param networkName        Associated network name
-     * @param deviceClassId      Associated device class identifier
-     * @param deviceClassName    Associated device class name
-     * @param sortField          Result list sort field. Available values are Name, Status, Network and DeviceClass.
+     * @param sortField          Result list sort field. Available values are Name, Status and Network.
      * @param sortOrderSt        Result list sort order. Available values are ASC and DESC.
      * @param take               Number of records to take from the result list.
      * @param skip               Number of records to skip from the result list.
@@ -64,6 +61,9 @@ public interface DeviceResource {
     @GET
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     @ApiOperation(value = "List devices", notes = "Gets list of devices.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns array of Device resources in the response body.",
                     response = DeviceVO.class, responseContainer = "List"),
@@ -84,13 +84,7 @@ public interface DeviceResource {
             @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
-            @ApiParam(name = "deviceClassId", value = "Filter by associated device class identifier.")
-            @QueryParam("deviceClassId")
-            Long deviceClassId,
-            @ApiParam(name = "deviceClassName", value = "Filter by associated device class name.")
-            @QueryParam("deviceClassName")
-            String deviceClassName,
-            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network,DeviceClass")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Status,Network")
             @QueryParam("sortField")
             String sortField,
             @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
@@ -113,14 +107,17 @@ public interface DeviceResource {
      *
      * @param deviceUpdate In the request body, supply a Device resource. See <a href="http://www.devicehive
      *                     .com/restful#Reference/Device/register">
-     * @param deviceGuid   Device unique identifier.
+     * @param deviceId   Device unique identifier.
      * @return response code 201, if successful
      */
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
-    @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' and 'deviceClass' properties are required.")
+    @ApiOperation(value = "Register device", notes = "Registers or updates a device. For initial device registration, only 'name' property is required.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -133,21 +130,24 @@ public interface DeviceResource {
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String deviceGuid);
+            String deviceId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:
      * Device: get</a> Gets information about device.
      *
-     * @param guid Device unique identifier
+     * @param deviceId Device unique identifier
      * @return If successful, this method returns a <a href="http://www.devicehive.com/restful#Reference/Device">Device</a>
      * resource in the response body.
      */
     @GET
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE')")
     @ApiOperation(value = "Get device", notes = "Gets information about device.",
             response = DeviceVO.class)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 200, message = "If successful, this method returns a Device resource in the response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -158,19 +158,22 @@ public interface DeviceResource {
     Response get(
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String guid);
+            String deviceId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/delete">DeviceHive RESTful API:
      * Device: delete</a> Deletes an existing device.
      *
-     * @param guid Device unique identifier
+     * @param deviceId Device unique identifier
      * @return If successful, this method returns an empty response body.
      */
     @DELETE
     @Path("/{id}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'REGISTER_DEVICE')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     @ApiOperation(value = "Delete device", notes = "Deletes an existing device.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
             @ApiResponse(code = 400, message = "If request is malformed"),
@@ -181,67 +184,5 @@ public interface DeviceResource {
     Response delete(
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            String guid);
-
-    /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/equipment">DeviceHive RESTful API:
-     * Device: equipment</a> Gets current state of device equipment. The equipment state is tracked by framework and it
-     * could be updated by sending 'equipment' notification with the following parameters: equipment: equipment code
-     * parameters: current equipment state
-     *
-     * @param guid Device unique identifier.
-     * @return If successful, this method returns array of the following structures in the response body. <table> <tr>
-     * <td>Property Name</td> <td>Type</td> <td>Description</td> </tr> <tr> <td>id</td> <td>string</td>
-     * <td>Equipment code.</td> </tr> <tr> <td>timestamp</td> <td>datetime</td> <td>Equipment state
-     * timestamp.</td> </tr> <tr> <td>parameters</td> <td>object</td> <td>Current equipment state.</td> </tr>
-     * </table>
-     */
-    @GET
-    @Path("/{id}/equipment")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get device's equipment", notes = "Gets current state of device equipment.\n" +
-            "The equipment state is tracked by framework and it could be updated by sending 'equipment' notification with the following parameters:\n" +
-            "equipment: equipment code\n" +
-            "parameters: current equipment state")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns an array of DeviceEquipment resources in the response body.",
-                    response = DeviceEquipmentVO.class,
-                    responseContainer = "List"),
-            @ApiResponse(code = 400, message = "If request is malformed"),
-            @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If device is not found")
-    })
-    Response equipment(
-            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
-            @PathParam("id")
-            String guid);
-
-    /**
-     * Gets current state of device equipment. The equipment state is tracked by framework and it could be updated by
-     * sending 'equipment' notification with the following parameters: equipment: equipment code parameters: current
-     * equipment state
-     *
-     * @param guid device guid
-     * @param code equipment code
-     * @return If successful return equipment associated with code and device with following guid
-     */
-    @GET
-    @Path("/{id}/equipment/{code}")
-    @PreAuthorize("isAuthenticated() and hasPermission(#guid, 'GET_DEVICE_STATE')")
-    @ApiOperation(value = "Get current state of equipment", notes = "Gets current state of device equipment by code.")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a DeviceEquipment resource in the response body.",
-                    response = DeviceEquipmentVO.class),
-            @ApiResponse(code = 401, message = "If request is not authorized"),
-            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
-            @ApiResponse(code = 404, message = "If device or equipment is not found.")
-    })
-    Response equipmentByCode(
-            @ApiParam(name = "id", value = "Device unique identifier.", required = true)
-            @PathParam("id")
-            String guid,
-            @ApiParam(name = "code", value = "Equipment code.", required = true)
-            @PathParam("code")
-            String code);
+            String deviceId);
 }

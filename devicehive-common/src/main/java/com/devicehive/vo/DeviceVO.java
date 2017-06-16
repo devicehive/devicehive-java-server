@@ -26,6 +26,9 @@ import com.devicehive.model.JsonStringWrapper;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceVO implements HiveEntity {
@@ -35,8 +38,10 @@ public class DeviceVO implements HiveEntity {
 
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String guid;
+    private String deviceId;
 
+    @NotNull
+    @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private String name;
@@ -45,13 +50,9 @@ public class DeviceVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
     private JsonStringWrapper data;
 
-    @SerializedName("network")
+    @SerializedName("networkId")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
-    private NetworkVO network;
-
-    @SerializedName("deviceClass")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
-    private DeviceClassVO deviceClass;
+    private Long networkId;
 
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
@@ -66,12 +67,12 @@ public class DeviceVO implements HiveEntity {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {
@@ -90,20 +91,12 @@ public class DeviceVO implements HiveEntity {
         this.data = data;
     }
 
-    public NetworkVO getNetwork() {
-        return network;
+    public Long getNetworkId() {
+        return networkId;
     }
 
-    public void setNetwork(NetworkVO network) {
-        this.network = network;
-    }
-
-    public DeviceClassVO getDeviceClass() {
-        return deviceClass;
-    }
-
-    public void setDeviceClass(DeviceClassVO deviceClass) {
-        this.deviceClass = deviceClass;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
     public Boolean getBlocked() {

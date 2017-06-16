@@ -50,9 +50,9 @@ public class DeviceCommandService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandService.class);
 
-    private TimestampService timestampService;
-    private HiveValidator hiveValidator;
-    private RpcClient rpcClient;
+    private final TimestampService timestampService;
+    private final HiveValidator hiveValidator;
+    private final RpcClient rpcClient;
 
     @Autowired
     public DeviceCommandService(TimestampService timestampService,
@@ -63,10 +63,10 @@ public class DeviceCommandService {
         this.rpcClient = rpcClient;
     }
 
-    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String guid) {
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
-        searchRequest.setGuid(guid);
+        searchRequest.setDeviceId(deviceId);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
@@ -75,12 +75,12 @@ public class DeviceCommandService {
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
     }
 
-    public CompletableFuture<List<DeviceCommand>> find(Collection<String> guids, Collection<String> names,
+    public CompletableFuture<List<DeviceCommand>> find(Collection<String> deviceIds, Collection<String> names,
                                                        Date timestampSt, Date timestampEnd, String status) {
-        List<CompletableFuture<Response>> futures = guids.stream()
-                .map(guid -> {
+        List<CompletableFuture<Response>> futures = deviceIds.stream()
+                .map(deviceId -> {
                     CommandSearchRequest searchRequest = new CommandSearchRequest();
-                    searchRequest.setGuid(guid);
+                    searchRequest.setDeviceId(deviceId);
                     if (names != null) {
                         searchRequest.setNames(new HashSet<>(names));
                     }
@@ -93,7 +93,7 @@ public class DeviceCommandService {
                     CompletableFuture<Response> future = new CompletableFuture<>();
                     rpcClient.call(Request.newBuilder()
                             .withBody(searchRequest)
-                            .withPartitionKey(searchRequest.getGuid())
+                            .withPartitionKey(searchRequest.getDeviceId())
                             .build(), new ResponseConsumer(future));
                     return future;
                 })
@@ -109,12 +109,13 @@ public class DeviceCommandService {
     }
 
     public CompletableFuture<DeviceCommand> insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
+        hiveValidator.validate(commandWrapper);
         DeviceCommand command = convertWrapperToCommand(commandWrapper, device, user);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandInsertRequest(command))
-                .withPartitionKey(device.getGuid())
+                .withPartitionKey(device.getDeviceId())
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
@@ -123,11 +124,12 @@ public class DeviceCommandService {
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
+            final Integer limit,
             final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
 
         final String subscriptionId = UUID.randomUUID().toString();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
@@ -158,15 +160,15 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(String subId, Set<String> deviceGuids) {
-        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceGuids);
+    public void sendUnsubscribeRequest(String subId, Set<String> deviceIds) {
+        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         rpcClient.push(request);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String guid, BiConsumer<DeviceCommand, String> callback) {
+    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, String> callback) {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
         final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {
@@ -180,34 +182,35 @@ public class DeviceCommandService {
             }
         };
         rpcClient.call(Request.newBuilder()
-                .withBody(new CommandUpdateSubscribeRequest(commandId, guid, subscriptionId))
+                .withBody(new CommandUpdateSubscribeRequest(commandId, deviceId, subscriptionId))
                 .build(), responseConsumer);
         return future;
     }
 
     public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
+        hiveValidator.validate(commandWrapper);
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
 
-        if (commandWrapper.getCommand() != null) {
-            cmd.setCommand(commandWrapper.getCommand().orElse(null));
+        if (commandWrapper.getCommand().isPresent()) {
+            cmd.setCommand(commandWrapper.getCommand().get());
         }
-        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+        if (commandWrapper.getTimestamp().isPresent()) {
             cmd.setTimestamp(commandWrapper.getTimestamp().get());
         }
-        if (commandWrapper.getParameters() != null) {
-            cmd.setParameters(commandWrapper.getParameters().orElse(null));
+        if (commandWrapper.getParameters().isPresent()) {
+            cmd.setParameters(commandWrapper.getParameters().get());
         }
-        if (commandWrapper.getLifetime() != null) {
-            cmd.setLifetime(commandWrapper.getLifetime().orElse(null));
+        if (commandWrapper.getLifetime().isPresent()) {
+            cmd.setLifetime(commandWrapper.getLifetime().get());
         }
-        if (commandWrapper.getStatus() != null) {
-            cmd.setStatus(commandWrapper.getStatus().orElse(null));
+        if (commandWrapper.getStatus().isPresent()) {
+            cmd.setStatus(commandWrapper.getStatus().get());
         }
-        if (commandWrapper.getResult() != null) {
-            cmd.setResult(commandWrapper.getResult().orElse(null));
+        if (commandWrapper.getResult().isPresent()) {
+            cmd.setResult(commandWrapper.getResult().get());
         }
 
         hiveValidator.validate(cmd);
@@ -222,10 +225,10 @@ public class DeviceCommandService {
     private DeviceCommand convertWrapperToCommand(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
-        command.setDeviceGuid(device.getGuid());
+        command.setDeviceId(device.getDeviceId());
         command.setIsUpdated(false);
 
-        if (commandWrapper.getTimestamp() != null && commandWrapper.getTimestamp().isPresent()) {
+        if (commandWrapper.getTimestamp().isPresent()) {
             command.setTimestamp(commandWrapper.getTimestamp().get());
         } else {
             command.setTimestamp(timestampService.getDate());
@@ -234,20 +237,20 @@ public class DeviceCommandService {
         if (user != null) {
             command.setUserId(user.getId());
         }
-        if (commandWrapper.getCommand() != null) {
-            command.setCommand(commandWrapper.getCommand().orElseGet(null));
+        if (commandWrapper.getCommand().isPresent()) {
+            command.setCommand(commandWrapper.getCommand().get());
         }
-        if (commandWrapper.getParameters() != null) {
-            command.setParameters(commandWrapper.getParameters().orElse(null));
+        if (commandWrapper.getParameters().isPresent()) {
+            command.setParameters(commandWrapper.getParameters().get());
         }
-        if (commandWrapper.getLifetime() != null) {
-            command.setLifetime(commandWrapper.getLifetime().orElse(null));
+        if (commandWrapper.getLifetime().isPresent()) {
+            command.setLifetime(commandWrapper.getLifetime().get());
         }
-        if (commandWrapper.getStatus() != null) {
-            command.setStatus(commandWrapper.getStatus().orElse(null));
+        if (commandWrapper.getStatus().isPresent()) {
+            command.setStatus(commandWrapper.getStatus().get());
         }
-        if (commandWrapper.getResult() != null) {
-            command.setResult(commandWrapper.getResult().orElse(null));
+        if (commandWrapper.getResult().isPresent()) {
+            command.setResult(commandWrapper.getResult().get());
         }
 
         hiveValidator.validate(command);

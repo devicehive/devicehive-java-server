@@ -32,12 +32,14 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.model.updates.DeviceClassUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.TokenType;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -56,13 +58,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.annotation.DirtiesContext;
 
+import javax.validation.ConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.ws.rs.core.HttpHeaders;
+
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static java.util.UUID.randomUUID;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.times;
@@ -123,7 +134,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_throw_NoSuchElementException_if_network_is_null_when_assign_network() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -137,7 +148,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_assign_network_to_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -191,7 +202,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_unassign_network_from_user() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -250,7 +261,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public void should_do_nothing_if_network_is_null_when_unassign_user_from_network() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -268,7 +279,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -276,7 +287,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        UserVO authenticated = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getLoginAttempts(), equalTo(0));
         assertThat(authenticated.getLastLogin(), notNullValue());
@@ -287,7 +298,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        UserVO user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -315,7 +326,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        UserVO user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -357,7 +368,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -365,7 +376,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        UserVO authenticated = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getLoginAttempts(), equalTo(0));
         assertThat(authenticated.getLastLogin(), notNullValue());
@@ -382,7 +393,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
         assertThat(updatedUser.getLastLogin(), notNullValue());
 
-        authenticated = userService.authenticate(user.getLogin(), "123");
+        authenticated = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         assertThat(authenticated, notNullValue());
         assertThat(authenticated.getLoginAttempts(), equalTo(0));
         assertThat(authenticated.getLastLogin(), notNullValue());
@@ -393,7 +404,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -403,9 +414,9 @@ public class UserServiceTest extends AbstractResourceTest {
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 20000); //login timeout 20 sec
 
-        UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated1 = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         TimeUnit.SECONDS.sleep(1);
-        UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated2 = userService.authenticate(user.getLogin(), VALID_PASSWORD);
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -418,7 +429,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -427,9 +438,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
-        UserVO authenticated1 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated1 = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         TimeUnit.SECONDS.sleep(1);
-        UserVO authenticated2 = userService.authenticate(user.getLogin(), "123");
+        UserVO authenticated2 = userService.authenticate(user.getLogin(), VALID_PASSWORD);
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -443,7 +454,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(AccessDeniedException.class);
         expectedException.expectMessage(Messages.USER_NOT_FOUND);
         try {
-            userService.findUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
+            userService.getActiveUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -455,12 +466,12 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.DISABLED);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         expectedException.expect(AccessDeniedException.class);
         expectedException.expectMessage(Messages.USER_NOT_ACTIVE);
 
-        userService.findUser(user.getLogin(), "123");
+        userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
     }
 
     @Test
@@ -468,7 +479,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -477,7 +488,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         try {
-            userService.findUser(user.getLogin(), "wrong_password");
+            userService.getActiveUser(user.getLogin(), "wrong_password");
             fail("should throw AccessDeniedException exception");
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -489,7 +500,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getStatus(), equalTo(UserStatus.ACTIVE));
         assertThat(updatedUser.getLastLogin(), nullValue());
 
-        user = userService.findUser(user.getLogin(), "123");
+        user = userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getLoginAttempts(), equalTo(0));
         assertThat(user.getLastLogin(), notNullValue());
@@ -500,7 +511,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -508,7 +519,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
-        user = userService.findUser(user.getLogin(), "123");
+        user = userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getLoginAttempts(), equalTo(0));
         assertThat(user.getLastLogin(), notNullValue());
@@ -519,7 +530,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO newUser = new UserVO();
         newUser.setLogin(RandomStringUtils.randomAlphabetic(10));
         newUser.setStatus(UserStatus.ACTIVE);
-        UserVO user = userService.createUser(newUser, "123");
+        UserVO user = userService.createUser(newUser, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -531,7 +542,7 @@ public class UserServiceTest extends AbstractResourceTest {
 
         IntStream.range(1, 5).forEach(attempt -> {
             try {
-                userService.findUser(user.getLogin(), "wrong_password");
+                userService.getActiveUser(user.getLogin(), "wrong_password");
                 fail("should throw login exception");
             } catch (AccessDeniedException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -544,7 +555,7 @@ public class UserServiceTest extends AbstractResourceTest {
         });
 
         try {
-            userService.findUser(user.getLogin(), "wrong_password");
+            userService.getActiveUser(user.getLogin(), "wrong_password");
             fail("should throw login exception");
         } catch (AccessDeniedException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
@@ -561,7 +572,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
@@ -570,9 +581,9 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
 
         configurationService.save(Constants.LAST_LOGIN_TIMEOUT, 0);
-        UserVO authenticated1 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated1 = userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
         TimeUnit.SECONDS.sleep(1);
-        UserVO authenticated2 = userService.findUser(user.getLogin(), "123");
+        UserVO authenticated2 = userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
 
         assertThat(authenticated1.getId(), equalTo(authenticated2.getId()));
         assertThat(authenticated1.getLogin(), equalTo(authenticated2.getLogin()));
@@ -586,7 +597,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -604,7 +615,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -627,7 +638,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -641,23 +652,13 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
 
-        String googleLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setGoogleLogin(googleLogin);
-        String facebookLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setFacebookLogin(facebookLogin);
-        String githubLogin = RandomStringUtils.randomAlphabetic(10);
-        user.setGithubLogin(githubLogin);
-
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
         assertThat(user.getLogin(), notNullValue());
         assertThat(user.getPasswordHash(), notNullValue());
         assertThat(user.getPasswordSalt(), notNullValue());
         assertThat(user.getStatus(), equalTo(UserStatus.ACTIVE));
-        assertThat(user.getGoogleLogin(), equalTo(googleLogin));
-        assertThat(user.getFacebookLogin(), equalTo(facebookLogin));
-        assertThat(user.getGithubLogin(), equalTo(githubLogin));
         assertThat(user.getLoginAttempts(), equalTo(0));
     }
 
@@ -671,7 +672,7 @@ public class UserServiceTest extends AbstractResourceTest {
         expectedException.expect(IllegalParametersException.class);
         expectedException.expectMessage(Messages.ID_NOT_ALLOWED);
 
-        userService.createUser(user, "123");
+        userService.createUser(user, VALID_PASSWORD);
     }
 
     @Test
@@ -694,70 +695,33 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_create_user_without_password() throws Exception {
+    public void should_throw_ActionNotAllowedException_if_create_user_without_password() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+
+        expectedException.expect(IllegalParametersException.class);
+        expectedException.expectMessage(Messages.PASSWORD_VALIDATION_FAILED);
 
         user = userService.createUser(user, null);
-        assertThat(user, notNullValue());
-        assertThat(user.getId(), notNullValue());
-        assertThat(user.getPasswordHash(), nullValue());
-        assertThat(user.getPasswordSalt(), nullValue());
     }
 
-    @Test
-    public void should_throw_ActionNotAllowedException_if_any_identity_login_already_exists() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
+    @Test(expected=ConstraintViolationException.class)
+    public void should_not_create_user_with_invalid_login() throws Exception {
         UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setLogin(RandomStringUtils.randomAlphabetic(2));
         user.setStatus(UserStatus.ACTIVE);
-        user.setGoogleLogin(google);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setGoogleLogin(google);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
 
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setFacebookLogin(facebook);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setFacebookLogin(facebook);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
+        user = userService.createUser(user, VALID_PASSWORD);
+    }
 
-        String github = RandomStringUtils.randomAlphabetic(10);
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+    @Test(expected=IllegalParametersException.class)
+    public void should_not_create_user_with_invalid_password() throws Exception {
+        UserVO user = new UserVO();
+        user.setLogin(RandomStringUtils.randomAlphabetic(2));
         user.setStatus(UserStatus.ACTIVE);
-        user.setGithubLogin(github);
-        userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-        try {
-            user = new UserVO();
-            user.setLogin(RandomStringUtils.randomAlphabetic(10));
-            user.setStatus(UserStatus.ACTIVE);
-            user.setGithubLogin(github);
-            userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
+
+        user = userService.createUser(user, INVALID_PASSWORD);
     }
 
     @Test
@@ -765,7 +729,7 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
@@ -781,7 +745,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -789,17 +753,13 @@ public class UserServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), network.getId());
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
-
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
-        deviceService.deviceSave(device, Collections.emptySet());
+        device.setName(randomUUID().toString());
+        device.setId(randomUUID().toString());
+        device.setNetworkId(network.getId());
+        deviceService.deviceSave(device);
 
-        assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, device.getId().orElse(null)));
     }
 
     @Test
@@ -808,23 +768,19 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
-
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
-        deviceService.deviceSave(device, Collections.emptySet());
+        device.setName(randomUUID().toString());
+        device.setId(randomUUID().toString());
+        device.setNetworkId(network.getId());
+        deviceService.deviceSave(device);
 
-        assertFalse(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
+        assertFalse(userService.hasAccessToDevice(user, device.getId().orElse(null)));
     }
 
     @Test
@@ -833,23 +789,19 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         network = networkService.create(network);
 
-        DeviceClassUpdate dc = new DeviceClassUpdate();
-        dc.setName(Optional.ofNullable(randomUUID().toString()));
-
         DeviceUpdate device = new DeviceUpdate();
-        device.setName(Optional.ofNullable(randomUUID().toString()));
-        device.setGuid(Optional.ofNullable(randomUUID().toString()));
-        device.setDeviceClass(Optional.ofNullable(dc));
-        device.setNetwork(Optional.ofNullable(network));
-        deviceService.deviceSave(device, Collections.emptySet());
+        device.setName(randomUUID().toString());
+        device.setId(randomUUID().toString());
+        device.setNetworkId(network.getId());
+        deviceService.deviceSave(device);
 
-        assertTrue(userService.hasAccessToDevice(user, device.getGuid().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, device.getId().orElse(null)));
     }
 
     @Test
@@ -858,7 +810,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.ADMIN);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -873,7 +825,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -890,7 +842,7 @@ public class UserServiceTest extends AbstractResourceTest {
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
 
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
@@ -900,74 +852,17 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_return_user_by_google_login() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findGoogleUser(google);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setGoogleLogin(google);
-        userService.createUser(user, "123");
-
-        user = userService.findGoogleUser(google);
-        assertThat(user, notNullValue());
-        assertThat(user.getGoogleLogin(), equalTo(google));
-    }
-
-    @Test
-    public void should_return_user_by_facebook_login() throws Exception {
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findFacebookUser(facebook);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setFacebookLogin(facebook);
-        userService.createUser(user, "123");
-
-        user = userService.findFacebookUser(facebook);
-        assertThat(user, notNullValue());
-        assertThat(user.getFacebookLogin(), equalTo(facebook));
-    }
-
-    @Test
-    public void should_return_user_by_github_login() throws Exception {
-        String gitgub = RandomStringUtils.randomAlphabetic(10);
-
-        UserVO user = userService.findGithubUser(gitgub);
-        assertThat(user, nullValue());
-
-        user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setGithubLogin(gitgub);
-        userService.createUser(user, "123");
-
-        user = userService.findGithubUser(gitgub);
-        assertThat(user, notNullValue());
-        assertThat(user.getGithubLogin(), equalTo(gitgub));
-    }
-
-    @Test
     public void should_refresh_user_login_data() throws Exception {
         configurationService.save(Constants.MAX_LOGIN_ATTEMPTS, 10);
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
         user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         TimeUnit.SECONDS.sleep(1);
 
-        user = userService.authenticate(user.getLogin(), "123");
+        user = userService.authenticate(user.getLogin(), VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getLastLogin(), notNullValue());
         long lastLogin = user.getLastLogin().getTime();
@@ -992,151 +887,80 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_NoSuchElementException_if_user_does_not_exist_when_update() throws Exception {
-        expectedException.expect(NoSuchElementException.class);
-        expectedException.expectMessage(Messages.USER_NOT_FOUND);
-
-        userService.updateUser(-1L, new UserUpdate(), UserRole.ADMIN);
+    public void should_fail_to_update_user_which_does_not_exist() throws Exception {
+        UserUpdate update = new UserUpdate();
+        update.setLogin(RandomStringUtils.randomAlphabetic(10));
+        performRequest("/user/-1", "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), update, NOT_FOUND, UserVO.class);
     }
 
     @Test
-    public void should_throw_ActionNotAllowedException_trying_to_set_existing_login_when_update() throws Exception {
+    public void should_not_allow_to_set_existing_login_when_update() throws Exception {
         String existingLogin = RandomStringUtils.randomAlphabetic(10);
 
         UserVO first = new UserVO();
         first.setLogin(existingLogin);
         first.setStatus(UserStatus.ACTIVE);
         first.setRole(UserRole.CLIENT);
-        userService.createUser(first, "123");
+        userService.createUser(first, VALID_PASSWORD);
 
         UserVO second = new UserVO();
         second.setLogin(RandomStringUtils.randomAlphabetic(10));
         second.setStatus(UserStatus.ACTIVE);
         second.setRole(UserRole.CLIENT);
-        second = userService.createUser(second, "123");
-
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.DUPLICATE_LOGIN);
+        second = userService.createUser(second, VALID_PASSWORD);
 
         UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(existingLogin));
-        userService.updateUser(second.getId(), update, UserRole.ADMIN);
+        update.setLogin(existingLogin);
+        performRequest("/user/" + second.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), update, FORBIDDEN, UserVO.class);
     }
 
     @Test
     public void should_update_user_identity_logins() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String newLogin = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        UserUpdate update = new UserUpdate();
-        update.setLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setFacebookLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setGoogleLogin(Optional.ofNullable(RandomStringUtils.random(10)));
-        update.setGithubLogin(Optional.ofNullable(RandomStringUtils.random(10)));
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setRole(UserRole.CLIENT.getValue());
 
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(newLogin);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
+
+        UserVO updatedUser = userService.getActiveUser(newLogin, pwd);
+
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
-        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(update.getLogin().orElse(null))));
-        assertThat(updatedUser.getFacebookLogin(), allOf(not(equalTo(user.getFacebookLogin())), equalTo(update.getFacebookLogin().orElse(null))));
-        assertThat(updatedUser.getGoogleLogin(), allOf(not(equalTo(user.getGoogleLogin())), equalTo(update.getGoogleLogin().orElse(null))));
-        assertThat(updatedUser.getGithubLogin(), allOf(not(equalTo(user.getGithubLogin())), equalTo(update.getGithubLogin().orElse(null))));
-    }
-
-    @Test
-    public void should_throw_ActionNotAllowedException_if_user_with_any_login_exists_when_update() throws Exception {
-        String google = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstGoogleUser = new UserVO();
-        firstGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstGoogleUser.setGoogleLogin(google);
-        firstGoogleUser.setStatus(UserStatus.ACTIVE);
-        firstGoogleUser = userService.createUser(firstGoogleUser, RandomStringUtils.randomAlphabetic(10));
-        assertThat(firstGoogleUser.getGoogleLogin(), equalTo(google));
-
-        UserVO secondGoogleUser = new UserVO();
-        secondGoogleUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGoogleUser.setGoogleLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGoogleUser.setStatus(UserStatus.ACTIVE);
-        secondGoogleUser = userService.createUser(secondGoogleUser, RandomStringUtils.randomAlphabetic(10));
-        assertThat(firstGoogleUser.getId(), not(equalTo(secondGoogleUser.getId())));
-        try {
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondGoogleUser.getLogin()));
-            update.setGoogleLogin(Optional.ofNullable(google));
-            update.setFacebookLogin(Optional.ofNullable(null));
-            update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGoogleUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String facebook = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstFacebookUser = new UserVO();
-        firstFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstFacebookUser.setFacebookLogin(facebook);
-        firstFacebookUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(firstFacebookUser, RandomStringUtils.randomAlphabetic(10));
-
-        UserVO secondFacebookUser = new UserVO();
-        secondFacebookUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondFacebookUser.setFacebookLogin(RandomStringUtils.randomAlphabetic(10));
-        secondFacebookUser.setStatus(UserStatus.ACTIVE);
-        secondFacebookUser = userService.createUser(secondFacebookUser, RandomStringUtils.randomAlphabetic(10));
-        try {
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondFacebookUser.getLogin()));
-            update.setFacebookLogin(Optional.ofNullable(facebook));
-            update.setGoogleLogin(Optional.ofNullable(null));
-            update.setGithubLogin(Optional.ofNullable(null));
-            userService.updateUser(secondFacebookUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
-
-        String github = RandomStringUtils.randomAlphabetic(10);
-        UserVO firstGithubUser = new UserVO();
-        firstGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        firstGithubUser.setGithubLogin(github);
-        firstGithubUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(firstGithubUser, RandomStringUtils.randomAlphabetic(10));
-
-        UserVO secondGithubUser = new UserVO();
-        secondGithubUser.setLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGithubUser.setGithubLogin(RandomStringUtils.randomAlphabetic(10));
-        secondGithubUser.setStatus(UserStatus.ACTIVE);
-        userService.createUser(secondGithubUser, RandomStringUtils.randomAlphabetic(10));
-        try {
-
-            UserUpdate update = new UserUpdate();
-            update.setLogin(Optional.ofNullable(secondGithubUser.getLogin()));
-            update.setGithubLogin(Optional.ofNullable(github));
-            update.setFacebookLogin(Optional.ofNullable(null));
-            update.setGoogleLogin(Optional.ofNullable(null));
-            userService.updateUser(secondGithubUser.getId(), update, UserRole.ADMIN);
-            fail("should throw ActionNotAllowedException");
-        } catch (ActionNotAllowedException e) {
-            assertThat(e.getMessage(), equalTo(Messages.DUPLICATE_IDENTITY_LOGIN));
-        }
+        assertThat(updatedUser.getLogin(), allOf(not(equalTo(user.getLogin())), equalTo(updatedUser.getLogin())));
     }
 
     @Test
     public void should_update_password_with_admin_role() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
+        String newPwd = RandomStringUtils.randomAlphabetic(10);
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(newPwd);
+        testUser.setOldPassword(pwd);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
+
+        UserVO updatedUser = userService.getActiveUser(login, newPwd);
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1144,18 +968,23 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_without_old_password() throws Exception {
+    public void should_not_allow_updating_password_with_client_role_without_old_password() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user.setRole(UserRole.CLIENT);
+        user = userService.createUser(user, VALID_PASSWORD);
 
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.OLD_PASSWORD_REQUIRED);
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        update.setPassword("new_pass");
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, FORBIDDEN, UserVO.class);
     }
 
     @Test
@@ -1163,12 +992,21 @@ public class UserServiceTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        user = userService.createUser(user, VALID_PASSWORD);
+
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
 
         UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("123"));
-        UserVO updatedUser = userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        update.setPassword("new_pass");
+        update.setOldPassword(VALID_PASSWORD);
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, NO_CONTENT, UserVO.class);
+        UserVO updatedUser = userService.getActiveUser(user.getLogin(), "new_pass");
+
         assertThat(updatedUser, notNullValue());
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
@@ -1177,33 +1015,48 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_with_wrong_old_password() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        expectedException.expect(ActionNotAllowedException.class);
-        expectedException.expectMessage(Messages.INCORRECT_CREDENTIALS);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setPassword(pwd);
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable("new_pass"));
-        update.setOldPassword(Optional.ofNullable("old"));
-        userService.updateUser(user.getId(), update, UserRole.CLIENT);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setPassword("new_pass");
+        testUser.setOldPassword("wrong_pass");
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, FORBIDDEN, UserVO.class);
     }
 
     @Test
-    public void should_throw_IllegalParametersException_if_() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user = userService.createUser(user, "123");
+    public void should_throw_IllegalParametersException_if_client_updates_his_account_and_old_password_was_not_provided() throws Exception {
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
 
-        expectedException.expect(IllegalParametersException.class);
-        expectedException.expectMessage(Messages.PASSWORD_REQUIRED);
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setRole(UserRole.CLIENT.getValue());
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
 
-        UserUpdate update = new UserUpdate();
-        update.setPassword(Optional.ofNullable(null));
-        userService.updateUser(user.getId(), update, UserRole.ADMIN);
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        JwtPayload payload = new JwtPayload.Builder()
+                .withUserId(user.getId())
+                .withTokenType(TokenType.ACCESS)
+                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .buildPayload();
+        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
+
+        testUser.setPassword(null);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), testUser, FORBIDDEN, UserVO.class);
     }
 
     @Test
@@ -1221,7 +1074,7 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
         handleListUserRequest();
         final UserVO finalTestUser = testUser;
-        userService.list(testUser.getLogin(), null, null, null, null, null, 100, 0)
+        userService.list(testUser.getLogin(), null, null, null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(1));
@@ -1247,7 +1100,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1278,7 +1131,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
@@ -1308,7 +1161,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, null, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, false, 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));

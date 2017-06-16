@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+echo "=== BUILD hook start ==="
+printenv
+
+docker build --build-arg SOURCE_REPOSITORY_URL=$SOURCE_REPOSITORY_URL --build-arg SOURCE_BRANCH=$SOURCE_BRANCH -t $IMAGE_NAME -f $DOCKERFILE_PATH .
+
+echo "=== BUILD hook end ==="

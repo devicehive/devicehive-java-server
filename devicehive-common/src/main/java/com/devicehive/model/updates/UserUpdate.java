@@ -25,124 +25,116 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserVO;
+import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Size;
 import java.util.Optional;
 
 public class UserUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -8353201743020153250L;
-    private Optional<String> login;
-    private Optional<Integer> role;
-    private Optional<Integer> status;
-    private Optional<String> password;
-    private Optional<String> oldPassword;
-    private Optional<String> googleLogin;
-    private Optional<String> facebookLogin;
-    private Optional<String> githubLogin;
-    private Optional<JsonStringWrapper> data;
+
+    @Size(min = 1, max = 128, message = "Field login cannot be empty. The length of login should not be more than 128 symbols.")
+    private String login;
+
+    @ApiModelProperty(value = "0 for 'ADMIN', 1 for 'CLIENT'")
+    @Max(value = 1, message = "The value of role should not be more than 1.")
+    @Min(value = 0, message = "The value of role should not be less than 0.")
+    private Integer role;
+
+    @ApiModelProperty(value = "0 for 'ACTIVE', 1 for 'LOCKED_OUT', 2 for 'DISABLED'")
+    @Max(value = 3, message = "The value of status should not be more than 3.")
+    @Min(value = 0, message = "The value of status should not be less than 0.")
+    private Integer status;
+
+    @Size(max = 128, message = "The length of password should not be more than 128 symbols.")
+    private String password;
+
+    @Size(max = 128, message = "The length of old password should not be more than 128 symbols.")
+    private String oldPassword;
+
+    private JsonStringWrapper data;
+
+    private Boolean introReviewed;
 
     public Optional<String> getLogin() {
-        return login;
+        return Optional.ofNullable(login);
     }
 
-    public void setLogin(Optional<String> login) {
+    public void setLogin(String login) {
         this.login = login;
     }
 
     public Optional<Integer> getRole() {
-        return role;
+        return Optional.ofNullable(role);
     }
 
-    public void setRole(Optional<Integer> role) {
+    public void setRole(Integer role) {
         this.role = role;
     }
 
     public Optional<Integer> getStatus() {
-        return status;
+        return Optional.ofNullable(status);
     }
 
-    public void setStatus(Optional<Integer> status) {
+    public void setStatus(Integer status) {
         this.status = status;
     }
 
     public Optional<String> getPassword() {
-        return password;
+        return Optional.ofNullable(password);
     }
 
-    public void setPassword(Optional<String> password) {
+    public void setPassword(String password) {
         this.password = password;
     }
 
     public Optional<String> getOldPassword() {
-        return oldPassword;
+        return Optional.ofNullable(oldPassword);
     }
 
-    public void setOldPassword(Optional<String> oldPassword) {
+    public void setOldPassword(String oldPassword) {
         this.oldPassword = oldPassword;
     }
 
-    public Optional<String> getGoogleLogin() {
-        return googleLogin;
-    }
-
-    public void setGoogleLogin(Optional<String> googleLogin) {
-        this.googleLogin = googleLogin;
-    }
-
-    public Optional<String> getFacebookLogin() {
-        return facebookLogin;
-    }
-
-    public void setFacebookLogin(Optional<String> facebookLogin) {
-        this.facebookLogin = facebookLogin;
-    }
-
-    public Optional<String> getGithubLogin() {
-        return githubLogin;
-    }
-
-    public void setGithubLogin(Optional<String> githubLogin) {
-        this.githubLogin = githubLogin;
-    }
-
     public Optional<JsonStringWrapper> getData() {
-        return data;
+        return Optional.ofNullable(data);
     }
 
-    public void setData(Optional<JsonStringWrapper> data) {
+    public void setData(JsonStringWrapper data) {
         this.data = data;
     }
 
-    public UserRole getRoleEnum() {
-        if(role != null) {
-            return role.map(UserRole::getValueForIndex).orElse(null);
-        }
-        return null;
+    public Optional<Boolean> getIntroReviewed() {
+        return Optional.ofNullable(introReviewed);
     }
 
+    public void setIntroReviewed(Boolean introReviewed) {
+        this.introReviewed = introReviewed;
+    }
+
+    @ApiModelProperty(hidden = true)
+    public UserRole getRoleEnum() {
+        return getRole().map(UserRole::getValueForIndex).orElse(null);
+    }
+
+    @ApiModelProperty(hidden = true)
     public UserStatus getStatusEnum() {
-        if(status != null) {
-            return status.map(UserStatus::getValueForIndex).orElse(null);
-        }
-        return null;
+        return getStatus().map(UserStatus::getValueForIndex).orElse(null);
     }
 
     public UserVO convertTo() {
         UserVO result = new UserVO();
         if (login != null) {
-            result.setLogin(login.orElse(null));
-        }
-        if (googleLogin != null) {
-            result.setGoogleLogin(googleLogin.orElse(null));
-        }
-        if (facebookLogin != null) {
-            result.setFacebookLogin(facebookLogin.orElse(null));
-        }
-        if (githubLogin != null) {
-            result.setGithubLogin(githubLogin.orElse(null));
+            result.setLogin(login);
         }
         if (data != null) {
-            result.setData(data.orElse(null));
+            result.setData(data);
+        }
+        if (introReviewed != null) {
+            result.setIntroReviewed(introReviewed);
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

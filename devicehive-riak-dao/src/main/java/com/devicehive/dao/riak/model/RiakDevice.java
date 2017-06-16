@@ -22,15 +22,13 @@ package com.devicehive.dao.riak.model;
 
 import com.basho.riak.client.api.annotations.RiakIndex;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.vo.DeviceClassVO;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
 
 public class RiakDevice {
 
     private Long id;
 
-    private String guid;
+    private String deviceId;
 
     private String name;
 
@@ -39,8 +37,6 @@ public class RiakDevice {
     private JsonStringWrapper data;
 
     private RiakNetwork network;
-
-    private RiakDeviceClass deviceClass;
 
     private Boolean blocked;
 
@@ -60,12 +56,12 @@ public class RiakDevice {
         this.id = id;
     }
 
-    public String getGuid() {
-        return guid;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setGuid(String guid) {
-        this.guid = guid;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getName() {
@@ -92,14 +88,6 @@ public class RiakDevice {
         this.network = network;
     }
 
-    public RiakDeviceClass getDeviceClass() {
-        return deviceClass;
-    }
-
-    public void setDeviceClass(RiakDeviceClass deviceClass) {
-        this.deviceClass = deviceClass;
-    }
-
     public Boolean getBlocked() {
         return blocked;
     }
@@ -109,9 +97,9 @@ public class RiakDevice {
     }
 
     //Riak indexes
-    @RiakIndex(name = "guid")
+    @RiakIndex(name = "deviceId")
     public String getGuidSi() {
-        return guid;
+        return deviceId;
     }
 
     public static DeviceVO convertToVo(RiakDevice dc) {
@@ -120,13 +108,10 @@ public class RiakDevice {
             vo = new DeviceVO();
             vo.setBlocked(dc.getBlocked());
             vo.setData(dc.getData());
-            DeviceClassVO rdc = RiakDeviceClass.convertDeviceClassWithEquipment(dc.getDeviceClass());
-            vo.setDeviceClass(rdc);
-            vo.setGuid(dc.getGuid());
+            vo.setDeviceId(dc.getDeviceId());
             vo.setId(dc.getId());
             vo.setName(dc.getName());
-            NetworkVO networkVO = RiakNetwork.convert(dc.getNetwork());
-            vo.setNetwork(networkVO);
+            vo.setNetworkId(dc.getNetwork().getId());
         }
         return vo;
     }
@@ -137,12 +122,11 @@ public class RiakDevice {
             entity = new RiakDevice();
             entity.setBlocked(dc.getBlocked());
             entity.setData(dc.getData());
-            RiakDeviceClass cdc = RiakDeviceClass.convertDeviceClassVOToEntity(dc.getDeviceClass());
-            entity.setDeviceClass(cdc);
-            entity.setGuid(dc.getGuid());
+            entity.setDeviceId(dc.getDeviceId());
             entity.setId(dc.getId());
             entity.setName(dc.getName());
-            RiakNetwork network = RiakNetwork.convert(dc.getNetwork());
+            RiakNetwork network = new RiakNetwork();
+            network.setId(dc.getNetworkId());
             entity.setNetwork(network);
         }
         return entity;
