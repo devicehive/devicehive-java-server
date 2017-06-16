@@ -86,8 +86,12 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         }
 
         logger.debug("JwtToken: generate access and refresh token");
+
+        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(payload)
+                .buildPayload();
+
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, true));
-        responseTokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload, true));
+        responseTokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(refreshPayload, true));
 
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
