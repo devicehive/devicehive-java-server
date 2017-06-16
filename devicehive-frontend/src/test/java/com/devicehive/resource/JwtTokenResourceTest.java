@@ -97,7 +97,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
         // Generate refresh token
-        String refreshToken = jwtClientService.generateJwtRefreshToken(payload);
+        String refreshToken = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtTokenVO tokenVO = new JwtTokenVO();
         tokenVO.setRefreshToken(refreshToken);
 
@@ -129,7 +129,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         JwtTokenVO token = new JwtTokenVO();
-        String refreshToken = jwtClientService.generateJwtAccessToken(payload);
+        String refreshToken = jwtClientService.generateJwtRefreshToken(payload, true);
         token.setRefreshToken(refreshToken);
 
         JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), token, UNAUTHORIZED, JwtTokenVO.class);
@@ -160,7 +160,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
 
         // Generate token with access type instead of refresh
-        String accessToken = jwtClientService.generateJwtAccessToken(payload);
+        String accessToken = jwtClientService.generateJwtAccessToken(payload, true);
         JwtTokenVO tokenVO = new JwtTokenVO();
         tokenVO.setRefreshToken(accessToken);
 

@@ -65,7 +65,7 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        String token = jwtClientService.generateJwtAccessToken(payload);
+        String token = jwtClientService.generateJwtAccessToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.ACCESS);
@@ -84,7 +84,7 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        String token = jwtClientService.generateJwtRefreshToken(payload);
+        String token = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.REFRESH);

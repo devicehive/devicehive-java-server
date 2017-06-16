@@ -96,8 +96,8 @@ public class JwtTokenService {
         JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(accessPayload)
                 .buildPayload();
 
-        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(accessPayload));
-        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(refreshPayload));
+        tokenVO.setAccessToken(tokenService.generateJwtAccessToken(accessPayload, false));
+        tokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(refreshPayload, false));
         return tokenVO;
     }
 }

@@ -149,7 +149,7 @@ public class CommonHandlers {
         }
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload));
+        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, false));
         return response;
     }
 }

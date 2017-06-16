@@ -86,8 +86,12 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         }
 
         logger.debug("JwtToken: generate access and refresh token");
-        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
-        responseTokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(payload));
+
+        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(payload)
+                .buildPayload();
+
+        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, true));
+        responseTokenVO.setRefreshToken(tokenService.generateJwtRefreshToken(refreshPayload, true));
 
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
@@ -123,7 +127,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             return ResponseFactory.response(UNAUTHORIZED);
         }
 
-        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload));
+        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
         logger.debug("JwtToken: access token successfully generated with refresh token");
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
     }
