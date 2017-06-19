@@ -1,4 +1,4 @@
-package com.devicehive.service.helpers;
+package com.devicehive.model;
 
 /*
  * #%L
@@ -19,8 +19,6 @@ package com.devicehive.service.helpers;
  * limitations under the License.
  * #L%
  */
-
-import com.devicehive.model.HazelcastEntity;
 
 import java.io.Serializable;
 import java.util.Comparator;

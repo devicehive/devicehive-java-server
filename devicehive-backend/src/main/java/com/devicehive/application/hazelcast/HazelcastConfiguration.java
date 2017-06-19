@@ -20,8 +20,9 @@ package com.devicehive.application.hazelcast;
  * #L%
  */
 
-import com.hazelcast.config.*;
-import com.hazelcast.core.Hazelcast;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.client.config.XmlClientConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,10 @@ import org.springframework.context.annotation.Configuration;
 public class HazelcastConfiguration {
 
     @Bean
-    public HazelcastInstance hazelcast() {
-        return Hazelcast.newHazelcastInstance(new XmlConfigBuilder().build());
+    public HazelcastInstance hazelcast() throws Exception {
+        ClientConfig clientConfig = new XmlClientConfigBuilder("hazelcast-client.xml").build();
+        HazelcastInstance client = HazelcastClient.newHazelcastClient(clientConfig);
+
+        return client;
     }
 }
