@@ -22,17 +22,33 @@ package com.devicehive.application.hazelcast;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.XmlClientConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class HazelcastConfiguration {
+    @Value("${hazelcast.group.name}")
+    private String groupName;
+    @Value("${hazelcast.group.password}")
+    private String groupPassword;
+    @Value("#{'${hazelcast.cluster.members}'.split(',')}")
+    private List<String> clusterMembers;
+
+
 
     @Bean
     public HazelcastInstance hazelcast() throws Exception {
-        ClientConfig clientConfig = new XmlClientConfigBuilder("hazelcast-client.xml").build();
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getGroupConfig()
+                .setName(groupName)
+                .setPassword(groupPassword);
+        clientConfig.getNetworkConfig()
+                .setAddresses(clusterMembers);
+
         HazelcastInstance client = HazelcastClient.newHazelcastClient(clientConfig);
 
         return client;
