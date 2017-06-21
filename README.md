@@ -73,6 +73,17 @@ Start Zookeeper and Apache Kafka brokers as explained at official documentation 
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
 You need to update zookeeper.connect (zookeeper's contact point) and bootstrap.servers (list of brokers) properties.
 
+Running Hazelcast
+-----------------------
+To start download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with folling contents:
+
+```bash
+export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-hazelcast-3.1.0.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
+./start.sh
+
+```
+Run hzstart.sh
+
 Starting database
 ---------------------
 * After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) 
