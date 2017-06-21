@@ -84,6 +84,12 @@ export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehi
 ```
 Run hzstart.sh
 
+Also ensure that correct value of property hazelcast.cluster.members is installed in
+
+`/path/to/devicehive-java-server/devicehive-backend/src/main/resources/application.properties`
+
+You can also pass this property in JAVA_OPTS when running devicehive-backend.
+
 Starting database
 ---------------------
 * After you have downloaded and installed PostgreSQL (see https://wiki.postgresql.org/wiki/Detailed_installation_guides) 
