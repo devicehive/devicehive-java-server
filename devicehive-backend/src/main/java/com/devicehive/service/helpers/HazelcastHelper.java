@@ -20,9 +20,9 @@ package com.devicehive.service.helpers;
  * #L%
  */
 
+import com.devicehive.entity.HazelcastEntity;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.HazelcastEntity;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;
@@ -79,11 +79,11 @@ public class HazelcastHelper {
         }
 
         if (timestampSt != null) {
-            predicates.add(Predicates.greaterThan(TIMESTAMP.getField(), timestampSt));
+            predicates.add(Predicates.greaterThan(TIMESTAMP.getField(), timestampSt.getTime()));
         }
 
         if (timestampEnd != null) {
-            predicates.add(Predicates.lessThan(TIMESTAMP.getField(), timestampEnd));
+            predicates.add(Predicates.lessThan(TIMESTAMP.getField(), timestampEnd.getTime()));
         }
 
         if (StringUtils.isNotEmpty(status)) {

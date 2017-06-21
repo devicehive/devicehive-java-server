@@ -20,6 +20,7 @@ package com.devicehive.application.hazelcast;
  * #L%
  */
 
+import com.devicehive.model.DevicePortableFactory;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
@@ -48,9 +49,9 @@ public class HazelcastConfiguration {
                 .setPassword(groupPassword);
         clientConfig.getNetworkConfig()
                 .setAddresses(clusterMembers);
+        clientConfig.getSerializationConfig()
+                .addPortableFactory(1, new DevicePortableFactory());
 
-        HazelcastInstance client = HazelcastClient.newHazelcastClient(clientConfig);
-
-        return client;
+        return HazelcastClient.newHazelcastClient(clientConfig);
     }
 }
