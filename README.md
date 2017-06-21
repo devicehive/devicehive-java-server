@@ -82,9 +82,7 @@ export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehi
 ./start.sh
 
 ```
-Run hzstart.sh
-
-Also ensure that correct value of property hazelcast.cluster.members is installed in
+Run hzstart.sh. At this ensure that correct value of property hazelcast.cluster.members is installed in
 
 `/path/to/devicehive-java-server/devicehive-backend/src/main/resources/application.properties`
 
