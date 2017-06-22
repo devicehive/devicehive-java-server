@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
 @RunWith(SpringJUnit4ClassRunner.class)
 @IntegrationTest
 @DirtiesContext
-@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
+@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class, HazelcastConfigurationTest.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringTest {
 

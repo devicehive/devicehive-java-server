@@ -36,8 +36,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Optional;
-import java.util.UUID;
 
+import static com.devicehive.handler.command.CommandTestUtils.generateCommand;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 
@@ -61,10 +61,7 @@ public class CommandInsertHandlerTest extends AbstractSpringTest {
 
     @Test
     public void shouldHandleCommandInsert() throws Exception {
-        DeviceCommand command = new DeviceCommand();
-        command.setId(System.currentTimeMillis());
-        command.setCommand("do work");
-        command.setDeviceId(UUID.randomUUID().toString());
+        DeviceCommand command = generateCommand();
         CommandInsertRequest cir = new CommandInsertRequest(command);
         Response response = handler.handle(
                 Request.newBuilder()

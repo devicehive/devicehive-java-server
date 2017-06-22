@@ -20,20 +20,28 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.entity.HazelcastEntity;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import java.io.IOException;
 import java.util.Date;
+import java.util.Objects;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 /**
  * Created by tmatvienko on 1/27/15.
  */
-public class DeviceCommand implements HiveEntity, HazelcastEntity  {
+public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     private static final long serialVersionUID = 4140545193474112756L;
+    public static final int FACTORY_ID = 1;
+    public static final int CLASS_ID = 2;
 
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
@@ -221,5 +229,51 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity  {
     @Override
     public String getHazelcastKey() {
         return id+"-"+deviceId+"-"+timestamp;
+    }
+
+    @Override
+    public int getFactoryId() {
+        return FACTORY_ID;
+    }
+
+    @Override
+    public int getClassId() {
+        return CLASS_ID;
+    }
+
+    @Override
+    public void writePortable(PortableWriter portableWriter) throws IOException {
+        portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
+        portableWriter.writeUTF("command", command);
+        portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
+        portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
+        portableWriter.writeUTF("deviceId", deviceId);
+        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
+        portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
+        portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
+        portableWriter.writeUTF("status", status);
+        boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
+        portableWriter.writeUTF("result", resultIsNotNull ? result.getJsonString() : null);
+        portableWriter.writeBoolean("isUpdated", Objects.nonNull(isUpdated)? isUpdated : false);
+    }
+
+    @Override
+    public void readPortable(PortableReader portableReader) throws IOException {
+        id = portableReader.readLong("id");
+        command = portableReader.readUTF("command");
+        timestamp = new Date(portableReader.readLong("timestamp"));
+        userId = portableReader.readLong("userId");
+        deviceId = portableReader.readUTF("deviceId");
+        String parametersString = portableReader.readUTF("parameters");
+        if (Objects.nonNull(parametersString)) {
+            parameters = new JsonStringWrapper(parametersString);
+        }
+        lifetime = portableReader.readInt("lifetime");
+        status = portableReader.readUTF("status");
+        String resultString = portableReader.readUTF("result");
+        if (Objects.nonNull(resultString)) {
+            result = new JsonStringWrapper(resultString);
+        }
+        isUpdated = portableReader.readBoolean("isUpdated");
     }
 }
