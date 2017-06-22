@@ -159,21 +159,12 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
 
     @Override
     public void writePortable(PortableWriter portableWriter) throws IOException {
-        if (Objects.nonNull(id)) {
-            portableWriter.writeLong("id", id);
-        }
-        if (Objects.nonNull(notification)) {
-            portableWriter.writeUTF("notification", notification);
-        }
-        if (Objects.nonNull(deviceId)) {
-            portableWriter.writeUTF("deviceId", deviceId);
-        }
-        if (Objects.nonNull(timestamp)) {
-            portableWriter.writeLong("timestamp", timestamp.getTime());
-        }
-        if (Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString())) {
-            portableWriter.writeUTF("parameters", parameters.getJsonString());
-        }
+        portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
+        portableWriter.writeUTF("notification", notification);
+        portableWriter.writeUTF("deviceId", deviceId);
+        portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
+        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
+        portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
     }
 
     @Override
@@ -181,10 +172,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
         id = portableReader.readLong("id");
         notification = portableReader.readUTF("notification");
         deviceId = portableReader.readUTF("deviceId");
-        Long dateAsLong = portableReader.readLong("timestamp");
-        if (Objects.nonNull(dateAsLong)) {
-            timestamp = new Date(dateAsLong);
-        }
+        timestamp = new Date(portableReader.readLong("timestamp"));
         String parametersString = portableReader.readUTF("parameters");
         if (Objects.nonNull(parametersString)) {
             parameters = new JsonStringWrapper(parametersString);

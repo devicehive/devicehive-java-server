@@ -243,46 +243,25 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
 
     @Override
     public void writePortable(PortableWriter portableWriter) throws IOException {
-        if (Objects.nonNull(id)) {
-            portableWriter.writeLong("id", id);
-        }
-        if (Objects.nonNull(command)) {
-            portableWriter.writeUTF("command", command);
-        }
-        if (Objects.nonNull(timestamp)) {
-            portableWriter.writeLong("timestamp", timestamp.getTime());
-        }
-        if (Objects.nonNull(userId)) {
-            portableWriter.writeLong("userId", userId);
-        }
-        if (Objects.nonNull(deviceId)) {
-            portableWriter.writeUTF("deviceId", deviceId);
-        }
-        if (Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString())) {
-            portableWriter.writeUTF("parameters", parameters.getJsonString());
-        }
-        if (Objects.nonNull(lifetime)) {
-            portableWriter.writeInt("lifetime", lifetime);
-        }
-        if (Objects.nonNull(status)) {
-            portableWriter.writeUTF("status", status);
-        }
-        if (Objects.nonNull(result) && Objects.nonNull(result.getJsonString())) {
-            portableWriter.writeUTF("parameters", result.getJsonString());
-        }
-        if (Objects.nonNull(isUpdated)) {
-            portableWriter.writeBoolean("isUpdated", isUpdated);
-        }
+        portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
+        portableWriter.writeUTF("command", command);
+        portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
+        portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
+        portableWriter.writeUTF("deviceId", deviceId);
+        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
+        portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
+        portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
+        portableWriter.writeUTF("status", status);
+        boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
+        portableWriter.writeUTF("result", resultIsNotNull ? result.getJsonString() : null);
+        portableWriter.writeBoolean("isUpdated", Objects.nonNull(isUpdated)? isUpdated : false);
     }
 
     @Override
     public void readPortable(PortableReader portableReader) throws IOException {
         id = portableReader.readLong("id");
         command = portableReader.readUTF("command");
-        Long dateAsLong = portableReader.readLong("timestamp");
-        if (Objects.nonNull(dateAsLong)) {
-            timestamp = new Date(dateAsLong);
-        }
+        timestamp = new Date(portableReader.readLong("timestamp"));
         userId = portableReader.readLong("userId");
         deviceId = portableReader.readUTF("deviceId");
         String parametersString = portableReader.readUTF("parameters");
