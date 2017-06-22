@@ -8,7 +8,10 @@ if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_RIAK_HOST" \
   -o -z "$DH_RIAK_PORT" \
   -o -z "$DH_RIAK_HOST_MEMBER" \
-  -o -z "$DH_RIAK_HTTP_PORT" ]
+  -o -z "$DH_RIAK_HTTP_PORT" \
+  -o -z "$HC_MEMBERS" \
+  -o -z "$HC_GROUP_NAME" \
+  -o -z "$HC_GROUP_PASSWORD" ]
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
@@ -18,6 +21,9 @@ then
     echo "- DH_RIAK_PORT"
     echo "- DH_RIAK_HOST_MEMBER"
     echo "- DH_RIAK_HTTP_PORT"
+    echo "- HC_MEMBERS"
+    echo "- HC_GROUP_NAME"
+    echo "- HC_GROUP_PASSWORD"
     exit 1
 fi
 # Check if Zookeper, Kafka and riak are ready
@@ -28,8 +34,10 @@ while true; do
     result_kafka=$?
     curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"
     result_riak=$?
+    nc -v -z -w1 ${HC_MEMBERS:%%,*} ${HC_PORT:=5701}
+    result_hc=$?
 
-    if [ "$result_kafka" -eq 0 -a "$result_zk" -eq 0 -a "$result_riak" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 -a "$result_zk" -eq 0 -a "$result_riak" -eq 0 -a "$result_hc" -eq 0 ]; then
         break
     fi
     sleep 5
@@ -101,7 +109,9 @@ exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMS
 -Driak.port=${DH_RIAK_PORT} \
 -Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT} \
 -Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT} \
--Dhazelcast.port=${DH_HAZELCAST_PORT:-5701} \
+-Dhazelcast.cluster.members=${HC_MEMBERS}:${HC_PORT} \
+-Dhazelcast.group.name=${HC_GROUP_NAME} \
+-Dhazelcast.group.password=${HC_GROUP_PASSWORD} \
 -Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-1} \
 -Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-1} \
 -Drpc.server.disruptor.wait-strategy=${DH_RPC_SERVER_DISR_WAIT_STRATEGY:-blocking} \
