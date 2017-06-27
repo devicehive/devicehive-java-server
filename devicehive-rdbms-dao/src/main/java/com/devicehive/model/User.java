@@ -39,7 +39,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 @Entity(name = "User")
-@Table(name = "\"user\"")
+@Table(name = "\"dh_user\"")
 @NamedQueries({
         @NamedQuery(name = "User.findByName", query = "select u from User u where u.login = :login and u.status <> 3"), //TODO this actually finds by login, not name - consider refactoring
         @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u.id = :user and n = :network"),
