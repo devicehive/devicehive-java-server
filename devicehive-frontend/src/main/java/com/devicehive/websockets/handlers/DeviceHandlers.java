@@ -39,10 +39,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
@@ -68,10 +72,23 @@ public class DeviceHandlers {
             response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
             return response;
         } else {
-            for (String device : principal.getDeviceIds()) {
-                DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(device, principal);
-                response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+            Set<String> deviceIds = principal.getDeviceIds();
+            if (principal.areAllDevicesAvailable()) {
+                try {
+                    deviceIds = deviceService.list(null, null, null, null,
+                            null,false, null, null, principal)
+                            .get()
+                            .stream()
+                            .map(deviceVO -> deviceVO.getDeviceId())
+                            .collect(Collectors.toSet());
+                } catch (Exception e) {
+                    logger.error(Messages.INTERNAL_SERVER_ERROR, e);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }
             }
+            List<DeviceVO> toResponse = deviceService.findByIdWithPermissionsCheck(deviceIds, principal);
+            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+            
             return response;
         }
     }
