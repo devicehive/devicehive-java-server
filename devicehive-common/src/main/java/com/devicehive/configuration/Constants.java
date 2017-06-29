@@ -73,6 +73,7 @@ public class Constants {
     public static final String DOMAIN = "domain";
     public static final String LOGIN = "login";
     public static final String DEVICE = "device";
+    public static final String DEVICES = "devices";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
 
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";

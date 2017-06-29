@@ -85,6 +85,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_GET:
                 response = deviceHandlers.processDeviceGet(request);
                 break;
+            case DEVICE_LIST:
+                response = deviceHandlers.processDeviceList(request);
+                break;
             case DEVICE_SAVE:
                 response = deviceHandlers.processDeviceSave(request, session);
                 break;
@@ -114,6 +117,7 @@ public class WebSocketRequestProcessor {
         COMMAND_UNSUBSCRIBE("command/unsubscribe"),
         COMMAND_UPDATE("command/update"),
         DEVICE_GET("device/get"),
+        DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
         EMPTY("");
 
