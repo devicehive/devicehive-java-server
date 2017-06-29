@@ -78,7 +78,7 @@ Running Hazelcast
 To start download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with folling contents:
 
 ```bash
-export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-hazelcast-3.2.0.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
+export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-hazelcast-3.3.0.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
 ./start.sh
 
 ```
