@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-shim-api</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -80,7 +80,7 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-hazelcast</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
         </dependency>
     </dependencies>
 
