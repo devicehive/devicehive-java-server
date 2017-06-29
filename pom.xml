@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -43,7 +43,7 @@
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
-        <hazelcast.version>3.6.4</hazelcast.version>
+        <hazelcast.version>3.8.1</hazelcast.version>
         <curator.version>2.8.0</curator.version>
         <flyway-core.version>3.2.1</flyway-core.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
@@ -73,6 +73,7 @@
         <maven-resource-plugin.version>2.7</maven-resource-plugin.version>
         <jacoco-maven-plugin.version>0.7.7.201606060606</jacoco-maven-plugin.version>
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
+        <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
 
         <tomcat.version>8.0.21</tomcat.version>
 
@@ -95,6 +96,7 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
+        <module>devicehive-hazelcast</module>
     </modules>
 
     <dependencies>

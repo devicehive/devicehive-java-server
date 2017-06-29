@@ -1,4 +1,4 @@
-package com.devicehive.application.hazelcast;
+package com.devicehive.base;
 
 /*
  * #%L
@@ -21,8 +21,8 @@ package com.devicehive.application.hazelcast;
  */
 
 import com.devicehive.model.DevicePortableFactory;
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class HazelcastConfiguration {
+public class HazelcastConfigurationTest {
     @Value("${hazelcast.group.name}")
     private String groupName;
     @Value("${hazelcast.group.password}")
@@ -43,15 +43,13 @@ public class HazelcastConfiguration {
 
     @Bean
     public HazelcastInstance hazelcast() throws Exception {
-        ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getGroupConfig()
+        Config config = new Config();
+        config.getGroupConfig()
                 .setName(groupName)
                 .setPassword(groupPassword);
-        clientConfig.getNetworkConfig()
-                .setAddresses(clusterMembers);
-        clientConfig.getSerializationConfig()
+        config.getSerializationConfig()
                 .addPortableFactory(1, new DevicePortableFactory());
 
-        return HazelcastClient.newHazelcastClient(clientConfig);
+        return Hazelcast.newHazelcastInstance(config);
     }
 }

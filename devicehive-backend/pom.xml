@@ -5,7 +5,7 @@
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -21,12 +21,17 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-shim-kafka-impl</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-client</artifactId>
         </dependency>
 
         <dependency>
@@ -37,7 +42,7 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -60,7 +65,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-rdbms-dao</artifactId>
-                    <version>3.1.0</version>
+                    <version>${parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -76,7 +81,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-riak-dao</artifactId>
-                    <version>3.1.0</version>
+                    <version>${parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -89,7 +94,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-shim-kafka-impl</artifactId>
-                    <version>3.1.0</version>
+                    <version>${parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>

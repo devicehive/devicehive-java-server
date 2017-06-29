@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.devicehive</groupId>
         <artifactId>devicehive-server</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
     </parent>
     <artifactId>devicehive-rdbms-dao</artifactId>
     <packaging>jar</packaging>
@@ -21,17 +21,17 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common-dao</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -6,8 +6,7 @@ set -x
 if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_KAFKA_ADDRESS" \
   -o -z "$DH_RIAK_HOST" \
-  -o -z "$DH_RIAK_PORT" \
-  -o -z "$DH_BACKEND_ADDRESS" ]
+  -o -z "$DH_RIAK_PORT" ]
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
@@ -15,14 +14,8 @@ then
     echo "- DH_KAFKA_ADDRESS"
     echo "- DH_RIAK_HOST"
     echo "- DH_RIAK_PORT"
-    echo "- DH_BACKEND_ADDRESS"
     exit 1
 fi
-# Check if backend is ready
-until nc -v -z -w1 $DH_BACKEND_ADDRESS ${DH_BACKEND_HAZELCAST_PORT:-5701}
-do
-    sleep 3
-done
 
 echo "Starting DeviceHive frontend"
 exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \

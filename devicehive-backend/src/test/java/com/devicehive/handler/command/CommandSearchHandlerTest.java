@@ -36,8 +36,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collections;
-import java.util.UUID;
 
+import static com.devicehive.handler.command.CommandTestUtils.generateCommand;
 import static org.junit.Assert.*;
 
 public class CommandSearchHandlerTest extends AbstractSpringTest {
@@ -59,14 +59,6 @@ public class CommandSearchHandlerTest extends AbstractSpringTest {
 
         handlerSearch = new CommandSearchHandler();
         handlerSearch.setHazelcastService(hazelcastService);
-    }
-
-    private DeviceCommand generateCommand() {
-        DeviceCommand command = new DeviceCommand();
-        command.setId(System.currentTimeMillis());
-        command.setCommand("do_work");
-        command.setDeviceId(UUID.randomUUID().toString());
-        return command;
     }
 
     @Test

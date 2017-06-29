@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.devicehive</groupId>
         <artifactId>devicehive-server</artifactId>
-        <version>3.1.0</version>
+        <version>3.2.0</version>
     </parent>
     <artifactId>devicehive-common</artifactId>
     <packaging>jar</packaging>
@@ -21,7 +21,13 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-shim-api</artifactId>
-            <version>3.1.0</version>
+            <version>${parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-net</groupId>
@@ -61,6 +67,20 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-hazelcast</artifactId>
+            <version>${parent.version}</version>
         </dependency>
     </dependencies>
 

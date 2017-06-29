@@ -3,7 +3,7 @@ version: 0.1
 phases:
   build:
     commands:
-      - mvn test
+      - mvn clean package -DskipTests
 artifacts:
   files:
     - buildspec.yml
