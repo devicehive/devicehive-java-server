@@ -986,7 +986,6 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser.setLogin(login);
         testUser.setPassword(newPwd);
         testUser.setOldPassword(pwd);
-        testUser.setData(new JsonStringWrapper());
 
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
 
@@ -995,7 +994,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
         assertThat(updatedUser.getPasswordSalt(), not(equalTo(user.getPasswordSalt())));
-        assertThat(updatedUser.getData().getJsonString(), equalTo(user.getData().getJsonString()));
+        assertNull(updatedUser.getData());
     }
 
     @Test

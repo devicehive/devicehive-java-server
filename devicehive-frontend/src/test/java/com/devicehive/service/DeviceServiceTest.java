@@ -521,7 +521,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setRole(UserRole.CLIENT);
+        user.setRole(UserRole.ADMIN);
         user = userService.createUser(user, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -532,16 +532,16 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceUpdate.setNetworkId(network.getId());
 
         deviceService.deviceSave(deviceUpdate);
-        
-        final HivePrincipal principal = new HivePrincipal();
+
+        final HivePrincipal principal = new HivePrincipal(user);
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
-        deviceUpdate.setData(new JsonStringWrapper());
+        deviceUpdate.setData(null);
         
         deviceService.deviceSaveAndNotify(deviceUpdate, principal);
         
         DeviceVO deviceVO = deviceService.findById(device.getDeviceId());
                 
-        assertEquals(deviceUpdate.getData().get().getJsonString(), deviceVO.getData().getJsonString());
+        assertNull(deviceVO.getData());
     }
 
 

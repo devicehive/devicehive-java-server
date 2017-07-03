@@ -227,7 +227,7 @@ public class UserService {
             existing.setStatus(userToUpdate.getStatusEnum());
         }
 
-        existing.setData(userToUpdate.getData().orElse(new JsonStringWrapper()));
+        existing.setData(userToUpdate.getData().orElse(null));
         
         if (userToUpdate.getIntroReviewed().isPresent()) {
             existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());

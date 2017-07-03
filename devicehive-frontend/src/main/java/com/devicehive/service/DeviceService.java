@@ -113,7 +113,7 @@ public class DeviceService {
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
             
-            existingDevice.setData(deviceUpdate.getData().orElse(new JsonStringWrapper()));
+            existingDevice.setData(deviceUpdate.getData().orElse(null));
             
             if (deviceUpdate.getNetworkId().isPresent()){
                 existingDevice.setNetworkId(networkId);
