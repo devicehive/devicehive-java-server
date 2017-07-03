@@ -96,7 +96,6 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
-        <module>devicehive-hazelcast</module>
     </modules>
 
     <dependencies>

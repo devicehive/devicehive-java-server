@@ -20,7 +20,6 @@ package com.devicehive.model;
  * #L%
  */
 
-import com.devicehive.entity.HazelcastEntity;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import com.hazelcast.nio.serialization.Portable;

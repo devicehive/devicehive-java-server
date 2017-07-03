@@ -78,10 +78,32 @@ Running Hazelcast
 To start download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with folling contents:
 
 ```bash
-export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-hazelcast-3.3.0.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
+export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-common-<version>-shade.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
 ./start.sh
 
 ```
+
+also replace
+
+```xml
+<serialization>
+   <portable-version>0</portable-version>
+</serialization>
+```
+
+with
+
+```xml
+<serialization>
+   <portable-version>0</portable-version>
+   <portable-factories>
+        <portable-factory factory-id="1">com.devicehive.model.DevicePortableFactory</portable-factory>
+   </portable-factories>
+</serialization>
+```
+
+in hazelcast.xml localted in bin folder of hazelcast.
+
 Run hzstart.sh. At this ensure that correct value of property hazelcast.cluster.members is installed in
 
 `/path/to/devicehive-java-server/devicehive-backend/src/main/resources/application.properties`
