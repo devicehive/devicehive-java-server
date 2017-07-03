@@ -29,6 +29,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +44,8 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 
 public class JwtClientServiceTest  extends AbstractResourceTest {
-    
+    private static final String JWT_REFRESH_WITH_INVALID_SIGNATURE = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5MzQ3MjAwMDAwLCJ0b2tlblR5cGUiOiJSRUZSRVNIIn19.kCFPLoGGoCyaHqS3Vv5tjK_d2xQcPKTsM2z4PhKP64Q";
+
     @Autowired
     private JwtClientService jwtClientService;
     @Autowired
@@ -112,6 +114,11 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
                 .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
         jwtClientService.getPayload(malformedToken);
+    }
+
+    @Test(expected = SignatureException.class)
+    public void should_throw_SignatureException_whet_pass_token_with_invalid_signature() throws Exception {
+        jwtClientService.getPayload(JWT_REFRESH_WITH_INVALID_SIGNATURE);
     }
     
 }
