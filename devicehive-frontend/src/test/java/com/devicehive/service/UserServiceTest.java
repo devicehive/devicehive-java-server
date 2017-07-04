@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.service.configuration.ConfigurationService;
@@ -965,6 +966,35 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
         assertThat(updatedUser.getPasswordSalt(), not(equalTo(user.getPasswordSalt())));
+    }
+
+    @Test
+    public void should_update_user_data() throws Exception {
+        String login = RandomStringUtils.randomAlphabetic(10);
+        String pwd = RandomStringUtils.randomAlphabetic(10);
+        String newPwd = RandomStringUtils.randomAlphabetic(10);
+
+        UserUpdate testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(pwd);
+        testUser.setStatus(UserStatus.ACTIVE.getValue());
+        testUser.setData(new JsonStringWrapper("{'data': 'data'}"));
+
+        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
+
+        testUser = new UserUpdate();
+        testUser.setLogin(login);
+        testUser.setPassword(newPwd);
+        testUser.setOldPassword(pwd);
+
+        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
+
+        UserVO updatedUser = userService.getActiveUser(login, newPwd);
+        assertThat(updatedUser, notNullValue());
+        assertThat(updatedUser.getId(), equalTo(user.getId()));
+        assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
+        assertThat(updatedUser.getPasswordSalt(), not(equalTo(user.getPasswordSalt())));
+        assertNull(updatedUser.getData());
     }
 
     @Test

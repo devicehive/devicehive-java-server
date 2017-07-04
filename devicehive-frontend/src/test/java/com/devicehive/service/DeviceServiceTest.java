@@ -29,6 +29,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.rpc.ListDeviceRequest;
@@ -511,6 +512,38 @@ public class DeviceServiceTest extends AbstractResourceTest {
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
+
+    @Test
+    public void should_update_device_data() throws Exception {
+        final DeviceVO device = DeviceFixture.createDeviceVO();
+        final DeviceUpdate deviceUpdate = DeviceFixture.createDevice(device.getDeviceId());
+        deviceUpdate.setData(new JsonStringWrapper("{'data': 'data'}"));
+
+        UserVO user = new UserVO();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, VALID_PASSWORD);
+
+        final NetworkVO network = new NetworkVO();
+        network.setName("" + randomUUID());
+        NetworkVO created = networkService.create(network);
+        assertThat(created.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), network.getId());
+        deviceUpdate.setNetworkId(network.getId());
+
+        deviceService.deviceSave(deviceUpdate);
+
+        final HivePrincipal principal = new HivePrincipal(user);
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+        deviceUpdate.setData(null);
+        
+        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
+        
+        DeviceVO deviceVO = deviceService.findById(device.getDeviceId());
+                
+        assertNull(deviceVO.getData());
+    }
+
 
     @Test
     public void should_delete_device() {

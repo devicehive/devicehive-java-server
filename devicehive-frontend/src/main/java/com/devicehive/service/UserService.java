@@ -27,6 +27,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.ListUserRequest;
@@ -226,9 +227,8 @@ public class UserService {
             existing.setStatus(userToUpdate.getStatusEnum());
         }
 
-        if (userToUpdate.getData().isPresent()) {
-            existing.setData(userToUpdate.getData().get());
-        }
+        existing.setData(userToUpdate.getData().orElse(null));
+        
         if (userToUpdate.getIntroReviewed().isPresent()) {
             existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
         }

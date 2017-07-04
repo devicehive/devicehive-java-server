@@ -26,6 +26,7 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
@@ -111,9 +112,9 @@ public class DeviceService {
                 logger.error("User {} has no access to device {}", user.getId(), existingDevice.getId());
                 throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
             }
-            if (deviceUpdate.getData().isPresent()){
-                existingDevice.setData(deviceUpdate.getData().get());
-            }
+            
+            existingDevice.setData(deviceUpdate.getData().orElse(null));
+            
             if (deviceUpdate.getNetworkId().isPresent()){
                 existingDevice.setNetworkId(networkId);
             }
