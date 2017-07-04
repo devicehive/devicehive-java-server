@@ -31,5 +31,7 @@ RUN apt-get update \
     && apt-get clean
 
 ENV CLASSPATH=/opt/devicehive/devicehive-common-${DH_VERSION}-shade.jar:.
+# Config will be in CLASSPATH and must be loaded by hazelcast
+ADD devicehive-hazelcast/hazelcast.xml $HZ_HOME/
 
 EXPOSE 5701
