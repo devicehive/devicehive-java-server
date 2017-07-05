@@ -97,14 +97,13 @@ public class DeviceHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceSave(JsonObject request,
                                                WebSocketSession session) {
-        String deviceId = request.get(Constants.DEVICE_ID).getAsString();
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
+        String deviceId = device.getId().orElse(null);
 
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setId(deviceId);
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();
