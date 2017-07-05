@@ -2,6 +2,14 @@
 
 set -x
 
+trap 'terminate' TERM INT
+
+terminate() {
+   echo "SIGTERM received, terminating $PID"
+   kill -TERM $PID
+   wait $PID
+}
+
 # Check if all required parameters are set
 if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_KAFKA_ADDRESS" \
@@ -103,7 +111,7 @@ curl -XPUT \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/configuration/keys/user.login.lastTimeout
 
 echo "Starting DeviceHive backend"
-exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
 -Dflyway.enabled=false \
 -Driak.host=${DH_RIAK_HOST} \
 -Driak.port=${DH_RIAK_PORT} \
@@ -115,4 +123,6 @@ exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMS
 -Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-1} \
 -Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-1} \
 -Drpc.server.disruptor.wait-strategy=${DH_RPC_SERVER_DISR_WAIT_STRATEGY:-blocking} \
-./devicehive-backend-${DH_VERSION}-boot.jar
+./devicehive-backend-${DH_VERSION}-boot.jar &
+PID=$!
+wait $PID
