@@ -43,8 +43,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractWebSocketHandler.class);
+public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceHiveWebSocketHandler.class);
 
     @Autowired
     private SessionMonitor sessionMonitor;
@@ -71,6 +71,7 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
 
         session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
         session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
 
         sessionMonitor.registerSession(session);
     }
