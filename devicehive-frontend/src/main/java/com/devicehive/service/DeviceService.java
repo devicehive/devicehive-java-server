@@ -26,7 +26,6 @@ import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
@@ -48,8 +47,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceService {
@@ -221,4 +222,21 @@ public class DeviceService {
         return deviceDao.getDeviceList(deviceIds, principal);
     }
 
+    public Set<String> getDeviceIds(HivePrincipal principal) {
+        Set<String> deviceIds = principal.getDeviceIds();
+        if (principal.areAllDevicesAvailable()) {
+            try {
+                deviceIds = list(null, null, null, null,
+                        null,false, null, null, principal)
+                        .get()
+                        .stream()
+                        .map(deviceVO -> deviceVO.getDeviceId())
+                        .collect(Collectors.toSet());
+            } catch (Exception e) {
+                logger.error(Messages.INTERNAL_SERVER_ERROR, e);
+                throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+            }
+        }
+        return deviceIds;
+    }
 }
