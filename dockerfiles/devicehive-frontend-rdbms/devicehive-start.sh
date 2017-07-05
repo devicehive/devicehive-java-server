@@ -19,7 +19,7 @@ if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_POSTGRES_DB" ]
 then
     echo "Some of required environment variables are not set or empty."
-    echo "Please check following vars are passwed to container:"
+    echo "Please check following vars are passed to container:"
     echo "- DH_ZK_ADDRESS"
     echo "- DH_KAFKA_ADDRESS"
     echo "- DH_POSTGRES_ADDRESS"
