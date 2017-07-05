@@ -188,7 +188,7 @@ public class NotificationHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
+            devices.addAll(deviceService.getDeviceIds(principal).stream()
                     .map(devId -> deviceService.findByIdWithPermissionsCheck(devId, principal))
                     .collect(Collectors.toList()));
         } else {
