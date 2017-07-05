@@ -58,7 +58,7 @@ public class WebSocketApiInfoHandlerTest extends AbstractResourceTest {
                     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
                         future.complete(message);
                     }
-                }, wsBaseUri() + "/websocket/client")
+                }, wsBaseUri() + "/websocket")
                 .addCallback(session -> {
                     JsonObject apiInfoRequest = JsonFixture.createWsCommand("server/info", requestId);
                     try {
