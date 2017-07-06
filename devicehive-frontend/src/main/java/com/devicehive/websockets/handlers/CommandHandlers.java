@@ -165,13 +165,11 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
-                    .map(id -> deviceService.findByIdWithPermissionsCheck(id, principal))
-                    .collect(Collectors.toList()));
-        } else {
-           devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-
+        
+        devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+        
         if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
