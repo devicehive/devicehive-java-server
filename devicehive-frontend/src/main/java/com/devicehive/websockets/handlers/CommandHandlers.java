@@ -165,7 +165,7 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
+            devices.addAll(deviceService.getDeviceIds(principal).stream()
                     .map(id -> deviceService.findByIdWithPermissionsCheck(id, principal))
                     .collect(Collectors.toList()));
         } else {

@@ -47,6 +47,7 @@
         <curator.version>2.8.0</curator.version>
         <flyway-core.version>3.2.1</flyway-core.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
+        <commons-collections.version>3.2.2</commons-collections.version>
         <commons-net.version>3.3</commons-net.version>
         <commons-codec.version>1.9</commons-codec.version>
         <guava.version>17.0</guava.version>
