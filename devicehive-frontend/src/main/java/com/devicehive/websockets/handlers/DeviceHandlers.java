@@ -66,19 +66,12 @@ public class DeviceHandlers {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         WebSocketResponse response = new WebSocketResponse();
 
-        if (deviceId != null) {
-            DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
-            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
-            return response;
-        }
-        
-        Set<String> deviceIds = deviceService.getDeviceIds(principal);
-        if (Objects.nonNull(deviceIds) && !deviceIds.isEmpty()) {
-            String firstDeviceId = deviceIds.stream().findFirst().get();
-            DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(firstDeviceId, principal);
-            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+        if (deviceId == null) {
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
+        DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }
 
