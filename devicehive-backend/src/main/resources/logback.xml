@@ -12,7 +12,7 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
-    <root level="${root.level:-INFO}">
+    <root level="${root.log.level:-INFO}">
         <appender-ref ref="ASYNC"/>
     </root>
 </configuration>

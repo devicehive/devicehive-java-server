@@ -134,7 +134,7 @@ You can visit http://localhost:8080/dh/swagger from your web browser to start le
 
 For devicehive-frontend and devicehive-backend logging level can be changed by adding the following properties to the command above:
 
-`-Droot.level=value1 -Dcom.devicehive.log.level=value2`
+`-Droot.log.level=value1 -Dcom.devicehive.log.level=value2`
 
 The values can be: TRACE, DEBUG, INFO, WARN, ERROR. If the properties are absent the default values will be used.
 For devicehive-frontend default values for value1 and value2 are WARN and INFO correspondingly.
