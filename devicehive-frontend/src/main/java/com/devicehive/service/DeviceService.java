@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService {
@@ -224,7 +225,7 @@ public class DeviceService {
 
     public Set<String> getDeviceIds(HivePrincipal principal) {
         Set<String> deviceIds = principal.getDeviceIds();
-        if (principal.areAllDevicesAvailable()) {
+        if (isEmpty(deviceIds) && principal.areAllDevicesAvailable()) {
             try {
                 deviceIds = list(null, null, null, null,
                         null,false, null, null, principal)
