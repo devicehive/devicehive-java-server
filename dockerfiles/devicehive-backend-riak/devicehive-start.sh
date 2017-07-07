@@ -112,6 +112,8 @@ curl -XPUT \
 
 echo "Starting DeviceHive backend"
 java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+-Dcom.devicehive.log.level=${DH_LOG_LEVEL:-INFO} \
+-Droot.log.level=${ROOT_LOG_LEVEL:-INFO} \
 -Dflyway.enabled=false \
 -Driak.host=${DH_RIAK_HOST} \
 -Driak.port=${DH_RIAK_PORT} \
