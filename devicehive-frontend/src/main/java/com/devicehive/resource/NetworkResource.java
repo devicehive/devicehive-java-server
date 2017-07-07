@@ -76,13 +76,13 @@ public interface NetworkResource {
             @ApiParam(name = "name", value = "Filter by network name.")
             @QueryParam("name")
             String name,
-            @ApiParam(name = "namePattern", value = "Filter by network name pattern.")
+            @ApiParam(name = "namePattern", value = "Filter by network name pattern. In pattern wildcards '%' and '_' can be used.")
             @QueryParam("namePattern")
             String namePattern,
             @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Name")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Result list sort order.", allowableValues = "ASC,DESC")
+            @ApiParam(name = "sortOrder", value = "Result list sort order. The sortField should be specified.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
             @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
