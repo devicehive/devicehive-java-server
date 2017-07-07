@@ -2,6 +2,14 @@
 
 set -x
 
+trap 'terminate' TERM INT
+
+terminate() {
+   echo "SIGTERM received, terminating $PID"
+   kill -TERM $PID
+   wait $PID
+}
+
 # Check if all required parameters are set
 if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_KAFKA_ADDRESS" \
@@ -11,7 +19,7 @@ if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_POSTGRES_DB" ]
 then
     echo "Some of required environment variables are not set or empty."
-    echo "Please check following vars are passwed to container:"
+    echo "Please check following vars are passed to container:"
     echo "- DH_ZK_ADDRESS"
     echo "- DH_KAFKA_ADDRESS"
     echo "- DH_POSTGRES_ADDRESS"
@@ -22,7 +30,7 @@ then
 fi
 
 echo "Starting DeviceHive frontend"
-exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
 -Dspring.datasource.url=jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT:-5432}/${DH_POSTGRES_DB} \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
@@ -31,4 +39,6 @@ exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMS
 -Drpc.client.response-consumer.threads=${DH_RPC_CLIENT_RES_CONS_THREADS:-1} \
 -Dserver.context-path=/api \
 -Dserver.port=8080 \
-./devicehive-frontend-${DH_VERSION}-boot.jar
+./devicehive-frontend-${DH_VERSION}-boot.jar &
+PID=$!
+wait $PID
