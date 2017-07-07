@@ -25,6 +25,7 @@ import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +48,7 @@ import java.util.concurrent.Executors;
 @ServletComponentScan("com.devicehive.application.filter")
 @EnableScheduling
 @EnableAsync(proxyTargetClass = true)
-public class DeviceHiveApplication {
+public class DeviceHiveApplication extends SpringBootServletInitializer {
 
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
