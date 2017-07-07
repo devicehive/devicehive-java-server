@@ -1,0 +1,18 @@
+<configuration>
+
+    <property name="entry.pattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %X{usrinf} %logger{36} - %msg%n"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${entry.pattern}</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.devicehive" level="${com.devicehive.log.level:-INFO}" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <root level="${root.level:-INFO}">
+        <appender-ref ref="ASYNC"/>
+    </root>
+</configuration>
