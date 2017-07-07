@@ -92,6 +92,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+
         CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
         for (String s : commandSubscriptions) {
