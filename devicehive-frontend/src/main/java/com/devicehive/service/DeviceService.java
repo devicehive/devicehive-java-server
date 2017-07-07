@@ -50,8 +50,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService {
