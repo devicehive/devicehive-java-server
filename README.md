@@ -131,3 +131,9 @@ Wait for the application to start, then run:
 
 This will start embedded undertow application server on default port 8080 and deploy DeviceHive application.
 You can visit http://localhost:8080/dh/swagger from your web browser to start learning the APIs.
+
+For devicehive-frontend logging level can be changed by adding the following properties to the command above:
+
+`-Droot.level=value1 -Dcom.devicehive.level=value2`
+
+The values can be: TRACE, DEBUG, INFO, WARN, ERROR. If the properties are absent the default values will be used. The default value for value1 - WARN, value2 - INFO. 
