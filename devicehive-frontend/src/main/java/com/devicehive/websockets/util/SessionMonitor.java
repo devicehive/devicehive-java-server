@@ -20,20 +20,9 @@ package com.devicehive.websockets.util;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.CommandGetSubscriptionRequest;
-import com.devicehive.model.rpc.CommandGetSubscriptionResponse;
-import com.devicehive.service.helpers.ResponseConsumer;
-import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.websockets.handlers.CommandHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PingMessage;
@@ -41,11 +30,8 @@ import org.springframework.web.socket.WebSocketSession;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 @Component
 public class SessionMonitor {

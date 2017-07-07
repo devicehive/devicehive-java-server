@@ -92,7 +92,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        logger.debug("Connection closed: session id {}, close status is {} ", session.getId(), status);
+        logger.warn("CONNECTION CLOSED: session id {}, close status is {} ", session.getId(), status);
 
         CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
@@ -106,6 +106,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             notificationService.unsubscribe(s, null);
         }
 
+        session.close();
         sessionMonitor.removeSession(session.getId());
     }
 
