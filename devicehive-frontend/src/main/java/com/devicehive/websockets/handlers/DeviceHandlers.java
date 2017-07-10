@@ -46,6 +46,7 @@ import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class DeviceHandlers {
@@ -67,10 +68,17 @@ public class DeviceHandlers {
         WebSocketResponse response = new WebSocketResponse();
 
         if (deviceId == null) {
+            logger.error("device/get proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
         DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (toResponse == null) {
+            logger.error("device/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }
