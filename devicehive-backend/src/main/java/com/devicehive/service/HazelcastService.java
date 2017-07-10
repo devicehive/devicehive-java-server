@@ -45,7 +45,7 @@ public class HazelcastService {
     private static final String COMMANDS_MAP = "COMMANDS-MAP";
 
     @Autowired
-    private HazelcastInstance hazelcastInstance;
+    private HazelcastInstance hazelcastClient;
 
     @Autowired
     private HazelcastHelper hazelcastHelper;
@@ -54,10 +54,10 @@ public class HazelcastService {
 
     @PostConstruct
     protected void init() {
-        final IMap<String, HazelcastEntity> notificationsMap = hazelcastInstance.getMap(NOTIFICATIONS_MAP);
+        final IMap<String, HazelcastEntity> notificationsMap = hazelcastClient.getMap(NOTIFICATIONS_MAP);
         notificationsMap.addIndex("timestamp", true);
 
-        final IMap<String, HazelcastEntity> commandsMap = hazelcastInstance.getMap(COMMANDS_MAP);
+        final IMap<String, HazelcastEntity> commandsMap = hazelcastClient.getMap(COMMANDS_MAP);
         commandsMap.addIndex("timestamp", true);
 
         mapsHolder.put(DeviceNotification.class, notificationsMap);

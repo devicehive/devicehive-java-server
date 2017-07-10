@@ -33,7 +33,7 @@
         <logback.version>1.1.3</logback.version>
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
-        <springboot.version>1.4.0.RELEASE</springboot.version>
+        <springboot.version>1.3.0.RELEASE</springboot.version>
         <jersey.version>2.23.2</jersey.version>
         <servlet-api.version>3.1.0</servlet-api.version>
         <hsqldb.version>2.3.2</hsqldb.version>
@@ -323,7 +323,7 @@
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-tomcat</artifactId>
+                <artifactId>spring-boot-starter-undertow</artifactId>
                 <version>${springboot.version}</version>
             </dependency>
             <dependency>
@@ -362,11 +362,6 @@
                 <version>${springboot.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-client</artifactId>
