@@ -129,6 +129,7 @@ public class DeviceResourceImpl implements DeviceResource {
         DeviceVO device = deviceService.findById(deviceId);
 
         if (device == null) {
+            logger.error("device/get proceed with error. No Device with Device ID = {} found.", deviceId);
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
