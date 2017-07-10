@@ -59,6 +59,7 @@ import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class NotificationHandlers {
@@ -181,44 +182,40 @@ public class NotificationHandlers {
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
-            logger.debug(
-                    "notification/insert proceed with error. Bad notification: notification is required.");
+            logger.error("notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
 
-        Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(deviceService.getDeviceIds(principal).stream()
-                    .map(devId -> deviceService.findByIdWithPermissionsCheck(devId, principal))
-                    .collect(Collectors.toList()));
-        } else {
-            devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+            logger.error("notification/insert proceed with error. Device ID should be provided");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        if (devices.isEmpty() || StreamSupport.stream(devices.spliterator(), true).allMatch(o -> o == null)) {
-            logger.debug("notification/insert canceled for session: {}. Device ID is not provided", session);
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_FORBIDDEN);
+
+        DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (device == null) {
+            logger.error("notification/insert proceed with error. No device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
         WebSocketResponse response = new WebSocketResponse();
 
-        for (DeviceVO device : devices) {
-            if (device.getNetworkId() == null) {
-                logger.debug("notification/insert. No network specified for device with Device ID = {}", deviceId);
-                throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId), SC_FORBIDDEN);
-            }
-            DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
-
-            notificationService.insert(message, device)
-                    .thenApply(notification -> {
-                        logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
-                        response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                        return response;
-                    })
-                    .exceptionally(ex -> {
-                        logger.warn("Unable to insert notification.", ex);
-                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                    }).join();
+        if (device.getNetworkId() == null) {
+            logger.error("notification/insert. No network specified for device with Device ID = {}", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId), SC_FORBIDDEN);
         }
+        DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
+
+        notificationService.insert(message, device)
+                .thenApply(notification -> {
+                    logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
+                    response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.error("Unable to insert notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
 
         return response;
     }
