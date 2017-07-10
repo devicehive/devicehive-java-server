@@ -182,25 +182,26 @@ public class NotificationHandlers {
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
-            logger.debug(
-                    "notification/insert proceed with error. Bad notification: notification is required.");
+            logger.error("notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
 
         if (deviceId == null) {
+            logger.error("notification/insert proceed with error. Device ID should be provided");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
         DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
 
         if (device == null) {
+            logger.error("notification/insert proceed with error. No device with Device ID = {} found.", deviceId);
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
         WebSocketResponse response = new WebSocketResponse();
 
         if (device.getNetworkId() == null) {
-            logger.debug("notification/insert. No network specified for device with Device ID = {}", deviceId);
+            logger.error("notification/insert. No network specified for device with Device ID = {}", deviceId);
             throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId), SC_FORBIDDEN);
         }
         DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
@@ -212,7 +213,7 @@ public class NotificationHandlers {
                     return response;
                 })
                 .exceptionally(ex -> {
-                    logger.warn("Unable to insert notification.", ex);
+                    logger.error("Unable to insert notification.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 }).join();
 
