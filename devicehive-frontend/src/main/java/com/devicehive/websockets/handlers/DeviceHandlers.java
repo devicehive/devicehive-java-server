@@ -46,6 +46,7 @@ import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class DeviceHandlers {
@@ -71,6 +72,11 @@ public class DeviceHandlers {
         }
 
         DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (toResponse == null) {
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }

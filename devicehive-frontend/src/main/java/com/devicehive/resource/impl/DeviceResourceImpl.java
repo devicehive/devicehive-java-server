@@ -22,6 +22,7 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceUpdate;
@@ -44,6 +45,7 @@ import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
@@ -125,6 +127,10 @@ public class DeviceResourceImpl implements DeviceResource {
         logger.debug("Device get requested. Device ID: {}", deviceId);
 
         DeviceVO device = deviceService.findById(deviceId);
+
+        if (device == null) {
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
 
         logger.debug("Device get proceed successfully. Device ID: {}", deviceId);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
