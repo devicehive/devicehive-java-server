@@ -24,12 +24,12 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
@@ -70,7 +70,7 @@ public class UserResourceImpl implements UserResource {
     public void list(String login, String loginPattern, Integer role, Integer status, String sortField,
             String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
-        final boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+        final boolean sortOrder = SortOrder.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             final Response response = ResponseFactory.response(BAD_REQUEST,

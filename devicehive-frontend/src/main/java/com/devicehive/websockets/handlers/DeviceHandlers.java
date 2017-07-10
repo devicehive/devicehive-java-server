@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
@@ -86,9 +87,10 @@ public class DeviceHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceList(JsonObject request) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ListDeviceRequest listDeviceRequest = new ListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
 
-        Set<String> deviceIds = deviceService.getDeviceIds(principal);
+        Set<String> deviceIds = deviceService.getDeviceIds(listDeviceRequest);
         List<DeviceVO> toResponse = deviceService.findByIdWithPermissionsCheck(deviceIds, principal);
         response.addValue(Constants.DEVICES, toResponse, DEVICE_PUBLISHED);
 

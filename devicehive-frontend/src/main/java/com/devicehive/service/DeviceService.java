@@ -186,27 +186,7 @@ public class DeviceService {
         return deviceDao.deleteById(deviceId) != 0;
     }
 
-    //@Transactional(readOnly = true)
-    public CompletableFuture<List<DeviceVO>> list(String name,
-                                                 String namePattern,
-                                                 Long networkId,
-                                                 String networkName,
-                                                 String sortField,
-                                                 boolean sortOrderAsc,
-                                                 Integer take,
-                                                 Integer skip,
-                                                 HivePrincipal principal) {
-        ListDeviceRequest request = new ListDeviceRequest();
-        request.setName(name);
-        request.setNamePattern(namePattern);
-        request.setNetworkId(networkId);
-        request.setNetworkName(networkName);
-        request.setSortField(sortField);
-        request.setSortOrderAsc(sortOrderAsc);
-        request.setTake(take);
-        request.setSkip(skip);
-        request.setPrincipal(principal);
-
+    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest request) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
@@ -223,12 +203,12 @@ public class DeviceService {
         return deviceDao.getDeviceList(deviceIds, principal);
     }
 
-    public Set<String> getDeviceIds(HivePrincipal principal) {
+    public Set<String> getDeviceIds(ListDeviceRequest listDeviceRequest) {
+        HivePrincipal principal = listDeviceRequest.getPrincipal();
         Set<String> deviceIds = principal.getDeviceIds();
         if (isEmpty(deviceIds) && principal.areAllDevicesAvailable()) {
             try {
-                deviceIds = list(null, null, null, null,
-                        null,false, null, null, principal)
+                deviceIds = list(listDeviceRequest)
                         .get()
                         .stream()
                         .map(deviceVO -> deviceVO.getDeviceId())

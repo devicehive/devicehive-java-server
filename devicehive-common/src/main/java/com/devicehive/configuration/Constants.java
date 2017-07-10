@@ -67,9 +67,16 @@ public class Constants {
     public static final String SUBSCRIPTION_ID = "subscriptionId";
     public static final String ID = "id";
     public static final String NAME = "name";
+    public static final String NAME_PATTERN = "namePattern";
     public static final String LABEL = "label";
     public static final String STATUS = "status";
     public static final String NETWORK = "network";
+    public static final String NETWORK_ID = "networkId";
+    public static final String NETWORK_NAME = "networkName";
+    public static final String SORT_FIELD = "sortField";
+    public static final String SORT_ORDER = "sortOrder";
+    public static final String TAKE = "take";
+    public static final String SKIP = "skip";
     public static final String DOMAIN = "domain";
     public static final String LOGIN = "login";
     public static final String DEVICE = "device";

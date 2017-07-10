@@ -25,9 +25,10 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.enums.SortOrder;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
@@ -69,7 +70,7 @@ public class DeviceResourceImpl implements DeviceResource {
 
         logger.debug("Device list requested");
 
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+        boolean sortOrder = SortOrder.parse(sortOrderSt);
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
@@ -89,7 +90,17 @@ public class DeviceResourceImpl implements DeviceResource {
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
         } else {
-            deviceService.list(name, namePattern, networkId, networkName, sortField, sortOrder, take, skip, principal)
+            ListDeviceRequest request = new ListDeviceRequest();
+            request.setName(name);
+            request.setNamePattern(namePattern);
+            request.setNetworkId(networkId);
+            request.setNetworkName(networkName);
+            request.setSortField(sortField);
+            request.setSortOrderAsc(sortOrder);
+            request.setTake(take);
+            request.setSkip(skip);
+            request.setPrincipal(principal);
+            deviceService.list(request)
                     .thenApply(devices -> {
                         logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
                         return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
