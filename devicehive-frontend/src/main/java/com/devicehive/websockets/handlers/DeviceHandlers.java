@@ -48,6 +48,7 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
@@ -90,8 +91,13 @@ public class DeviceHandlers {
         ListDeviceRequest listDeviceRequest = new ListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
 
-        Set<String> deviceIds = deviceService.getDeviceIds(listDeviceRequest);
-        List<DeviceVO> toResponse = deviceService.findByIdWithPermissionsCheck(deviceIds, principal);
+        List<DeviceVO> toResponse;
+        try {
+            toResponse = deviceService.list(listDeviceRequest).get();
+        } catch (Exception e) {
+            logger.error(Messages.INTERNAL_SERVER_ERROR, e);
+            throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+        }
         response.addValue(Constants.DEVICES, toResponse, DEVICE_PUBLISHED);
 
         return response;

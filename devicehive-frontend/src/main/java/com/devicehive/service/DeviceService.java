@@ -202,22 +202,5 @@ public class DeviceService {
     private List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
         return deviceDao.getDeviceList(deviceIds, principal);
     }
-
-    public Set<String> getDeviceIds(ListDeviceRequest listDeviceRequest) {
-        HivePrincipal principal = listDeviceRequest.getPrincipal();
-        Set<String> deviceIds = principal.getDeviceIds();
-        if (isEmpty(deviceIds) && principal.areAllDevicesAvailable()) {
-            try {
-                deviceIds = list(listDeviceRequest)
-                        .get()
-                        .stream()
-                        .map(deviceVO -> deviceVO.getDeviceId())
-                        .collect(Collectors.toSet());
-            } catch (Exception e) {
-                logger.error(Messages.INTERNAL_SERVER_ERROR, e);
-                throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-            }
-        }
-        return deviceIds;
-    }
+    
 }
