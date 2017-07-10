@@ -35,11 +35,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
             <version>${parent.version}</version>
