@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -91,6 +92,12 @@ public class KafkaRpcClientConfig {
 
     @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
+
+    @PostConstruct
+    private void initializeTopics() {
+        createTopic(zookeeperConnect, RESPONSE_TOPIC);
+        createTopic(zookeeperConnect, KafkaRpcServerConfig.REQUEST_TOPIC);
+    }
 
     @Bean
     public RequestResponseMatcher requestResponseMatcher() {
@@ -145,5 +152,26 @@ public class KafkaRpcClientConfig {
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
+    }
+
+    private void createTopic(String zookeeperConnect, String topic) {
+        int sessionTimeoutMs = 10 * 1000;
+        int connectionTimeoutMs = 8 * 1000;
+        ZkClient zkClient = new ZkClient(
+                zookeeperConnect,
+                sessionTimeoutMs,
+                connectionTimeoutMs,
+                ZKStringSerializer$.MODULE$);
+        try {
+            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
+            Integer partitions = 3;
+            Integer replication = 1;
+            Properties topicConfig = new Properties();
+            if (!AdminUtils.topicExists(zkUtils, topic)) {
+                AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+            }
+        } finally {
+            zkClient.close();
+        }
     }
 }
