@@ -186,27 +186,7 @@ public class DeviceService {
         return deviceDao.deleteById(deviceId) != 0;
     }
 
-    //@Transactional(readOnly = true)
-    public CompletableFuture<List<DeviceVO>> list(String name,
-                                                 String namePattern,
-                                                 Long networkId,
-                                                 String networkName,
-                                                 String sortField,
-                                                 boolean sortOrderAsc,
-                                                 Integer take,
-                                                 Integer skip,
-                                                 HivePrincipal principal) {
-        ListDeviceRequest request = new ListDeviceRequest();
-        request.setName(name);
-        request.setNamePattern(namePattern);
-        request.setNetworkId(networkId);
-        request.setNetworkName(networkName);
-        request.setSortField(sortField);
-        request.setSortOrderAsc(sortOrderAsc);
-        request.setTake(take);
-        request.setSkip(skip);
-        request.setPrincipal(principal);
-
+    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest request) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
@@ -222,22 +202,5 @@ public class DeviceService {
     private List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
         return deviceDao.getDeviceList(deviceIds, principal);
     }
-
-    public Set<String> getDeviceIds(HivePrincipal principal) {
-        Set<String> deviceIds = principal.getDeviceIds();
-        if (isEmpty(deviceIds) && principal.areAllDevicesAvailable()) {
-            try {
-                deviceIds = list(null, null, null, null,
-                        null,false, null, null, principal)
-                        .get()
-                        .stream()
-                        .map(deviceVO -> deviceVO.getDeviceId())
-                        .collect(Collectors.toSet());
-            } catch (Exception e) {
-                logger.error(Messages.INTERNAL_SERVER_ERROR, e);
-                throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-            }
-        }
-        return deviceIds;
-    }
+    
 }

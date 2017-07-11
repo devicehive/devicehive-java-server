@@ -454,7 +454,9 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate1);
         deviceService.deviceSave(deviceUpdate2);
         handleListDeviceRequest();
-        deviceService.list(deviceName1, null, null, null, null, false, null, null, null)
+        ListDeviceRequest listDeviceRequest = new ListDeviceRequest();
+        listDeviceRequest.setName(deviceName1);
+        deviceService.list(listDeviceRequest)
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertEquals(devices.size(), 1);
@@ -501,7 +503,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(deviceUpdate);
         deviceService.deviceSave(deviceUpdate1);
         handleListDeviceRequest();
-        deviceService.list(null, null, network1.getId(), null, null, false, null, null, null)
+        deviceService.list(new ListDeviceRequest(network1.getId()))
                 .thenAccept(devices -> {
                     assertNotNull(devices);
                     assertNotEquals(0, devices.size());

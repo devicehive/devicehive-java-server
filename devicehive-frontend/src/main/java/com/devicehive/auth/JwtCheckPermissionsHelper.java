@@ -20,6 +20,7 @@ package com.devicehive.auth;
  * #L%
  */
 
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.service.DeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,7 +69,7 @@ public class JwtCheckPermissionsHelper {
             if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
             } else if (networks != null && principal.areAllDevicesAvailable()) {
-                return networks.stream().flatMap(n -> deviceService.list(null, null, n, null, null, false, null, null, null)
+                return networks.stream().flatMap(n -> deviceService.list(new ListDeviceRequest(n))
                         .thenApply(Collection::stream).join())
                         .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
             } else if (devices != null && principal.areAllNetworksAvailable()) {

@@ -21,7 +21,22 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
+import java.util.Objects;
+import java.util.Optional;
+
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.NAME_PATTERN;
+import static com.devicehive.configuration.Constants.NETWORK_ID;
+import static com.devicehive.configuration.Constants.NETWORK_NAME;
+import static com.devicehive.configuration.Constants.SKIP;
+import static com.devicehive.configuration.Constants.SORT_FIELD;
+import static com.devicehive.configuration.Constants.SORT_ORDER;
+import static com.devicehive.configuration.Constants.TAKE;
 
 public class ListDeviceRequest extends Body {
 
@@ -37,6 +52,31 @@ public class ListDeviceRequest extends Body {
 
     public ListDeviceRequest() {
         super(Action.LIST_DEVICE_REQUEST.name());
+    }
+
+    public ListDeviceRequest(Long networkId) {
+        super(Action.LIST_DEVICE_REQUEST.name());
+        this.networkId = networkId;
+    }
+
+    public ListDeviceRequest(boolean sortOrderAsc, HivePrincipal principal) {
+        super(Action.LIST_DEVICE_REQUEST.name());
+        this.sortOrderAsc = sortOrderAsc;
+        this.principal = principal;
+    }
+
+    public ListDeviceRequest(JsonObject request, HivePrincipal principal) {
+        super(Action.LIST_DEVICE_REQUEST.name());
+        name = Optional.ofNullable(request.get(NAME)).map(JsonElement::getAsString).orElse(null);
+        namePattern = Optional.ofNullable(request.get(NAME_PATTERN)).map(JsonElement::getAsString).orElse(null);
+        networkId = Optional.ofNullable(request.get(NETWORK_ID)).map(JsonElement::getAsLong).orElse(null);
+        networkName = Optional.ofNullable(request.get(NETWORK_NAME)).map(JsonElement::getAsString).orElse(null);
+        sortField = Optional.ofNullable(request.get(SORT_FIELD)).map(JsonElement::getAsString).orElse(null);
+        String sortOrder = Optional.ofNullable(request.get(SORT_ORDER)).map(JsonElement::getAsString).orElse(null);
+        sortOrderAsc = SortOrder.parse(sortOrder);
+        take = Optional.ofNullable(request.get(TAKE)).map(JsonElement::getAsInt).orElse(null);
+        skip = Optional.ofNullable(request.get(SKIP)).map(JsonElement::getAsInt).orElse(null);
+        this.principal = principal;
     }
 
     public String getName() {

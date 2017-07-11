@@ -25,6 +25,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.util.JsonTypes;
@@ -51,7 +52,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
@@ -100,7 +100,8 @@ public class NotificationHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
         }
 
@@ -154,7 +155,8 @@ public class NotificationHandlers {
         Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceIds == null) {
-            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
             deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             notificationService.unsubscribe(null, deviceIds);
         } else if (subId.isPresent()) {
