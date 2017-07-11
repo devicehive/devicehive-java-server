@@ -153,25 +153,4 @@ public class KafkaRpcClientConfig {
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
     }
-
-    private void createTopic(String zookeeperConnect, String topic) {
-        int sessionTimeoutMs = 10 * 1000;
-        int connectionTimeoutMs = 8 * 1000;
-        ZkClient zkClient = new ZkClient(
-                zookeeperConnect,
-                sessionTimeoutMs,
-                connectionTimeoutMs,
-                ZKStringSerializer$.MODULE$);
-        try {
-            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Integer partitions = 1;
-            Integer replication = 1;
-            Properties topicConfig = new Properties();
-            if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
-            }
-        } finally {
-            zkClient.close();
-        }
-    }
 }
