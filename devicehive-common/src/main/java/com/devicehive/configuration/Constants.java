@@ -59,10 +59,15 @@ public class Constants {
     public static final String DEVICE_IDS = "deviceIds";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";
+    public static final String START_TIMESTAMP = "start";
+    public static final String END_TIMESTAMP = "end";
     public static final String LIMIT = "limit";
     public static final String COMMAND_ID = "commandId";
     public static final String NOTIFICATION = "notification";
+    public static final String NOTIFICATIONS = "notifications";
+    public static final String NOTIFICATION_ID = "notificationId";
     public static final String COMMAND = "command";
+    public static final String COMMANDS = "commands";
     public static final String PAYLOAD = "payload";
     public static final String SUBSCRIPTION_ID = "subscriptionId";
     public static final String ID = "id";

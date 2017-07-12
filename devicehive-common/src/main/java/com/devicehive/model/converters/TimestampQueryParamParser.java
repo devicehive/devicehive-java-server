@@ -1,4 +1,4 @@
-package com.devicehive.resource.converters;
+package com.devicehive.model.converters;
 
 /*
  * #%L
