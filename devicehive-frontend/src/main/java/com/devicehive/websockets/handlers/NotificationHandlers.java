@@ -230,10 +230,15 @@ public class NotificationHandlers {
         String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
                 .map(JsonElement::getAsString)
                 .orElseThrow(() -> new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST));
-
-        Long notificationId = Optional.ofNullable(request.get(Constants.NOTIFICATION_ID))
-                .map(JsonElement::getAsLong)
-                .orElseThrow(() -> new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST));
+        
+        Long notificationId;
+        try {
+            notificationId = Optional.ofNullable(request.get(Constants.NOTIFICATION_ID))
+                    .map(JsonElement::getAsLong)
+                    .orElseThrow(() -> new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST));
+        } catch (NumberFormatException e) {
+            throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
+        }
         
         logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
 

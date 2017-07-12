@@ -251,10 +251,15 @@ public class CommandHandlers {
         String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
                 .map(JsonElement::getAsString)
                 .orElseThrow(() -> new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST));
-        
-        Long commandId = Optional.ofNullable(request.get(Constants.COMMAND_ID))
-                .map(JsonElement::getAsLong)
-                .orElseThrow(() -> new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST));
+
+        Long commandId;
+        try {
+            commandId = Optional.ofNullable(request.get(Constants.COMMAND_ID))
+                    .map(JsonElement::getAsLong)
+                    .orElseThrow(() -> new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST));
+        } catch (NumberFormatException e) {
+            throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
+        }
 
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", deviceId, commandId);
 
