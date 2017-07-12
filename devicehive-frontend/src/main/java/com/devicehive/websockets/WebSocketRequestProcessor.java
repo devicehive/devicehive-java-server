@@ -70,6 +70,12 @@ public class WebSocketRequestProcessor {
             case NOTIFICATION_UNSUBSCRIBE:
                 response = notificationHandlers.processNotificationUnsubscribe(request, session);
                 break;
+            case NOTIFICATION_GET:
+                response = notificationHandlers.processNotificationGet(request, session);
+                break;
+            case NOTIFICATION_LIST:
+                response = notificationHandlers.processNotificationList(request, session);
+                break;
             case COMMAND_INSERT:
                 response = commandHandlers.processCommandInsert(request, session);
                 break;
@@ -81,6 +87,12 @@ public class WebSocketRequestProcessor {
                 break;
             case COMMAND_UNSUBSCRIBE:
                 response = commandHandlers.processCommandUnsubscribe(request, session);
+                break;
+            case COMMAND_GET:
+                response = commandHandlers.processCommandGet(request, session);
+                break;
+            case COMMAND_LIST:
+                response = commandHandlers.processCommandList(request, session);
                 break;
             case DEVICE_GET:
                 response = deviceHandlers.processDeviceGet(request);
@@ -112,10 +124,14 @@ public class WebSocketRequestProcessor {
         NOTIFICATION_INSERT("notification/insert"),
         NOTIFICATION_SUBSCRIBE("notification/subscribe"),
         NOTIFICATION_UNSUBSCRIBE("notification/unsubscribe"),
+        NOTIFICATION_GET("notification/get"),
+        NOTIFICATION_LIST("notification/list"),
         COMMAND_INSERT("command/insert"),
         COMMAND_SUBSCRIBE("command/subscribe"),
         COMMAND_UNSUBSCRIBE("command/unsubscribe"),
         COMMAND_UPDATE("command/update"),
+        COMMAND_GET("command/get"),
+        COMMAND_LIST("command/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),

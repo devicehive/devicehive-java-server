@@ -33,6 +33,7 @@ import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,13 @@ public class DeviceCommandService {
                 .withBody(searchRequest)
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
+    }
+
+    public CompletableFuture<List<DeviceCommand>> find(ListCommandRequest request) {
+        String command = request.getCommand();
+        List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+        return find(Collections.singletonList(request.getDeviceId()), searchCommands,
+                request.getTimestampStart(), request.getTimestampEnd(), request.getStatus());
     }
 
     public CompletableFuture<List<DeviceCommand>> find(Collection<String> deviceIds, Collection<String> names,

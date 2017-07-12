@@ -28,7 +28,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
-import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
