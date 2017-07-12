@@ -23,6 +23,7 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
@@ -51,6 +52,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class CommonHandlers {
@@ -143,21 +147,18 @@ public class CommonHandlers {
         JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
 
         if (payload == null) {
-            String msg = "JwtToken: payload was not found";
-            logger.warn(msg);
-            throw new HiveException(msg);
+            logger.warn("JwtToken: payload was not found");
+            throw new HiveException(Messages.PAYLOAD_NOT_FOUND, SC_BAD_REQUEST);
         }
 
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
-            String msg = String.format("JwtToken: User with specified id %s was not found", payload.getUserId());
-            logger.warn(msg);
-            throw new HiveException(msg);
+            logger.warn(String.format("JwtToken: User with specified id %s was not found", payload.getUserId()));
+            throw new HiveException(Messages.USER_NOT_FOUND, SC_NOT_FOUND);
         }
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            String msg = String.format("JwtToken: User with specified id %s is not active", payload.getUserId());
-            logger.warn(msg);
-            throw new HiveException(msg);
+            logger.warn(String.format("JwtToken: User with specified id %s is not active", payload.getUserId()));
+            throw new HiveException(Messages.USER_NOT_ACTIVE, SC_NOT_FOUND);
         }
 
         logger.debug("JwtToken: generate access and refresh token");
