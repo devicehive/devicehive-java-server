@@ -57,7 +57,6 @@ public class Constants {
     //API constants
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_IDS = "deviceIds";
-    public static final String DEVICE_KEY = "deviceKey";
     public static final String NAMES = "names";
     public static final String TIMESTAMP = "timestamp";
     public static final String START_TIMESTAMP = "start";
@@ -69,6 +68,7 @@ public class Constants {
     public static final String NOTIFICATION_ID = "notificationId";
     public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
+    public static final String PAYLOAD = "payload";
     public static final String SUBSCRIPTION_ID = "subscriptionId";
     public static final String ID = "id";
     public static final String NAME = "name";
