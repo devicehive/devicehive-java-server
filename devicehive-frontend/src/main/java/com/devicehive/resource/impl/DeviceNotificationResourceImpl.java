@@ -26,6 +26,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
@@ -272,7 +273,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
                                 asyncResponse.resume(ResponseFactory.response(
                                         Response.Status.CREATED,
-                                        notification,
+                                        new InsertNotification(notification.getId(), notification.getTimestamp()),
                                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                             })
                             .exceptionally(e -> {
