@@ -28,9 +28,9 @@ import org.hibernate.cfg.Settings;
 
 import java.util.Properties;
 
-public class HazelcastCustomCacheRegionFactory extends HazelcastCacheRegionFactory {
+public class HazelcastClientCacheRegionFactory extends HazelcastCacheRegionFactory {
 
-    public HazelcastCustomCacheRegionFactory() {
+    public HazelcastClientCacheRegionFactory() {
         this.instance = ApplicationContextHolder.getApplicationContext().getBean(HazelcastInstance.class);
     }
 
