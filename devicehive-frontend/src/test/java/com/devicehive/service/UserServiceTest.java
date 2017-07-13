@@ -126,7 +126,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         expectedException.expect(NoSuchElementException.class);
-        expectedException.expectMessage(Messages.USER_NOT_FOUND);
+        expectedException.expectMessage(String.format(Messages.USER_NOT_FOUND, -1L));
 
         userService.assignNetwork(-1L, created.getId());
     }
@@ -253,7 +253,7 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
 
         expectedException.expect(NoSuchElementException.class);
-        expectedException.expectMessage(Messages.USER_NOT_FOUND);
+        expectedException.expectMessage(String.format(Messages.USER_NOT_FOUND, -1));
 
         userService.unassignNetwork(-1, created.getId());
     }
@@ -452,10 +452,12 @@ public class UserServiceTest extends AbstractResourceTest {
 
     @Test
     public void should_throw_AccessDeniedException_if_user_does_not_exists_when_findUser_called() throws Exception {
+        String login = String.valueOf(System.currentTimeMillis());
+        String password = String.valueOf(System.currentTimeMillis());
         expectedException.expect(AccessDeniedException.class);
-        expectedException.expectMessage(Messages.USER_NOT_FOUND);
+        expectedException.expectMessage(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
         try {
-            userService.getActiveUser(String.valueOf(System.currentTimeMillis()), String.valueOf(System.currentTimeMillis()));
+            userService.getActiveUser(login, password);
         } catch (Exception e) {
             e.printStackTrace();
             throw e;

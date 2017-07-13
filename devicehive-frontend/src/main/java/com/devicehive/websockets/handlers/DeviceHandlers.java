@@ -60,6 +60,21 @@ public class DeviceHandlers {
     @Autowired
     private Gson gson;
 
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
+    public WebSocketResponse processDeviceDelete(JsonObject request) {
+        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
+        
+        boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
+        if (!isDeviceDeleted) {
+            logger.error("device/delete proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        logger.debug("Device with id = {} is deleted", deviceId);
+        return new WebSocketResponse();
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceGet(JsonObject request) {

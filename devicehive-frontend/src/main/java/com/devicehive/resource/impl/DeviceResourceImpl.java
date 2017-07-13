@@ -153,7 +153,12 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response delete(String deviceId) {
-        deviceService.deleteDevice(deviceId);
+        boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
+        if (!isDeviceDeleted) {
+            logger.error("Delete device proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
         logger.debug("Device with id = {} is deleted", deviceId);
         return ResponseFactory.response(NO_CONTENT);
     }

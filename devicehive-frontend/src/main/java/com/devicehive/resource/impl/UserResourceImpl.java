@@ -105,12 +105,14 @@ public class UserResourceImpl implements UserResource {
         } else if (currentLoggedInUser != null && currentLoggedInUser.getRole() == UserRole.CLIENT && Objects.equals(currentLoggedInUser.getId(), userId)) {
             fetchedUser = userService.findUserWithNetworks(currentLoggedInUser.getId());
         } else {
-            return ResponseFactory.response(FORBIDDEN, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.USER_NOT_FOUND));
+            return ResponseFactory.response(FORBIDDEN,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
         }
 
         if (fetchedUser == null) {
             logger.error("Can't get user with id {}: user not found", userId);
-            return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(), Messages.USER_NOT_FOUND));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
         }
 
         return ResponseFactory.response(OK, UserResponse.createFromUser(fetchedUser), JsonPolicyDef.Policy.USER_PUBLISHED);
@@ -184,7 +186,7 @@ public class UserResourceImpl implements UserResource {
         UserWithNetworkVO existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
             logger.error("Can't get network with id {}: user {} not found", networkId, id);
-            throw new HiveException(Messages.USER_NOT_FOUND, NOT_FOUND.getStatusCode());
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
         }
         for (NetworkVO network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {

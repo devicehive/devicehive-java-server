@@ -110,7 +110,7 @@ public class UserService {
         Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
-            throw new AccessDeniedException(Messages.USER_NOT_FOUND);
+            throw new AccessDeniedException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
         } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
             logger.error("User with login {} is not active", login);
             throw new AccessDeniedException(Messages.USER_NOT_ACTIVE);
@@ -162,7 +162,7 @@ public class UserService {
 
         if (existing == null) {
             logger.error("Can't update user with id {}: user not found", id);
-            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
+            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, id));
         }
 
         if (userToUpdate == null) {
@@ -248,7 +248,7 @@ public class UserService {
         UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
-            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
+            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, userId));
         }
         NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId)
                 .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
@@ -266,7 +266,7 @@ public class UserService {
         UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
-            throw new NoSuchElementException(Messages.USER_NOT_FOUND);
+            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, userId));
         }
         userDao.unassignNetwork(existingUser, networkId);
     }

@@ -154,7 +154,7 @@ public class CommonHandlers {
         UserVO user = userService.findById(payload.getUserId());
         if (user == null) {
             logger.warn(String.format("JwtToken: User with specified id %s was not found", payload.getUserId()));
-            throw new HiveException(Messages.USER_NOT_FOUND, SC_NOT_FOUND);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, payload.getUserId()), SC_NOT_FOUND);
         }
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
             logger.warn(String.format("JwtToken: User with specified id %s is not active", payload.getUserId()));

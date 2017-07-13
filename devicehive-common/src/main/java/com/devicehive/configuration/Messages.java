@@ -42,6 +42,7 @@ public class Messages {
     public static final String NOTIFICATION_NOT_FOUND_LOG = BidBundle.get("NOTIFICATION_NOT_FOUND_LOG");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
+    public static final String USER_LOGIN_NOT_FOUND = BidBundle.get("USER_LOGIN_NOT_FOUND");
     public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
