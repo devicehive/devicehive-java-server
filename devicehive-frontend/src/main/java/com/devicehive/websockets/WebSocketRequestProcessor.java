@@ -109,6 +109,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_SAVE:
                 response = deviceHandlers.processDeviceSave(request, session);
                 break;
+            case DEVICE_DELETE:
+                response = deviceHandlers.processDeviceDelete(request);
+                break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
@@ -143,6 +146,7 @@ public class WebSocketRequestProcessor {
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
+        DEVICE_DELETE("device/delete"),
         EMPTY("");
 
         private String value;
