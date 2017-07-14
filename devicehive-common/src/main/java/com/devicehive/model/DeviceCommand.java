@@ -57,6 +57,11 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date timestamp;
 
+    @SerializedName("lastUpdated")
+    @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastUpdated;
+
     @SerializedName("userId")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_LISTED})
     private Long userId;
@@ -115,6 +120,14 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Date getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(Date lastUpdated) {
+        this.lastUpdated = lastUpdated;
     }
 
     public Long getUserId() {
@@ -215,6 +228,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
                 "id=" + id +
                 ", command='" + command + '\'' +
                 ", timestamp=" + timestamp +
+                ", lastUpdated=" + lastUpdated +
                 ", userId=" + userId +
                 ", deviceId='" + deviceId + '\'' +
                 ", parameters=" + parameters +
@@ -245,6 +259,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
         portableWriter.writeUTF("command", command);
         portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
+        portableWriter.writeLong("lastUpdated", Objects.nonNull(lastUpdated) ? lastUpdated.getTime() :0);
         portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
         portableWriter.writeUTF("deviceId", deviceId);
         boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
@@ -261,6 +276,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         id = portableReader.readLong("id");
         command = portableReader.readUTF("command");
         timestamp = new Date(portableReader.readLong("timestamp"));
+        lastUpdated = new Date(portableReader.readLong("lastUpdated"));
         userId = portableReader.readLong("userId");
         deviceId = portableReader.readUTF("deviceId");
         String parametersString = portableReader.readUTF("parameters");

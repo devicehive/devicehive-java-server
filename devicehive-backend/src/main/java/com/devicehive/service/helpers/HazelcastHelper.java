@@ -39,26 +39,29 @@ import static com.devicehive.model.enums.SearchableField.*;
 public class HazelcastHelper {
 
     public Predicate prepareFilters(final Long id, final String deviceId) {
-        return prepareFilters(id, deviceId, null, null, null, null, null, null);
+        return prepareFilters(id, deviceId, null, null, null, null, null, null, null, null);
     }
 
     public <T extends HazelcastEntity> Predicate prepareFilters(final String deviceId,
                                                                 final Collection<String> names,
                                                                 final Collection<String> devices,
                                                                 final Date timestampSt, final Date timestampEnd,
+                                                                final Date lastUpdatedSt, final Date lastUpdatedEnd,
                                                                 final String status, Class<T> entityClass) {
         if (entityClass.equals(DeviceCommand.class)) {
-            return prepareFilters(null, deviceId, devices, null, names, timestampSt, timestampEnd, status);
+            return prepareFilters(null, deviceId, devices, null, names, timestampSt, timestampEnd,
+                    lastUpdatedSt, lastUpdatedEnd, status);
         }
         if (entityClass.equals(DeviceNotification.class)) {
-            return prepareFilters(null, deviceId, devices, names, null, timestampSt, timestampEnd, status);
+            return prepareFilters(null, deviceId, devices, names, null, timestampSt, timestampEnd,
+                    null, null, status);
         }
         return null;
     }
 
     private Predicate prepareFilters(Long id, String deviceId, Collection<String> devices, Collection<String> notifications,
                                      Collection<String> commands, Date timestampSt, Date timestampEnd,
-                                     String status) {
+                                     Date lastUpdatedSt, Date lastUpdatedEnd, String status) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
             predicates.add(Predicates.equal(ID.getField(), id));
@@ -84,6 +87,14 @@ public class HazelcastHelper {
 
         if (timestampEnd != null) {
             predicates.add(Predicates.lessThan(TIMESTAMP.getField(), timestampEnd.getTime()));
+        }
+
+        if (lastUpdatedSt != null) {
+            predicates.add(Predicates.greaterThan(LAST_UPDATED.getField(), lastUpdatedSt.getTime()));
+        }
+
+        if (lastUpdatedEnd != null) {
+            predicates.add(Predicates.lessThan(LAST_UPDATED.getField(), lastUpdatedEnd.getTime()));
         }
 
         if (StringUtils.isNotEmpty(status)) {
