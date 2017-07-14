@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
+import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -92,6 +93,12 @@ public class KafkaRpcClientConfig {
     @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
 
+    @PostConstruct
+    private void initializeTopics() {
+        createTopic(zookeeperConnect, RESPONSE_TOPIC);
+        createTopic(zookeeperConnect, KafkaRpcServerConfig.REQUEST_TOPIC);
+    }
+
     @Bean
     public RequestResponseMatcher requestResponseMatcher() {
         return new RequestResponseMatcher();
@@ -127,7 +134,6 @@ public class KafkaRpcClientConfig {
 
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
-        createTopic(zookeeperConnect, RESPONSE_TOPIC);
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
         Properties consumerProps = consumerProps();
         return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
