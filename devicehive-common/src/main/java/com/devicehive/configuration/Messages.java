@@ -35,6 +35,7 @@ public class Messages {
     public static final String DUPLICATE_LABEL_FOUND = BidBundle.get("DUPLICATE_LABEL_FOUND");
     public static final String JSON_SYNTAX_ERROR = BidBundle.get("JSON_SYNTAX_ERROR");
     public static final String CONFIG_NOT_FOUND = BidBundle.get("CONFIG_NOT_FOUND");
+    public static final String CONFIGURATION_NAME_REQUIRED = BidBundle.get("CONFIGURATION_NAME_REQUIRED");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
     public static final String COMMAND_NOT_FOUND = BidBundle.get("COMMAND_NOT_FOUND");
