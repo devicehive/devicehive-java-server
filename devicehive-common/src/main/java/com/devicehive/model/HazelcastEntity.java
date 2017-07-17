@@ -20,9 +20,11 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.hazelcast.core.HazelcastInstanceAware;
+
 import java.util.Date;
 
-public interface HazelcastEntity {
+public interface HazelcastEntity extends HazelcastInstanceAware {
 
     String getHazelcastKey();
 
