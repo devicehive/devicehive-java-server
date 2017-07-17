@@ -65,7 +65,7 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
         subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
 
-        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp(), body.getLimit());
+        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
         CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
         return Response.newBuilder()
@@ -81,9 +81,9 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 
-    private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp, Integer limit) {
+    private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         return Optional.ofNullable(timestamp)
-                .map(t -> hazelcastService.find(null, names, Collections.singleton(device), limit, t, null, null, null, null, DeviceCommand.class))
+                .map(t -> hazelcastService.find(null, names, Collections.singleton(device), limit, t, null, returnUpdated, null, DeviceCommand.class))
                 .orElse(Collections.emptyList());
     }
 }

@@ -80,12 +80,11 @@ public class HazelcastService {
                                                           Integer take,
                                                           Date timestampSt,
                                                           Date timestampEnd,
-                                                          Date lastUpdatedSt,
-                                                          Date lastUpdatedEnd,
+                                                          boolean returnUpdated,
                                                           String status,
                                                           Class<T> entityClass) {
         final Predicate filters = hazelcastHelper.prepareFilters(deviceId,  names, devices, timestampSt, timestampEnd,
-                lastUpdatedSt, lastUpdatedEnd, status, entityClass);
+               returnUpdated, status, entityClass);
         return find(filters, take, entityClass);
     }
 

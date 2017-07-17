@@ -32,9 +32,7 @@ public class CommandSearchRequest extends Body {
     private Set<String> names;
     private Date timestampStart;
     private Date timestampEnd;
-    private Date lastUpdatedStart;
-    private Date lastUpdatedEnd;
-
+    private boolean returnUpdated;
     private String status;
 
     public CommandSearchRequest() {
@@ -81,20 +79,12 @@ public class CommandSearchRequest extends Body {
         this.timestampEnd = timestampEnd;
     }
 
-    public Date getLastUpdatedStart() {
-        return lastUpdatedStart;
+    public boolean isReturnUpdated() {
+        return returnUpdated;
     }
 
-    public void setLastUpdatedStart(Date lastUpdatedStart) {
-        this.lastUpdatedStart = lastUpdatedStart;
-    }
-
-    public Date getLastUpdatedEnd() {
-        return lastUpdatedEnd;
-    }
-
-    public void setLastUpdatedEnd(Date lastUpdatedEnd) {
-        this.lastUpdatedEnd = lastUpdatedEnd;
+    public void setReturnUpdated(boolean returnUpdated) {
+        this.returnUpdated = returnUpdated;
     }
 
     public String getStatus() {

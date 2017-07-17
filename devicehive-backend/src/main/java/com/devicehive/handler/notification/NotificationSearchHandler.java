@@ -62,8 +62,7 @@ public class NotificationSearchHandler implements RequestHandler {
                 0,
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
-                null,
-                null,
+                false,
                 null,
                 DeviceNotification.class);
 

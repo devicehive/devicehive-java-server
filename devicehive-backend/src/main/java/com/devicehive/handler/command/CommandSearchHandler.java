@@ -76,8 +76,7 @@ public class CommandSearchHandler implements RequestHandler {
                 0,
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
-                searchRequest.getLastUpdatedStart(),
-                searchRequest.getLastUpdatedEnd(),
+                searchRequest.isReturnUpdated(),
                 searchRequest.getStatus(),
                 DeviceCommand.class);
 

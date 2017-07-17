@@ -132,12 +132,13 @@ public class DeviceCommandService {
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
+            final boolean returnUpdated,
             final Integer limit,
             final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
 
         final String subscriptionId = UUID.randomUUID().toString();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, limit))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, returnUpdated, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
@@ -201,6 +202,7 @@ public class DeviceCommandService {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
+        cmd.setLastUpdated(timestampService.getDate());
 
         if (commandWrapper.getCommand().isPresent()) {
             cmd.setCommand(commandWrapper.getCommand().get());
@@ -241,6 +243,8 @@ public class DeviceCommandService {
         } else {
             command.setTimestamp(timestampService.getDate());
         }
+        
+        command.setLastUpdated(command.getTimestamp());
 
         if (user != null) {
             command.setUserId(user.getId());
