@@ -27,7 +27,7 @@ RUN apt-get update \
     && rm -rf /opt/devicehive/source \
     && rm -rf $M2_HOME \
     && rm -rf ~/.m2 \
-    && apt-get remove -y --purge git openjdk-8-jdk \
+    && apt-get remove -y --purge git openjdk-8-jdk-headless \
     && apt-get clean
 
 ENV CLASSPATH=/opt/devicehive/devicehive-common-${DH_VERSION}-shade.jar:.
