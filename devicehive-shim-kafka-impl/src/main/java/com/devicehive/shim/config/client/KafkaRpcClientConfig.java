@@ -94,7 +94,7 @@ public class KafkaRpcClientConfig {
     private String zookeeperConnect;
 
     @Value("${bootstrap.servers:127.0.0.1:9092}")
-    private int bootstrapServers;
+    private String bootstrapServers;
 
     @Value("${batch.size:49152}")
     private int batchSize;
