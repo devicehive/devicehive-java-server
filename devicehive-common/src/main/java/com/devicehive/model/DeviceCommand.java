@@ -25,6 +25,7 @@ import com.google.gson.annotations.SerializedName;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -92,6 +93,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     private JsonStringWrapper result;
 
     @SerializedName("isUpdated")
+    @ApiModelProperty(hidden = true)
     private Boolean isUpdated;
 
     public DeviceCommand() {
@@ -240,16 +242,19 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public String getHazelcastKey() {
         return id+"-"+deviceId+"-"+timestamp;
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public int getFactoryId() {
         return FACTORY_ID;
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public int getClassId() {
         return CLASS_ID;
     }
