@@ -99,6 +99,12 @@ public class KafkaRpcClientConfig {
     @Value("${batch.size:49152}")
     private int batchSize;
 
+    @Value("${num.partitions:3}")
+    private int numPartitions;
+
+    @Value("${replication.factor:1}")
+    private int replicationFactor;
+
     @PostConstruct
     private void initializeTopics() {
         createTopic(zookeeperConnect, RESPONSE_TOPIC);
@@ -171,11 +177,10 @@ public class KafkaRpcClientConfig {
                 ZKStringSerializer$.MODULE$);
         try {
             ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Integer partitions = 3;
             Integer replication = 1;
             Properties topicConfig = new Properties();
             if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+                AdminUtils.createTopic(zkUtils, topic, numPartitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
             }
         } finally {
             zkClient.close();
