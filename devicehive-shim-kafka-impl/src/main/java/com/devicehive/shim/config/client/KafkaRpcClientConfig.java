@@ -93,6 +93,12 @@ public class KafkaRpcClientConfig {
     @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
 
+    @Value("${bootstrap.servers:127.0.0.1:9092}")
+    private int bootstrapServers;
+
+    @Value("${batch.size:49152}")
+    private int batchSize;
+
     @PostConstruct
     private void initializeTopics() {
         createTopic(zookeeperConnect, RESPONSE_TOPIC);
@@ -142,14 +148,14 @@ public class KafkaRpcClientConfig {
 
     private Properties producerProps() {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 49152);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
         return props;
     }
 
     private Properties consumerProps() {
         Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
