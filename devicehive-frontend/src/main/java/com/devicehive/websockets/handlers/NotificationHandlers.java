@@ -196,7 +196,7 @@ public class NotificationHandlers {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
-        DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+        final DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
 
         if (device == null) {
             logger.error("notification/insert proceed with error. No device with Device ID = {} found.", deviceId);

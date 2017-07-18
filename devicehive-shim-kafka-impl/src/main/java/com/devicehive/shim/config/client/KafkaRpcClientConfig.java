@@ -143,6 +143,7 @@ public class KafkaRpcClientConfig {
     private Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, 49152);
         return props;
     }
 

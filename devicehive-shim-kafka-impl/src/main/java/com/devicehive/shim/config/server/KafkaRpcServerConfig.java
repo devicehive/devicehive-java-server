@@ -84,7 +84,7 @@ public class KafkaRpcServerConfig {
 
     @Bean
     public ExecutorService workerExecutor() {
-        return Executors.newFixedThreadPool(workerThreads);
+        return Executors.newWorkStealingPool();
     }
 
     @Bean
