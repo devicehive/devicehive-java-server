@@ -23,8 +23,10 @@ package com.devicehive.websockets;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.devicehive.websockets.handlers.ApiInfoHandlers;
 import com.devicehive.websockets.handlers.CommandHandlers;
 import com.devicehive.websockets.handlers.CommonHandlers;
+import com.devicehive.websockets.handlers.ConfigurationHandlers;
 import com.devicehive.websockets.handlers.DeviceHandlers;
 import com.devicehive.websockets.handlers.NotificationHandlers;
 import com.google.gson.JsonElement;
@@ -42,6 +44,10 @@ public class WebSocketRequestProcessor {
     @Autowired
     private CommonHandlers commonHandlers;
     @Autowired
+    private ApiInfoHandlers apiInfoHandlers;
+    @Autowired
+    private ConfigurationHandlers configurationHandlers;
+    @Autowired
     private NotificationHandlers notificationHandlers;
     @Autowired
     private CommandHandlers commandHandlers;
@@ -53,8 +59,11 @@ public class WebSocketRequestProcessor {
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
-                response = commonHandlers.processServerInfo(session);
+                response = apiInfoHandlers.processServerInfo(session);
                 break;
+            case CLUSTER_CONFIG_INFO:
+                response = apiInfoHandlers.processClusterConfigInfo(session);
+                break;    
             case AUTHENTICATE:
                 response = commonHandlers.processAuthenticate(request, session);
                 break;
@@ -67,6 +76,15 @@ public class WebSocketRequestProcessor {
             case TOKEN_REFRESH:
                 response = commonHandlers.processRefresh(request, session);
                 break;
+            case CONFIGURATION_GET:
+                response = configurationHandlers.processConfigurationGet(request, session);
+                break;
+            case CONFIGURATION_PUT:
+                response = configurationHandlers.processConfigurationPut(request, session);
+                break;
+            case CONFIGURATION_DELETE:
+                response = configurationHandlers.processConfigurationDelete(request, session);
+                break;    
             case NOTIFICATION_INSERT:
                 response = notificationHandlers.processNotificationInsert(request, session);
                 break;
@@ -128,10 +146,14 @@ public class WebSocketRequestProcessor {
 
     public enum WebsocketAction {
         SERVER_INFO("server/info"),
+        CLUSTER_CONFIG_INFO("cluster/info"),
         AUTHENTICATE("authenticate"),
         TOKEN("token"),
         TOKEN_CREATE("token/create"),
         TOKEN_REFRESH("token/refresh"),
+        CONFIGURATION_GET("configuration/get"),
+        CONFIGURATION_PUT("configuration/put"),
+        CONFIGURATION_DELETE("configuration/delete"),
         NOTIFICATION_INSERT("notification/insert"),
         NOTIFICATION_SUBSCRIBE("notification/subscribe"),
         NOTIFICATION_UNSUBSCRIBE("notification/unsubscribe"),

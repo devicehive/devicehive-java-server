@@ -32,7 +32,6 @@ import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -44,15 +43,12 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
@@ -78,28 +74,7 @@ public class CommonHandlers {
 
     @Autowired
     private Gson gson;
-
-    @Value("${server.context-path}")
-    private String contextPath;
-
-
-    @PreAuthorize("permitAll")
-    public WebSocketResponse processServerInfo(WebSocketSession session) {
-        logger.debug("server/info action started. Session " + session.getId());
-        ApiInfoVO apiInfo = new ApiInfoVO();
-        apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
-        session.getHandshakeHeaders().get("Host").stream()
-                .findFirst()
-                .ifPresent(host -> apiInfo.setRestServerUrl("http://" + host + contextPath + "/rest"));
-
-        //TODO: Replace with timestamp service
-        apiInfo.setServerTimestamp(timestampService.getDate());
-        WebSocketResponse response = new WebSocketResponse();
-        response.addValue("info", apiInfo, WEBSOCKET_SERVER_INFO);
-        logger.debug("server/info action completed. Session {}", session.getId());
-        return response;
-    }
-
+    
     @PreAuthorize("permitAll")
     public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
 
