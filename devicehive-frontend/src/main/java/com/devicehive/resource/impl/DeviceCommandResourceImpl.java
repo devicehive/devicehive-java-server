@@ -22,7 +22,6 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -106,7 +105,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final Response response = ResponseFactory.response(
                 Response.Status.OK,
                 Collections.emptyList(),
-                JsonPolicyDef.Policy.COMMAND_LISTED);
+                Policy.COMMAND_LISTED);
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 

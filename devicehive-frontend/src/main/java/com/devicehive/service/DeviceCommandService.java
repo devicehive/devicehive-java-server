@@ -145,8 +145,10 @@ public class DeviceCommandService {
                         String resAction = response.getBody().getAction();
                         if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
-                        } else if (resAction.equals(Action.COMMAND_EVENT.name())) {
+                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT.name())) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
+                        } else if (returnUpdated && resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
+                            callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);
                         }

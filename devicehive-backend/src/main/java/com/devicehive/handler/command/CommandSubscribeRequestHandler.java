@@ -37,6 +37,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
+import static com.devicehive.model.rpc.Action.COMMAND_EVENT;
+import static com.devicehive.model.rpc.Action.COMMAND_UPDATE_EVENT;
+
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
     @Autowired
@@ -53,12 +56,13 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
+        String eventName = body.isReturnUpdated() ? COMMAND_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
         if (CollectionUtils.isEmpty(body.getNames())) {
-            Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice());
+            Subscription subscription = new Subscription(eventName, body.getDevice());
             subscriptions.add(subscription);
         } else {
             for (String name : body.getNames()) {
-                Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice(), name);
+                Subscription subscription = new Subscription(eventName, body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }
