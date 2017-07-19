@@ -26,6 +26,7 @@ import com.devicehive.json.strategies.AnnotatedStrategy;
 import com.devicehive.model.enums.*;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
+import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Body;
@@ -76,6 +77,7 @@ public class GsonFactory {
                 .registerSubtype(CommandUpdateSubscribeRequest.class, Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.name())
                 .registerSubtype(CommandUpdateSubscribeResponse.class, Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())
                 .registerSubtype(CommandUpdateRequest.class, Action.COMMAND_UPDATE_REQUEST.name())
+                .registerSubtype(CommandsUpdateRequest.class, Action.COMMANDS_UPDATE_REQUEST.name())
                 .registerSubtype(CommandGetSubscriptionRequest.class, Action.COMMAND_GET_SUBSCRIPTION_REQUEST.name())
                 .registerSubtype(CommandGetSubscriptionResponse.class, Action.COMMAND_GET_SUBSCRIPTION_RESPONSE.name())
 
@@ -91,6 +93,7 @@ public class GsonFactory {
                 .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.name())
                 .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.name())
                 .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name())
+                .registerSubtype(CommandsUpdateEvent.class, Action.COMMANDS_UPDATE_EVENT.name())
 
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.name())
                 .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.name())

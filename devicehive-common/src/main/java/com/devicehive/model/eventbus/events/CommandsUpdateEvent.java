@@ -28,22 +28,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 
-public class CommandUpdateEvent extends Event {
+public class CommandsUpdateEvent extends Event {
 
     private DeviceCommand command;
 
-    public CommandUpdateEvent(DeviceCommand command) {
-        super(Action.COMMAND_UPDATE_EVENT.name());
+    public CommandsUpdateEvent(DeviceCommand command) {
+        super(Action.COMMANDS_UPDATE_EVENT.name());
         this.command = command;
     }
 
     @Override
     public Collection<Subscription> getApplicableSubscriptions() {
-        Subscription commandSubscription = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), command.getId().toString());
-        Subscription commandSubscriptionWithName = new Subscription(
-                Action.COMMAND_UPDATE_EVENT.name(), command.getId().toString(), command.getCommand());
+        Subscription device = new Subscription(Action.COMMANDS_UPDATE_EVENT.name(), command.getDeviceId());
+        Subscription deviceWithName = new Subscription(
+                Action.COMMANDS_UPDATE_EVENT.name(), command.getDeviceId(), command.getCommand());
         
-        return Arrays.asList(commandSubscription, commandSubscriptionWithName);
+        return Arrays.asList(device, deviceWithName);
     }
 
     public DeviceCommand getDeviceCommand() {
@@ -53,9 +53,9 @@ public class CommandUpdateEvent extends Event {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CommandUpdateEvent)) return false;
+        if (!(o instanceof CommandsUpdateEvent)) return false;
         if (!super.equals(o)) return false;
-        CommandUpdateEvent that = (CommandUpdateEvent) o;
+        CommandsUpdateEvent that = (CommandsUpdateEvent) o;
         return Objects.equals(command, that.command);
     }
 
@@ -66,7 +66,7 @@ public class CommandUpdateEvent extends Event {
 
     @Override
     public String toString() {
-        return "CommandUpdateEvent{" +
+        return "CommandsUpdateEvent{" +
                 "command=" + command +
                 '}';
     }

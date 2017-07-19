@@ -90,7 +90,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
         Subscription subscription = subscriptionCaptor.getValue();
         assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
-        assertEquals(subscription.getDeviceId(), device);
+        assertEquals(subscription.getEntityId(), device);
         assertNull(subscription.getName());
 
         verifyZeroInteractions(hazelcastService);
@@ -124,7 +124,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         List<Subscription> subscriptions = subscriptionCaptor.getAllValues();
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
-            assertEquals(subscription.getDeviceId(), device);
+            assertEquals(subscription.getEntityId(), device);
             assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
@@ -163,7 +163,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         List<Subscription> subscriptions = subscriptionCaptor.getAllValues();
         assertThat(subscriptions, hasSize(names.size()));
         subscriptions.forEach(subscription -> {
-            assertEquals(subscription.getDeviceId(), device);
+            assertEquals(subscription.getEntityId(), device);
             assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
         });
         Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());

@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
+import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -147,8 +148,8 @@ public class DeviceCommandService {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
                         } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT.name())) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
-                        } else if (returnUpdated && resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
-                            callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
+                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT.name())) {
+                            callback.accept(response.getBody().cast(CommandsUpdateEvent.class).getDeviceCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);
                         }
@@ -227,11 +228,15 @@ public class DeviceCommandService {
 
         hiveValidator.validate(cmd);
 
-        CompletableFuture<Response> future = new CompletableFuture<>();
+        CompletableFuture<Response> commandUpdateFuture = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandUpdateRequest(cmd))
-                .build(), new ResponseConsumer(future));
-        return future.thenApply(response -> null);
+                .build(), new ResponseConsumer(commandUpdateFuture));
+        CompletableFuture<Response> commandsUpdateFuture = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new CommandsUpdateRequest(cmd))
+                .build(), new ResponseConsumer(commandsUpdateFuture));
+        return CompletableFuture.allOf(commandUpdateFuture, commandsUpdateFuture).thenApply(response -> null);
     }
 
     private DeviceCommand convertWrapperToCommand(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {

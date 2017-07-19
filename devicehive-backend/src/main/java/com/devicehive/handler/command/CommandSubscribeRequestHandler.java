@@ -24,7 +24,6 @@ import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
 import com.devicehive.model.rpc.CommandSubscribeRequest;
 import com.devicehive.model.rpc.CommandSubscribeResponse;
 import com.devicehive.service.HazelcastService;
@@ -37,8 +36,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
+import static com.devicehive.model.rpc.Action.COMMANDS_UPDATE_EVENT;
 import static com.devicehive.model.rpc.Action.COMMAND_EVENT;
-import static com.devicehive.model.rpc.Action.COMMAND_UPDATE_EVENT;
 
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
@@ -56,7 +55,7 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
-        String eventName = body.isReturnUpdated() ? COMMAND_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
+        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
         if (CollectionUtils.isEmpty(body.getNames())) {
             Subscription subscription = new Subscription(eventName, body.getDevice());
             subscriptions.add(subscription);
