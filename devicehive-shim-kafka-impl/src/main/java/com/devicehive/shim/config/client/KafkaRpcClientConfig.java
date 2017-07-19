@@ -146,7 +146,7 @@ public class KafkaRpcClientConfig {
 
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
-        ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
+        ExecutorService executor = Executors.newCachedThreadPool();
         Properties consumerProps = consumerProps();
         return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
