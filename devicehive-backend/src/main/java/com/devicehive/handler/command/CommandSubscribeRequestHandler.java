@@ -24,7 +24,6 @@ import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
 import com.devicehive.model.rpc.CommandSubscribeRequest;
 import com.devicehive.model.rpc.CommandSubscribeResponse;
 import com.devicehive.service.HazelcastService;
@@ -36,6 +35,9 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
+
+import static com.devicehive.model.rpc.Action.COMMANDS_UPDATE_EVENT;
+import static com.devicehive.model.rpc.Action.COMMAND_EVENT;
 
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
@@ -53,19 +55,20 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
+        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
         if (CollectionUtils.isEmpty(body.getNames())) {
-            Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice());
+            Subscription subscription = new Subscription(eventName, body.getDevice());
             subscriptions.add(subscription);
         } else {
             for (String name : body.getNames()) {
-                Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), body.getDevice(), name);
+                Subscription subscription = new Subscription(eventName, body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }
 
         subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
 
-        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp(), body.getLimit());
+        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
         CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
         return Response.newBuilder()
@@ -81,9 +84,9 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 
-    private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp, Integer limit) {
+    private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         return Optional.ofNullable(timestamp)
-                .map(t -> hazelcastService.find(null, names, Collections.singleton(device), limit, t, null, null, DeviceCommand.class))
+                .map(t -> hazelcastService.find(null, names, Collections.singleton(device), limit, t, null, returnUpdated, null, DeviceCommand.class))
                 .orElse(Collections.emptyList());
     }
 }

@@ -22,7 +22,6 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -80,19 +79,22 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceId, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceId, namesString, timestamp, limit, asyncResponse);
+    public void poll(final String deviceId, final String namesString, final String timestamp,
+            boolean returnUpdatedCommands, final long timeout, final int limit, final AsyncResponse asyncResponse)
+            throws Exception {
+        poll(timeout, deviceId, namesString, timestamp, returnUpdatedCommands, limit, asyncResponse);
     }
 
     @Override
     public void pollMany(final String deviceIdsString, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceIdsString, namesString, timestamp, limit, asyncResponse);
+        poll(timeout, deviceIdsString, namesString, timestamp, false, limit, asyncResponse);
     }
 
     private void poll(final long timeout,
                       final String deviceIdsCsv,
                       final String namesCsv,
                       final String timestamp,
+                      final boolean returnUpdated,
                       final Integer limit,
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
@@ -103,7 +105,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final Response response = ResponseFactory.response(
                 Response.Status.OK,
                 Collections.emptyList(),
-                JsonPolicyDef.Policy.COMMAND_LISTED);
+                Policy.COMMAND_LISTED);
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
@@ -138,7 +140,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDevices, names, ts, limit, callback);
+                    .sendSubscribeRequest(availableDevices, names, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

@@ -37,6 +37,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+import static com.devicehive.model.enums.SearchableField.LAST_UPDATED;
+import static com.devicehive.model.enums.SearchableField.TIMESTAMP;
+
 @Service
 public class HazelcastService {
     private static final Logger logger = LoggerFactory.getLogger(HazelcastService.class);
@@ -55,11 +58,12 @@ public class HazelcastService {
     @PostConstruct
     protected void init() {
         final IMap<String, HazelcastEntity> notificationsMap = hazelcastInstance.getMap(NOTIFICATIONS_MAP);
-        notificationsMap.addIndex("timestamp", true);
+        notificationsMap.addIndex(TIMESTAMP.getField(), true);
 
         final IMap<String, HazelcastEntity> commandsMap = hazelcastInstance.getMap(COMMANDS_MAP);
-        commandsMap.addIndex("timestamp", true);
-
+        commandsMap.addIndex(TIMESTAMP.getField(), true);
+        commandsMap.addIndex(LAST_UPDATED.getField(), true);
+        
         mapsHolder.put(DeviceNotification.class, notificationsMap);
         mapsHolder.put(DeviceCommand.class, commandsMap);
     }
@@ -76,9 +80,11 @@ public class HazelcastService {
                                                           Integer take,
                                                           Date timestampSt,
                                                           Date timestampEnd,
+                                                          boolean returnUpdated,
                                                           String status,
                                                           Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(deviceId,  names, devices, timestampSt, timestampEnd, status, entityClass);
+        final Predicate filters = hazelcastHelper.prepareFilters(deviceId,  names, devices, timestampSt, timestampEnd,
+               returnUpdated, status, entityClass);
         return find(filters, take, entityClass);
     }
 

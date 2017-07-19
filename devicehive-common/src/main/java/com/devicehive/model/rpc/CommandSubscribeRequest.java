@@ -31,15 +31,17 @@ public class CommandSubscribeRequest extends Body {
     private String device;
     private Set<String> names;
     private Date timestamp;
+    private boolean returnUpdated;
     private Integer limit;
 
     public CommandSubscribeRequest(String subscriptionId, String device,
-            Set<String> names, Date timestamp, Integer limit) {
+            Set<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST.name());
         this.subscriptionId = subscriptionId;
         this.device = device;
         this.names = names;
         this.timestamp = timestamp;
+        this.returnUpdated = returnUpdated;
         this.limit = limit;
     }
 
@@ -73,6 +75,14 @@ public class CommandSubscribeRequest extends Body {
 
     public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isReturnUpdated() {
+        return returnUpdated;
+    }
+
+    public void setReturnUpdated(boolean returnUpdated) {
+        this.returnUpdated = returnUpdated;
     }
 
     public Integer getLimit() {

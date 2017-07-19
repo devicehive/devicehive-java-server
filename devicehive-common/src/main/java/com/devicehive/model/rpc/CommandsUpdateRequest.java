@@ -1,8 +1,8 @@
-package com.devicehive.model.enums;
+package com.devicehive.model.rpc;
 
 /*
  * #%L
- * DeviceHive Common Dao Interfaces
+ * DeviceHive Common Module
  * %%
  * Copyright (C) 2016 DataArt
  * %%
@@ -20,24 +20,19 @@ package com.devicehive.model.enums;
  * #L%
  */
 
-public enum SearchableField {
-    ID("id"),
-    DEVICE_ID("deviceId"),
-    TIMESTAMP("timestamp"),
-    LAST_UPDATED("lastUpdated"),
-    DEVICE_IDS("deviceId"), //need this duplication to separate cases of single and multiple deviceId usage
-    NOTIFICATION("notification"),
-    COMMAND("command"),
-    STATUS("status"),
-    IS_UPDATED("isUpdated");
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Body;
 
-    private String field;
+public class CommandsUpdateRequest extends Body {
 
-    SearchableField(String field) {
-        this.field = field;
+    private DeviceCommand deviceCommand;
+
+    public CommandsUpdateRequest(DeviceCommand deviceCommand) {
+        super(Action.COMMANDS_UPDATE_REQUEST.name());
+        this.deviceCommand = deviceCommand;
     }
 
-    public String getField() {
-        return field;
+    public DeviceCommand getDeviceCommand() {
+        return deviceCommand;
     }
 }

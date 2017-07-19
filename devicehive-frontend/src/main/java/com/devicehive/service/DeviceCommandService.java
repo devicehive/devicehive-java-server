@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
+import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -132,20 +133,23 @@ public class DeviceCommandService {
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
+            final boolean returnUpdated,
             final Integer limit,
             final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
 
         final String subscriptionId = UUID.randomUUID().toString();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, limit))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, returnUpdated, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
                         String resAction = response.getBody().getAction();
                         if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
-                        } else if (resAction.equals(Action.COMMAND_EVENT.name())) {
+                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT.name())) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
+                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT.name())) {
+                            callback.accept(response.getBody().cast(CommandsUpdateEvent.class).getDeviceCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);
                         }
@@ -201,6 +205,7 @@ public class DeviceCommandService {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
+        cmd.setLastUpdated(timestampService.getDate());
 
         if (commandWrapper.getCommand().isPresent()) {
             cmd.setCommand(commandWrapper.getCommand().get());
@@ -223,11 +228,15 @@ public class DeviceCommandService {
 
         hiveValidator.validate(cmd);
 
-        CompletableFuture<Response> future = new CompletableFuture<>();
+        CompletableFuture<Response> commandUpdateFuture = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(new CommandUpdateRequest(cmd))
-                .build(), new ResponseConsumer(future));
-        return future.thenApply(response -> null);
+                .build(), new ResponseConsumer(commandUpdateFuture));
+        CompletableFuture<Response> commandsUpdateFuture = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new CommandsUpdateRequest(cmd))
+                .build(), new ResponseConsumer(commandsUpdateFuture));
+        return CompletableFuture.allOf(commandUpdateFuture, commandsUpdateFuture).thenApply(response -> null);
     }
 
     private DeviceCommand convertWrapperToCommand(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -241,6 +250,8 @@ public class DeviceCommandService {
         } else {
             command.setTimestamp(timestampService.getDate());
         }
+        
+        command.setLastUpdated(command.getTimestamp());
 
         if (user != null) {
             command.setUserId(user.getId());

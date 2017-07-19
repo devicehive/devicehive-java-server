@@ -77,6 +77,9 @@ public interface DeviceCommandResource {
             @ApiParam(name = "timestamp", value = "Timestamp to start from")
             @QueryParam("timestamp")
             String timestamp,
+            @ApiParam(name = "returnUpdatedCommands", value = "Checks if updated commands should be returned", defaultValue = "false")
+            @QueryParam("returnUpdatedCommands")
+            boolean returnUpdatedCommands,
             @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)
             @Min(value = Constants.MIN_WAIT_TIMEOUT, message = "Timeout can't be less than " + Constants.MIN_WAIT_TIMEOUT + " seconds. ")
