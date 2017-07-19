@@ -77,9 +77,11 @@ public class Network implements HiveEntity {
     @JoinTable(name = "user_network", joinColumns = {@JoinColumn(name = "network_id", nullable = false,
             updatable = false)},
             inverseJoinColumns = {@JoinColumn(name = "user_id", nullable = false, updatable = false)})
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Set<User> users;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "network")
     @JsonPolicyDef({NETWORK_PUBLISHED})
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Set<Device> devices;
     @Version
     @Column(name = "entity_version")

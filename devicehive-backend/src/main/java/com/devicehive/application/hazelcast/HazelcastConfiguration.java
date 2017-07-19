@@ -32,7 +32,7 @@ import org.springframework.context.annotation.PropertySource;
 import java.util.List;
 
 @Configuration
-@PropertySource("classpath:application-hazelcast.properties")
+@PropertySource("classpath:application.properties")
 public class HazelcastConfiguration {
     @Value("${hazelcast.group.name}")
     private String groupName;
