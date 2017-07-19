@@ -21,7 +21,6 @@ package com.devicehive.shim.kafka.server;
  */
 
 import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -32,8 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
-
-import static com.devicehive.shim.api.RequestType.clientRequest;
 
 public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
     private static final Logger logger = LoggerFactory.getLogger(ServerEventHandler.class);

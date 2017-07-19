@@ -74,22 +74,14 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${rpc.server.disruptor.wait-strategy}")
-    private String waitStrategyType;
-
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
-    public ExecutorService workerExecutor() {
-        return Executors.newCachedThreadPool();
-    }
-
-    @Bean
-    public Disruptor<ServerEvent> disruptor(@Qualifier("workerExecutor") ExecutorService workerExecutor) {
-        return new Disruptor<>(ServerEvent::new, bufferSize, workerExecutor);
+    public Disruptor<ServerEvent> disruptor() {
+        return new Disruptor<>(ServerEvent::new, bufferSize, Executors.defaultThreadFactory());
     }
 
     @Bean
