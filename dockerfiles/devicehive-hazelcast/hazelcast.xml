@@ -12,7 +12,7 @@
       <time-to-live-seconds>120</time-to-live-seconds>
       <eviction-policy>LRU</eviction-policy>
    </map>
-   <management-center enabled="true">
+   <management-center enabled="false">
       http://127.0.0.1:8090/mancenter
    </management-center>
 </hazelcast>
