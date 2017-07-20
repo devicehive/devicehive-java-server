@@ -46,6 +46,7 @@ public class UserWithNetworkVO extends UserVO {
             vo = new UserWithNetworkVO();
             vo.setData(dc.getData());
             vo.setId(dc.getId());
+            vo.setData(dc.getData());
             vo.setLastLogin(dc.getLastLogin());
             vo.setLogin(dc.getLogin());
             vo.setLoginAttempts(dc.getLoginAttempts());
