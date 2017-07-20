@@ -93,6 +93,18 @@ public class KafkaRpcClientConfig {
     @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
 
+    @Value("${bootstrap.servers:127.0.0.1:9092}")
+    private String bootstrapServers;
+
+    @Value("${batch.size:49152}")
+    private int batchSize;
+
+    @Value("${num.partitions:3}")
+    private int numPartitions;
+
+    @Value("${replication.factor:1}")
+    private int replicationFactor;
+
     @PostConstruct
     private void initializeTopics() {
         createTopic(zookeeperConnect, RESPONSE_TOPIC);
@@ -134,7 +146,7 @@ public class KafkaRpcClientConfig {
 
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
-        ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
+        ExecutorService executor = Executors.newCachedThreadPool();
         Properties consumerProps = consumerProps();
         return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
@@ -142,13 +154,14 @@ public class KafkaRpcClientConfig {
 
     private Properties producerProps() {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
         return props;
     }
 
     private Properties consumerProps() {
         Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
         props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
         return props;
@@ -164,11 +177,10 @@ public class KafkaRpcClientConfig {
                 ZKStringSerializer$.MODULE$);
         try {
             ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Integer partitions = 1;
             Integer replication = 1;
             Properties topicConfig = new Properties();
             if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, partitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+                AdminUtils.createTopic(zkUtils, topic, numPartitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
             }
         } finally {
             zkClient.close();

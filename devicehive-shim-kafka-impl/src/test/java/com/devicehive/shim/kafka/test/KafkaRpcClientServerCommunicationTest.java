@@ -81,7 +81,6 @@ public class KafkaRpcClientServerCommunicationTest {
                 .withConsumerValueDeserializer(new RequestSerializer(gson))
                 .withProducerValueSerializer(new ResponseSerializer(gson))
                 .withConsumerThreads(1)
-                .withWorkerThreads(1)
                 .withRequestHandler(handlerWrapper)
                 .withTopic(REQUEST_TOPIC)
                 .build();
