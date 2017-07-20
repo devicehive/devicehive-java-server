@@ -88,7 +88,7 @@ public class ClientBuilder {
     public RpcClient build() {
         RequestResponseMatcher matcher = new RequestResponseMatcher();
 
-        ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
+        ExecutorService consumerExecutor = Executors.newCachedThreadPool();
         ServerResponseListener responseListener = new ServerResponseListener(replyTopic, consumerThreads,
                 matcher, consumerProps, consumerExecutor, consumerValueDeserializer);
 

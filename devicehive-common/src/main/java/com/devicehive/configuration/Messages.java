@@ -39,8 +39,10 @@ public class Messages {
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
     public static final String COMMAND_NOT_FOUND = BidBundle.get("COMMAND_NOT_FOUND");
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
+    public static final String NOTIFICATION_NOT_FOUND_LOG = BidBundle.get("NOTIFICATION_NOT_FOUND_LOG");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
+    public static final String USER_LOGIN_NOT_FOUND = BidBundle.get("USER_LOGIN_NOT_FOUND");
     public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
@@ -65,6 +67,7 @@ public class Messages {
     public static final String EMPTY_DEVICE_NAME = BidBundle.get("EMPTY_DEVICE_NAME");
     public static final String EMPTY_COMMAND = BidBundle.get("EMPTY_COMMAND");
     public static final String NOTIFICATION_REQUIRED = BidBundle.get("NOTIFICATION_REQUIRED");
+    public static final String NOTIFICATION_ID_REQUIRED = BidBundle.get("NOTIFICATION_ID_REQUIRED");
     public static final String CLIENT_IS_NULL = BidBundle.get("CLIENT_IS_NULL");
     public static final String INVALID_AUTH_CODE = BidBundle.get("INVALID_AUTH_CODE");
     public static final String INVALID_AUTH_REQUEST_PARAMETERS = BidBundle.get("INVALID_AUTH_REQUEST_PARAMETERS");
@@ -106,6 +109,7 @@ public class Messages {
     public static final String FORBIDDEN_INSERT_USER = BidBundle.get("FORBIDDEN_INSERT_USER");
     public static final String FORBIDDEN_INSERT_SPECIAL_NOTIFICATION = BidBundle.get("FORBIDDEN_INSERT_SPECIAL_NOTIFICATION");
     public static final String NOTIFICATION_INSERT_FAILED = BidBundle.get("NOTIFICATION_INSERT_FAILED");
+    public static final String PAYLOAD_NOT_FOUND = BidBundle.get("PAYLOAD_NOT_FOUND");
 
     /**
      * Bundle to extract localized strings from property files.

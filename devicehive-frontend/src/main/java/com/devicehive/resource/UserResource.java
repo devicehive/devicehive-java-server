@@ -84,7 +84,7 @@ public interface UserResource {
             @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Login")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Result list sort order. Available values are ASC and DESC.", allowableValues = "ASC,DESC")
+            @ApiParam(name = "sortOrder", value = "Result list sort order. The sortField should be specified.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
             @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")

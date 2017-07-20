@@ -33,6 +33,7 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +78,15 @@ public class DeviceNotificationService {
                 .withPartitionKey(searchRequest.getDeviceId())
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
+    }
+
+    public CompletableFuture<List<DeviceNotification>> find(ListNotificationRequest request) {
+        String deviceId = request.getDeviceId();
+        String notification = request.getNotification();
+        Set<String> notificationNames = 
+                StringUtils.isNoneEmpty(notification) ? Collections.singleton(notification) : Collections.emptySet();
+        return find(Collections.singleton(deviceId), notificationNames,
+                request.getTimestampStart(), request.getTimestampEnd());
     }
 
     @SuppressWarnings("unchecked")

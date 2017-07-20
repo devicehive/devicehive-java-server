@@ -2,6 +2,14 @@
 
 set -x
 
+trap 'terminate' TERM INT
+
+terminate() {
+   echo "SIGTERM received, terminating $PID"
+   kill -TERM $PID
+   wait $PID
+}
+
 # Check if all required parameters are set
 if [ -z "$DH_ZK_ADDRESS" \
   -o -z "$DH_KAFKA_ADDRESS" \
@@ -44,7 +52,9 @@ while true; do
 done
 
 echo "Starting DeviceHive backend"
-exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+-Dcom.devicehive.log.level=${DH_LOG_LEVEL:-INFO} \
+-Droot.log.level=${ROOT_LOG_LEVEL:-INFO} \
 -Dspring.datasource.url=jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT}/${DH_POSTGRES_DB} \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
@@ -55,5 +65,6 @@ exec java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMS
 -Dhazelcast.group.password=${HC_GROUP_PASSWORD} \
 -Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-1} \
 -Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-1} \
--Drpc.server.disruptor.wait-strategy=${DH_RPC_SERVER_DISR_WAIT_STRATEGY:-blocking} \
-./devicehive-backend-${DH_VERSION}-boot.jar
+./devicehive-backend-${DH_VERSION}-boot.jar &
+PID=$!
+wait $PID

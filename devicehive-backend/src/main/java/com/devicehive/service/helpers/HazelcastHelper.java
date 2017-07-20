@@ -20,9 +20,9 @@ package com.devicehive.service.helpers;
  * #L%
  */
 
-import com.devicehive.entity.HazelcastEntity;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.HazelcastEntity;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;

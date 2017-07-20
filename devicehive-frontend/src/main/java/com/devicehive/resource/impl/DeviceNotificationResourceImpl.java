@@ -26,9 +26,10 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
-import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
@@ -127,7 +128,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                 logger.debug("Device notification proceed successfully");
                                 return ResponseFactory.response(Response.Status.OK, n, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
                             }).orElseGet(() -> {
-                                logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with deviceId = {}", notificationId, deviceId);
+                                logger.error(String.format(Messages.NOTIFICATION_NOT_FOUND_LOG, notificationId, deviceId));
                                 ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
                                 return ResponseFactory.response(NOT_FOUND, errorCode);
                             }))
@@ -272,7 +273,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
                                 asyncResponse.resume(ResponseFactory.response(
                                         Response.Status.CREATED,
-                                        notification,
+                                        new InsertNotification(notification.getId(), notification.getTimestamp()),
                                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                             })
                             .exceptionally(e -> {

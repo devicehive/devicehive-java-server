@@ -25,8 +25,11 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListCommandRequest;
 import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -53,7 +56,9 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.*;
 
@@ -97,7 +102,8 @@ public class CommandHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
         }
 
@@ -135,7 +141,8 @@ public class CommandHandlers {
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (!subscriptionId.isPresent() && deviceIds == null) {
-            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
             deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             commandService.sendUnsubscribeRequest(null, deviceIds);
         } else if (subscriptionId.isPresent()) {
@@ -165,13 +172,11 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
-                    .map(id -> deviceService.findByIdWithPermissionsCheck(id, principal))
-                    .collect(Collectors.toList()));
-        } else {
-           devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-
+        
+        devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+        
         if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
@@ -239,6 +244,90 @@ public class CommandHandlers {
         logger.debug("command/update proceed successfully for session: {}. Device ID: {}. Command id: {}", session,
                 deviceId, id);
         return new WebSocketResponse();
+    }
+
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public WebSocketResponse processCommandGet(JsonObject request, WebSocketSession session)  {
+        String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
+                .map(JsonElement::getAsString)
+                .orElseThrow(() -> new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST));
+
+        Long commandId;
+        try {
+            commandId = Optional.ofNullable(request.get(Constants.COMMAND_ID))
+                    .map(JsonElement::getAsLong)
+                    .orElseThrow(() -> new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST));
+        } catch (NumberFormatException e) {
+            throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
+        }
+
+        logger.debug("Device command get requested. deviceId = {}, commandId = {}", deviceId, commandId);
+
+        DeviceVO device = deviceService.findById(deviceId);
+        if (device == null) {
+            logger.error("command/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        WebSocketResponse webSocketResponse = commandService.findOne(commandId, deviceId)
+                .thenApply(command -> command
+                        .map(c -> {
+                            logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", deviceId, commandId);
+                            WebSocketResponse response = new WebSocketResponse();
+                            response.addValue(COMMAND, command.get(), COMMAND_TO_DEVICE);
+                            return response;
+                        }).orElse(null)
+                ).exceptionally(ex -> {
+                    logger.error("Unable to get command.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
+        
+        if (Objects.isNull(webSocketResponse)) {
+            logger.error(String.format(Messages.COMMAND_NOT_FOUND, commandId));
+            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
+        }
+
+        return webSocketResponse;
+    }
+
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public WebSocketResponse processCommandList(JsonObject request, WebSocketSession session) {
+        ListCommandRequest listCommandRequest = new ListCommandRequest(request);
+        String deviceId = listCommandRequest.getDeviceId();
+        if (deviceId == null) {
+            logger.error("command/list proceed with error. Device ID should be provided.");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+        }
+        
+        logger.debug("Device command query requested for device {}", deviceId);
+
+        DeviceVO device = deviceService.findById(deviceId);
+        if (device == null) {
+            logger.error("command/list proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        WebSocketResponse response = new WebSocketResponse();
+        
+        commandService.find(listCommandRequest)
+                .thenApply(commands -> {
+                    final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
+                            .buildDeviceCommandComparator(listCommandRequest.getSortField());
+                    final String sortOrderSt = listCommandRequest.getSortOrder();  
+                    final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
+                    
+                    final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
+                            .orderAndLimit(new ArrayList<>(commands), comparator, reverse,
+                                    listCommandRequest.getSkip(), listCommandRequest.getTake());
+                    response.addValue(COMMANDS, sortedDeviceCommands, COMMAND_LISTED);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.warn("Unable to get commands list.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
+        
+        return response;
     }
 
     private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {

@@ -43,8 +43,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import javax.servlet.http.HttpServletResponse;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
-    private static final Logger logger = LoggerFactory.getLogger(AbstractWebSocketHandler.class);
+public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceHiveWebSocketHandler.class);
 
     @Autowired
     private SessionMonitor sessionMonitor;
@@ -71,6 +71,7 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
 
         session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
         session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
 
         sessionMonitor.registerSession(session);
     }
@@ -91,8 +92,6 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        logger.debug("Connection closed: session id {}, close status is {} ", session.getId(), status);
-
         CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
         for (String s : commandSubscriptions) {
@@ -106,13 +105,22 @@ abstract public class AbstractWebSocketHandler extends TextWebSocketHandler {
         }
 
         sessionMonitor.removeSession(session.getId());
+
+        if(session.isOpen()) {
+            session.close();
+        }
+        logger.warn("CONNECTION CLOSED: session id {}, close status is {} ", session.getId(), status);
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        logger.error("Error in session " + session.getId(), exception);
-        JsonMessageBuilder builder;
+        logger.error("Error in session {}: {}", session.getId(), exception);
+        if (exception.getMessage().contains("Connection reset by peer")) {
+            afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
+            return;
+        }
 
+        JsonMessageBuilder builder;
         session = sessionMonitor.getSession(session.getId());
 
         if (exception instanceof JsonParseException) {

@@ -25,8 +25,11 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListNotificationRequest;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -51,14 +54,15 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class NotificationHandlers {
@@ -99,7 +103,8 @@ public class NotificationHandlers {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
         } else {
-            actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
         }
 
@@ -153,7 +158,8 @@ public class NotificationHandlers {
         Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (!subId.isPresent() && deviceIds == null) {
-            List<DeviceVO> actualDevices = deviceService.list(null, null, null, null, null, true, null, null, principal).join();
+            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(true, principal);
+            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
             deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             notificationService.unsubscribe(null, deviceIds);
         } else if (subId.isPresent()) {
@@ -181,45 +187,128 @@ public class NotificationHandlers {
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);
         if (notificationSubmit == null || notificationSubmit.getNotification() == null) {
-            logger.debug(
-                    "notification/insert proceed with error. Bad notification: notification is required.");
+            logger.error("notification/insert proceed with error. Bad notification: notification is required.");
             throw new HiveException(Messages.NOTIFICATION_REQUIRED, SC_BAD_REQUEST);
         }
 
-        Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
-                    .map(devId -> deviceService.findByIdWithPermissionsCheck(devId, principal))
-                    .collect(Collectors.toList()));
-        } else {
-            devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+            logger.error("notification/insert proceed with error. Device ID should be provided");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        if (devices.isEmpty() || StreamSupport.stream(devices.spliterator(), true).allMatch(o -> o == null)) {
-            logger.debug("notification/insert canceled for session: {}. Device ID is not provided", session);
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_FORBIDDEN);
+
+        final DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (device == null) {
+            logger.error("notification/insert proceed with error. No device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
         WebSocketResponse response = new WebSocketResponse();
 
-        for (DeviceVO device : devices) {
-            if (device.getNetworkId() == null) {
-                logger.debug("notification/insert. No network specified for device with Device ID = {}", deviceId);
-                throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId), SC_FORBIDDEN);
-            }
-            DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
+        if (device.getNetworkId() == null) {
+            logger.error("notification/insert. No network specified for device with Device ID = {}", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId), SC_FORBIDDEN);
+        }
+        DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
 
-            notificationService.insert(message, device)
-                    .thenApply(notification -> {
-                        logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
-                        response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                        return response;
-                    })
-                    .exceptionally(ex -> {
-                        logger.warn("Unable to insert notification.", ex);
-                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                    }).join();
+        notificationService.insert(message, device)
+                .thenApply(notification -> {
+                    logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
+                    response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.error("Unable to insert notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
+
+        return response;
+    }
+
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    public WebSocketResponse processNotificationGet(JsonObject request, WebSocketSession session) {
+        String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
+                .map(JsonElement::getAsString)
+                .orElseThrow(() -> new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST));
+        
+        Long notificationId;
+        try {
+            notificationId = Optional.ofNullable(request.get(Constants.NOTIFICATION_ID))
+                    .map(JsonElement::getAsLong)
+                    .orElseThrow(() -> new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST));
+        } catch (NumberFormatException e) {
+            throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
+        }
+        
+        logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
+
+        DeviceVO device = deviceService.findById(deviceId);
+
+        if (device == null) {
+            logger.error("notification/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
+        WebSocketResponse webSocketResponse = notificationService.findOne(notificationId, deviceId)
+                .thenApply(notification -> notification
+                        .map(n -> {
+                            logger.debug("Device notification proceed successfully");
+                            WebSocketResponse response = new WebSocketResponse();
+                            response.addValue(NOTIFICATION, n, NOTIFICATION_TO_CLIENT);
+                            return response;
+                        })
+                        .orElse(null)
+                )
+                .exceptionally(ex -> {
+                    logger.error("Unable to get notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
+        
+        if (Objects.isNull(webSocketResponse)) {
+            logger.error(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
+            throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId), SC_NOT_FOUND);
+        }
+        
+        return webSocketResponse;
+    }
+
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    public WebSocketResponse processNotificationList(JsonObject request, WebSocketSession session) {
+        ListNotificationRequest listNotificationRequest = new ListNotificationRequest(request);
+        String deviceId = listNotificationRequest.getDeviceId();
+        if (deviceId == null) {
+            logger.error("notification/list proceed with error. Device ID should be provided.");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+        }
+        
+        logger.debug("Device notification query requested for device {}", deviceId);
+
+        DeviceVO byIdWithPermissionsCheck = deviceService.findById(deviceId);
+        if (byIdWithPermissionsCheck == null) {
+            logger.error("notification/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        WebSocketResponse response = new WebSocketResponse();
+        
+        notificationService.find(listNotificationRequest)
+                .thenApply(notifications -> {
+                    final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort
+                            .buildDeviceNotificationComparator(listNotificationRequest.getSortField());
+                    String sortOrderSt = listNotificationRequest.getSortOrder();
+                    final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
+
+                    final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort
+                            .orderAndLimit(notifications, comparator, reverse,
+                                    listNotificationRequest.getSkip(), listNotificationRequest.getTake());
+                    response.addValue(NOTIFICATIONS, sortedDeviceNotifications, NOTIFICATION_TO_CLIENT);
+                    return response;
+                })
+                .exceptionally(ex -> {
+                    logger.error("Unable to get notifications list.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                }).join();
+        
         return response;
     }
 

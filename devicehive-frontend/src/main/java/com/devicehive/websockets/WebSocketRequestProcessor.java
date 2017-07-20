@@ -58,6 +58,12 @@ public class WebSocketRequestProcessor {
             case AUTHENTICATE:
                 response = commonHandlers.processAuthenticate(request, session);
                 break;
+            case TOKEN:
+                response = commonHandlers.processLogin(request, session);
+                break;
+            case TOKEN_CREATE:
+                response = commonHandlers.processTokenCreate(request, session);
+                break;
             case TOKEN_REFRESH:
                 response = commonHandlers.processRefresh(request, session);
                 break;
@@ -69,6 +75,12 @@ public class WebSocketRequestProcessor {
                 break;
             case NOTIFICATION_UNSUBSCRIBE:
                 response = notificationHandlers.processNotificationUnsubscribe(request, session);
+                break;
+            case NOTIFICATION_GET:
+                response = notificationHandlers.processNotificationGet(request, session);
+                break;
+            case NOTIFICATION_LIST:
+                response = notificationHandlers.processNotificationList(request, session);
                 break;
             case COMMAND_INSERT:
                 response = commandHandlers.processCommandInsert(request, session);
@@ -82,6 +94,12 @@ public class WebSocketRequestProcessor {
             case COMMAND_UNSUBSCRIBE:
                 response = commandHandlers.processCommandUnsubscribe(request, session);
                 break;
+            case COMMAND_GET:
+                response = commandHandlers.processCommandGet(request, session);
+                break;
+            case COMMAND_LIST:
+                response = commandHandlers.processCommandList(request, session);
+                break;
             case DEVICE_GET:
                 response = deviceHandlers.processDeviceGet(request);
                 break;
@@ -90,6 +108,9 @@ public class WebSocketRequestProcessor {
                 break;
             case DEVICE_SAVE:
                 response = deviceHandlers.processDeviceSave(request, session);
+                break;
+            case DEVICE_DELETE:
+                response = deviceHandlers.processDeviceDelete(request);
                 break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
@@ -108,17 +129,24 @@ public class WebSocketRequestProcessor {
     public enum WebsocketAction {
         SERVER_INFO("server/info"),
         AUTHENTICATE("authenticate"),
+        TOKEN("token"),
+        TOKEN_CREATE("token/create"),
         TOKEN_REFRESH("token/refresh"),
         NOTIFICATION_INSERT("notification/insert"),
         NOTIFICATION_SUBSCRIBE("notification/subscribe"),
         NOTIFICATION_UNSUBSCRIBE("notification/unsubscribe"),
+        NOTIFICATION_GET("notification/get"),
+        NOTIFICATION_LIST("notification/list"),
         COMMAND_INSERT("command/insert"),
         COMMAND_SUBSCRIBE("command/subscribe"),
         COMMAND_UNSUBSCRIBE("command/unsubscribe"),
         COMMAND_UPDATE("command/update"),
+        COMMAND_GET("command/get"),
+        COMMAND_LIST("command/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
+        DEVICE_DELETE("device/delete"),
         EMPTY("");
 
         private String value;

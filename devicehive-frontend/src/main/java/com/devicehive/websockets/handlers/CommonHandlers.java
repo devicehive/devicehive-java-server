@@ -23,17 +23,23 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
+import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.JwtRequestVO;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +52,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_GATEWAY;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class CommonHandlers {
@@ -59,10 +68,16 @@ public class CommonHandlers {
     private JwtClientService tokenService;
 
     @Autowired
+    private JwtTokenService jwtTokenService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
     private TimestampService timestampService;
+
+    @Autowired
+    private Gson gson;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -108,6 +123,53 @@ public class CommonHandlers {
         state.setHivePrincipal(principal);
 
         return new WebSocketResponse();
+    }
+
+    @PreAuthorize("permitAll")
+    public WebSocketResponse processLogin(JsonObject request, WebSocketSession session) {
+        JwtRequestVO loginRequest = new JwtRequestVO();
+        if (request.get("login") != null) {
+            loginRequest.setLogin(request.get("login").getAsString());
+        }
+        if (request.get("password") != null) {
+            loginRequest.setPassword(request.get("password").getAsString());
+        }
+        JwtTokenVO jwtToken = jwtTokenService.createJwtToken(loginRequest);
+
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("accessToken", jwtToken.getAccessToken());
+        response.addValue("refreshToken", jwtToken.getRefreshToken());
+        return response;
+    }
+
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
+    public WebSocketResponse processTokenCreate(JsonObject request, WebSocketSession session) {
+        JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
+
+        if (payload == null) {
+            logger.warn("JwtToken: payload was not found");
+            throw new HiveException(Messages.PAYLOAD_NOT_FOUND, SC_BAD_REQUEST);
+        }
+
+        UserVO user = userService.findById(payload.getUserId());
+        if (user == null) {
+            logger.warn(String.format("JwtToken: User with specified id %s was not found", payload.getUserId()));
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, payload.getUserId()), SC_NOT_FOUND);
+        }
+        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            logger.warn(String.format("JwtToken: User with specified id %s is not active", payload.getUserId()));
+            throw new HiveException(Messages.USER_NOT_ACTIVE, SC_NOT_FOUND);
+        }
+
+        logger.debug("JwtToken: generate access and refresh token");
+
+        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(payload)
+                .buildPayload();
+
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, true));
+        response.addValue("refreshToken", tokenService.generateJwtRefreshToken(refreshPayload, true));
+        return response;
     }
 
     @PreAuthorize("permitAll")

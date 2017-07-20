@@ -21,8 +21,7 @@ package com.devicehive.application;
  */
 
 import com.devicehive.configuration.Constants;
-import com.devicehive.websockets.ClientWebSocketHandler;
-import com.devicehive.websockets.DeviceWebSocketHandler;
+import com.devicehive.websockets.DeviceHiveWebSocketHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
@@ -39,18 +38,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry
-                .addHandler(deviceHandler(), "/websocket/device").setAllowedOrigins("*")
-                .addHandler(clientHandler(), "/websocket/client").setAllowedOrigins("*");
+                .addHandler(webSocketHandler(), "/websocket").setAllowedOrigins("*");
     }
 
     @Bean
-    public WebSocketHandler deviceHandler() {
-        return new DeviceWebSocketHandler();
-    }
-
-    @Bean
-    public WebSocketHandler clientHandler() {
-        return new ClientWebSocketHandler();
+    public WebSocketHandler webSocketHandler() {
+        return new DeviceHiveWebSocketHandler();
     }
 
     @Bean
@@ -58,9 +51,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
         ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
         container.setMaxBinaryMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
         container.setMaxTextMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
-        //TODO: Implement with configurationService
-//        container.setMaxSessionIdleTimeout(
-//                configurationService.getLong(Constants.WEBSOCKET_SESSION_PING_TIMEOUT, Constants.WEBSOCKET_SESSION_PING_TIMEOUT_DEFAULT));
+        container.setMaxSessionIdleTimeout(Constants.WEBSOCKET_TIMEOUT);
         return container;
     }
 

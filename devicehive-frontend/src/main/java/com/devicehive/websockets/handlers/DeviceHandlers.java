@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
@@ -43,10 +44,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
@@ -59,6 +60,21 @@ public class DeviceHandlers {
     @Autowired
     private Gson gson;
 
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
+    public WebSocketResponse processDeviceDelete(JsonObject request) {
+        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
+                .map(JsonElement::getAsString)
+                .orElse(null);
+        
+        boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
+        if (!isDeviceDeleted) {
+            logger.error("device/delete proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        logger.debug("Device with id = {} is deleted", deviceId);
+        return new WebSocketResponse();
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceGet(JsonObject request) {
@@ -68,63 +84,50 @@ public class DeviceHandlers {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         WebSocketResponse response = new WebSocketResponse();
 
-        if (deviceId != null) {
-            DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
-            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
-            return response;
-        }
-        
-        Set<String> deviceIds = getDeviceIds(principal);
-        if (Objects.nonNull(deviceIds) && !deviceIds.isEmpty()) {
-            String firstDeviceId = deviceIds.stream().findFirst().get();
-            DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(firstDeviceId, principal);
-            response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
+        if (deviceId == null) {
+            logger.error("device/get proceed with error. Device ID should be provided.");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
+        DeviceVO toResponse = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (toResponse == null) {
+            logger.error("device/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+        
+        response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
         return response;
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceList(JsonObject request) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ListDeviceRequest listDeviceRequest = new ListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
 
-        Set<String> deviceIds = getDeviceIds(principal);
-        List<DeviceVO> toResponse = deviceService.findByIdWithPermissionsCheck(deviceIds, principal);
+        List<DeviceVO> toResponse;
+        try {
+            toResponse = deviceService.list(listDeviceRequest).get();
+        } catch (Exception e) {
+            logger.error(Messages.INTERNAL_SERVER_ERROR, e);
+            throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+        }
         response.addValue(Constants.DEVICES, toResponse, DEVICE_PUBLISHED);
 
         return response;
     }
 
-    private Set<String> getDeviceIds(HivePrincipal principal) {
-        Set<String> deviceIds = principal.getDeviceIds();
-        if (principal.areAllDevicesAvailable()) {
-            try {
-                deviceIds = deviceService.list(null, null, null, null,
-                        null,false, null, null, principal)
-                        .get()
-                        .stream()
-                        .map(deviceVO -> deviceVO.getDeviceId())
-                        .collect(Collectors.toSet());
-            } catch (Exception e) {
-                logger.error(Messages.INTERNAL_SERVER_ERROR, e);
-                throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-            }
-        }
-        return deviceIds;
-    }
-
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceSave(JsonObject request,
                                                WebSocketSession session) {
-        String deviceId = request.get(Constants.DEVICE_ID).getAsString();
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
+        String deviceId = device.getId().orElse(null);
 
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        device.setId(deviceId);
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
         return new WebSocketResponse();

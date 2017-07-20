@@ -25,9 +25,9 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.resource.NetworkResource;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.NetworkService;
 import com.devicehive.vo.NetworkVO;
@@ -65,7 +65,7 @@ public class NetworkResourceImpl implements NetworkResource {
 
         logger.debug("Network list requested");
 
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
+        boolean sortOrder = SortOrder.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.error("Unable to proceed network list request. Invalid sortField");

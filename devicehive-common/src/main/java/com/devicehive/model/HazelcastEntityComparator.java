@@ -1,4 +1,4 @@
-package com.devicehive.resource.converters;
+package com.devicehive.model;
 
 /*
  * #%L
@@ -20,21 +20,19 @@ package com.devicehive.resource.converters;
  * #L%
  */
 
-import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.adapters.TimestampAdapter;
-
+import java.io.Serializable;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Map;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+public class HazelcastEntityComparator implements Comparator<Map.Entry>, Serializable {
+    private static final long serialVersionUID = 5413354955792888308L;
 
-public class TimestampQueryParamParser {
+    @Override
+    public int compare(Map.Entry o1, Map.Entry o2) {
+        final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
+        final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
 
-    public static Date parse(String value) {
-        try {
-            return TimestampAdapter.parseTimestamp(value);
-        } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            throw new HiveException(Messages.UNPARSEABLE_TIMESTAMP, e, BAD_REQUEST.getStatusCode());
-        }
+        return o1Time.compareTo(o2Time);
     }
 }
