@@ -22,6 +22,7 @@ package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
@@ -40,6 +41,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
  */
 public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     private static final long serialVersionUID = 4140545193474112756L;
+    private transient HazelcastInstance hazelcastInstance;
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 2;
 
@@ -295,5 +297,10 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
             result = new JsonStringWrapper(resultString);
         }
         isUpdated = portableReader.readBoolean("isUpdated");
+    }
+
+    @Override
+    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
+        this.hazelcastInstance = hazelcastInstance;
     }
 }

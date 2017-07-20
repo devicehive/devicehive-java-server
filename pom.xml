@@ -156,6 +156,12 @@
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-ehcache</artifactId>
+            <version>${hibernate-version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -362,11 +368,6 @@
                 <version>${springboot.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-client</artifactId>

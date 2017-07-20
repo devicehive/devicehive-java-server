@@ -27,10 +27,12 @@ import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 import java.util.List;
 
 @Configuration
+@PropertySource("classpath:application.properties")
 public class HazelcastConfiguration {
     @Value("${hazelcast.group.name}")
     private String groupName;

@@ -92,7 +92,6 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        logger.debug("Connection closed: session id {}, close status is {} ", session.getId(), status);
 
         CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
@@ -107,13 +106,22 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         }
 
         sessionMonitor.removeSession(session.getId());
+
+        if(session.isOpen()) {
+            session.close();
+        }
+        logger.info("Websocket connection closed: session id {}, close status is {} ", session.getId(), status);
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        logger.error("Error in session " + session.getId(), exception);
-        JsonMessageBuilder builder;
+        logger.error("Error in session {}: {}", session.getId(), exception);
+        if (exception.getMessage().contains("Connection reset by peer")) {
+            afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
+            return;
+        }
 
+        JsonMessageBuilder builder;
         session = sessionMonitor.getSession(session.getId());
 
         if (exception instanceof JsonParseException) {

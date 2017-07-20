@@ -32,7 +32,7 @@ import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.dsl.ProducerType;
+import com.sun.corba.se.spi.activation.Server;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -74,47 +74,14 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${rpc.server.disruptor.wait-strategy}")
-    private String waitStrategyType;
-
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
-    public ExecutorService workerExecutor() {
-        return Executors.newFixedThreadPool(workerThreads);
-    }
-
-    @Bean
-    public WaitStrategy disruptorWaitStrategy() {
-        WaitStrategy strategy;
-        switch (waitStrategyType) {
-            case "sleeping":
-                strategy = new SleepingWaitStrategy();
-                break;
-            case "yielding":
-                strategy = new YieldingWaitStrategy();
-                break;
-            case "busy-spin":
-                strategy = new BusySpinWaitStrategy();
-                break;
-            case "blocking":
-            default:
-                strategy = new BlockingWaitStrategy();
-        }
-        return strategy;
-    }
-
-    @Bean
-    public Disruptor<ServerEvent> disruptor(@Qualifier("workerExecutor") ExecutorService workerExecutor, WaitStrategy waitStrategy) {
-        ProducerType producerType = ProducerType.SINGLE;
-        if (consumerThreads > 1) {
-            producerType = ProducerType.MULTI;
-        }
-
-        return new Disruptor<>(ServerEvent::new, bufferSize,  workerExecutor, producerType, waitStrategy);
+    public Disruptor<ServerEvent> disruptor() {
+        return new Disruptor<>(ServerEvent::new, bufferSize, Executors.defaultThreadFactory());
     }
 
     @Bean
@@ -138,6 +105,7 @@ public class KafkaRpcServerConfig {
     private Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
+        props.put(ProducerConfig.BATCH_SIZE_CONFIG, env.getProperty("batch.size"));
         return props;
     }
 

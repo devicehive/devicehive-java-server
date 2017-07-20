@@ -42,6 +42,7 @@ public class Constants {
     public static final String LAST_LOGIN_TIMEOUT = "user.login.lastTimeout"; // 1 hour
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
+    public static final int WEBSOCKET_TIMEOUT = 4 * 60 * 1000;
     public static final Integer DEFAULT_TAKE = 100;
     public static final String DEFAULT_TAKE_STR = "100";
     public static final String DEFAULT_SKIP_STR = "0";
