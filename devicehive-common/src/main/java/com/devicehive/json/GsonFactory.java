@@ -102,7 +102,10 @@ public class GsonFactory {
                 .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.name())
 
                 .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.name())
-                .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.name());
+                .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.name())
+
+                .registerSubtype(ListCommandRequest.class, Action.LIST_COMMAND_REQUEST.name())
+                .registerSubtype(ListNotificationRequest.class, Action.LIST_NOTIFICATION_REQUEST.name());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

@@ -20,30 +20,23 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
-import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
-import com.google.gson.JsonElement;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
+import java.lang.reflect.Modifier;
 import java.util.Date;
-import java.util.Objects;
 import java.util.Optional;
 
-import static com.devicehive.configuration.Constants.DEVICE_ID;
-import static com.devicehive.configuration.Constants.END_TIMESTAMP;
-import static com.devicehive.configuration.Constants.NOTIFICATION;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.START_TIMESTAMP;
-import static com.devicehive.configuration.Constants.TAKE;
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListNotificationRequest extends Body {
 
     private String deviceId;
-    private Date timestampStart;
-    private Date timestampEnd;
+    private Date start;
+    private Date end;
     private String notification;
     private String sortField;
     private String sortOrder;
@@ -54,18 +47,15 @@ public class ListNotificationRequest extends Body {
         super(Action.LIST_NOTIFICATION_REQUEST.name());
     }
 
-    public ListNotificationRequest(JsonObject request) {
-        super(Action.LIST_NOTIFICATION_REQUEST.name());
-        deviceId = Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).orElse(null);
-        String startTs = Optional.ofNullable(request.get(START_TIMESTAMP)).map(JsonElement::getAsString).orElse(null);
-        timestampStart = Objects.nonNull(startTs) ? TimestampQueryParamParser.parse(startTs): null;
-        String endTs = Optional.ofNullable(request.get(END_TIMESTAMP)).map(JsonElement::getAsString).orElse(null);
-        timestampEnd = Objects.nonNull(startTs) ? TimestampQueryParamParser.parse(startTs): null;
-        notification = Optional.ofNullable(request.get(NOTIFICATION)).map(JsonElement::getAsString).orElse(null);
-        sortField = Optional.ofNullable(request.get(SORT_FIELD)).map(JsonElement::getAsString).orElse(null);
-        sortOrder = Optional.ofNullable(request.get(SORT_ORDER)).map(JsonElement::getAsString).orElse(null);
-        take = Optional.ofNullable(request.get(TAKE)).map(JsonElement::getAsInt).orElse(100);
-        skip = Optional.ofNullable(request.get(SKIP)).map(JsonElement::getAsInt).orElse(0);
+    public static ListNotificationRequest createListNotificationRequest(JsonObject request) {
+        ListNotificationRequest listNotificationRequest = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, ListNotificationRequest.class);
+        listNotificationRequest.setTake(Optional.ofNullable(listNotificationRequest.getTake()).orElse(DEFAULT_TAKE));
+        listNotificationRequest.setSkip(Optional.ofNullable(listNotificationRequest.getSkip()).orElse(DEFAULT_SKIP));
+
+        return listNotificationRequest;
     }
 
     public String getDeviceId() {
@@ -76,20 +66,20 @@ public class ListNotificationRequest extends Body {
         this.deviceId = deviceId;
     }
 
-    public Date getTimestampStart() {
-        return timestampStart;
+    public Date getStart() {
+        return start;
     }
 
-    public void setTimestampStart(Date timestampStart) {
-        this.timestampStart = timestampStart;
+    public void setStart(Date start) {
+        this.start = start;
     }
 
-    public Date getTimestampEnd() {
-        return timestampEnd;
+    public Date getEnd() {
+        return end;
     }
 
-    public void setTimestampEnd(Date timestampEnd) {
-        this.timestampEnd = timestampEnd;
+    public void setEnd(Date end) {
+        this.end = end;
     }
 
     public String getNotification() {

@@ -23,20 +23,13 @@ package com.devicehive.model.rpc;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
-import com.google.gson.JsonElement;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import java.util.Objects;
+import java.lang.reflect.Modifier;
 import java.util.Optional;
 
-import static com.devicehive.configuration.Constants.NAME;
-import static com.devicehive.configuration.Constants.NAME_PATTERN;
-import static com.devicehive.configuration.Constants.NETWORK_ID;
-import static com.devicehive.configuration.Constants.NETWORK_NAME;
-import static com.devicehive.configuration.Constants.SKIP;
-import static com.devicehive.configuration.Constants.SORT_FIELD;
-import static com.devicehive.configuration.Constants.SORT_ORDER;
-import static com.devicehive.configuration.Constants.TAKE;
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 
 public class ListDeviceRequest extends Body {
 
@@ -45,7 +38,7 @@ public class ListDeviceRequest extends Body {
     private Long networkId;
     private String networkName;
     private String sortField;
-    private boolean sortOrderAsc;
+    private String sortOrder;
     private Integer take;
     private Integer skip;
     private HivePrincipal principal;
@@ -59,24 +52,22 @@ public class ListDeviceRequest extends Body {
         this.networkId = networkId;
     }
 
-    public ListDeviceRequest(boolean sortOrderAsc, HivePrincipal principal) {
+    public ListDeviceRequest(String sortOrder, HivePrincipal principal) {
         super(Action.LIST_DEVICE_REQUEST.name());
-        this.sortOrderAsc = sortOrderAsc;
+        this.sortOrder = sortOrder;
         this.principal = principal;
     }
 
-    public ListDeviceRequest(JsonObject request, HivePrincipal principal) {
-        super(Action.LIST_DEVICE_REQUEST.name());
-        name = Optional.ofNullable(request.get(NAME)).map(JsonElement::getAsString).orElse(null);
-        namePattern = Optional.ofNullable(request.get(NAME_PATTERN)).map(JsonElement::getAsString).orElse(null);
-        networkId = Optional.ofNullable(request.get(NETWORK_ID)).map(JsonElement::getAsLong).orElse(null);
-        networkName = Optional.ofNullable(request.get(NETWORK_NAME)).map(JsonElement::getAsString).orElse(null);
-        sortField = Optional.ofNullable(request.get(SORT_FIELD)).map(JsonElement::getAsString).orElse(null);
-        String sortOrder = Optional.ofNullable(request.get(SORT_ORDER)).map(JsonElement::getAsString).orElse(null);
-        sortOrderAsc = SortOrder.parse(sortOrder);
-        take = Optional.ofNullable(request.get(TAKE)).map(JsonElement::getAsInt).orElse(null);
-        skip = Optional.ofNullable(request.get(SKIP)).map(JsonElement::getAsInt).orElse(null);
-        this.principal = principal;
+    public static ListDeviceRequest createListDeviceRequest(JsonObject request, HivePrincipal principal) {
+        ListDeviceRequest listDeviceRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, ListDeviceRequest.class);
+        listDeviceRequest.setTake(Optional.ofNullable(listDeviceRequest.getTake()).orElse(20));
+        listDeviceRequest.setSkip(Optional.ofNullable(listDeviceRequest.getSkip()).orElse(DEFAULT_SKIP));
+        
+        listDeviceRequest.setPrincipal(principal);
+                
+        return listDeviceRequest;
     }
 
     public String getName() {
@@ -119,12 +110,16 @@ public class ListDeviceRequest extends Body {
         this.sortField = sortField;
     }
 
-    public boolean getSortOrderAsc() {
-        return sortOrderAsc;
+    public String getSortOrder() {
+        return sortOrder;
     }
 
-    public void setSortOrderAsc(boolean sortOrderAsc) {
-        this.sortOrderAsc = sortOrderAsc;
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public boolean isSortOrderAsc() {
+        return SortOrder.parse(sortOrder);
     }
 
     public Integer getTake() {

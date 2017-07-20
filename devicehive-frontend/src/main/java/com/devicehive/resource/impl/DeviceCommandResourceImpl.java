@@ -100,7 +100,8 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        final Date ts = TimestampQueryParamParser.parse(timestamp == null ?  timestampService.getDateAsString() : timestamp);
+        final Date ts = Optional.ofNullable(timestamp).map(TimestampQueryParamParser::parse)
+                .orElse(timestampService.getDate());
 
         final Response response = ResponseFactory.response(
                 Response.Status.OK,

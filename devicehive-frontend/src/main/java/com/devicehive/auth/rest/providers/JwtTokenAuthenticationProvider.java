@@ -42,6 +42,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 

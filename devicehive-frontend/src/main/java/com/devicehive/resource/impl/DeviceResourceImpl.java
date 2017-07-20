@@ -65,12 +65,11 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public void list(String name, String namePattern, Long networkId, String networkName,
-                     String sortField, String sortOrderSt, Integer take,
+                     String sortField, String sortOrder, Integer take,
                      Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Device list requested");
 
-        boolean sortOrder = SortOrder.parse(sortOrderSt);
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
@@ -96,7 +95,7 @@ public class DeviceResourceImpl implements DeviceResource {
             request.setNetworkId(networkId);
             request.setNetworkName(networkName);
             request.setSortField(sortField);
-            request.setSortOrderAsc(sortOrder);
+            request.setSortOrder(sortOrder);
             request.setTake(take);
             request.setSkip(skip);
             request.setPrincipal(principal);

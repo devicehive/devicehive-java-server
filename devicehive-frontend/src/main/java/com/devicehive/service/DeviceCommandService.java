@@ -81,7 +81,7 @@ public class DeviceCommandService {
         String command = request.getCommand();
         List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
         return find(Collections.singletonList(request.getDeviceId()), searchCommands,
-                request.getTimestampStart(), request.getTimestampEnd(), request.getStatus());
+                request.getStart(), request.getEnd(), request.getStatus());
     }
 
     public CompletableFuture<List<DeviceCommand>> find(Collection<String> deviceIds, Collection<String> names,
