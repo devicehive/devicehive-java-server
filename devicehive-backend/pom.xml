@@ -31,6 +31,12 @@
 
         <dependency>
             <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-client</artifactId>
         </dependency>
 

@@ -21,8 +21,8 @@ package com.devicehive.base;
  */
 
 import com.devicehive.model.DevicePortableFactory;
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.config.Config;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -43,13 +43,13 @@ public class HazelcastConfigurationTest {
 
     @Bean
     public HazelcastInstance hazelcast() throws Exception {
-        ClientConfig config = new ClientConfig();
+        Config config = new Config();
         config.getGroupConfig()
                 .setName(groupName)
                 .setPassword(groupPassword);
         config.getSerializationConfig()
                 .addPortableFactory(1, new DevicePortableFactory());
 
-        return HazelcastClient.newHazelcastClient(config);
+        return Hazelcast.newHazelcastInstance(config);
     }
 }
