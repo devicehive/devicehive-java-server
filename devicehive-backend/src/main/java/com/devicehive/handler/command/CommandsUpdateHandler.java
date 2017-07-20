@@ -22,15 +22,15 @@ package com.devicehive.handler.command;
 
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.eventbus.events.CommandUpdateEvent;
-import com.devicehive.model.rpc.CommandUpdateRequest;
+import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
+import com.devicehive.model.rpc.CommandsUpdateRequest;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class CommandUpdateRequestHandler implements RequestHandler {
+public class CommandsUpdateHandler implements RequestHandler {
 
     @Autowired
     private HazelcastService hazelcastService;
@@ -40,10 +40,10 @@ public class CommandUpdateRequestHandler implements RequestHandler {
 
     @Override
     public Response handle(Request request) {
-        final DeviceCommand command = request.getBody().cast(CommandUpdateRequest.class).getDeviceCommand();
+        final DeviceCommand command = request.getBody().cast(CommandsUpdateRequest.class).getDeviceCommand();
         hazelcastService.store(command);
 
-        eventBus.publish(new CommandUpdateEvent(command));
+        eventBus.publish(new CommandsUpdateEvent(command));
 
         return Response.newBuilder().buildSuccess();
     }

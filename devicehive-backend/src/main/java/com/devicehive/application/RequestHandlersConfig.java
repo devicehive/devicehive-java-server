@@ -60,7 +60,8 @@ public class RequestHandlersConfig {
             put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, new NotificationUnsubscribeRequestHandler());
             put(Action.COMMAND_INSERT_REQUEST, new CommandInsertHandler());
             put(Action.COMMAND_SEARCH_REQUEST, new CommandSearchHandler());
-            put(Action.COMMAND_UPDATE_REQUEST, new CommandUpdateRequestHandler());
+            put(Action.COMMAND_UPDATE_REQUEST, new CommandUpdateHandler());
+            put(Action.COMMANDS_UPDATE_REQUEST, new CommandsUpdateHandler());
             put(Action.COMMAND_SUBSCRIBE_REQUEST, new CommandSubscribeRequestHandler());
             put(Action.COMMAND_UNSUBSCRIBE_REQUEST, new CommandUnsubscribeRequestHandler());
             put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, new CommandUpdateSubscribeRequestHandler());

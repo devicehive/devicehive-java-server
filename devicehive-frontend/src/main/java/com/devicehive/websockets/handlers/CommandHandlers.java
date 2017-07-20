@@ -113,7 +113,7 @@ public class CommandHandlers {
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .sendSubscribeRequest(devices, names, timestamp, limit, callback);
+                .sendSubscribeRequest(devices, names, timestamp, false, limit, callback);
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->

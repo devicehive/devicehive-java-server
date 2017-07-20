@@ -56,6 +56,9 @@ public class Constants {
     public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
     //API constants
+    public static final String INFO = "info";
+    public static final String CLUSTER_INFO = "clusterInfo";
+    public static final String CONFIGURATION = "configuration";
     public static final String DEVICE_ID = "deviceId";
     public static final String DEVICE_IDS = "deviceIds";
     public static final String NAMES = "names";
@@ -74,6 +77,7 @@ public class Constants {
     public static final String ID = "id";
     public static final String NAME = "name";
     public static final String NAME_PATTERN = "namePattern";
+    public static final String VALUE = "value";
     public static final String LABEL = "label";
     public static final String STATUS = "status";
     public static final String NETWORK = "network";

@@ -91,9 +91,11 @@ public class ConfigurationService {
     }
 
     @Transactional
-    public <T> void delete(@NotNull String name) {
+    public <T> int delete(@NotNull String name) {
         int result = configurationDao.delete(name);
         logger.info("Deleted {} configuration entries by name {}", result, name);
+        
+        return result;
     }
 
 }
