@@ -46,8 +46,8 @@ import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 /**
@@ -140,7 +140,9 @@ public class DeviceResourceImpl implements DeviceResource {
 
         if (device == null) {
             logger.error("device/get proceed with error. No Device with Device ID = {} found.", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
 
         logger.debug("Device get proceed successfully. Device ID: {}", deviceId);
@@ -152,10 +154,19 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response delete(String deviceId) {
+        if (deviceId == null) {
+            logger.error("device/get proceed with error. Device ID should be provided.");
+            ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                    Messages.DEVICE_ID_REQUIRED);
+            return ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
+        }
+        
         boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
         if (!isDeviceDeleted) {
             logger.error("Delete device proceed with error. No Device with Device ID = {} found.", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
         
         logger.debug("Device with id = {} is deleted", deviceId);

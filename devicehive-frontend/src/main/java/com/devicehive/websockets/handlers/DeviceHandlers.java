@@ -61,6 +61,10 @@ public class DeviceHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceDelete(JsonObject request) {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+        if (deviceId == null) {
+            logger.error("device/delete proceed with error. Device ID should be provided.");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+        }
         
         boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
         if (!isDeviceDeleted) {
