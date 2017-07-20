@@ -110,7 +110,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         if(session.isOpen()) {
             session.close();
         }
-        logger.warn("CONNECTION CLOSED: session id {}, close status is {} ", session.getId(), status);
+        logger.info("Websocket connection closed: session id {}, close status is {} ", session.getId(), status);
     }
 
     @Override
