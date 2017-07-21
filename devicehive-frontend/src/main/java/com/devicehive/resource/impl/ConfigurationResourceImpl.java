@@ -21,7 +21,7 @@ package com.devicehive.resource.impl;
  */
 
 
-import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.resource.ConfigurationResource;
@@ -68,7 +68,9 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
     public Response deleteProperty(String name) {
         int operationResult = configurationService.delete(name);
         if (operationResult == 0) {
-            throw new HiveException(String.format(CONFIG_NOT_FOUND, name), SC_NOT_FOUND);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(CONFIG_NOT_FOUND, name));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
         
         return ResponseFactory.response(NO_CONTENT);

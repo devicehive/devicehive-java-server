@@ -172,7 +172,9 @@ public class UserResourceImpl implements UserResource {
 
         if (currentUser != null && currentUser.getId().equals(userId)) {
             logger.debug("Rejected removing current user");
-            throw new HiveException(Messages.CANT_DELETE_CURRENT_USER_KEY, FORBIDDEN.getStatusCode());
+            ErrorResponse errorResponseEntity = new ErrorResponse(FORBIDDEN.getStatusCode(),
+                    Messages.CANT_DELETE_CURRENT_USER_KEY);
+            return ResponseFactory.response(FORBIDDEN, errorResponseEntity);
         }
         userService.deleteUser(userId);
         return ResponseFactory.response(NO_CONTENT);
@@ -186,14 +188,18 @@ public class UserResourceImpl implements UserResource {
         UserWithNetworkVO existingUser = userService.findUserWithNetworks(id);
         if (existingUser == null) {
             logger.error("Can't get network with id {}: user {} not found", networkId, id);
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, id), NOT_FOUND.getStatusCode());
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.USER_NOT_FOUND, id));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
         for (NetworkVO network : existingUser.getNetworks()) {
             if (network.getId() == networkId) {
                 return ResponseFactory.response(OK, UserNetworkResponse.fromNetwork(network), JsonPolicyDef.Policy.NETWORKS_LISTED);
             }
         }
-        throw new NotFoundException(String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, id));
+        ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, id));
+        return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
     }
 
     /**

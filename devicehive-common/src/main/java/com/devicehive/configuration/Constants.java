@@ -44,6 +44,7 @@ public class Constants {
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final int WEBSOCKET_TIMEOUT = 4 * 60 * 1000;
     public static final Integer DEFAULT_TAKE = 100;
+    public static final Integer DEFAULT_SKIP = 0;
     public static final String DEFAULT_TAKE_STR = "100";
     public static final String DEFAULT_SKIP_STR = "0";
     public static final String CURRENT_USER = "current";

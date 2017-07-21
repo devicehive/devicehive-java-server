@@ -86,7 +86,7 @@ public class DeviceNotificationService {
         Set<String> notificationNames = 
                 StringUtils.isNoneEmpty(notification) ? Collections.singleton(notification) : Collections.emptySet();
         return find(Collections.singleton(deviceId), notificationNames,
-                request.getTimestampStart(), request.getTimestampEnd());
+                request.getStart(), request.getEnd());
     }
 
     @SuppressWarnings("unchecked")

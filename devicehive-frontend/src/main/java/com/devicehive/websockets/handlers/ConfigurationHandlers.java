@@ -25,7 +25,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.vo.ConfigurationVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
-import com.google.gson.JsonElement;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +35,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Constants.CONFIGURATION;
@@ -50,15 +51,19 @@ public class ConfigurationHandlers {
 
     @Autowired
     private ConfigurationService configurationService;
+    @Autowired
+    private Gson gson;
 
     @Value("${server.context-path}")
     private String contextPath;
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public WebSocketResponse processConfigurationGet(JsonObject request, WebSocketSession session) {
-        final String name = Optional.ofNullable(request.get(NAME))
-                .map(JsonElement::getAsString)
-                .orElseThrow(() -> new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST));
+        final String name = gson.fromJson(request.get(NAME), String.class);
+        if (Objects.isNull(name)) {
+            logger.error("congiguration/get proceed with error. Name should be provided.");
+            throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
+        }
         
         Optional<ConfigurationVO> configurationVO = configurationService.findByName(name);
         if (!configurationVO.isPresent()) {
@@ -74,12 +79,14 @@ public class ConfigurationHandlers {
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public WebSocketResponse processConfigurationPut(JsonObject request, WebSocketSession session) {
-        final String name = Optional.ofNullable(request.get(NAME))
-                .map(JsonElement::getAsString)
-                .orElseThrow(() -> new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST));
-        final String value = Optional.ofNullable(request.get(VALUE))
-                .map(JsonElement::getAsString)
-                .orElse(null);
+        final String name = gson.fromJson(request.get(NAME), String.class);
+        if (Objects.isNull(name)) {
+            logger.error("congiguration/put proceed with error. Name should be provided.");
+            throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
+        }
+        
+        final String value = gson.fromJson(request.get(VALUE), String.class);
+        
         ConfigurationVO configurationVO = configurationService.save(name, value);
         
         WebSocketResponse response = new WebSocketResponse();
@@ -89,9 +96,11 @@ public class ConfigurationHandlers {
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public WebSocketResponse processConfigurationDelete(JsonObject request, WebSocketSession session) {
-        final String name = Optional.ofNullable(request.get(NAME))
-                .map(JsonElement::getAsString)
-                .orElseThrow(() -> new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST));
+        final String name = gson.fromJson(request.get(NAME), String.class);
+        if (Objects.isNull(name)) {
+            logger.error("congiguration/delete proceed with error. Name should be provided.");
+            throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
+        }
         
         int operationResult = configurationService.delete(name);
         if (operationResult == 0) {

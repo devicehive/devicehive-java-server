@@ -30,7 +30,6 @@ import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,11 +40,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
+import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.model.rpc.ListDeviceRequest.createListDeviceRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
@@ -62,9 +60,11 @@ public class DeviceHandlers {
 
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     public WebSocketResponse processDeviceDelete(JsonObject request) {
-        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
-                .map(JsonElement::getAsString)
-                .orElse(null);
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+        if (deviceId == null) {
+            logger.error("device/delete proceed with error. Device ID should be provided.");
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+        }
         
         boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
         if (!isDeviceDeleted) {
@@ -78,9 +78,8 @@ public class DeviceHandlers {
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceGet(JsonObject request) {
-        final String deviceId = Optional.ofNullable(request.get(Constants.DEVICE_ID))
-                .map(JsonElement::getAsString)
-                .orElse(null);
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+        
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         WebSocketResponse response = new WebSocketResponse();
 
@@ -103,7 +102,7 @@ public class DeviceHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public WebSocketResponse processDeviceList(JsonObject request) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ListDeviceRequest listDeviceRequest = new ListDeviceRequest(request, principal);
+        ListDeviceRequest listDeviceRequest = createListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
 
         List<DeviceVO> toResponse;

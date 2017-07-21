@@ -630,7 +630,7 @@ public class DeviceServiceTest extends AbstractResourceTest {
             final List<DeviceVO> devices =
                     deviceDao.list(req.getName(), req.getNamePattern(),
                             req.getNetworkId(), req.getNetworkName(),
-                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getSortField(), req.isSortOrderAsc(),
                             req.getTake(), req.getSkip(), req.getPrincipal());
 
             return Response.newBuilder()
