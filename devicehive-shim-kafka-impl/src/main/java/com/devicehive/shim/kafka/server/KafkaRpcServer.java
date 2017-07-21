@@ -23,33 +23,37 @@ package com.devicehive.shim.kafka.server;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RpcServer;
 import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.WorkerPool;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class KafkaRpcServer implements RpcServer {
 
-    private Disruptor<ServerEvent> disruptor;
+    private WorkerPool<ServerEvent> workerPool;
     private RequestConsumer requestConsumer;
     private ServerEventHandler eventHandler;
+    private int workerThreads;
 
-    public KafkaRpcServer(Disruptor<ServerEvent> disruptor, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
-        this.disruptor = disruptor;
+    public KafkaRpcServer(WorkerPool<ServerEvent> workerPool, RequestConsumer requestConsumer, ServerEventHandler eventHandler,
+                          int workerThreads) {
+        this.workerPool = workerPool;
         this.requestConsumer = requestConsumer;
         this.eventHandler = eventHandler;
+        this.workerThreads = workerThreads;
     }
 
     @Override
     public void start() {
-        disruptor.handleEventsWith(eventHandler);
-        disruptor.start();
-
-        RingBuffer<ServerEvent> ringBuffer = disruptor.getRingBuffer();
+        final ExecutorService execService = Executors.newFixedThreadPool(workerThreads);
+        RingBuffer<ServerEvent> ringBuffer = workerPool.start(execService);
         requestConsumer.startConsumers(ringBuffer);
     }
 
     @Override
     public void shutdown() {
         requestConsumer.shutdownConsumers();
-        disruptor.shutdown();
+        workerPool.drainAndHalt();
     }
 
     @Override

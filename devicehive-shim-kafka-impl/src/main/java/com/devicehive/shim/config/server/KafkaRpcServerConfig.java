@@ -23,21 +23,20 @@ package com.devicehive.shim.config.server;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.kafka.serializer.RequestSerializer;
+import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
-import com.devicehive.shim.kafka.serializer.RequestSerializer;
-import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.google.gson.Gson;
-import com.lmax.disruptor.*;
+import com.lmax.disruptor.FatalExceptionHandler;
+import com.lmax.disruptor.WorkerPool;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.sun.corba.se.spi.activation.Server;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -49,8 +48,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 @Configuration
 @Profile("rpc-server")
@@ -85,6 +84,16 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
+    public WorkerPool<ServerEvent> workerPool(RequestHandler requestHandler,
+                                                 @Qualifier("server-producer") Producer<String, Response> responseProducer) {
+        final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
+        IntStream.range(0, workerThreads).forEach(
+                nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
+        );
+        return new WorkerPool<>(ServerEvent::new, new FatalExceptionHandler(), workHandlers);
+    }
+
+    @Bean
     public ServerEventHandler serverEventHandler(RequestHandler requestHandler,
                                                  @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         return new ServerEventHandler(requestHandler, responseProducer);
@@ -96,8 +105,8 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public RpcServer rpcServer(Disruptor<ServerEvent> disruptor, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
-        RpcServer server = new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
+    public RpcServer rpcServer(WorkerPool<ServerEvent> workerPool, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
+        RpcServer server = new KafkaRpcServer(workerPool, requestConsumer, eventHandler, workerThreads);
         server.start();
         return server;
     }
