@@ -115,7 +115,7 @@ public class UserResourceImpl implements UserResource {
                     new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
         }
 
-        return ResponseFactory.response(OK, UserResponse.createFromUser(fetchedUser), JsonPolicyDef.Policy.USER_PUBLISHED);
+        return ResponseFactory.response(OK, fetchedUser, JsonPolicyDef.Policy.USER_PUBLISHED);
     }
 
     @Override
