@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 public class WebSocketRequestProcessor {
@@ -54,7 +55,7 @@ public class WebSocketRequestProcessor {
     @Autowired
     private DeviceHandlers deviceHandlers;
 
-    public WebSocketResponse process(JsonObject request, WebSocketSession session) throws InterruptedException {
+    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
         WebSocketResponse response;
         WebsocketAction action = getAction(request);
         switch (action) {
@@ -65,7 +66,8 @@ public class WebSocketRequestProcessor {
                 response = apiInfoHandlers.processClusterConfigInfo(session);
                 break;    
             case AUTHENTICATE:
-                response = commonHandlers.processAuthenticate(request, session);
+//                response = commonHandlers.processAuthenticate(request, session);
+                commonHandlers.processAuthenticate(request, session);
                 break;
             case TOKEN:
                 response = commonHandlers.processLogin(request, session);
@@ -86,7 +88,8 @@ public class WebSocketRequestProcessor {
                 response = configurationHandlers.processConfigurationDelete(request, session);
                 break;    
             case NOTIFICATION_INSERT:
-                response = notificationHandlers.processNotificationInsert(request, session);
+                //response = notificationHandlers.processNotificationInsert(request, session);
+                notificationHandlers.processNotificationInsert(request, session);
                 break;
             case NOTIFICATION_SUBSCRIBE:
                 response = notificationHandlers.processNotificationSubscribe(request, session);
@@ -133,7 +136,7 @@ public class WebSocketRequestProcessor {
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
-        return response;
+//        return response.getResponseAsJson();
     }
 
     private WebsocketAction getAction(JsonObject request) {

@@ -37,6 +37,7 @@ import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
+import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -47,7 +48,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+
+import java.io.IOException;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -76,7 +80,7 @@ public class CommonHandlers {
     private Gson gson;
     
     @PreAuthorize("permitAll")
-    public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
+    public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 
         String jwtToken = null;
         if (request.get("token") != null) {
@@ -97,7 +101,12 @@ public class CommonHandlers {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal(principal);
 
-        return new WebSocketResponse();
+        JsonObject json = new JsonMessageBuilder()
+                .addAction(request.get(JsonMessageBuilder.ACTION))
+                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+                .include(new WebSocketResponse().getResponseAsJson())
+                .build();
+        session.sendMessage(new TextMessage(json.toString()));
     }
 
     @PreAuthorize("permitAll")

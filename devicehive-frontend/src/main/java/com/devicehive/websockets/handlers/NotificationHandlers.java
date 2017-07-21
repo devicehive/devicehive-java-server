@@ -35,6 +35,7 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -47,8 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -167,7 +170,7 @@ public class NotificationHandlers {
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationInsert(JsonObject request,
+    public void processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -200,17 +203,24 @@ public class NotificationHandlers {
         DeviceNotification message = notificationService.convertWrapperToNotification(notificationSubmit, device);
 
         notificationService.insert(message, device)
-                .thenApply(notification -> {
+                .thenAccept(notification -> {
                     logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
                     response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                    return response;
+                    JsonObject json = new JsonMessageBuilder()
+                            .addAction(request.get(JsonMessageBuilder.ACTION))
+                            .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+                            .include(response.getResponseAsJson())
+                            .build();
+                    try {
+                        session.sendMessage(new TextMessage(json.toString()));
+                    } catch (IOException e) {
+                        logger.error("Error during sending WS notification");
+                    }
                 })
                 .exceptionally(ex -> {
                     logger.error("Unable to insert notification.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
-
-        return response;
+                });
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")

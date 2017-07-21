@@ -81,8 +81,9 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         logger.debug("Session id {} ", session.getId());
         session = sessionMonitor.getSession(session.getId());
         JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-        JsonObject response = webSocketResponseBuilder.buildResponse(request, session);
-        session.sendMessage(new TextMessage(response.toString()));
+        webSocketResponseBuilder.buildResponse(request, session);
+//        JsonObject response = webSocketResponseBuilder.buildResponse(request, session);
+//        session.sendMessage(new TextMessage(response.toString()));
     }
 
     @Override

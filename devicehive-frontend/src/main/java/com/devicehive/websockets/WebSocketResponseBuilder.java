@@ -46,10 +46,11 @@ public class WebSocketResponseBuilder {
     @Autowired
     private WebSocketRequestProcessor requestProcessor;
 
-    public JsonObject buildResponse(JsonObject request, WebSocketSession session) {
+    public void buildResponse(JsonObject request, WebSocketSession session) {
         JsonObject response;
         try {
-            response = requestProcessor.process(request, session).getResponseAsJson();
+//            response = requestProcessor.process(request, session).getResponseAsJson();
+            requestProcessor.process(request, session);
         } catch (BadCredentialsException ex) {
             logger.error("Unauthorized access", ex);
             response = JsonMessageBuilder.createErrorResponseBuilder(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials").build();
@@ -93,10 +94,10 @@ public class WebSocketResponseBuilder {
                     .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage()).build();
         }
 
-        return new JsonMessageBuilder()
-                .addAction(request.get(JsonMessageBuilder.ACTION))
-                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-                .include(response)
-                .build();
+//        return new JsonMessageBuilder()
+//                .addAction(request.get(JsonMessageBuilder.ACTION))
+//                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+//                .include(response)
+//                .build();
     }
 }
