@@ -20,7 +20,10 @@ package com.devicehive.websockets;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -33,6 +36,9 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
@@ -40,7 +46,11 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import javax.persistence.OptimisticLockException;
+import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolationException;
+import java.io.IOException;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
@@ -50,13 +60,16 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     private SessionMonitor sessionMonitor;
 
     @Autowired
-    private WebSocketResponseBuilder webSocketResponseBuilder;
+    private WebSocketRequestProcessor requestProcessor;
 
     @Autowired
     private DeviceCommandService commandService;
 
     @Autowired
     private DeviceNotificationService notificationService;
+
+    @Autowired
+    private WebSocketClientHandler webSocketClientHandler;
 
     private int sendTimeLimit = 10 * 1000;
     private int sendBufferSizeLimit = 512 * 1024;
@@ -77,13 +90,51 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
         logger.debug("Session id {} ", session.getId());
         session = sessionMonitor.getSession(session.getId());
         JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
-        webSocketResponseBuilder.buildResponse(request, session);
-//        JsonObject response = webSocketResponseBuilder.buildResponse(request, session);
-//        session.sendMessage(new TextMessage(response.toString()));
+        JsonObject response = null;
+        try {
+            requestProcessor.process(request, session);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (BadCredentialsException ex) {
+            logger.error("Unauthorized access", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
+        } catch (AccessDeniedException | AuthenticationCredentialsNotFoundException ex) {
+            logger.error("Access to action is denied", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        } catch (HiveException ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(ex.getCode(), ex.getMessage());
+        } catch (ConstraintViolationException ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+        } catch (org.hibernate.exception.ConstraintViolationException ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, ex.getMessage());
+        } catch (JsonParseException ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Invalid request parameters");
+        } catch (OptimisticLockException ex) {
+            logger.error("Error executing the request. Data conflict", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, Messages.CONFLICT_MESSAGE);
+        } catch (PersistenceException ex) {
+            if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
+                response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, ex.getMessage());
+            } else {
+                response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+            }
+        } catch (Exception ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
+        }
+
+        if (response != null) {
+            webSocketClientHandler.sendMessage(response, session);
+        }
+
     }
 
     @Override

@@ -25,6 +25,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
@@ -37,7 +38,6 @@ import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
-import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -48,7 +48,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -78,6 +77,9 @@ public class CommonHandlers {
 
     @Autowired
     private Gson gson;
+
+    @Autowired
+    private WebSocketClientHandler clientHandler;
     
     @PreAuthorize("permitAll")
     public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
@@ -101,16 +103,11 @@ public class CommonHandlers {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal(principal);
 
-        JsonObject json = new JsonMessageBuilder()
-                .addAction(request.get(JsonMessageBuilder.ACTION))
-                .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-                .include(new WebSocketResponse().getResponseAsJson())
-                .build();
-        session.sendMessage(new TextMessage(json.toString()));
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processLogin(JsonObject request, WebSocketSession session) {
+    public void processLogin(JsonObject request, WebSocketSession session) throws IOException {
         JwtRequestVO loginRequest = new JwtRequestVO();
         if (request.get("login") != null) {
             loginRequest.setLogin(request.get("login").getAsString());
@@ -123,11 +120,11 @@ public class CommonHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
         response.addValue("refreshToken", jwtToken.getRefreshToken());
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
-    public WebSocketResponse processTokenCreate(JsonObject request, WebSocketSession session) {
+    public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
         JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
 
         if (payload == null) {
@@ -153,11 +150,11 @@ public class CommonHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, true));
         response.addValue("refreshToken", tokenService.generateJwtRefreshToken(refreshPayload, true));
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processRefresh(JsonObject request, WebSocketSession session) {
+    public void processRefresh(JsonObject request, WebSocketSession session) throws IOException {
         String refreshToken = null;
         if (request.get("refreshToken") != null) {
             refreshToken = request.get("refreshToken").getAsString();
@@ -196,6 +193,6 @@ public class CommonHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, false));
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 }

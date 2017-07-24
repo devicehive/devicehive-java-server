@@ -23,9 +23,10 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListCommandRequest;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
@@ -71,10 +72,7 @@ import static com.devicehive.configuration.Constants.LIMIT;
 import static com.devicehive.configuration.Constants.NAMES;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -97,6 +95,9 @@ public class CommandHandlers {
 
     @Autowired
     private DeviceCommandService commandService;
+
+    @Autowired
+    private WebSocketClientHandler webSocketClientHandler;
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
@@ -127,7 +128,7 @@ public class CommandHandlers {
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createCommandInsertMessage(command, subscriptionId);
-            sendMessage(json, session);
+            webSocketClientHandler.sendMessage(json, session);
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
@@ -135,7 +136,7 @@ public class CommandHandlers {
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->
-                        sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
+                        webSocketClientHandler.sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
 
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
@@ -368,7 +369,7 @@ public class CommandHandlers {
         }
         BiConsumer<DeviceCommand, String> callback =  (command, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
-            sendMessage(json, session);
+            webSocketClientHandler.sendMessage(json, session);
         };
         commandService.sendSubscribeToUpdateRequest(commandId, deviceId, callback); // TODO: make sure this is the correct place to create update message
     }

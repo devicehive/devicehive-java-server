@@ -22,13 +22,7 @@ package com.devicehive.websockets;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
-import com.devicehive.websockets.converters.WebSocketResponse;
-import com.devicehive.websockets.handlers.ApiInfoHandlers;
-import com.devicehive.websockets.handlers.CommandHandlers;
-import com.devicehive.websockets.handlers.CommonHandlers;
-import com.devicehive.websockets.handlers.ConfigurationHandlers;
-import com.devicehive.websockets.handlers.DeviceHandlers;
-import com.devicehive.websockets.handlers.NotificationHandlers;
+import com.devicehive.websockets.handlers.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -56,87 +50,83 @@ public class WebSocketRequestProcessor {
     private DeviceHandlers deviceHandlers;
 
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
-        WebSocketResponse response;
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
-                response = apiInfoHandlers.processServerInfo(session);
+                apiInfoHandlers.processServerInfo(session);
                 break;
             case CLUSTER_CONFIG_INFO:
-                response = apiInfoHandlers.processClusterConfigInfo(session);
+                apiInfoHandlers.processClusterConfigInfo(session);
                 break;    
             case AUTHENTICATE:
-//                response = commonHandlers.processAuthenticate(request, session);
                 commonHandlers.processAuthenticate(request, session);
                 break;
             case TOKEN:
-                response = commonHandlers.processLogin(request, session);
+                commonHandlers.processLogin(request, session);
                 break;
             case TOKEN_CREATE:
-                response = commonHandlers.processTokenCreate(request, session);
+                commonHandlers.processTokenCreate(request, session);
                 break;
             case TOKEN_REFRESH:
-                response = commonHandlers.processRefresh(request, session);
+                commonHandlers.processRefresh(request, session);
                 break;
             case CONFIGURATION_GET:
-                response = configurationHandlers.processConfigurationGet(request, session);
+                configurationHandlers.processConfigurationGet(request, session);
                 break;
             case CONFIGURATION_PUT:
-                response = configurationHandlers.processConfigurationPut(request, session);
+                configurationHandlers.processConfigurationPut(request, session);
                 break;
             case CONFIGURATION_DELETE:
-                response = configurationHandlers.processConfigurationDelete(request, session);
+                configurationHandlers.processConfigurationDelete(request, session);
                 break;    
             case NOTIFICATION_INSERT:
-                //response = notificationHandlers.processNotificationInsert(request, session);
                 notificationHandlers.processNotificationInsert(request, session);
                 break;
             case NOTIFICATION_SUBSCRIBE:
-                response = notificationHandlers.processNotificationSubscribe(request, session);
+                notificationHandlers.processNotificationSubscribe(request, session);
                 break;
             case NOTIFICATION_UNSUBSCRIBE:
-                response = notificationHandlers.processNotificationUnsubscribe(request, session);
+                notificationHandlers.processNotificationUnsubscribe(request, session);
                 break;
             case NOTIFICATION_GET:
-                response = notificationHandlers.processNotificationGet(request, session);
+                notificationHandlers.processNotificationGet(request, session);
                 break;
             case NOTIFICATION_LIST:
-                response = notificationHandlers.processNotificationList(request, session);
+                notificationHandlers.processNotificationList(request, session);
                 break;
             case COMMAND_INSERT:
-                response = commandHandlers.processCommandInsert(request, session);
+                commandHandlers.processCommandInsert(request, session);
                 break;
             case COMMAND_UPDATE:
-                response = commandHandlers.processCommandUpdate(request, session);
+                commandHandlers.processCommandUpdate(request, session);
                 break;
             case COMMAND_SUBSCRIBE:
-                response = commandHandlers.processCommandSubscribe(request, session);
+                commandHandlers.processCommandSubscribe(request, session);
                 break;
             case COMMAND_UNSUBSCRIBE:
-                response = commandHandlers.processCommandUnsubscribe(request, session);
+                commandHandlers.processCommandUnsubscribe(request, session);
                 break;
             case COMMAND_GET:
-                response = commandHandlers.processCommandGet(request, session);
+                commandHandlers.processCommandGet(request, session);
                 break;
             case COMMAND_LIST:
-                response = commandHandlers.processCommandList(request, session);
+                commandHandlers.processCommandList(request, session);
                 break;
             case DEVICE_GET:
-                response = deviceHandlers.processDeviceGet(request);
+                deviceHandlers.processDeviceGet(request);
                 break;
             case DEVICE_LIST:
-                response = deviceHandlers.processDeviceList(request);
+                deviceHandlers.processDeviceList(request);
                 break;
             case DEVICE_SAVE:
-                response = deviceHandlers.processDeviceSave(request, session);
+                deviceHandlers.processDeviceSave(request, session);
                 break;
             case DEVICE_DELETE:
-                response = deviceHandlers.processDeviceDelete(request);
+                deviceHandlers.processDeviceDelete(request);
                 break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
-//        return response.getResponseAsJson();
     }
 
     private WebsocketAction getAction(JsonObject request) {

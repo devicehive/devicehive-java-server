@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListNotificationRequest;
@@ -35,7 +36,6 @@ import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -48,7 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -61,7 +60,6 @@ import java.util.stream.Collectors;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListNotificationRequest.createListNotificationRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -84,10 +82,13 @@ public class NotificationHandlers {
     @Autowired
     private Gson gson;
 
+    @Autowired
+    private WebSocketClientHandler clientHandler;
+
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationSubscribe(JsonObject request,
-                                                          WebSocketSession session) throws InterruptedException {
+    public void processNotificationSubscribe(JsonObject request,
+                                                          WebSocketSession session) throws InterruptedException, IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
         Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
@@ -113,7 +114,7 @@ public class NotificationHandlers {
 
         BiConsumer<DeviceNotification, String> callback = (notification, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
-            sendMessage(json, session);
+            clientHandler.sendMessage(json, session);
         };
 
         Pair<String, CompletableFuture<List<DeviceNotification>>> pair = notificationService
@@ -121,7 +122,7 @@ public class NotificationHandlers {
 
         pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
-            sendMessage(json, session);
+            clientHandler.sendMessage(json, session);
         }));
 
         logger.debug("notification/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
@@ -134,7 +135,7 @@ public class NotificationHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     /**
@@ -146,8 +147,8 @@ public class NotificationHandlers {
      * {object} } </code>
      */
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationUnsubscribe(JsonObject request,
-                                                            WebSocketSession session) {
+    public void processNotificationUnsubscribe(JsonObject request,
+                                                            WebSocketSession session) throws IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), String.class);
         Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
@@ -166,7 +167,7 @@ public class NotificationHandlers {
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME))
                 .remove(Optional.ofNullable(subscriptionId));
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
@@ -206,25 +207,12 @@ public class NotificationHandlers {
                 .thenAccept(notification -> {
                     logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
                     response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                    JsonObject json = new JsonMessageBuilder()
-                            .addAction(request.get(JsonMessageBuilder.ACTION))
-                            .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
-                            .include(response.getResponseAsJson())
-                            .build();
-                    try {
-                        session.sendMessage(new TextMessage(json.toString()));
-                    } catch (IOException e) {
-                        logger.error("Error during sending WS notification");
-                    }
-                })
-                .exceptionally(ex -> {
-                    logger.error("Unable to insert notification.", ex);
-                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                        clientHandler.sendMessage(request, response, session);
                 });
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationGet(JsonObject request, WebSocketSession session) {
+    public void processNotificationGet(JsonObject request, WebSocketSession session) {
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         if (deviceId == null) {
             logger.error("notification/get proceed with error. Device ID should be provided.");
@@ -246,31 +234,23 @@ public class NotificationHandlers {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
-        WebSocketResponse webSocketResponse = notificationService.findOne(notificationId, deviceId)
-                .thenApply(notification -> notification
-                        .map(n -> {
-                            logger.debug("Device notification proceed successfully");
-                            WebSocketResponse response = new WebSocketResponse();
-                            response.addValue(NOTIFICATION, n, NOTIFICATION_TO_CLIENT);
-                            return response;
-                        })
-                        .orElse(null)
-                )
-                .exceptionally(ex -> {
-                    logger.error("Unable to get notification.", ex);
-                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
-        
-        if (Objects.isNull(webSocketResponse)) {
-            logger.error(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
-            throw new HiveException(String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId), SC_NOT_FOUND);
-        }
-        
-        return webSocketResponse;
+        notificationService.findOne(notificationId, deviceId)
+                .thenAccept(notification -> {
+                    logger.debug("Device notification proceed successfully");
+                    WebSocketResponse response = new WebSocketResponse();
+                    if (!notification.isPresent()) {
+                        JsonObject errorResponse = clientHandler.buildErrorResponse(SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND);
+                        logger.error("Notification with id {} not found", notificationId);
+                        clientHandler.sendMessage(errorResponse, session);
+                    } else {
+                        response.addValue(NOTIFICATION, notification.get(), NOTIFICATION_TO_CLIENT);
+                        clientHandler.sendMessage(request, response, session);
+                    }
+                });
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public WebSocketResponse processNotificationList(JsonObject request, WebSocketSession session) {
+    public void processNotificationList(JsonObject request, WebSocketSession session) {
         ListNotificationRequest listNotificationRequest = createListNotificationRequest(request);
         String deviceId = listNotificationRequest.getDeviceId();
         if (deviceId == null) {
@@ -289,7 +269,7 @@ public class NotificationHandlers {
         WebSocketResponse response = new WebSocketResponse();
         
         notificationService.find(listNotificationRequest)
-                .thenApply(notifications -> {
+                .thenAccept(notifications -> {
                     final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort
                             .buildDeviceNotificationComparator(listNotificationRequest.getSortField());
                     String sortOrderSt = listNotificationRequest.getSortOrder();
@@ -299,14 +279,8 @@ public class NotificationHandlers {
                             .orderAndLimit(notifications, comparator, reverse,
                                     listNotificationRequest.getSkip(), listNotificationRequest.getTake());
                     response.addValue(NOTIFICATIONS, sortedDeviceNotifications, NOTIFICATION_TO_CLIENT);
-                    return response;
-                })
-                .exceptionally(ex -> {
-                    logger.error("Unable to get notifications list.", ex);
-                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
-        
-        return response;
+                    clientHandler.sendMessage(request, response, session);
+                });
     }
 
     private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
