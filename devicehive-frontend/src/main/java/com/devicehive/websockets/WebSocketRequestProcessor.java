@@ -53,10 +53,10 @@ public class WebSocketRequestProcessor {
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
-                apiInfoHandlers.processServerInfo(session);
+                apiInfoHandlers.processServerInfo(request, session);
                 break;
             case CLUSTER_CONFIG_INFO:
-                apiInfoHandlers.processClusterConfigInfo(session);
+                apiInfoHandlers.processClusterConfigInfo(request, session);
                 break;    
             case AUTHENTICATE:
                 commonHandlers.processAuthenticate(request, session);

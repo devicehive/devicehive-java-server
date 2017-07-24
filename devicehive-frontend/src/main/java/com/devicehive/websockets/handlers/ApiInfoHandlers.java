@@ -21,10 +21,12 @@ package com.devicehive.websockets.handlers;
  */
 
 import com.devicehive.configuration.Constants;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,13 +53,16 @@ public class ApiInfoHandlers {
 
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private WebSocketClientHandler webSocketClientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
 
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processServerInfo(WebSocketSession session) {
+    public void processServerInfo(JsonObject request, WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
         ApiInfoVO apiInfo = new ApiInfoVO();
         apiInfo.setApiVersion(Constants.class.getPackage().getImplementationVersion());
@@ -65,16 +70,15 @@ public class ApiInfoHandlers {
                 .findFirst()
                 .ifPresent(host -> apiInfo.setRestServerUrl("http://" + host + contextPath + "/rest"));
 
-        //TODO: Replace with timestamp service
         apiInfo.setServerTimestamp(timestampService.getDate());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(INFO, apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {}", session.getId());
-        return response;
+        webSocketClientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processClusterConfigInfo(WebSocketSession session) {
+    public void processClusterConfigInfo(JsonObject request, WebSocketSession session) {
         logger.debug("cluster/info action started. Session " + session.getId());
         ClusterConfigVO clusterConfig = new ClusterConfigVO();
         clusterConfig.setBootstrapServers(env.getProperty(BOOTSTRAP_SERVERS));
@@ -82,7 +86,7 @@ public class ApiInfoHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CLUSTER_INFO, clusterConfig, REST_CLUSTER_CONFIG);
-        return response;
+        webSocketClientHandler.sendMessage(request, response, session);
     }
 
 }
