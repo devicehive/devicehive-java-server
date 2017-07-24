@@ -55,7 +55,7 @@ public class ConfigurationHandlers {
     @Autowired
     private Gson gson;
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
+    private WebSocketClientHandler clientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -76,7 +76,7 @@ public class ConfigurationHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO.get());
-        webSocketClientHandler.sendMessage(request, response, session);
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
@@ -93,11 +93,11 @@ public class ConfigurationHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO);
-        webSocketClientHandler.sendMessage(request, response, session);
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
-    public WebSocketResponse processConfigurationDelete(JsonObject request, WebSocketSession session) {
+    public void processConfigurationDelete(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
             logger.error("congiguration/delete proceed with error. Name should be provided.");
@@ -109,6 +109,6 @@ public class ConfigurationHandlers {
             throw new HiveException(String.format(CONFIG_NOT_FOUND, name), SC_NOT_FOUND);
         }
         
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }

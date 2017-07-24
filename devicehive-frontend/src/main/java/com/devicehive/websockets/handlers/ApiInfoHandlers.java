@@ -55,7 +55,7 @@ public class ApiInfoHandlers {
     private Environment env;
     
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
+    private WebSocketClientHandler clientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -74,7 +74,7 @@ public class ApiInfoHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(INFO, apiInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/info action completed. Session {}", session.getId());
-        webSocketClientHandler.sendMessage(request, response, session);
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("permitAll")
@@ -86,7 +86,7 @@ public class ApiInfoHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CLUSTER_INFO, clusterConfig, REST_CLUSTER_CONFIG);
-        webSocketClientHandler.sendMessage(request, response, session);
+        clientHandler.sendMessage(request, response, session);
     }
 
 }
