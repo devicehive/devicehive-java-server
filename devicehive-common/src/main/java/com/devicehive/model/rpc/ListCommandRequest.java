@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
@@ -50,7 +51,9 @@ public class ListCommandRequest extends Body {
     }
 
     public static ListCommandRequest createListCommandRequest(JsonObject request) {
-        ListCommandRequest listCommandRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
+        ListCommandRequest listCommandRequest = new GsonBuilder()
+                .registerTypeAdapter(Date.class, new TimestampAdapter())
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
                 .create()
                 .fromJson(request, ListCommandRequest.class);
         listCommandRequest.setTake(Optional.ofNullable(listCommandRequest.getTake()).orElse(DEFAULT_TAKE));
