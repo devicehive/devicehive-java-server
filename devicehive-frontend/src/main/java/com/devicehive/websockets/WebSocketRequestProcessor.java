@@ -113,16 +113,16 @@ public class WebSocketRequestProcessor {
                 commandHandlers.processCommandList(request, session);
                 break;
             case DEVICE_GET:
-                deviceHandlers.processDeviceGet(request);
+                deviceHandlers.processDeviceGet(request, session);
                 break;
             case DEVICE_LIST:
-                deviceHandlers.processDeviceList(request);
+                deviceHandlers.processDeviceList(request, session);
                 break;
             case DEVICE_SAVE:
                 deviceHandlers.processDeviceSave(request, session);
                 break;
             case DEVICE_DELETE:
-                deviceHandlers.processDeviceDelete(request);
+                deviceHandlers.processDeviceDelete(request, session);
                 break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");

@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
@@ -56,10 +57,13 @@ public class DeviceHandlers {
     private DeviceService deviceService;
 
     @Autowired
+    private WebSocketClientHandler webSocketClientHandler;
+
+    @Autowired
     private Gson gson;
 
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
-    public WebSocketResponse processDeviceDelete(JsonObject request) {
+    public void processDeviceDelete(JsonObject request, WebSocketSession session) {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         if (deviceId == null) {
             logger.error("device/delete proceed with error. Device ID should be provided.");
@@ -73,11 +77,11 @@ public class DeviceHandlers {
         }
         
         logger.debug("Device with id = {} is deleted", deviceId);
-        return new WebSocketResponse();
+        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public WebSocketResponse processDeviceGet(JsonObject request) {
+    public void processDeviceGet(JsonObject request, WebSocketSession session) {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -96,11 +100,11 @@ public class DeviceHandlers {
         }
         
         response.addValue(Constants.DEVICE, toResponse, DEVICE_PUBLISHED);
-        return response;
+        webSocketClientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public WebSocketResponse processDeviceList(JsonObject request) {
+    public void processDeviceList(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ListDeviceRequest listDeviceRequest = createListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
@@ -114,12 +118,11 @@ public class DeviceHandlers {
         }
         response.addValue(Constants.DEVICES, toResponse, DEVICE_PUBLISHED);
 
-        return response;
+        webSocketClientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
-    public WebSocketResponse processDeviceSave(JsonObject request,
-                                               WebSocketSession session) {
+    public void processDeviceSave(JsonObject request, WebSocketSession session) {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
         String deviceId = device.getId().orElse(null);
 
@@ -129,6 +132,7 @@ public class DeviceHandlers {
         }
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
-        return new WebSocketResponse();
+
+        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }
