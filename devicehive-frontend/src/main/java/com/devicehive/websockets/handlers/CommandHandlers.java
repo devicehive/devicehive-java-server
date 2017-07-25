@@ -23,9 +23,10 @@ package com.devicehive.websockets.handlers;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListCommandRequest;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
@@ -37,7 +38,6 @@ import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -71,10 +71,7 @@ import static com.devicehive.configuration.Constants.LIMIT;
 import static com.devicehive.configuration.Constants.NAMES;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static com.devicehive.configuration.Constants.TIMESTAMP;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
-import static com.devicehive.messages.handler.WebSocketClientHandler.sendMessage;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -98,8 +95,11 @@ public class CommandHandlers {
     @Autowired
     private DeviceCommandService commandService;
 
+    @Autowired
+    private WebSocketClientHandler clientHandler;
+
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandSubscribe(JsonObject request, WebSocketSession session)
+    public void processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
@@ -127,7 +127,7 @@ public class CommandHandlers {
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createCommandInsertMessage(command, subscriptionId);
-            sendMessage(json, session);
+            clientHandler.sendMessage(json, session);
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
@@ -135,7 +135,7 @@ public class CommandHandlers {
 
         pair.getRight().thenAccept(collection ->
                 collection.forEach(cmd ->
-                        sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
+                        clientHandler.sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
 
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
@@ -147,11 +147,11 @@ public class CommandHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
+    public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), String.class);
         Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
@@ -171,11 +171,11 @@ public class CommandHandlers {
                 .get(SUBSCSRIPTION_SET_NAME))
                 .remove(Optional.ofNullable(subscriptionId));
 
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandInsert(JsonObject request, WebSocketSession session) {
+    public void processCommandInsert(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
                 
@@ -202,22 +202,20 @@ public class CommandHandlers {
         WebSocketResponse response = new WebSocketResponse();
         for (DeviceVO device : devices) {
             commandService.insert(deviceCommand, device, user)
-                    .thenApply(cmd -> {
+                    .thenAccept(cmd -> {
                         commandUpdateSubscribeAction(cmd.getId(), device.getDeviceId(), session);
                         response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
-                        return response;
+                        clientHandler.sendMessage(request, response, session);
                     })
                     .exceptionally(ex -> {
                         logger.warn("Unable to insert notification.", ex);
                         throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                    }).join();
+                    });
         }
-
-        return response;
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandUpdate(JsonObject request, WebSocketSession session) {
+    public void processCommandUpdate(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);;
         final Long id = Long.valueOf(request.get(COMMAND_ID).getAsString()); // TODO: nullable long?
@@ -257,11 +255,11 @@ public class CommandHandlers {
 
         logger.debug("command/update proceed successfully for session: {}. Device ID: {}. Command id: {}", session,
                 deviceId, id);
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandGet(JsonObject request, WebSocketSession session)  {
+    public void processCommandGet(JsonObject request, WebSocketSession session)  {
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         if (deviceId == null) {
             logger.error("command/get proceed with error. Device ID should be provided.");
@@ -299,11 +297,11 @@ public class CommandHandlers {
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
         }
 
-        return webSocketResponse;
+        clientHandler.sendMessage(request, webSocketResponse, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public WebSocketResponse processCommandList(JsonObject request, WebSocketSession session) {
+    public void processCommandList(JsonObject request, WebSocketSession session) {
         ListCommandRequest listCommandRequest = createListCommandRequest(request);
         String deviceId = listCommandRequest.getDeviceId();
         if (deviceId == null) {
@@ -322,7 +320,7 @@ public class CommandHandlers {
         WebSocketResponse response = new WebSocketResponse();
         
         commandService.find(listCommandRequest)
-                .thenApply(commands -> {
+                .thenAccept(commands -> {
                     final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
                             .buildDeviceCommandComparator(listCommandRequest.getSortField());
                     final String sortOrderSt = listCommandRequest.getSortOrder();  
@@ -332,14 +330,12 @@ public class CommandHandlers {
                             .orderAndLimit(new ArrayList<>(commands), comparator, reverse,
                                     listCommandRequest.getSkip(), listCommandRequest.getTake());
                     response.addValue(COMMANDS, sortedDeviceCommands, COMMAND_LISTED);
-                    return response;
+                    clientHandler.sendMessage(request, response, session);
                 })
                 .exceptionally(ex -> {
                     logger.warn("Unable to get commands list.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                }).join();
-        
-        return response;
+                });
     }
 
     private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
@@ -368,7 +364,7 @@ public class CommandHandlers {
         }
         BiConsumer<DeviceCommand, String> callback =  (command, subscriptionId) -> {
             JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
-            sendMessage(json, session);
+            clientHandler.sendMessage(json, session);
         };
         commandService.sendSubscribeToUpdateRequest(commandId, deviceId, callback); // TODO: make sure this is the correct place to create update message
     }

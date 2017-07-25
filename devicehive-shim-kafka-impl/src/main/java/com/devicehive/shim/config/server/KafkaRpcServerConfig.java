@@ -23,23 +23,22 @@ package com.devicehive.shim.config.server;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
-import com.devicehive.shim.config.KafkaRpcConfig;
+import com.devicehive.shim.kafka.serializer.RequestSerializer;
+import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
-import com.devicehive.shim.kafka.serializer.RequestSerializer;
-import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
-import com.sun.corba.se.spi.activation.Server;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,14 +46,15 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 @Configuration
 @Profile("rpc-server")
 @ComponentScan("com.devicehive.shim.config")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServerConfig.class);
 
     public static final String REQUEST_TOPIC = "request_topic";
 
@@ -70,14 +70,45 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
+    @Value("${lmax.wait.strategy:busyspin}")
+    private String waitStrategy;
+
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
-    public Disruptor<ServerEvent> disruptor() {
-        return new Disruptor<>(ServerEvent::new, bufferSize, Executors.defaultThreadFactory());
+    public WorkerPool<ServerEvent> workerPool(RequestHandler requestHandler,
+                                                 @Qualifier("server-producer") Producer<String, Response> responseProducer) {
+        final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
+        IntStream.range(0, workerThreads).forEach(
+                nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
+        );
+        final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, getWaitStrategy());
+        final SequenceBarrier barrier = ringBuffer.newBarrier();
+        WorkerPool<ServerEvent> workerPool = new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        ringBuffer.addGatingSequences(workerPool.getWorkerSequences());
+        return workerPool;
+    }
+
+    private WaitStrategy getWaitStrategy() {
+        logger.info("RPC server wait strategy: {}", waitStrategy);
+        WaitStrategy strategy;
+
+        switch (waitStrategy) {
+            case "blocking":
+                strategy = new BlockingWaitStrategy(); break;
+            case "sleeping":
+                strategy =  new SleepingWaitStrategy(); break;
+            case "yielding":
+                strategy = new YieldingWaitStrategy(); break;
+            case "busyspin":
+                strategy =  new BusySpinWaitStrategy(); break;
+            default:
+                strategy =  new BusySpinWaitStrategy(); break;
+        }
+        return strategy;
     }
 
     @Bean
@@ -92,8 +123,8 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public RpcServer rpcServer(Disruptor<ServerEvent> disruptor, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
-        RpcServer server = new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
+    public RpcServer rpcServer(WorkerPool<ServerEvent> workerPool, RequestConsumer requestConsumer, ServerEventHandler eventHandler) {
+        RpcServer server = new KafkaRpcServer(workerPool, requestConsumer, eventHandler, workerThreads);
         server.start();
         return server;
     }

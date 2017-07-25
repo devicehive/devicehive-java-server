@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.vo.ConfigurationVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -53,12 +54,14 @@ public class ConfigurationHandlers {
     private ConfigurationService configurationService;
     @Autowired
     private Gson gson;
+    @Autowired
+    private WebSocketClientHandler clientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
-    public WebSocketResponse processConfigurationGet(JsonObject request, WebSocketSession session) {
+    public void processConfigurationGet(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
             logger.error("congiguration/get proceed with error. Name should be provided.");
@@ -73,12 +76,11 @@ public class ConfigurationHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO.get());
-        return response;
-        
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
-    public WebSocketResponse processConfigurationPut(JsonObject request, WebSocketSession session) {
+    public void processConfigurationPut(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
             logger.error("congiguration/put proceed with error. Name should be provided.");
@@ -91,11 +93,11 @@ public class ConfigurationHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO);
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
-    public WebSocketResponse processConfigurationDelete(JsonObject request, WebSocketSession session) {
+    public void processConfigurationDelete(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
             logger.error("congiguration/delete proceed with error. Name should be provided.");
@@ -107,6 +109,6 @@ public class ConfigurationHandlers {
             throw new HiveException(String.format(CONFIG_NOT_FOUND, name), SC_NOT_FOUND);
         }
         
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }

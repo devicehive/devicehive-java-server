@@ -25,6 +25,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
@@ -48,6 +49,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
+
+import java.io.IOException;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -74,9 +77,12 @@ public class CommonHandlers {
 
     @Autowired
     private Gson gson;
+
+    @Autowired
+    private WebSocketClientHandler clientHandler;
     
     @PreAuthorize("permitAll")
-    public WebSocketResponse processAuthenticate(JsonObject request, WebSocketSession session) {
+    public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 
         String jwtToken = null;
         if (request.get("token") != null) {
@@ -97,11 +103,11 @@ public class CommonHandlers {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal(principal);
 
-        return new WebSocketResponse();
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processLogin(JsonObject request, WebSocketSession session) {
+    public void processLogin(JsonObject request, WebSocketSession session) throws IOException {
         JwtRequestVO loginRequest = new JwtRequestVO();
         if (request.get("login") != null) {
             loginRequest.setLogin(request.get("login").getAsString());
@@ -114,11 +120,11 @@ public class CommonHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
         response.addValue("refreshToken", jwtToken.getRefreshToken());
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
-    public WebSocketResponse processTokenCreate(JsonObject request, WebSocketSession session) {
+    public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
         JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
 
         if (payload == null) {
@@ -144,11 +150,11 @@ public class CommonHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, true));
         response.addValue("refreshToken", tokenService.generateJwtRefreshToken(refreshPayload, true));
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 
     @PreAuthorize("permitAll")
-    public WebSocketResponse processRefresh(JsonObject request, WebSocketSession session) {
+    public void processRefresh(JsonObject request, WebSocketSession session) throws IOException {
         String refreshToken = null;
         if (request.get("refreshToken") != null) {
             refreshToken = request.get("refreshToken").getAsString();
@@ -187,6 +193,6 @@ public class CommonHandlers {
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, false));
-        return response;
+        clientHandler.sendMessage(request, response, session);
     }
 }

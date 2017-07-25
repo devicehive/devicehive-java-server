@@ -28,7 +28,8 @@ import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
-import com.lmax.disruptor.dsl.Disruptor;
+import com.lmax.disruptor.FatalExceptionHandler;
+import com.lmax.disruptor.WorkerPool;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.Deserializer;
@@ -36,7 +37,7 @@ import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
-import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 public class ServerBuilder {
 
@@ -88,14 +89,16 @@ public class ServerBuilder {
     }
 
     public RpcServer build() {
-        final Disruptor<ServerEvent> disruptor = new Disruptor<>(ServerEvent::new, 8, Executors.defaultThreadFactory());
-
+        final int workerThreads = 3;
         Producer<String, Response> responseProducer = new KafkaProducer<>(producerProps, new StringSerializer(), producerValueSerializer);
-        ServerEventHandler eventHandler = new ServerEventHandler(requestHandler, responseProducer);
-        disruptor.handleEventsWith(eventHandler);
+        final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
+        IntStream.range(0, workerThreads).forEach(
+                nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
+        );
+        final WorkerPool<ServerEvent> workerPool = new WorkerPool<>(ServerEvent::new, new FatalExceptionHandler(), workHandlers);
 
         RequestConsumer requestConsumer = new RequestConsumer(topic, consumerProps, consumerThreads, consumerValueDeserializer);
-        return new KafkaRpcServer(disruptor, requestConsumer, eventHandler);
+        return new KafkaRpcServer(workerPool, requestConsumer, new ServerEventHandler(requestHandler, responseProducer), workerThreads);
     }
 
 }

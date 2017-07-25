@@ -46,8 +46,6 @@ public class ClientBuilder {
 
     private Properties consumerProps;
     private Deserializer<Response> consumerValueDeserializer;
-
-
     private int consumerThreads;
 
     public ClientBuilder withRequestTopic(String requestTopic) {
@@ -88,7 +86,7 @@ public class ClientBuilder {
     public RpcClient build() {
         RequestResponseMatcher matcher = new RequestResponseMatcher();
 
-        ExecutorService consumerExecutor = Executors.newCachedThreadPool();
+        ExecutorService consumerExecutor = Executors.newFixedThreadPool(consumerThreads);
         ServerResponseListener responseListener = new ServerResponseListener(replyTopic, consumerThreads,
                 matcher, consumerProps, consumerExecutor, consumerValueDeserializer);
 

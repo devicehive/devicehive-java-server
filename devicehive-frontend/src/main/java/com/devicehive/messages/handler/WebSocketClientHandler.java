@@ -20,18 +20,22 @@ package com.devicehive.messages.handler;
  * #L%
  */
 
+import com.devicehive.websockets.converters.JsonMessageBuilder;
+import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 
+@Component
 public class WebSocketClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClientHandler.class);
 
-    public static void sendMessage(JsonObject json, WebSocketSession session) {
+    public void sendMessage(JsonObject json, WebSocketSession session) {
         if (!session.isOpen()) {
             return;
         }
@@ -40,5 +44,18 @@ public class WebSocketClientHandler {
         } catch (IOException e) {
             logger.error("Exception while sending message", e);
         }
+    }
+
+    public void sendMessage(JsonObject request, WebSocketResponse response, WebSocketSession session) {
+            JsonObject message = new JsonMessageBuilder()
+                    .addAction(request.get(JsonMessageBuilder.ACTION))
+                    .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+                    .include(response.getResponseAsJson()).build();
+        sendMessage(message, session);
+    }
+
+    public JsonObject buildErrorResponse(int errorCode, String message) {
+        return JsonMessageBuilder
+                .createErrorResponseBuilder(errorCode, message).build();
     }
 }
