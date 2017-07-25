@@ -31,7 +31,7 @@ fi
 
 echo "Starting DeviceHive frontend"
 java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -jar \
--Dcom.devicehive.log.level=${DH_LOG_LEVEL:-INFO} \
+-Dcom.devicehive.log.level=${DH_LOG_LEVEL:-WARN} \
 -Droot.log.level=${ROOT_LOG_LEVEL:-WARN} \
 -Dspring.datasource.url=jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT:-5432}/${DH_POSTGRES_DB} \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
