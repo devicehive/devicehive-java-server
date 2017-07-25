@@ -30,8 +30,7 @@ import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.google.gson.Gson;
-import com.lmax.disruptor.FatalExceptionHandler;
-import com.lmax.disruptor.WorkerPool;
+import com.lmax.disruptor.*;
 import com.lmax.disruptor.dsl.Disruptor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -79,18 +78,15 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public Disruptor<ServerEvent> disruptor() {
-        return new Disruptor<>(ServerEvent::new, bufferSize, Executors.defaultThreadFactory());
-    }
-
-    @Bean
     public WorkerPool<ServerEvent> workerPool(RequestHandler requestHandler,
                                                  @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
         IntStream.range(0, workerThreads).forEach(
                 nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
         );
-        return new WorkerPool<>(ServerEvent::new, new FatalExceptionHandler(), workHandlers);
+        final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, new BusySpinWaitStrategy());
+        final SequenceBarrier barrier = ringBuffer.newBarrier();
+        return new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
     }
 
     @Bean
