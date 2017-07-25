@@ -37,6 +37,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +56,7 @@ import java.util.stream.IntStream;
 @Profile("rpc-server")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServerConfig.class);
 
     public static final String REQUEST_TOPIC = "request_topic";
 
@@ -72,7 +75,7 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${lmax.wait.strategy:blocking}")
+    @Value("${lmax.wait.strategy:busyspin}")
     private String waitStrategy;
 
     @Bean(name = "server-producer")
@@ -89,10 +92,13 @@ public class KafkaRpcServerConfig {
         );
         final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, getWaitStrategy());
         final SequenceBarrier barrier = ringBuffer.newBarrier();
-        return new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        WorkerPool<ServerEvent> workerPool = new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        ringBuffer.addGatingSequences(workerPool.getWorkerSequences());
+        return workerPool;
     }
 
     private WaitStrategy getWaitStrategy() {
+        logger.info("RPC server wait strategy: {}", waitStrategy);
         WaitStrategy strategy;
 
         switch (waitStrategy) {
@@ -105,7 +111,7 @@ public class KafkaRpcServerConfig {
             case "busyspin":
                 strategy =  new BusySpinWaitStrategy(); break;
             default:
-                strategy =  new BlockingWaitStrategy(); break;
+                strategy =  new BusySpinWaitStrategy(); break;
         }
         return strategy;
     }
