@@ -114,24 +114,24 @@ echo "Starting DeviceHive backend"
 java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -jar \
 -Dacks=${DH_ACKS:-1} \
 -Dauto.commit.interval.ms=${DH_AUTO_COMMIT_INTERVAL_MS:-5000} \
+-Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT} \
 -Dcom.devicehive.log.level=${DH_LOG_LEVEL:-WARN} \
 -Denable.auto.commit=${DH_ENABLE_AUTO_COMMIT:-true} \
 -Dfetch.max.wait.ms=${DH_FETCH_MAX_WAIT_MS:-100} \
 -Dfetch.min.bytes=${DH_FETCH_MIN_BYTES:-1} \
--Dreplication.factor=${DH_REPLICATION_FACTOR:-1} \
--Droot.log.level=${ROOT_LOG_LEVEL:-WARN} \
 -Dflyway.enabled=false \
--Driak.host=${DH_RIAK_HOST} \
--Driak.port=${DH_RIAK_PORT} \
--Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT} \
--Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT} \
--Dzookeeper.connectionTimeout=${DH_ZK_CONNECTIONTIMEOUT:-8000} \
--Dzookeeper.sessionTimeout=${DH_ZK_SESSIONTIMEOUT:-10000} \
 -Dhazelcast.cluster.members=${HC_MEMBERS}:${HC_PORT} \
 -Dhazelcast.group.name=${HC_GROUP_NAME} \
 -Dhazelcast.group.password=${HC_GROUP_PASSWORD} \
+-Dreplication.factor=${DH_REPLICATION_FACTOR:-1} \
+-Droot.log.level=${ROOT_LOG_LEVEL:-WARN} \
+-Driak.host=${DH_RIAK_HOST} \
+-Driak.port=${DH_RIAK_PORT} \
 -Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-3} \
 -Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-3} \
+-Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT} \
+-Dzookeeper.connectionTimeout=${DH_ZK_CONNECTIONTIMEOUT:-8000} \
+-Dzookeeper.sessionTimeout=${DH_ZK_SESSIONTIMEOUT:-10000} \
 ./devicehive-backend-${DH_VERSION}-boot.jar &
 PID=$!
 wait $PID
