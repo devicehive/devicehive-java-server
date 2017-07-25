@@ -72,6 +72,9 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
+    @Value("${lmax.wait.strategy:blocking}")
+    private String waitStrategy;
+
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(producerProps(), new StringSerializer(), new ResponseSerializer(gson));
@@ -84,9 +87,27 @@ public class KafkaRpcServerConfig {
         IntStream.range(0, workerThreads).forEach(
                 nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
         );
-        final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, new BusySpinWaitStrategy());
+        final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, getWaitStrategy());
         final SequenceBarrier barrier = ringBuffer.newBarrier();
         return new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+    }
+
+    private WaitStrategy getWaitStrategy() {
+        WaitStrategy strategy;
+
+        switch (waitStrategy) {
+            case "blocking":
+                strategy = new BlockingWaitStrategy(); break;
+            case "sleeping":
+                strategy =  new SleepingWaitStrategy(); break;
+            case "yielding":
+                strategy = new YieldingWaitStrategy(); break;
+            case "busyspin":
+                strategy =  new BusySpinWaitStrategy(); break;
+            default:
+                strategy =  new BlockingWaitStrategy(); break;
+        }
+        return strategy;
     }
 
     @Bean
