@@ -114,6 +114,7 @@ echo "Starting DeviceHive backend"
 java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -jar \
 -Dacks=${DH_ACKS:-1} \
 -Dauto.commit.interval.ms=${DH_AUTO_COMMIT_INTERVAL_MS:-5000} \
+-Dbatch.size=${DH_BATCH_SIZE:-98304} \
 -Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT} \
 -Dcom.devicehive.log.level=${DH_LOG_LEVEL:-WARN} \
 -Denable.auto.commit=${DH_ENABLE_AUTO_COMMIT:-true} \
