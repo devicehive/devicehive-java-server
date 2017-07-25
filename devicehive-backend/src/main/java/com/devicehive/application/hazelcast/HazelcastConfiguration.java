@@ -34,14 +34,15 @@ import java.util.List;
 @Configuration
 @PropertySource("classpath:application.properties")
 public class HazelcastConfiguration {
+
     @Value("${hazelcast.group.name}")
     private String groupName;
     @Value("${hazelcast.group.password}")
     private String groupPassword;
     @Value("#{'${hazelcast.cluster.members}'.split(',')}")
     private List<String> clusterMembers;
-
-
+    @Value("${hazelcast.client.event.thread.count:5}")
+    private String eventThreadCount;
 
     @Bean
     public HazelcastInstance hazelcast() throws Exception {
@@ -53,6 +54,7 @@ public class HazelcastConfiguration {
                 .setAddresses(clusterMembers);
         clientConfig.getSerializationConfig()
                 .addPortableFactory(1, new DevicePortableFactory());
+        clientConfig.setProperty("hazelcast.client.event.thread.count", eventThreadCount);
 
         return HazelcastClient.newHazelcastClient(clientConfig);
     }

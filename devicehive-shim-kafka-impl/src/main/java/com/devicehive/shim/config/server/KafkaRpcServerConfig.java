@@ -23,6 +23,7 @@ package com.devicehive.shim.config.server;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
@@ -42,10 +43,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import java.util.Properties;
@@ -54,6 +52,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @Profile("rpc-server")
+@ComponentScan("com.devicehive.shim.config")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
 
@@ -62,21 +61,18 @@ public class KafkaRpcServerConfig {
     @Autowired
     private Environment env;
 
-    @Value("${rpc.server.request-consumer.group}")
-    private String requestConsumerGroup;
+    @Autowired
+    private KafkaRpcConfig kafkaRpcConfig;
 
     @Value("${rpc.server.request-consumer.threads:1}")
     private int consumerThreads;
-
-    @Value("${rpc.server.worker.threads:1}")
-    private int workerThreads;
 
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
-        return new KafkaProducer<>(producerProps(), new StringSerializer(), new ResponseSerializer(gson));
+        return new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
@@ -92,7 +88,7 @@ public class KafkaRpcServerConfig {
 
     @Bean
     public RequestConsumer requestConsumer(Gson gson) {
-        return new RequestConsumer(REQUEST_TOPIC, consumerProps(), consumerThreads, new RequestSerializer(gson));
+        return new RequestConsumer(REQUEST_TOPIC, kafkaRpcConfig.serverConsumerProps(), consumerThreads, new RequestSerializer(gson));
     }
 
     @Bean
@@ -101,20 +97,4 @@ public class KafkaRpcServerConfig {
         server.start();
         return server;
     }
-
-    private Properties producerProps() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, env.getProperty("batch.size"));
-        return props;
-    }
-
-    private Properties consumerProps() {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, env.getProperty("bootstrap.servers"));
-        props.put(ConsumerConfig.GROUP_ID_CONFIG,  requestConsumerGroup);
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
-        return props;
-    }
-
 }
