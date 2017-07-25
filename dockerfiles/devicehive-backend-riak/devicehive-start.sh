@@ -111,7 +111,7 @@ curl -XPUT \
     http://${DH_RIAK_HOST}:${DH_RIAK_HTTP_PORT}/types/default/buckets/configuration/keys/user.login.lastTimeout
 
 echo "Starting DeviceHive backend"
-java -server -Xmx512m -XX:MaxRAMFraction=1 -XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=70 -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark -jar \
+java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -jar \
 -Dcom.devicehive.log.level=${DH_LOG_LEVEL:-INFO} \
 -Droot.log.level=${ROOT_LOG_LEVEL:-INFO} \
 -Dflyway.enabled=false \
