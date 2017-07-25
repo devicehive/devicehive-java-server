@@ -26,16 +26,14 @@ import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
+import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
-import com.lmax.disruptor.dsl.Disruptor;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,8 +43,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
-import java.util.Properties;
-import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 @Configuration
@@ -66,6 +62,9 @@ public class KafkaRpcServerConfig {
 
     @Value("${rpc.server.request-consumer.threads:1}")
     private int consumerThreads;
+
+    @Value("${rpc.server.worker.threads:1}")
+    private int workerThreads;
 
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
