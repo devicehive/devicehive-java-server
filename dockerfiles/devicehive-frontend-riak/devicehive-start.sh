@@ -34,7 +34,7 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Driak.port=${DH_RIAK_PORT} \
 -Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092} \
 -Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181} \
--Drpc.client.response-consumer.threads=${DH_RPC_CLIENT_RES_CONS_THREADS:-1} \
+-Drpc.client.response-consumer.threads=${DH_RPC_CLIENT_RES_CONS_THREADS:-3} \
 -Dserver.context-path=/api \
 -Dserver.port=8080 \
 ./devicehive-frontend-${DH_VERSION}-boot.jar &

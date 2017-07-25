@@ -63,8 +63,8 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dhazelcast.cluster.members=${HC_MEMBERS}:${HC_PORT} \
 -Dhazelcast.group.name=${HC_GROUP_NAME} \
 -Dhazelcast.group.password=${HC_GROUP_PASSWORD} \
--Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-1} \
--Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-1} \
+-Drpc.server.request-consumer.threads=${DH_RPC_SERVER_REQ_CONS_THREADS:-3} \
+-Drpc.server.worker.threads=${DH_RPC_SERVER_WORKER_THREADS:-3} \
 ./devicehive-backend-${DH_VERSION}-boot.jar &
 PID=$!
 wait $PID
