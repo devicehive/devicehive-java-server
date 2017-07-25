@@ -37,6 +37,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +56,7 @@ import java.util.stream.IntStream;
 @Profile("rpc-server")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServerConfig.class);
 
     public static final String REQUEST_TOPIC = "request_topic";
 
@@ -95,6 +98,7 @@ public class KafkaRpcServerConfig {
     }
 
     private WaitStrategy getWaitStrategy() {
+        logger.info("RPC server wait strategy: {}", waitStrategy);
         WaitStrategy strategy;
 
         switch (waitStrategy) {
