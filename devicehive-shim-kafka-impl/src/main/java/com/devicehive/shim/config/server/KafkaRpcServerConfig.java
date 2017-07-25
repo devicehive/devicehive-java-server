@@ -75,7 +75,7 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${lmax.wait.strategy:blocking}")
+    @Value("${lmax.wait.strategy:busyspin}")
     private String waitStrategy;
 
     @Bean(name = "server-producer")
@@ -111,7 +111,7 @@ public class KafkaRpcServerConfig {
             case "busyspin":
                 strategy =  new BusySpinWaitStrategy(); break;
             default:
-                strategy =  new BlockingWaitStrategy(); break;
+                strategy =  new BusySpinWaitStrategy(); break;
         }
         return strategy;
     }
