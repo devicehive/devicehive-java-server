@@ -23,6 +23,7 @@ package com.devicehive.shim.config.client;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
@@ -60,7 +61,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @Profile("rpc-client")
-@ComponentScan("com.devicehive.shim.api.kafka")
+@ComponentScan("com.devicehive.shim.config")
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
@@ -87,23 +88,26 @@ public class KafkaRpcClientConfig {
     @Autowired
     private Environment env;
 
+    @Autowired
+    private KafkaRpcConfig kafkaRpcConfig;
+
     @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
     @Value("${zookeeper.connect:127.0.0.1:2181}")
     private String zookeeperConnect;
 
-    @Value("${bootstrap.servers:127.0.0.1:9092}")
-    private String bootstrapServers;
-
-    @Value("${batch.size:49152}")
-    private int batchSize;
-
     @Value("${num.partitions:3}")
     private int numPartitions;
 
     @Value("${replication.factor:1}")
     private int replicationFactor;
+
+    @Value("${zookeeper.sessionTimeout:10000}")
+    private int sessionTimeout;
+
+    @Value("${zookeeper.connectionTimeout:8000}")
+    private int connectionTimeout;
 
     @PostConstruct
     private void initializeTopics() {
@@ -118,7 +122,7 @@ public class KafkaRpcClientConfig {
 
     @Bean
     public Producer<String, Request> kafkaRequestProducer(Gson gson) {
-        return new KafkaProducer<>(producerProps(), new StringSerializer(), new RequestSerializer(gson));
+        return new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new RequestSerializer(gson));
     }
 
     @Profile("!test")
@@ -147,40 +151,22 @@ public class KafkaRpcClientConfig {
     @Bean
     public ServerResponseListener serverResponseListener(RequestResponseMatcher responseMatcher, Gson gson) {
         ExecutorService executor = Executors.newFixedThreadPool(responseConsumerThreads);
-        Properties consumerProps = consumerProps();
+        Properties consumerProps = kafkaRpcConfig.clientConsumerProps();
         return new ServerResponseListener(RESPONSE_TOPIC, responseConsumerThreads,
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
     }
 
-    private Properties producerProps() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
-        return props;
-    }
-
-    private Properties consumerProps() {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "response-group-" + UUID.randomUUID().toString());
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, env.getProperty(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG));
-        return props;
-    }
-
     private void createTopic(String zookeeperConnect, String topic) {
-        int sessionTimeoutMs = 10 * 1000;
-        int connectionTimeoutMs = 8 * 1000;
         ZkClient zkClient = new ZkClient(
                 zookeeperConnect,
-                sessionTimeoutMs,
-                connectionTimeoutMs,
+                sessionTimeout,
+                connectionTimeout,
                 ZKStringSerializer$.MODULE$);
         try {
             ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Integer replication = 1;
             Properties topicConfig = new Properties();
             if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, numPartitions, replication, topicConfig, RackAwareMode.Enforced$.MODULE$);
+                AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor, topicConfig, RackAwareMode.Enforced$.MODULE$);
             }
         } finally {
             zkClient.close();
