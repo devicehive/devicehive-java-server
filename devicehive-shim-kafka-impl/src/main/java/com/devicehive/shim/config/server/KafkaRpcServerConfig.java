@@ -89,7 +89,9 @@ public class KafkaRpcServerConfig {
         );
         final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, 1024, getWaitStrategy());
         final SequenceBarrier barrier = ringBuffer.newBarrier();
-        return new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        WorkerPool<ServerEvent> workerPool = new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        ringBuffer.addGatingSequences(workerPool.getWorkerSequences());
+        return workerPool;
     }
 
     private WaitStrategy getWaitStrategy() {
