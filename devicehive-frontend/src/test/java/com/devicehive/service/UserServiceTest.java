@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
@@ -68,6 +69,7 @@ import java.util.stream.IntStream;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
@@ -118,7 +120,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void should_throw_NoSuchElementException_if_user_is_null_when_assign_network() throws Exception {
+    public void should_throw_HiveException_if_user_is_null_when_assign_network() throws Exception {
         NetworkVO network = new NetworkVO();
         String networkName = RandomStringUtils.randomAlphabetic(10);
         network.setName(networkName);
@@ -126,21 +128,21 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
 
-        expectedException.expect(NoSuchElementException.class);
+        expectedException.expect(HiveException.class);
         expectedException.expectMessage(String.format(Messages.USER_NOT_FOUND, -1L));
 
         userService.assignNetwork(-1L, created.getId());
     }
 
     @Test
-    public void should_throw_NoSuchElementException_if_network_is_null_when_assign_network() throws Exception {
+    public void should_throw_HiveException_if_network_is_null_when_assign_network() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
-        expectedException.expect(NoSuchElementException.class);
+        expectedException.expect(HiveException.class);
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         userService.assignNetwork(user.getId(), -1L);
@@ -1220,7 +1222,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + suffix, null, null, "login", DESC.name(), 100, 0)
+        userService.list(null, "%" + suffix, null, null, "login", ASC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
