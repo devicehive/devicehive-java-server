@@ -88,6 +88,9 @@ public class Messages {
     public static final String INCORRECT_ACCESS_TYPE = BidBundle.get("INCORRECT_ACCESS_TYPE");
     public static final String PARSING_MICROSECONDS_ERROR = BidBundle.get("PARSING_MICROSECONDS_ERROR");
     public static final String INVALID_USER_ROLE = BidBundle.get("INVALID_USER_ROLE");
+    public static final String USER_ID_REQUIRED = BidBundle.get("USER_ID_REQUIRED");
+    public static final String USER_REQUIRED = BidBundle.get("USER_REQUIRED");
+    public static final String NETWORK_ID_REQUIRED = BidBundle.get("NETWORK_ID_REQUIRED");
     public static final String ADMIN_PERMISSIONS_REQUIRED = BidBundle.get("ADMIN_PERMISSIONS_REQUIRED");
     public static final String INVALID_USER_STATUS = BidBundle.get("INVALID_USER_STATUS");
     public static final String INVALID_ACCESS_KEY_TYPE = BidBundle.get("INVALID_ACCESS_KEY_TYPE");

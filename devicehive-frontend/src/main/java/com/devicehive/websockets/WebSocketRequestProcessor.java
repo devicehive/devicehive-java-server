@@ -48,6 +48,8 @@ public class WebSocketRequestProcessor {
     private CommandHandlers commandHandlers;
     @Autowired
     private DeviceHandlers deviceHandlers;
+    @Autowired
+    private UserHandlers userHandlers;
 
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
         WebsocketAction action = getAction(request);
@@ -124,6 +126,36 @@ public class WebSocketRequestProcessor {
             case DEVICE_DELETE:
                 deviceHandlers.processDeviceDelete(request, session);
                 break;
+            case USER_LIST:
+                userHandlers.processUserList(request, session);
+                break;
+            case USER_GET:
+                userHandlers.processUserGet(request, session);
+                break;
+            case USER_INSERT:
+                userHandlers.processUserInsert(request, session);
+                break;
+            case USER_UPDATE:
+                userHandlers.processUserUpdate(request, session);
+                break;
+            case USER_GET_CURRENT:
+                userHandlers.processUserGetCurrent(request, session);
+                break;
+            case USER_UPDATE_CURRENT:
+                userHandlers.processUserUpdateCurrent(request, session);
+                break;
+            case USER_DELETE:
+                userHandlers.processUserDelete(request, session);
+                break;
+            case USER_GET_NETWORK:
+                userHandlers.processUserGetNetwork(request, session);
+                break;
+            case USER_ASSIGN_NETWORK:
+                userHandlers.processUserAssignNetwork(request, session);
+                break;
+            case USER_UNASSIGN_NETWORK:
+                userHandlers.processUserUnassignNetwork(request, session);
+                break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
@@ -162,6 +194,16 @@ public class WebSocketRequestProcessor {
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
         DEVICE_DELETE("device/delete"),
+        USER_LIST("user/list"),
+        USER_GET("user/get"),
+        USER_INSERT("user/insert"),
+        USER_UPDATE("user/update"),
+        USER_GET_CURRENT("user/getCurrent"),
+        USER_UPDATE_CURRENT("user/updateCurrent"),
+        USER_DELETE("user/delete"),
+        USER_GET_NETWORK("user/getNetwork"),
+        USER_ASSIGN_NETWORK("user/assignNetwork"),
+        USER_UNASSIGN_NETWORK("user/unassignNetwork"),
         EMPTY("");
 
         private String value;

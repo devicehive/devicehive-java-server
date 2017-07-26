@@ -54,6 +54,11 @@ public class WebSocketClientHandler {
         sendMessage(message, session);
     }
 
+    public void sendErrorResponse(int errorCode, String message, WebSocketSession session) {
+        JsonObject jsonObject = buildErrorResponse(errorCode, message);
+        sendMessage(jsonObject, session);
+    }
+
     public JsonObject buildErrorResponse(int errorCode, String message) {
         return JsonMessageBuilder
                 .createErrorResponseBuilder(errorCode, message).build();

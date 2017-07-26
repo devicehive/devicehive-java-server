@@ -71,6 +71,8 @@ public class Constants {
     public static final String NOTIFICATION = "notification";
     public static final String NOTIFICATIONS = "notifications";
     public static final String NOTIFICATION_ID = "notificationId";
+    public static final String USER = "user";
+    public static final String USERS = "users";
     public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
     public static final String PAYLOAD = "payload";
