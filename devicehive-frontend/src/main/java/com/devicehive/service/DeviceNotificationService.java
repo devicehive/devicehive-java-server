@@ -128,7 +128,7 @@ public class DeviceNotificationService {
                     CompletableFuture<Response> future = new CompletableFuture<>();
                     rpcClient.call(Request.newBuilder()
                             .withBody(new NotificationInsertRequest(n))
-                            .withPartitionKey(n.getHazelcastKey())
+                            .withPartitionKey(String.valueOf(timestampService.getTimestamp()))
                             .build(), new ResponseConsumer(future));
                     return future;
                 })
