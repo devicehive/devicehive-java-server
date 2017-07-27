@@ -62,8 +62,8 @@ public class KafkaRpcClient implements RpcClient {
 
     @Override
     public void call(Request request, Consumer<Response> callback) {
-        push(request);
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
+        push(request);
     }
 
     @Override

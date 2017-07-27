@@ -57,7 +57,7 @@ public class ApiInfoVO implements HiveEntity {
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private Long backendCounter;
 
-    @JsonPolicyDef(REST_SERVER_INFO)
+    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     private Long frontendCounter;
 
     public ApiInfoVO() {
