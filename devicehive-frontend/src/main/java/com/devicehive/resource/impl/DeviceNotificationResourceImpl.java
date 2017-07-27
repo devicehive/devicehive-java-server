@@ -98,10 +98,12 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     : Collections.emptySet();
             notificationService.find(Collections.singleton(deviceId), notificationNames, timestampSt, timestampEnd)
                     .thenApply(notifications -> {
-                        final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort.buildDeviceNotificationComparator(sortField);
+                        final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort
+                                .buildDeviceNotificationComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
 
-                        final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort.orderAndLimit(notifications, comparator, reverse, skip, take);
+                        final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort
+                                .orderAndLimit(notifications, comparator, reverse, skip, take);
                         return ResponseFactory.response(OK, sortedDeviceNotifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
                     })
                     .thenAccept(asyncResponse::resume);

@@ -202,9 +202,9 @@ public class CommandHandlers {
         WebSocketResponse response = new WebSocketResponse();
         for (DeviceVO device : devices) {
             commandService.insert(deviceCommand, device, user)
-                    .thenAccept(cmd -> {
-                        commandUpdateSubscribeAction(cmd.getId(), device.getDeviceId(), session);
-                        response.addValue(COMMAND, new InsertCommand(cmd.getId(), cmd.getTimestamp(), cmd.getUserId()), COMMAND_TO_CLIENT);
+                    .thenAccept(command -> {
+                        commandUpdateSubscribeAction(command.getId(), device.getDeviceId(), session);
+                        response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
                         clientHandler.sendMessage(request, response, session);
                     })
                     .exceptionally(ex -> {
@@ -363,7 +363,7 @@ public class CommandHandlers {
             throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
         }
         BiConsumer<DeviceCommand, String> callback =  (command, subscriptionId) -> {
-            JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command);
+            JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command, subscriptionId);
             clientHandler.sendMessage(json, session);
         };
         commandService.sendSubscribeToUpdateRequest(commandId, deviceId, callback); // TODO: make sure this is the correct place to create update message
