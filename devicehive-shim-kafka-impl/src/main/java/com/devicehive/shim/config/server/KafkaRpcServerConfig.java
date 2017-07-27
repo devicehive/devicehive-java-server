@@ -105,7 +105,7 @@ public class KafkaRpcServerConfig {
             case "busyspin":
                 strategy =  new BusySpinWaitStrategy(); break;
             default:
-                strategy =  new BusySpinWaitStrategy(); break;
+                strategy =  new BlockingWaitStrategy(); break;
         }
         return strategy;
     }

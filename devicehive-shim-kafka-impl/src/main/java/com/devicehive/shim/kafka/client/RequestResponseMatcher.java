@@ -21,12 +21,15 @@ package com.devicehive.shim.kafka.client;
  */
 
 import com.devicehive.shim.api.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 public class RequestResponseMatcher {
+    private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
     private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
 
@@ -53,6 +56,8 @@ public class RequestResponseMatcher {
                     }
                 }
             });
+        } else {
+            logger.warn("Callback was not found for {}. Map size: {}", response.getCorrelationId(), correlationMap.size());
         }
     }
 

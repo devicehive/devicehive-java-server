@@ -29,8 +29,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -63,8 +61,8 @@ public class KafkaRpcClient implements RpcClient {
 
     @Override
     public void call(Request request, Consumer<Response> callback) {
-        push(request);
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
+        push(request);
     }
 
     @Override
