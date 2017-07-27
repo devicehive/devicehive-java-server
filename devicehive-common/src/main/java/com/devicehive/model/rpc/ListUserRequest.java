@@ -20,7 +20,15 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import java.lang.reflect.Modifier;
+import java.util.Optional;
+
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 
 public class ListUserRequest extends Body {
 
@@ -29,12 +37,23 @@ public class ListUserRequest extends Body {
     private Integer role;
     private Integer status;
     private String sortField;
-    private boolean sortOrderAsc;
+    private String sortOrder;
     private Integer take;
     private Integer skip;
 
     public ListUserRequest() {
         super(Action.LIST_USER_REQUEST.name());
+    }
+
+    public static ListUserRequest createListUserRequest(JsonObject request) {
+        ListUserRequest listUserRequest = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, ListUserRequest.class);
+        listUserRequest.setTake(Optional.ofNullable(listUserRequest.getTake()).orElse(20));
+        listUserRequest.setSkip(Optional.ofNullable(listUserRequest.getSkip()).orElse(DEFAULT_SKIP));
+
+        return listUserRequest;
     }
 
     public String getLogin() {
@@ -77,12 +96,16 @@ public class ListUserRequest extends Body {
         this.sortField = sortField;
     }
 
-    public boolean getSortOrderAsc() {
-        return sortOrderAsc;
+    public boolean isSortOrderAsc() {
+        return SortOrder.parse(sortOrder);
     }
 
-    public void setSortOrderAsc(boolean sortOrderAsc) {
-        this.sortOrderAsc = sortOrderAsc;
+    public String getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
     }
 
     public Integer getTake() {

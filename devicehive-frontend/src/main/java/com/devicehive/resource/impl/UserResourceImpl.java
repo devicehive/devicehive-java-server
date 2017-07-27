@@ -68,9 +68,7 @@ public class UserResourceImpl implements UserResource {
      */
     @Override
     public void list(String login, String loginPattern, Integer role, Integer status, String sortField,
-            String sortOrderSt, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
-
-        final boolean sortOrder = SortOrder.parse(sortOrderSt);
+            String sortOrder, Integer take, Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !LOGIN.equalsIgnoreCase(sortField)) {
             final Response response = ResponseFactory.response(BAD_REQUEST,
@@ -176,7 +174,12 @@ public class UserResourceImpl implements UserResource {
                     Messages.CANT_DELETE_CURRENT_USER_KEY);
             return ResponseFactory.response(FORBIDDEN, errorResponseEntity);
         }
-        userService.deleteUser(userId);
+        boolean isDeleted = userService.deleteUser(userId);
+        if (!isDeleted) {
+            logger.error(String.format(Messages.USER_NOT_FOUND, userId));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId)));
+        }
         return ResponseFactory.response(NO_CONTENT);
     }
 
