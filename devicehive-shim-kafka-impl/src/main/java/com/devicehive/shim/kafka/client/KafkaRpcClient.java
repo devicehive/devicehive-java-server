@@ -77,6 +77,7 @@ public class KafkaRpcClient implements RpcClient {
                 (recordMetadata, e) -> {
                     if (e != null) {
                         logger.error("Send request failed", e);
+                        requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
                     }
                     logger.debug("Request {} sent successfully", request.getCorrelationId());
                     MessageCountHelper.getInstance().incrementBackendCounter();
