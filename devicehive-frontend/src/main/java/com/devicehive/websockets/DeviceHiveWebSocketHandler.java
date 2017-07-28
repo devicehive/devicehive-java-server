@@ -145,7 +145,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         }
 
         if (response != null) {
-            webSocketClientHandler.sendMessage(response, session);
+            webSocketClientHandler.sendMessage(request, response, session);
         }
 
     }
