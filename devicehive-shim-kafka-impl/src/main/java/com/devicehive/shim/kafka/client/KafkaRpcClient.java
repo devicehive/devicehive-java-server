@@ -63,6 +63,7 @@ public class KafkaRpcClient implements RpcClient {
     @Override
     public void call(Request request, Consumer<Response> callback) {
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
+        logger.warn("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
         push(request);
     }
 
@@ -103,6 +104,7 @@ public class KafkaRpcClient implements RpcClient {
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 
             requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
+            logger.warn("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
             requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
 
             Response response = null;

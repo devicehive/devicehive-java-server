@@ -57,7 +57,7 @@ public class RequestResponseMatcher {
                 }
             });
         } else {
-            logger.warn("Callback was not found for {}. Map size: {}", response.getCorrelationId(), correlationMap.size());
+            logger.warn("Callback was not found for {}. Map size: {}, response: {}", response.getCorrelationId(), correlationMap.size(), response.getBody());
         }
     }
 
