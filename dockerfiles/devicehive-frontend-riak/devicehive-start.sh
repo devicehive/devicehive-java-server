@@ -5,9 +5,9 @@ set -x
 trap 'terminate' TERM INT
 
 terminate() {
-   echo "SIGTERM received, terminating $PID"
-   kill -TERM "$PID"
-   wait "$PID"
+    echo "SIGTERM received, terminating $PID"
+    kill -TERM "$PID"
+    wait "$PID"
 }
 
 # Check if all required parameters are set
