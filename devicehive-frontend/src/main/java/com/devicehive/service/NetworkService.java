@@ -140,7 +140,6 @@ public class NetworkService {
         return networkDao.merge(existing);
     }
 
-    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CompletableFuture<List<NetworkVO>> list(String name,
             String namePattern,
             String sortField,
@@ -159,6 +158,10 @@ public class NetworkService {
         request.setSkip(skip);
         request.setPrincipal(principalOpt);
 
+        return list(request);
+    }
+
+    public CompletableFuture<List<NetworkVO>> list(ListNetworkRequest request) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));

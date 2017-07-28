@@ -49,6 +49,8 @@ public class WebSocketRequestProcessor {
     @Autowired
     private DeviceHandlers deviceHandlers;
     @Autowired
+    private NetworkHandlers networkHandlers;
+    @Autowired
     private UserHandlers userHandlers;
 
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
@@ -126,6 +128,21 @@ public class WebSocketRequestProcessor {
             case DEVICE_DELETE:
                 deviceHandlers.processDeviceDelete(request, session);
                 break;
+            case NETWORK_LIST:
+                networkHandlers.processNetworkList(request, session);
+                break;
+            case NETWORK_GET:
+                networkHandlers.processNetworkGet(request, session);
+                break;
+            case NETWORK_INSERT:
+                networkHandlers.processNetworkInsert(request, session);
+                break;
+            case NETWORK_UPDATE:
+                networkHandlers.processNetworkUpdate(request, session);
+                break;
+            case NETWORK_DELETE:
+                networkHandlers.processNetworkDelete(request, session);
+                break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);
                 break;
@@ -194,6 +211,11 @@ public class WebSocketRequestProcessor {
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
         DEVICE_DELETE("device/delete"),
+        NETWORK_LIST("network/list"),
+        NETWORK_INSERT("network/insert"),
+        NETWORK_GET("network/get"),
+        NETWORK_DELETE("network/delete"),
+        NETWORK_UPDATE("network/update"),
         USER_LIST("user/list"),
         USER_GET("user/get"),
         USER_INSERT("user/insert"),
