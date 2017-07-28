@@ -277,17 +277,20 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         DeviceVO device = deviceService.findById(deviceId);
         if (device == null) {
-            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), 
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
             List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
             commandService.find(Collections.singletonList(deviceId), searchCommands, timestampSt, timestampEnd, status)
                     .thenApply(commands -> {
-                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
+                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
+                                .buildDeviceCommandComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
 
-                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(commands),
+                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
+                                .orderAndLimit(new ArrayList<>(commands),
                                 comparator, reverse, skip, take);
                         return ResponseFactory.response(OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
                     })
