@@ -52,7 +52,7 @@ while true; do
     result_kafka=$?
     nc -v -z -w1 $DH_POSTGRES_ADDRESS ${DH_POSTGRES_PORT:=5432}
     result_postgres=$?
-    nc -v -z -w1 ${HC_MEMBERS:%%,*} ${HC_PORT:=5701}
+    nc -v -z -w1 ${HC_MEMBERS%%,*} ${HC_PORT:=5701}
     result_hc=$?
 
     if [ "$result_kafka" -eq 0 -a "$result_postgres" -eq 0 -a "$result_zk" -eq 0 -a "$result_hc" -eq 0 ]; then
