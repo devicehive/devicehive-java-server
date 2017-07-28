@@ -20,8 +20,14 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
+import com.google.gson.JsonParser;
+
 import javax.persistence.Embeddable;
 import java.util.Objects;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 @Embeddable
 public class JsonStringWrapper implements HiveEntity {
@@ -33,7 +39,7 @@ public class JsonStringWrapper implements HiveEntity {
     }
 
     public JsonStringWrapper(String jsonString) {
-        this.jsonString = jsonString;
+        setJsonString(jsonString);
     }
 
     public String getJsonString() {
@@ -41,6 +47,11 @@ public class JsonStringWrapper implements HiveEntity {
     }
 
     public void setJsonString(String jsonString) {
+        try {
+            new JsonParser().parse(jsonString).getAsJsonObject();
+        } catch (Exception e) {
+            throw new HiveException(Messages.PARAMS_NOT_JSON, BAD_REQUEST.getStatusCode());
+        }
         this.jsonString = jsonString;
     }
 
