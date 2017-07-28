@@ -11,22 +11,30 @@ terminate() {
 }
 
 # Check if all required parameters are set
-if [ -z "$DH_ZK_ADDRESS" \
-  -o -z "$DH_KAFKA_ADDRESS" \
-  -o -z "$DH_POSTGRES_ADDRESS" \
-  -o -z "$DH_POSTGRES_USERNAME" \
-  -o -z "$DH_POSTGRES_PASSWORD" \
-  -o -z "$DH_POSTGRES_DB" ]
+if [ -z "$DH_POSTGRES_ADDRESS" ] \
+    || [ -z "$DH_POSTGRES_USERNAME" ] \
+    || [ -z "$DH_POSTGRES_PASSWORD" ] \
+    || [ -z "$DH_POSTGRES_DB" ] \
+    || [ -z "$DH_ZK_ADDRESS" ] \
+    || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
-    echo "- DH_ZK_ADDRESS"
-    echo "- DH_KAFKA_ADDRESS"
     echo "- DH_POSTGRES_ADDRESS"
     echo "- DH_POSTGRES_USERNAME"
     echo "- DH_POSTGRES_PASSWORD"
     echo "- DH_POSTGRES_DB"
+    echo "- DH_ZK_ADDRESS"
+    echo "And one of variants of Kafka bootstrap parameters:"
+    echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
+    echo "or"
+    echo "- DH_KAFKA_ADDRESS for a single server"
     exit 1
+fi
+
+if [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ]
+then
+    DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
 echo "Starting DeviceHive frontend"
@@ -34,7 +42,7 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dacks=${DH_ACKS:-1} \
 -Dauto.commit.interval.ms=${DH_AUTO_COMMIT_INTERVAL_MS:-5000} \
 -Dbatch.size=${DH_BATCH_SIZE:-98304} \
--Dbootstrap.servers=${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092} \
+-Dbootstrap.servers=${DH_KAFKA_BOOTSTRAP_SERVERS} \
 -Dcom.devicehive.log.level=${DH_LOG_LEVEL:-WARN} \
 -Denable.auto.commit=${DH_ENABLE_AUTO_COMMIT:-true} \
 -Dfetch.max.wait.ms=${DH_FETCH_MAX_WAIT_MS:-100} \
