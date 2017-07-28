@@ -52,7 +52,7 @@ while true; do
     result_kafka=$?
     curl --output /dev/null --silent --head --fail "http://${DH_RIAK_HOST_MEMBER}:${DH_RIAK_HTTP_PORT}/ping"
     result_riak=$?
-    nc -v -z -w1 ${HC_MEMBERS:%%,*} ${HC_PORT:=5701}
+    nc -v -z -w1 ${HC_MEMBERS%%,*} ${HC_PORT:=5701}
     result_hc=$?
 
     if [ "$result_kafka" -eq 0 -a "$result_zk" -eq 0 -a "$result_riak" -eq 0 -a "$result_hc" -eq 0 ]; then
