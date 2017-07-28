@@ -116,15 +116,15 @@ public class UserHandlers {
                 && Objects.equals(currentLoggedInUser.getId(), userId)) {
             fetchedUser = userService.findUserWithNetworks(currentLoggedInUser.getId());
         } else {
-            clientHandler.sendErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId),
-                    session);
+            clientHandler.sendErrorResponse(request, NOT_FOUND.getStatusCode(),
+                    String.format(Messages.USER_NOT_FOUND, userId), session);
             return;
         }
 
         if (fetchedUser == null) {
             logger.error("Can't get user with id {}: user not found", userId);
-            clientHandler.sendErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.USER_NOT_FOUND, userId),
-                    session);
+            clientHandler.sendErrorResponse(request, NOT_FOUND.getStatusCode(),
+                    String.format(Messages.USER_NOT_FOUND, userId), session);
         } else {
             WebSocketResponse response = new WebSocketResponse();
             response.addValue(USER, fetchedUser, USER_PUBLISHED);
@@ -140,7 +140,7 @@ public class UserHandlers {
 
 
         if (currentUser == null) {
-            clientHandler.sendErrorResponse(CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER, session);
+            clientHandler.sendErrorResponse(request, CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER, session);
         } else {
             WebSocketResponse response = new WebSocketResponse();
             response.addValue(CURRENT_USER, currentUser, USER_PUBLISHED);
@@ -260,7 +260,7 @@ public class UserHandlers {
             }
         }
 
-        clientHandler.sendErrorResponse(NOT_FOUND.getStatusCode(),
+        clientHandler.sendErrorResponse(request, NOT_FOUND.getStatusCode(),
                 String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, userId), session);
     }
 

@@ -240,7 +240,7 @@ public class NotificationHandlers {
                     WebSocketResponse response = new WebSocketResponse();
                     if (!notification.isPresent()) {
                         logger.error("Notification with id {} not found", notificationId);
-                        clientHandler.sendErrorResponse(SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
+                        clientHandler.sendErrorResponse(request, SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
                     } else {
                         response.addValue(NOTIFICATION, notification.get(), NOTIFICATION_TO_CLIENT);
                         clientHandler.sendMessage(request, response, session);
