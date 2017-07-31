@@ -50,17 +50,15 @@ public class WebSocketClientHandler {
     }
 
     public void sendMessage(JsonObject request, JsonObject response, WebSocketSession session) {
-        response.addProperty(ACTION, request.get(ACTION).getAsString());
-        response.addProperty(REQUEST_ID, request.get(REQUEST_ID).getAsString());
-        sendMessage(response, session);
+        JsonObject message = new JsonMessageBuilder()
+                .addAction(request.get(ACTION))
+                .addRequestId(request.get(REQUEST_ID))
+                .include(response).build();
+        sendMessage(message, session);
     }
 
     public void sendMessage(JsonObject request, WebSocketResponse response, WebSocketSession session) {
-            JsonObject message = new JsonMessageBuilder()
-                    .addAction(request.get(ACTION))
-                    .addRequestId(request.get(REQUEST_ID))
-                    .include(response.getResponseAsJson()).build();
-        sendMessage(message, session);
+        sendMessage(request, response.getResponseAsJson(), session);
     }
 
     public void sendErrorResponse(JsonObject request, int errorCode, String message, WebSocketSession session) {
