@@ -1,3 +1,7 @@
+properties([
+  buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
+])
+
 node('docker') {
   stage('Build jars') {
     echo 'Building jars ...'
