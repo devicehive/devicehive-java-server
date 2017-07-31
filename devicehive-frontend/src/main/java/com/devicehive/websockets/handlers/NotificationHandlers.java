@@ -34,7 +34,6 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.util.MessageCountHelper;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -204,7 +203,6 @@ public class NotificationHandlers {
                     logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
                     response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
                     clientHandler.sendMessage(request, response, session);
-                    MessageCountHelper.getInstance().incrementFrontendCounter();
                 });
     }
 

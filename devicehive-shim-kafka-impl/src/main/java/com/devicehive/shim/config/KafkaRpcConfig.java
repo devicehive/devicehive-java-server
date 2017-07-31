@@ -40,7 +40,7 @@ public class KafkaRpcConfig {
     @Value("${bootstrap.servers:127.0.0.1:9092}")
     private String bootstrapServers;
 
-    @Value("${c:16384}")
+    @Value("${batch.size:16384}")
     private int batchSize;
 
     @Value("${enable.auto.commit:true}")

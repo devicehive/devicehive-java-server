@@ -26,7 +26,6 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.util.MessageCountHelper;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import org.slf4j.Logger;
@@ -78,8 +77,6 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         } else {
             apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
-        apiInfo.setBackendCounter(MessageCountHelper.getInstance().getBackendCounter().get());
-        apiInfo.setFrontendCounter(MessageCountHelper.getInstance().getFrontendCounter().get());
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }

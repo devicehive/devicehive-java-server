@@ -54,12 +54,6 @@ public class ApiInfoVO implements HiveEntity {
     @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
-    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
-    private Long backendCounter;
-
-    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
-    private Long frontendCounter;
-
     public ApiInfoVO() {
     }
 
@@ -94,21 +88,5 @@ public class ApiInfoVO implements HiveEntity {
 
     public void setRestServerUrl(String restServerUrl) {
         this.restServerUrl = restServerUrl;
-    }
-
-    public Long getBackendCounter() {
-        return backendCounter;
-    }
-
-    public void setBackendCounter(Long backendCounter) {
-        this.backendCounter = backendCounter;
-    }
-
-    public Long getFrontendCounter() {
-        return frontendCounter;
-    }
-
-    public void setFrontendCounter(Long frontendCounter) {
-        this.frontendCounter = frontendCounter;
     }
 }

@@ -24,7 +24,6 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.util.MessageCountHelper;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -82,7 +81,6 @@ public class KafkaRpcClient implements RpcClient {
                         requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
                     }
                     logger.debug("Request {} sent successfully", request.getCorrelationId());
-                    MessageCountHelper.getInstance().incrementBackendCounter();
                     //TODO [rafa] in case sending fails - we need to notify the caller using the callback passed.
                 });
     }
