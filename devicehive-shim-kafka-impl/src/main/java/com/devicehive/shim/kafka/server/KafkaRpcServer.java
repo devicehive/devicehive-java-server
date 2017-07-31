@@ -24,11 +24,14 @@ import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RpcServer;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkerPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class KafkaRpcServer implements RpcServer {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServer.class);
 
     private WorkerPool<ServerEvent> workerPool;
     private RequestConsumer requestConsumer;
@@ -47,6 +50,7 @@ public class KafkaRpcServer implements RpcServer {
     public void start() {
         final ExecutorService execService = Executors.newFixedThreadPool(workerThreads);
         RingBuffer<ServerEvent> ringBuffer = workerPool.start(execService);
+        logger.info("LMAX Disruptor started. Buffer size: {}", ringBuffer.getBufferSize());
         requestConsumer.startConsumers(ringBuffer);
     }
 
