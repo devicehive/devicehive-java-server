@@ -29,8 +29,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -63,8 +61,10 @@ public class KafkaRpcClient implements RpcClient {
 
     @Override
     public void call(Request request, Consumer<Response> callback) {
-        push(request);
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
+        logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
+
+        push(request);
     }
 
     @Override
@@ -78,6 +78,7 @@ public class KafkaRpcClient implements RpcClient {
                 (recordMetadata, e) -> {
                     if (e != null) {
                         logger.error("Send request failed", e);
+                        requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
                     }
                     logger.debug("Request {} sent successfully", request.getCorrelationId());
                     //TODO [rafa] in case sending fails - we need to notify the caller using the callback passed.
@@ -102,6 +103,8 @@ public class KafkaRpcClient implements RpcClient {
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 
             requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
+            logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
+
             requestProducer.send(new ProducerRecord<>(requestTopic, request.getPartitionKey(), request));
 
             Response response = null;

@@ -38,9 +38,7 @@ import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +60,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_T
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListNotificationRequest.createListNotificationRequest;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.*;
 
 @Component
 public class NotificationHandlers {
@@ -207,7 +202,7 @@ public class NotificationHandlers {
                 .thenAccept(notification -> {
                     logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
                     response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
-                        clientHandler.sendMessage(request, response, session);
+                    clientHandler.sendMessage(request, response, session);
                 });
     }
 
