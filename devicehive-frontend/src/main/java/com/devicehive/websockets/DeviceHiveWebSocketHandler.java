@@ -21,7 +21,9 @@ package com.devicehive.websockets;
  */
 
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.DeviceCommandService;
@@ -49,8 +51,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
@@ -108,9 +112,18 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         } catch (HiveException ex) {
             logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(ex.getCode(), ex.getMessage());
-        } catch (ConstraintViolationException ex) {
+        } catch (IllegalParametersException ex) {
             logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
+        } catch (ActionNotAllowedException ex) {
+            logger.error("Error executing the request", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
+        } catch (ConstraintViolationException ex) {
+            Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
+            StringBuilder errors = new StringBuilder();
+            constraintViolations.forEach(exc -> errors.append(exc.getMessage()));
+            logger.error("Error executing the request", errors);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, errors.toString());
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
             logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, ex.getMessage());
@@ -132,7 +145,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         }
 
         if (response != null) {
-            webSocketClientHandler.sendMessage(response, session);
+            webSocketClientHandler.sendMessage(request, response, session);
         }
 
     }

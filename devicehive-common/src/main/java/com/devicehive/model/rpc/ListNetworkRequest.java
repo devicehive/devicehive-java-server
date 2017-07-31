@@ -22,8 +22,14 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 
+import java.lang.reflect.Modifier;
 import java.util.Optional;
+
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListNetworkRequest extends Body {
 
@@ -37,6 +43,17 @@ public class ListNetworkRequest extends Body {
 
     public ListNetworkRequest() {
         super(Action.LIST_NETWORK_REQUEST.name());
+    }
+
+    public static ListNetworkRequest createListNetworkRequest(JsonObject request) {
+        ListNetworkRequest listNetworkRequest = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, ListNetworkRequest.class);
+        listNetworkRequest.setTake(Optional.ofNullable(listNetworkRequest.getTake()).orElse(DEFAULT_TAKE));
+        listNetworkRequest.setSkip(Optional.ofNullable(listNetworkRequest.getSkip()).orElse(DEFAULT_SKIP));
+
+        return listNetworkRequest;
     }
 
     public String getName() {

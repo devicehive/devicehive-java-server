@@ -41,6 +41,7 @@ import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,7 @@ import java.io.IOException;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Component
 public class CommonHandlers {
@@ -84,9 +86,9 @@ public class CommonHandlers {
     @PreAuthorize("permitAll")
     public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 
-        String jwtToken = null;
-        if (request.get("token") != null) {
-            jwtToken = request.get("token").getAsString();
+        String jwtToken = gson.fromJson(request.get("token"), String.class);
+        if (StringUtils.isEmpty(jwtToken)) {
+            throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, SC_UNAUTHORIZED);
         }
 
         HiveWebsocketSessionState state = (HiveWebsocketSessionState) session.getAttributes().get(HiveWebsocketSessionState.KEY);
