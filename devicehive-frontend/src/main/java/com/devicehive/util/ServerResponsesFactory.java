@@ -22,7 +22,6 @@ package com.devicehive.util;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.GsonFactory;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
@@ -47,7 +46,7 @@ public class ServerResponsesFactory {
         return resultMessage;
     }
 
-    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, String subId) {
+    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, String subscriptionId) {
 
         JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
                 DeviceCommand.class);
@@ -55,16 +54,17 @@ public class ServerResponsesFactory {
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/insert");
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
-        resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subId);
+        resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subscriptionId);
         return resultJsonObject;
     }
 
-    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand) {
+    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand, String subscriptionId) {
         JsonElement deviceCommandJson =
                 GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();
         resultJsonObject.addProperty("action", "command/update");
         resultJsonObject.add(Constants.COMMAND, deviceCommandJson);
+        resultJsonObject.addProperty(Constants.SUBSCRIPTION_ID, subscriptionId);
         return resultJsonObject;
     }
 
@@ -73,7 +73,7 @@ public class ServerResponsesFactory {
         notification.setId(Math.abs(new Random().nextInt())); // TODO: remove this when id generation will be moved to backend
         notification.setNotification(notificationName);
         notification.setDeviceId(device.getDeviceId());
-        Gson gson = GsonFactory.createGson(JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+        Gson gson = GsonFactory.createGson(DEVICE_PUBLISHED);
         JsonElement deviceAsJson = gson.toJsonTree(device);
         JsonStringWrapper wrapperOverDevice = new JsonStringWrapper(deviceAsJson.toString());
         notification.setParameters(wrapperOverDevice);

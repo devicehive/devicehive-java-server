@@ -23,6 +23,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.SortOrder;
@@ -134,7 +135,12 @@ public class NetworkResourceImpl implements NetworkResource {
     @Override
     public Response delete(long id) {
         logger.debug("Network delete requested");
-        networkService.delete(id);
+        boolean isDeleted = networkService.delete(id);
+        if (!isDeleted) {
+            logger.error(String.format(Messages.NETWORK_NOT_FOUND, id));
+            return ResponseFactory.response(NOT_FOUND,
+                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NETWORK_NOT_FOUND, id)));
+        }
         logger.debug("Network with id = {} does not exists any more.", id);
         return ResponseFactory.response(NO_CONTENT);
     }

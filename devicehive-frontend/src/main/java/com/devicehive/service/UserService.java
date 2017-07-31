@@ -57,12 +57,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This class serves all requests to database from controller.
@@ -248,10 +250,13 @@ public class UserService {
         UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
-            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, userId));
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
-        NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId)
-                .orElseThrow(() -> new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId)));
+        NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId).orElse(null);
+        if (Objects.isNull(existingNetwork)) {
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+        }
+            
         networkDao.assignToNetwork(existingNetwork, existingUser);
     }
 
@@ -271,16 +276,20 @@ public class UserService {
         userDao.unassignNetwork(existingUser, networkId);
     }
 
-    //@Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public CompletableFuture<List<UserVO>> list(ListUserRequest request) {
+        return list(request.getLogin(), request.getLoginPattern(), request.getRole(), request.getStatus(), request.getSortField(),
+                request.getSortOrder(), request.getTake(), request.getSkip());
+    }
+
     public CompletableFuture<List<UserVO>> list(String login, String loginPattern, Integer role, Integer status, String sortField,
-            boolean sortOrderAsc, Integer take, Integer skip) {
+            String sortOrder, Integer take, Integer skip) {
         ListUserRequest request = new ListUserRequest();
         request.setLogin(login);
         request.setLoginPattern(loginPattern);
         request.setRole(role);
         request.setStatus(status);
         request.setSortField(sortField);
-        request.setSortOrderAsc(sortOrderAsc);
+        request.setSortOrder(sortOrder);
         request.setTake(take);
         request.setSkip(skip);
 

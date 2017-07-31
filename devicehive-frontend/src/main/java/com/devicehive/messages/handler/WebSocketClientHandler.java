@@ -31,6 +31,9 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
 
+import static com.devicehive.websockets.converters.JsonMessageBuilder.ACTION;
+import static com.devicehive.websockets.converters.JsonMessageBuilder.REQUEST_ID;
+
 @Component
 public class WebSocketClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketClientHandler.class);
@@ -46,12 +49,23 @@ public class WebSocketClientHandler {
         }
     }
 
+    public void sendMessage(JsonObject request, JsonObject response, WebSocketSession session) {
+        response.addProperty(ACTION, request.get(ACTION).getAsString());
+        response.addProperty(REQUEST_ID, request.get(REQUEST_ID).getAsString());
+        sendMessage(response, session);
+    }
+
     public void sendMessage(JsonObject request, WebSocketResponse response, WebSocketSession session) {
             JsonObject message = new JsonMessageBuilder()
-                    .addAction(request.get(JsonMessageBuilder.ACTION))
-                    .addRequestId(request.get(JsonMessageBuilder.REQUEST_ID))
+                    .addAction(request.get(ACTION))
+                    .addRequestId(request.get(REQUEST_ID))
                     .include(response.getResponseAsJson()).build();
         sendMessage(message, session);
+    }
+
+    public void sendErrorResponse(JsonObject request, int errorCode, String message, WebSocketSession session) {
+        JsonObject jsonObject = buildErrorResponse(errorCode, message);
+        sendMessage(request, jsonObject, session);
     }
 
     public JsonObject buildErrorResponse(int errorCode, String message) {

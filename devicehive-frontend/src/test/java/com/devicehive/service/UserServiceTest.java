@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
@@ -68,6 +69,8 @@ import java.util.stream.IntStream;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import static com.devicehive.model.enums.SortOrder.ASC;
+import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static java.util.UUID.randomUUID;
@@ -117,7 +120,7 @@ public class UserServiceTest extends AbstractResourceTest {
     public ExpectedException expectedException = ExpectedException.none();
 
     @Test
-    public void should_throw_NoSuchElementException_if_user_is_null_when_assign_network() throws Exception {
+    public void should_throw_HiveException_if_user_is_null_when_assign_network() throws Exception {
         NetworkVO network = new NetworkVO();
         String networkName = RandomStringUtils.randomAlphabetic(10);
         network.setName(networkName);
@@ -125,21 +128,21 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
 
-        expectedException.expect(NoSuchElementException.class);
+        expectedException.expect(HiveException.class);
         expectedException.expectMessage(String.format(Messages.USER_NOT_FOUND, -1L));
 
         userService.assignNetwork(-1L, created.getId());
     }
 
     @Test
-    public void should_throw_NoSuchElementException_if_network_is_null_when_assign_network() throws Exception {
+    public void should_throw_HiveException_if_network_is_null_when_assign_network() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
 
-        expectedException.expect(NoSuchElementException.class);
+        expectedException.expect(HiveException.class);
         expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         userService.assignNetwork(user.getId(), -1L);
@@ -1106,7 +1109,7 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = userService.createUser(testUser, RandomStringUtils.randomAlphabetic(10));
         handleListUserRequest();
         final UserVO finalTestUser = testUser;
-        userService.list(testUser.getLogin(), null, null, null, null, false, 100, 0)
+        userService.list(testUser.getLogin(), null, null, null, null, DESC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(1));
@@ -1132,7 +1135,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, false, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, null, null, DESC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1163,7 +1166,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, false, 100, 0)
+        userService.list(null, "%" + prefix + "%", UserRole.CLIENT.getValue(), null, null, DESC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
@@ -1193,7 +1196,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, false, 100, 0)
+        userService.list(null, "%" + prefix + "%", null, UserStatus.LOCKED_OUT.getValue(), null, DESC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(10));
@@ -1219,7 +1222,7 @@ public class UserServiceTest extends AbstractResourceTest {
             userService.createUser(user, RandomStringUtils.randomAlphabetic(10));
         }
         handleListUserRequest();
-        userService.list(null, "%" + suffix, null, null, "login", true, 100, 0)
+        userService.list(null, "%" + suffix, null, null, "login", ASC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1231,7 +1234,7 @@ public class UserServiceTest extends AbstractResourceTest {
                     assertThat(users.get(4).getLogin(), startsWith("e"));
                 }).get(15, TimeUnit.SECONDS);
 
-        userService.list(null, "%" + suffix, null, null, "login", false, 100, 0)
+        userService.list(null, "%" + suffix, null, null, "login", DESC.name(), 100, 0)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(5));
@@ -1259,7 +1262,7 @@ public class UserServiceTest extends AbstractResourceTest {
             ids.add(user.getId());
         }
         handleListUserRequest();
-        userService.list(null, "%" + prefix + "%", null, null, null, true, 20, 10)
+        userService.list(null, "%" + prefix + "%", null, null, null, DESC.name(), 20, 10)
                 .thenAccept(users -> {
                     assertThat(users, not(empty()));
                     assertThat(users, hasSize(20));
@@ -1278,7 +1281,7 @@ public class UserServiceTest extends AbstractResourceTest {
             final List<UserVO> users =
                     userDao.list(req.getLogin(), req.getLoginPattern(),
                             req.getRole(), req.getStatus(),
-                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getSortField(), req.isSortOrderAsc(),
                             req.getTake(), req.getSkip());
 
             return Response.newBuilder()

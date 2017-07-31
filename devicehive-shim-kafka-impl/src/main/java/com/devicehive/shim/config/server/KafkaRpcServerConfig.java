@@ -69,7 +69,7 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.buffer-size:1024}")
     private int bufferSize;
 
-    @Value("${lmax.wait.strategy:busyspin}")
+    @Value("${lmax.wait.strategy:blocking}")
     private String waitStrategy;
 
     @Bean(name = "server-producer")

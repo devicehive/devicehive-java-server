@@ -71,6 +71,8 @@ public class Constants {
     public static final String NOTIFICATION = "notification";
     public static final String NOTIFICATIONS = "notifications";
     public static final String NOTIFICATION_ID = "notificationId";
+    public static final String USER = "user";
+    public static final String USERS = "users";
     public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
     public static final String PAYLOAD = "payload";
@@ -82,6 +84,7 @@ public class Constants {
     public static final String LABEL = "label";
     public static final String STATUS = "status";
     public static final String NETWORK = "network";
+    public static final String NETWORKS = "networks";
     public static final String NETWORK_ID = "networkId";
     public static final String NETWORK_NAME = "networkName";
     public static final String SORT_FIELD = "sortField";
