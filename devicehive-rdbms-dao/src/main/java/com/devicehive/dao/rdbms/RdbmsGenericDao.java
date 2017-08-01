@@ -21,15 +21,19 @@ package com.devicehive.dao.rdbms;
  */
 
 import com.devicehive.configuration.Constants;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -43,8 +47,8 @@ public class RdbmsGenericDao {
 
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-    public <T extends Serializable> T find(Class<T> entityClass, Object primaryKey) {
-        return em.find(entityClass, primaryKey);
+    public <T extends Serializable> T find(Class<T> entityClass, Object primaryKey, Optional<CacheConfig> cacheConfig) {
+        return em.find(entityClass, primaryKey, prepareCacheProps(cacheConfig));
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -84,6 +88,15 @@ public class RdbmsGenericDao {
             query.setHint(RETRIEVE_MODE, cacheConfig.get().getRetrieveMode());
             query.setHint(STORE_MODE, cacheConfig.get().getStoreMode());
         }
+    }
+
+    public Map<String, Object> prepareCacheProps(Optional<CacheConfig> cacheConfig) {
+        final Map<String, Object> props = new HashMap<>();
+        if (cacheConfig.isPresent()) {
+            props.put(RETRIEVE_MODE, cacheConfig.get().getRetrieveMode());
+            props.put(STORE_MODE, cacheConfig.get().getStoreMode());
+        }
+        return props;
     }
 
     public CriteriaBuilder criteriaBuilder() {
