@@ -102,6 +102,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>org.apache.commons:commons-lang3</include>
+                                    <include>com.google.code.gson:gson</include>
                                 </includes>
                             </artifactSet>
                             <shadedArtifactAttached>true</shadedArtifactAttached>
