@@ -30,6 +30,7 @@ import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.server.RequestConsumer;
 import com.devicehive.shim.kafka.server.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
+import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -48,7 +49,7 @@ import java.util.stream.IntStream;
 
 @Configuration
 @Profile("rpc-server")
-@ComponentScan("com.devicehive.shim.config")
+@ComponentScan({"com.devicehive.shim.config", "com.devicehive.shim.kafka.topic"})
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
     private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServerConfig.class);
@@ -60,6 +61,9 @@ public class KafkaRpcServerConfig {
 
     @Autowired
     private KafkaRpcConfig kafkaRpcConfig;
+
+    @Autowired
+    private KafkaTopicService kafkaTopicService;
 
     @Value("${rpc.server.request-consumer.threads:1}")
     private int consumerThreads;
@@ -75,7 +79,7 @@ public class KafkaRpcServerConfig {
 
     @PostConstruct
     private void initializeTopics() {
-        kafkaRpcConfig.createTopic(REQUEST_TOPIC);
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
     }
     
     @Bean(name = "server-producer")

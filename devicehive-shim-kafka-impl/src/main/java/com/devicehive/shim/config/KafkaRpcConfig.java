@@ -117,20 +117,23 @@ public class KafkaRpcConfig {
         return props;
     }
 
-    public void createTopic(String topic) {
-        ZkClient zkClient = new ZkClient(
-                zookeeperConnect,
-                sessionTimeout,
-                connectionTimeout,
-                ZKStringSerializer$.MODULE$);
-        try {
-            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Properties topicConfig = topicProps();
-            if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor, topicConfig, RackAwareMode.Enforced$.MODULE$);
-            }
-        } finally {
-            zkClient.close();
-        }
+    public int getNumPartitions() {
+        return numPartitions;
+    }
+
+    public int getReplicationFactor() {
+        return replicationFactor;
+    }
+
+    public String getZookeeperConnect() {
+        return zookeeperConnect;
+    }
+
+    public int getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
     }
 }
