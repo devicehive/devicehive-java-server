@@ -101,7 +101,7 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
 
     @Override
     public UserVO find(Long id) {
-        User user = find(User.class, id);
+        User user = find(User.class, id, of(CacheConfig.get()));
         return User.convertToVo(user);
     }
 

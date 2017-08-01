@@ -54,6 +54,9 @@ public class ApiInfoVO implements HiveEntity {
     @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
     private String restServerUrl;
 
+    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
+    private String ehcacheStats;
+
     public ApiInfoVO() {
     }
 
@@ -88,5 +91,13 @@ public class ApiInfoVO implements HiveEntity {
 
     public void setRestServerUrl(String restServerUrl) {
         this.restServerUrl = restServerUrl;
+    }
+
+    public String getEhcacheStats() {
+        return ehcacheStats;
+    }
+
+    public void setEhcacheStats(String ehcacheStats) {
+        this.ehcacheStats = ehcacheStats;
     }
 }
