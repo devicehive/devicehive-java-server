@@ -28,6 +28,7 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
+import net.sf.ehcache.CacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         } else {
             apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
+        apiInfo.setEncacheStats(getCacheStats());
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
@@ -89,6 +91,18 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         clusterConfig.setZookeeperConnect(env.getProperty(Constants.ZOOKEEPER_CONNECT));
 
         return ResponseFactory.response(Response.Status.OK, clusterConfig, JsonPolicyDef.Policy.REST_CLUSTER_CONFIG);
+    }
+
+    private String getCacheStats() {
+        final StringBuilder result = new StringBuilder();
+        CacheManager cacheManager = CacheManager.getInstance();
+        String[] cacheNames = cacheManager.getCacheNames();
+        for (int i = 0; i < cacheNames.length; i++) {
+            String cacheName = cacheNames[i];
+            result.append(cacheName).append(" - ").append(cacheManager.getCache(cacheName).getStatistics().toString());
+        }
+
+        return result.toString();
     }
 
 }
