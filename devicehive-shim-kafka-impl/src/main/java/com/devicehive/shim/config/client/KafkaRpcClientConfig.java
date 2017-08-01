@@ -94,25 +94,9 @@ public class KafkaRpcClientConfig {
     @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
-    @Value("${zookeeper.connect:127.0.0.1:2181}")
-    private String zookeeperConnect;
-
-    @Value("${num.partitions:3}")
-    private int numPartitions;
-
-    @Value("${replication.factor:1}")
-    private int replicationFactor;
-
-    @Value("${zookeeper.sessionTimeout:10000}")
-    private int sessionTimeout;
-
-    @Value("${zookeeper.connectionTimeout:8000}")
-    private int connectionTimeout;
-
     @PostConstruct
     private void initializeTopics() {
-        createTopic(zookeeperConnect, RESPONSE_TOPIC);
-        createTopic(zookeeperConnect, KafkaRpcServerConfig.REQUEST_TOPIC);
+        kafkaRpcConfig.createTopic(RESPONSE_TOPIC);
     }
 
     @Bean
@@ -156,20 +140,4 @@ public class KafkaRpcClientConfig {
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
     }
 
-    private void createTopic(String zookeeperConnect, String topic) {
-        ZkClient zkClient = new ZkClient(
-                zookeeperConnect,
-                sessionTimeout,
-                connectionTimeout,
-                ZKStringSerializer$.MODULE$);
-        try {
-            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Properties topicConfig = kafkaRpcConfig.topicProps();
-            if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor, topicConfig, RackAwareMode.Enforced$.MODULE$);
-            }
-        } finally {
-            zkClient.close();
-        }
-    }
 }
