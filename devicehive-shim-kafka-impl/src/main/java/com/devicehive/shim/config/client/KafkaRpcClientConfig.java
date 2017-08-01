@@ -164,7 +164,7 @@ public class KafkaRpcClientConfig {
                 ZKStringSerializer$.MODULE$);
         try {
             ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Properties topicConfig = new Properties();
+            Properties topicConfig = kafkaRpcConfig.topicProps();
             if (!AdminUtils.topicExists(zkUtils, topic)) {
                 AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor, topicConfig, RackAwareMode.Enforced$.MODULE$);
             }

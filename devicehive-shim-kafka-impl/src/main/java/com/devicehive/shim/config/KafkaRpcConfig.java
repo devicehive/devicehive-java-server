@@ -58,6 +58,9 @@ public class KafkaRpcConfig {
     @Value("${acks:1}")
     private String acks;
 
+    @Value("${retention.ms:604800000}")
+    private String retentionMs;
+
     public Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -84,6 +87,12 @@ public class KafkaRpcConfig {
     public Properties serverConsumerProps() {
         Properties props = commonConsumerProps();
         props.put(ConsumerConfig.GROUP_ID_CONFIG,  requestConsumerGroup);
+        return props;
+    }
+    
+    public Properties topicProps() {
+        Properties props = new Properties();
+        props.setProperty("retention.ms", retentionMs);
         return props;
     }
 }
