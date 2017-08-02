@@ -30,17 +30,10 @@ import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
+import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.google.gson.Gson;
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
-import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.ZkConnection;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +54,7 @@ import java.util.concurrent.Executors;
 
 @Configuration
 @Profile("rpc-client")
-@ComponentScan("com.devicehive.shim.config")
+@ComponentScan({"com.devicehive.shim.config", "com.devicehive.shim.kafka.topic"})
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
@@ -90,29 +83,16 @@ public class KafkaRpcClientConfig {
 
     @Autowired
     private KafkaRpcConfig kafkaRpcConfig;
+    
+    @Autowired
+    private KafkaTopicService kafkaTopicService;
 
     @Value("${rpc.client.response-consumer.threads:1}")
     private int responseConsumerThreads;
 
-    @Value("${zookeeper.connect:127.0.0.1:2181}")
-    private String zookeeperConnect;
-
-    @Value("${num.partitions:3}")
-    private int numPartitions;
-
-    @Value("${replication.factor:1}")
-    private int replicationFactor;
-
-    @Value("${zookeeper.sessionTimeout:10000}")
-    private int sessionTimeout;
-
-    @Value("${zookeeper.connectionTimeout:8000}")
-    private int connectionTimeout;
-
     @PostConstruct
     private void initializeTopics() {
-        createTopic(zookeeperConnect, RESPONSE_TOPIC);
-        createTopic(zookeeperConnect, KafkaRpcServerConfig.REQUEST_TOPIC);
+        kafkaTopicService.createTopic(RESPONSE_TOPIC);
     }
 
     @Bean
@@ -156,20 +136,4 @@ public class KafkaRpcClientConfig {
                 responseMatcher, consumerProps, executor, new ResponseSerializer(gson));
     }
 
-    private void createTopic(String zookeeperConnect, String topic) {
-        ZkClient zkClient = new ZkClient(
-                zookeeperConnect,
-                sessionTimeout,
-                connectionTimeout,
-                ZKStringSerializer$.MODULE$);
-        try {
-            ZkUtils zkUtils = new ZkUtils(zkClient, new ZkConnection(zookeeperConnect), false);
-            Properties topicConfig = new Properties();
-            if (!AdminUtils.topicExists(zkUtils, topic)) {
-                AdminUtils.createTopic(zkUtils, topic, numPartitions, replicationFactor, topicConfig, RackAwareMode.Enforced$.MODULE$);
-            }
-        } finally {
-            zkClient.close();
-        }
-    }
 }

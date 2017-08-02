@@ -21,6 +21,12 @@ package com.devicehive.shim.config;
  */
 
 
+import kafka.admin.AdminUtils;
+import kafka.admin.RackAwareMode;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
+import org.I0Itec.zkclient.ZkClient;
+import org.I0Itec.zkclient.ZkConnection;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +40,12 @@ import java.util.UUID;
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcConfig {
 
+    @Value("${num.partitions:3}")
+    private int numPartitions;
+
+    @Value("${replication.factor:1}")
+    private int replicationFactor;
+    
     @Value("${rpc.server.request-consumer.group:request-consumer-group}")
     private String requestConsumerGroup;
 
@@ -57,6 +69,18 @@ public class KafkaRpcConfig {
 
     @Value("${acks:1}")
     private String acks;
+
+    @Value("${zookeeper.connect:127.0.0.1:2181}")
+    private String zookeeperConnect;
+
+    @Value("${zookeeper.sessionTimeout:10000}")
+    private int sessionTimeout;
+
+    @Value("${zookeeper.connectionTimeout:8000}")
+    private int connectionTimeout;
+
+    @Value("${retention.ms:604800000}")
+    private String retentionMs;
 
     public Properties producerProps() {
         Properties props = new Properties();
@@ -85,5 +109,31 @@ public class KafkaRpcConfig {
         Properties props = commonConsumerProps();
         props.put(ConsumerConfig.GROUP_ID_CONFIG,  requestConsumerGroup);
         return props;
+    }
+    
+    public Properties topicProps() {
+        Properties props = new Properties();
+        props.setProperty("retention.ms", retentionMs);
+        return props;
+    }
+
+    public int getNumPartitions() {
+        return numPartitions;
+    }
+
+    public int getReplicationFactor() {
+        return replicationFactor;
+    }
+
+    public String getZookeeperConnect() {
+        return zookeeperConnect;
+    }
+
+    public int getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    public int getConnectionTimeout() {
+        return connectionTimeout;
     }
 }
