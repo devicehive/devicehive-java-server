@@ -79,7 +79,7 @@ public class KafkaRpcConfig {
     @Value("${zookeeper.connectionTimeout:8000}")
     private int connectionTimeout;
 
-    @Value("${retention.ms:604800000}")
+    @Value("${retention.ms:120000}")
     private String retentionMs;
 
     public Properties producerProps() {
