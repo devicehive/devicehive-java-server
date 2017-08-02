@@ -29,5 +29,6 @@
             diskPersistent="false"
             diskExpiryThreadIntervalSeconds="120"
             memoryStoreEvictionPolicy="LRU"
+            statistics="true"
     />
 </ehcache>

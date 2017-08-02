@@ -35,6 +35,14 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
+    <logger name="org.hibernate.cache" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <logger name="org.hibernate.engine.internal.StatisticalLoggingSessionEventListener" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
     <root level="${root.log.level:-INFO}">
         <appender-ref ref="ASYNC"/>
     </root>

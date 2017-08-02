@@ -28,12 +28,14 @@ import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
-import net.sf.ehcache.CacheManager;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
@@ -51,6 +53,9 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -78,7 +83,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         } else {
             apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
-        apiInfo.setEncacheStats(getCacheStats());
+        apiInfo.setEhcacheStats(getCacheStats());
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
@@ -94,15 +99,10 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     }
 
     private String getCacheStats() {
-        final StringBuilder result = new StringBuilder();
-        CacheManager cacheManager = CacheManager.getInstance();
-        String[] cacheNames = cacheManager.getCacheNames();
-        for (int i = 0; i < cacheNames.length; i++) {
-            String cacheName = cacheNames[i];
-            result.append(cacheName).append(" - ").append(cacheManager.getCache(cacheName).getStatistics().toString());
-        }
-
-        return result.toString();
+        SessionFactory sessionFactory = entityManagerFactory.nativeEntityManagerFactory.unwrap(SessionFactory.class);
+        Statistics statistics = sessionFactory.getStatistics();
+        
+        return statistics.toString();
     }
 
 }
