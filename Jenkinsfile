@@ -20,8 +20,14 @@ node('docker') {
     echo 'Building Frontend image ...'
     checkout scm
     unstash 'jars'
-    def frontend = docker.build('sitnik/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
-    def backend = docker.build('sitnik/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
-    def hazelcast = docker.build('sitnik/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile.Jenkins .')
+    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
+    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
+    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile.Jenkins .')
+
+    docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+      frontend.push()
+      backend.push()
+      hazelcast.push()
+    }
   }
 }
