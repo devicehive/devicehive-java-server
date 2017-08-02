@@ -23,6 +23,5 @@ node('docker') {
     def frontend = docker.build('sitnik/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
     def backend = docker.build('sitnik/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
     def hazelcast = docker.build('sitnik/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile.Jenkins .')
-    }
   }
 }
