@@ -23,6 +23,7 @@ package com.devicehive.resource;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -249,7 +250,7 @@ public interface DeviceNotificationResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "notification sent", response = DeviceNotification.class),
+            @ApiResponse(code = 201, message = "notification sent", response = InsertNotification.class),
             @ApiResponse(code = 404, message = "If device not found"),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 403, message = "If device is not connected to network")

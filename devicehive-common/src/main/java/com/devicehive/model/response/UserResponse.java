@@ -22,6 +22,7 @@ package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
+import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -76,6 +77,10 @@ public class UserResponse implements HiveEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLogin = new Date(0);
 
+    @SerializedName("data")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private JsonStringWrapper data;
+
     @SerializedName("introReviewed")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Boolean introReviewed;
@@ -89,6 +94,7 @@ public class UserResponse implements HiveEntity {
         response.setStatus(u.getStatus());
         response.networks = new HashSet<>();
         response.networks.addAll(u.getNetworks().stream().map(UserNetworkResponse::fromNetwork).collect(Collectors.toList()));
+        response.setData(u.getData());
         response.setLastLogin(u.getLastLogin());
         response.setIntroReviewed(u.getIntroReviewed());
         return response;
@@ -148,6 +154,14 @@ public class UserResponse implements HiveEntity {
 
     public void setLoginAttempts(Integer loginAttempts) {
         this.loginAttempts = loginAttempts;
+    }
+
+    public JsonStringWrapper getData() {
+        return data;
+    }
+
+    public void setData(JsonStringWrapper data) {
+        this.data = data;
     }
 
     public Boolean getIntroReviewed() {

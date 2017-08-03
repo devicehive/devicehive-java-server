@@ -32,6 +32,7 @@ public class CommandSearchRequest extends Body {
     private Set<String> names;
     private Date timestampStart;
     private Date timestampEnd;
+    private boolean returnUpdated;
     private String status;
 
     public CommandSearchRequest() {
@@ -76,6 +77,14 @@ public class CommandSearchRequest extends Body {
 
     public void setTimestampEnd(Date timestampEnd) {
         this.timestampEnd = timestampEnd;
+    }
+
+    public boolean isReturnUpdated() {
+        return returnUpdated;
+    }
+
+    public void setReturnUpdated(boolean returnUpdated) {
+        this.returnUpdated = returnUpdated;
     }
 
     public String getStatus() {

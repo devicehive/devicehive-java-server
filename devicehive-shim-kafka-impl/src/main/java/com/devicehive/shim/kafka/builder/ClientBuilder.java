@@ -46,8 +46,6 @@ public class ClientBuilder {
 
     private Properties consumerProps;
     private Deserializer<Response> consumerValueDeserializer;
-
-
     private int consumerThreads;
 
     public ClientBuilder withRequestTopic(String requestTopic) {

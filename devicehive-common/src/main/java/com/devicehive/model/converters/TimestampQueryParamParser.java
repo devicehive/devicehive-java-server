@@ -1,4 +1,4 @@
-package com.devicehive.websockets.util;
+package com.devicehive.model.converters;
 
 /*
  * #%L
@@ -20,22 +20,21 @@ package com.devicehive.websockets.util;
  * #L%
  */
 
-public enum HiveEndpoint {
-    CLIENT("client"),
-    DEVICE("device");
-    String value;
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.adapters.TimestampAdapter;
 
-    HiveEndpoint(String value) {
-        this.value = value;
-    }
+import java.util.Date;
 
-    public static HiveEndpoint byValue(String endpoint) {
-        if (endpoint.equalsIgnoreCase(HiveEndpoint.CLIENT.value)) {
-            return HiveEndpoint.CLIENT;
-        } else if (endpoint.equalsIgnoreCase(HiveEndpoint.DEVICE.value)) {
-            return HiveEndpoint.DEVICE;
-        } else {
-            return null;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+
+public class TimestampQueryParamParser {
+
+    public static Date parse(String value) {
+        try {
+            return TimestampAdapter.parseTimestamp(value);
+        } catch (IllegalArgumentException | UnsupportedOperationException e) {
+            throw new HiveException(Messages.UNPARSEABLE_TIMESTAMP, e, BAD_REQUEST.getStatusCode());
         }
     }
 }

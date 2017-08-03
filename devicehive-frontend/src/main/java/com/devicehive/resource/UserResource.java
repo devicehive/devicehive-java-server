@@ -84,7 +84,7 @@ public interface UserResource {
             @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Login")
             @QueryParam("sortField")
             String sortField,
-            @ApiParam(name = "sortOrder", value = "Result list sort order. Available values are ASC and DESC.", allowableValues = "ASC,DESC")
+            @ApiParam(name = "sortOrder", value = "Result list sort order. The sortField should be specified.", allowableValues = "ASC,DESC")
             @QueryParam("sortOrder")
             String sortOrderSt,
             @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
@@ -112,7 +112,7 @@ public interface UserResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserResponse.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a User resource in the response body.", response = UserWithNetworkVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),

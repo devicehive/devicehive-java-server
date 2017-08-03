@@ -22,13 +22,12 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
-import com.devicehive.resource.converters.TimestampQueryParamParser;
+import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
@@ -80,30 +79,34 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public void poll(final String deviceId, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceId, namesString, timestamp, limit, asyncResponse);
+    public void poll(final String deviceId, final String namesString, final String timestamp,
+            boolean returnUpdatedCommands, final long timeout, final int limit, final AsyncResponse asyncResponse)
+            throws Exception {
+        poll(timeout, deviceId, namesString, timestamp, returnUpdatedCommands, limit, asyncResponse);
     }
 
     @Override
     public void pollMany(final String deviceIdsString, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceIdsString, namesString, timestamp, limit, asyncResponse);
+        poll(timeout, deviceIdsString, namesString, timestamp, false, limit, asyncResponse);
     }
 
     private void poll(final long timeout,
                       final String deviceIdsCsv,
                       final String namesCsv,
                       final String timestamp,
+                      final boolean returnUpdated,
                       final Integer limit,
                       final AsyncResponse asyncResponse) throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        final Date ts = TimestampQueryParamParser.parse(timestamp == null ?  timestampService.getDateAsString() : timestamp);
+        final Date ts = Optional.ofNullable(timestamp).map(TimestampQueryParamParser::parse)
+                .orElse(timestampService.getDate());
 
         final Response response = ResponseFactory.response(
                 Response.Status.OK,
                 Collections.emptyList(),
-                JsonPolicyDef.Policy.COMMAND_LISTED);
+                Policy.COMMAND_LISTED);
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
@@ -138,7 +141,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!availableDevices.isEmpty()) {
             Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDevices, names, ts, limit, callback);
+                    .sendSubscribeRequest(availableDevices, names, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
@@ -274,17 +277,20 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         DeviceVO device = deviceService.findById(deviceId);
         if (device == null) {
-            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), 
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
             List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
             commandService.find(Collections.singletonList(deviceId), searchCommands, timestampSt, timestampEnd, status)
                     .thenApply(commands -> {
-                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort.buildDeviceCommandComparator(sortField);
+                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
+                                .buildDeviceCommandComparator(sortField);
                         final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
 
-                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort.orderAndLimit(new ArrayList<>(commands),
+                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
+                                .orderAndLimit(new ArrayList<>(commands),
                                 comparator, reverse, skip, take);
                         return ResponseFactory.response(OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
                     })

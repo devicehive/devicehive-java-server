@@ -23,6 +23,7 @@ package com.devicehive.application.filter;
 import com.devicehive.application.JerseyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -38,18 +39,27 @@ public class SwaggerFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(SwaggerFilter.class);
 
+    @Value("${swagger.protocol:http}")
+    private String swaggerProtocol;
+
+    @Value("${swagger.port:80}")
+    private String swaggerPort;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        logger.debug("swagger.protocol: {}", swaggerProtocol);
+        logger.debug("swagger.port: {}", swaggerPort);
 
         URL requestUrl = new URL(request.getRequestURL().toString());
         logger.debug("Swagger filter triggered by '{}: {}'. Request will be redirected to swagger page",
                 request.getMethod(), requestUrl);
 
         String swaggerJsonUrl = String.format("%s://%s:%s%s%s/swagger.json",
-                requestUrl.getProtocol(),
+                swaggerProtocol,
                 requestUrl.getHost(),
-                requestUrl.getPort() == -1 ? requestUrl.getDefaultPort() : requestUrl.getPort(),
+                swaggerPort,
                 request.getContextPath(),
                 JerseyConfig.REST_PATH);
         String url = request.getContextPath() + "/swagger.html?url=" + swaggerJsonUrl;

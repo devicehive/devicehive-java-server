@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.9.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <serialization>
+      <portable-version>0</portable-version>
+      <portable-factories>
+           <portable-factory factory-id="1">com.devicehive.model.DevicePortableFactory</portable-factory>
+      </portable-factories>
+   </serialization>
+   <map name="default">
+      <time-to-live-seconds>120</time-to-live-seconds>
+      <eviction-policy>LRU</eviction-policy>
+   </map>
+   <management-center enabled="false">
+      http://127.0.0.1:8090/mancenter
+   </management-center>
+</hazelcast>

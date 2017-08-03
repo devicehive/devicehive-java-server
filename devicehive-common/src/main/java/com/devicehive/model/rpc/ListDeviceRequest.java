@@ -21,7 +21,15 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import java.lang.reflect.Modifier;
+import java.util.Optional;
+
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 
 public class ListDeviceRequest extends Body {
 
@@ -30,13 +38,36 @@ public class ListDeviceRequest extends Body {
     private Long networkId;
     private String networkName;
     private String sortField;
-    private boolean sortOrderAsc;
+    private String sortOrder;
     private Integer take;
     private Integer skip;
     private HivePrincipal principal;
 
     public ListDeviceRequest() {
         super(Action.LIST_DEVICE_REQUEST.name());
+    }
+
+    public ListDeviceRequest(Long networkId) {
+        super(Action.LIST_DEVICE_REQUEST.name());
+        this.networkId = networkId;
+    }
+
+    public ListDeviceRequest(String sortOrder, HivePrincipal principal) {
+        super(Action.LIST_DEVICE_REQUEST.name());
+        this.sortOrder = sortOrder;
+        this.principal = principal;
+    }
+
+    public static ListDeviceRequest createListDeviceRequest(JsonObject request, HivePrincipal principal) {
+        ListDeviceRequest listDeviceRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, ListDeviceRequest.class);
+        listDeviceRequest.setTake(Optional.ofNullable(listDeviceRequest.getTake()).orElse(20));
+        listDeviceRequest.setSkip(Optional.ofNullable(listDeviceRequest.getSkip()).orElse(DEFAULT_SKIP));
+        
+        listDeviceRequest.setPrincipal(principal);
+                
+        return listDeviceRequest;
     }
 
     public String getName() {
@@ -79,12 +110,16 @@ public class ListDeviceRequest extends Body {
         this.sortField = sortField;
     }
 
-    public boolean getSortOrderAsc() {
-        return sortOrderAsc;
+    public String getSortOrder() {
+        return sortOrder;
     }
 
-    public void setSortOrderAsc(boolean sortOrderAsc) {
-        this.sortOrderAsc = sortOrderAsc;
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public boolean isSortOrderAsc() {
+        return SortOrder.parse(sortOrder);
     }
 
     public Integer getTake() {

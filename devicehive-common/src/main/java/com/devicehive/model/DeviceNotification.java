@@ -20,9 +20,9 @@ package com.devicehive.model;
  * #L%
  */
 
-import com.devicehive.entity.HazelcastEntity;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
+import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
@@ -39,6 +39,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable {
     private static final long serialVersionUID = 1834383778016225837L;
+    private transient HazelcastInstance hazelcastInstance;
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 1;
     
@@ -177,5 +178,10 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
         if (Objects.nonNull(parametersString)) {
             parameters = new JsonStringWrapper(parametersString);
         }
+    }
+
+    @Override
+    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
+        this.hazelcastInstance = hazelcastInstance;
     }
 }

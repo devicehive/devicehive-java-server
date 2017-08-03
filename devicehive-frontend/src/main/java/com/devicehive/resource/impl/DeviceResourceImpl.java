@@ -22,11 +22,13 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.enums.SortOrder;
+import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
-import com.devicehive.resource.converters.SortOrderQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
@@ -45,6 +47,7 @@ import java.util.*;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 /**
@@ -62,12 +65,11 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public void list(String name, String namePattern, Long networkId, String networkName,
-                     String sortField, String sortOrderSt, Integer take,
+                     String sortField, String sortOrder, Integer take,
                      Integer skip, @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Device list requested");
 
-        boolean sortOrder = SortOrderQueryParamParser.parse(sortOrderSt);
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
@@ -87,7 +89,17 @@ public class DeviceResourceImpl implements DeviceResource {
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
         } else {
-            deviceService.list(name, namePattern, networkId, networkName, sortField, sortOrder, take, skip, principal)
+            ListDeviceRequest request = new ListDeviceRequest();
+            request.setName(name);
+            request.setNamePattern(namePattern);
+            request.setNetworkId(networkId);
+            request.setNetworkName(networkName);
+            request.setSortField(sortField);
+            request.setSortOrder(sortOrder);
+            request.setTake(take);
+            request.setSkip(skip);
+            request.setPrincipal(principal);
+            deviceService.list(request)
                     .thenApply(devices -> {
                         logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
                         return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
@@ -126,6 +138,13 @@ public class DeviceResourceImpl implements DeviceResource {
 
         DeviceVO device = deviceService.findById(deviceId);
 
+        if (device == null) {
+            logger.error("device/get proceed with error. No Device with Device ID = {} found.", deviceId);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
+        }
+
         logger.debug("Device get proceed successfully. Device ID: {}", deviceId);
         return ResponseFactory.response(Response.Status.OK, device, DEVICE_PUBLISHED);
     }
@@ -135,7 +154,21 @@ public class DeviceResourceImpl implements DeviceResource {
      */
     @Override
     public Response delete(String deviceId) {
-        deviceService.deleteDevice(deviceId);
+        if (deviceId == null) {
+            logger.error("device/get proceed with error. Device ID should be provided.");
+            ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                    Messages.DEVICE_ID_REQUIRED);
+            return ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
+        }
+        
+        boolean isDeviceDeleted = deviceService.deleteDevice(deviceId);
+        if (!isDeviceDeleted) {
+            logger.error("Delete device proceed with error. No Device with Device ID = {} found.", deviceId);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
+        }
+        
         logger.debug("Device with id = {} is deleted", deviceId);
         return ResponseFactory.response(NO_CONTENT);
     }

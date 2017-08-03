@@ -21,11 +21,10 @@ package com.devicehive.shim.kafka.server;
  */
 
 import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.WorkHandler;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
@@ -33,9 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
-import static com.devicehive.shim.api.RequestType.clientRequest;
-
-public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDispatcher {
+public class ServerEventHandler implements MessageDispatcher, WorkHandler<ServerEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ServerEventHandler.class);
 
     private RequestHandler requestHandler;
@@ -47,8 +44,8 @@ public class ServerEventHandler implements EventHandler<ServerEvent>, MessageDis
     }
 
     @Override
-    public void onEvent(ServerEvent serverEvent, long sequence, boolean endOfBatch) throws Exception {
-        final Request request = serverEvent.get();
+    public void onEvent(ServerEvent event) throws Exception {
+        final Request request = event.get();
         final String replyTo = request.getReplyTo();
 
         Response response;

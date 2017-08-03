@@ -22,11 +22,7 @@ package com.devicehive.websockets;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
-import com.devicehive.websockets.converters.WebSocketResponse;
-import com.devicehive.websockets.handlers.CommandHandlers;
-import com.devicehive.websockets.handlers.CommonHandlers;
-import com.devicehive.websockets.handlers.DeviceHandlers;
-import com.devicehive.websockets.handlers.NotificationHandlers;
+import com.devicehive.websockets.handlers.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -35,6 +31,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Component
 public class WebSocketRequestProcessor {
@@ -42,59 +39,143 @@ public class WebSocketRequestProcessor {
     @Autowired
     private CommonHandlers commonHandlers;
     @Autowired
+    private ApiInfoHandlers apiInfoHandlers;
+    @Autowired
+    private ConfigurationHandlers configurationHandlers;
+    @Autowired
     private NotificationHandlers notificationHandlers;
     @Autowired
     private CommandHandlers commandHandlers;
     @Autowired
     private DeviceHandlers deviceHandlers;
+    @Autowired
+    private NetworkHandlers networkHandlers;
+    @Autowired
+    private UserHandlers userHandlers;
 
-    public WebSocketResponse process(JsonObject request, WebSocketSession session) throws InterruptedException {
-        WebSocketResponse response;
+    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
-                response = commonHandlers.processServerInfo(session);
+                apiInfoHandlers.processServerInfo(request, session);
                 break;
+            case CLUSTER_CONFIG_INFO:
+                apiInfoHandlers.processClusterConfigInfo(request, session);
+                break;    
             case AUTHENTICATE:
-                response = commonHandlers.processAuthenticate(request, session);
+                commonHandlers.processAuthenticate(request, session);
+                break;
+            case TOKEN:
+                commonHandlers.processLogin(request, session);
+                break;
+            case TOKEN_CREATE:
+                commonHandlers.processTokenCreate(request, session);
                 break;
             case TOKEN_REFRESH:
-                response = commonHandlers.processRefresh(request, session);
+                commonHandlers.processRefresh(request, session);
                 break;
+            case CONFIGURATION_GET:
+                configurationHandlers.processConfigurationGet(request, session);
+                break;
+            case CONFIGURATION_PUT:
+                configurationHandlers.processConfigurationPut(request, session);
+                break;
+            case CONFIGURATION_DELETE:
+                configurationHandlers.processConfigurationDelete(request, session);
+                break;    
             case NOTIFICATION_INSERT:
-                response = notificationHandlers.processNotificationInsert(request, session);
+                notificationHandlers.processNotificationInsert(request, session);
                 break;
             case NOTIFICATION_SUBSCRIBE:
-                response = notificationHandlers.processNotificationSubscribe(request, session);
+                notificationHandlers.processNotificationSubscribe(request, session);
                 break;
             case NOTIFICATION_UNSUBSCRIBE:
-                response = notificationHandlers.processNotificationUnsubscribe(request, session);
+                notificationHandlers.processNotificationUnsubscribe(request, session);
+                break;
+            case NOTIFICATION_GET:
+                notificationHandlers.processNotificationGet(request, session);
+                break;
+            case NOTIFICATION_LIST:
+                notificationHandlers.processNotificationList(request, session);
                 break;
             case COMMAND_INSERT:
-                response = commandHandlers.processCommandInsert(request, session);
+                commandHandlers.processCommandInsert(request, session);
                 break;
             case COMMAND_UPDATE:
-                response = commandHandlers.processCommandUpdate(request, session);
+                commandHandlers.processCommandUpdate(request, session);
                 break;
             case COMMAND_SUBSCRIBE:
-                response = commandHandlers.processCommandSubscribe(request, session);
+                commandHandlers.processCommandSubscribe(request, session);
                 break;
             case COMMAND_UNSUBSCRIBE:
-                response = commandHandlers.processCommandUnsubscribe(request, session);
+                commandHandlers.processCommandUnsubscribe(request, session);
+                break;
+            case COMMAND_GET:
+                commandHandlers.processCommandGet(request, session);
+                break;
+            case COMMAND_LIST:
+                commandHandlers.processCommandList(request, session);
                 break;
             case DEVICE_GET:
-                response = deviceHandlers.processDeviceGet(request);
+                deviceHandlers.processDeviceGet(request, session);
                 break;
             case DEVICE_LIST:
-                response = deviceHandlers.processDeviceList(request);
+                deviceHandlers.processDeviceList(request, session);
                 break;
             case DEVICE_SAVE:
-                response = deviceHandlers.processDeviceSave(request, session);
+                deviceHandlers.processDeviceSave(request, session);
+                break;
+            case DEVICE_DELETE:
+                deviceHandlers.processDeviceDelete(request, session);
+                break;
+            case NETWORK_LIST:
+                networkHandlers.processNetworkList(request, session);
+                break;
+            case NETWORK_GET:
+                networkHandlers.processNetworkGet(request, session);
+                break;
+            case NETWORK_INSERT:
+                networkHandlers.processNetworkInsert(request, session);
+                break;
+            case NETWORK_UPDATE:
+                networkHandlers.processNetworkUpdate(request, session);
+                break;
+            case NETWORK_DELETE:
+                networkHandlers.processNetworkDelete(request, session);
+                break;
+            case USER_LIST:
+                userHandlers.processUserList(request, session);
+                break;
+            case USER_GET:
+                userHandlers.processUserGet(request, session);
+                break;
+            case USER_INSERT:
+                userHandlers.processUserInsert(request, session);
+                break;
+            case USER_UPDATE:
+                userHandlers.processUserUpdate(request, session);
+                break;
+            case USER_GET_CURRENT:
+                userHandlers.processUserGetCurrent(request, session);
+                break;
+            case USER_UPDATE_CURRENT:
+                userHandlers.processUserUpdateCurrent(request, session);
+                break;
+            case USER_DELETE:
+                userHandlers.processUserDelete(request, session);
+                break;
+            case USER_GET_NETWORK:
+                userHandlers.processUserGetNetwork(request, session);
+                break;
+            case USER_ASSIGN_NETWORK:
+                userHandlers.processUserAssignNetwork(request, session);
+                break;
+            case USER_UNASSIGN_NETWORK:
+                userHandlers.processUserUnassignNetwork(request, session);
                 break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
-        return response;
     }
 
     private WebsocketAction getAction(JsonObject request) {
@@ -107,18 +188,44 @@ public class WebSocketRequestProcessor {
 
     public enum WebsocketAction {
         SERVER_INFO("server/info"),
+        CLUSTER_CONFIG_INFO("cluster/info"),
         AUTHENTICATE("authenticate"),
+        TOKEN("token"),
+        TOKEN_CREATE("token/create"),
         TOKEN_REFRESH("token/refresh"),
+        CONFIGURATION_GET("configuration/get"),
+        CONFIGURATION_PUT("configuration/put"),
+        CONFIGURATION_DELETE("configuration/delete"),
         NOTIFICATION_INSERT("notification/insert"),
         NOTIFICATION_SUBSCRIBE("notification/subscribe"),
         NOTIFICATION_UNSUBSCRIBE("notification/unsubscribe"),
+        NOTIFICATION_GET("notification/get"),
+        NOTIFICATION_LIST("notification/list"),
         COMMAND_INSERT("command/insert"),
         COMMAND_SUBSCRIBE("command/subscribe"),
         COMMAND_UNSUBSCRIBE("command/unsubscribe"),
         COMMAND_UPDATE("command/update"),
+        COMMAND_GET("command/get"),
+        COMMAND_LIST("command/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),
+        DEVICE_DELETE("device/delete"),
+        NETWORK_LIST("network/list"),
+        NETWORK_INSERT("network/insert"),
+        NETWORK_GET("network/get"),
+        NETWORK_DELETE("network/delete"),
+        NETWORK_UPDATE("network/update"),
+        USER_LIST("user/list"),
+        USER_GET("user/get"),
+        USER_INSERT("user/insert"),
+        USER_UPDATE("user/update"),
+        USER_GET_CURRENT("user/getCurrent"),
+        USER_UPDATE_CURRENT("user/updateCurrent"),
+        USER_DELETE("user/delete"),
+        USER_GET_NETWORK("user/getNetwork"),
+        USER_ASSIGN_NETWORK("user/assignNetwork"),
+        USER_UNASSIGN_NETWORK("user/unassignNetwork"),
         EMPTY("");
 
         private String value;

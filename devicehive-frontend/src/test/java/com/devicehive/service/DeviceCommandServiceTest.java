@@ -265,7 +265,7 @@ public class DeviceCommandServiceTest extends AbstractResourceTest {
         deviceCommandService.update(deviceCommand, commandWrapper).
                 thenAccept(Assert::assertNull).get(15, TimeUnit.SECONDS);
 
-        verify(requestHandler, times(1)).handle(argument.capture());
+        verify(requestHandler, times(2)).handle(argument.capture());
     }
 
 }

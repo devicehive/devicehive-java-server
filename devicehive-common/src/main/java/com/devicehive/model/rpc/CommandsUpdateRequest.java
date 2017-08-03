@@ -1,8 +1,8 @@
-package com.devicehive.entity;
+package com.devicehive.model.rpc;
 
 /*
  * #%L
- * DeviceHive Java Server Common business logic
+ * DeviceHive Common Module
  * %%
  * Copyright (C) 2016 DataArt
  * %%
@@ -20,19 +20,19 @@ package com.devicehive.entity;
  * #L%
  */
 
-import java.io.Serializable;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.Map;
+import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Body;
 
-public class HazelcastEntityComparator implements Comparator<Map.Entry>, Serializable {
-    private static final long serialVersionUID = 5413354955792888308L;
+public class CommandsUpdateRequest extends Body {
 
-    @Override
-    public int compare(Map.Entry o1, Map.Entry o2) {
-        final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
-        final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
+    private DeviceCommand deviceCommand;
 
-        return o1Time.compareTo(o2Time);
+    public CommandsUpdateRequest(DeviceCommand deviceCommand) {
+        super(Action.COMMANDS_UPDATE_REQUEST.name());
+        this.deviceCommand = deviceCommand;
+    }
+
+    public DeviceCommand getDeviceCommand() {
+        return deviceCommand;
     }
 }

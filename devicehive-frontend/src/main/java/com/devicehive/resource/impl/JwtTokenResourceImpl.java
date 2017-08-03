@@ -36,7 +36,7 @@ import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
-import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +104,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         try {
             payload = tokenService.getPayload(requestTokenVO.getRefreshToken());
-        } catch (MalformedJwtException e) {
+        } catch (JwtException e) {
             logger.error(e.getMessage(), e);
             return ResponseFactory.response(UNAUTHORIZED);
         }

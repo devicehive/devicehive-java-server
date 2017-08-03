@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.2.0</version>
+    <version>3.3.0</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -96,7 +96,6 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
-        <module>devicehive-hazelcast</module>
     </modules>
 
     <dependencies>
@@ -156,6 +155,12 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-ehcache</artifactId>
+            <version>${hibernate-version}</version>
         </dependency>
     </dependencies>
 
@@ -363,11 +368,6 @@
                 <version>${springboot.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-client</artifactId>

@@ -24,7 +24,21 @@ import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.rpc.*;
+import com.devicehive.model.rpc.CommandInsertRequest;
+import com.devicehive.model.rpc.CommandInsertResponse;
+import com.devicehive.model.rpc.CommandSearchRequest;
+import com.devicehive.model.rpc.CommandSearchResponse;
+import com.devicehive.model.rpc.CommandUpdateRequest;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
+import com.devicehive.model.rpc.ListNetworkRequest;
+import com.devicehive.model.rpc.ListNetworkResponse;
+import com.devicehive.model.rpc.ListUserRequest;
+import com.devicehive.model.rpc.ListUserResponse;
+import com.devicehive.model.rpc.NotificationInsertRequest;
+import com.devicehive.model.rpc.NotificationInsertResponse;
+import com.devicehive.model.rpc.NotificationSearchRequest;
+import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -34,6 +48,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.devicehive.model.enums.SortOrder.DESC;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -173,7 +188,7 @@ public class RpcClientActionTest extends AbstractSpringTest {
     public void testListDeviceAction() throws Exception {
         ListDeviceRequest deviceRequest = new ListDeviceRequest();
         deviceRequest.setName(UUID.randomUUID().toString()); // nonexistent name
-        deviceRequest.setSortOrderAsc(false);
+        deviceRequest.setSortOrder(DESC.name());
 
         Request request = Request.newBuilder()
                 .withBody(deviceRequest)
