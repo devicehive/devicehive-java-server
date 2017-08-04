@@ -35,6 +35,8 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 
+import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
+
 /**
  * REST controller for device commands: <i>/device/{deviceId}/command</i>. See <a
  * href="http://www.devicehive.com/restful#Reference/DeviceCommand">DeviceHive RESTful API: DeviceCommand</a> for
@@ -77,8 +79,8 @@ public interface DeviceCommandResource {
             @ApiParam(name = "timestamp", value = "Timestamp to start from")
             @QueryParam("timestamp")
             String timestamp,
-            @ApiParam(name = "returnUpdatedCommands", value = "Checks if updated commands should be returned", defaultValue = "false")
-            @QueryParam("returnUpdatedCommands")
+            @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
+            @QueryParam(RETURN_UPDATED_COMMANDS)
             boolean returnUpdatedCommands,
             @ApiParam(name = "waitTimeout", value = "Wait timeout in seconds", defaultValue = Constants.DEFAULT_WAIT_TIMEOUT)
             @DefaultValue(Constants.DEFAULT_WAIT_TIMEOUT)

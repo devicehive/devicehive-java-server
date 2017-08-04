@@ -46,6 +46,18 @@ public class ServerResponsesFactory {
         return resultMessage;
     }
 
+    /*
+        If returnUpdated is true this subscription is for updated commands so message for CommandUpdate is created,
+        otherwise this subscription is for inserted commands so CommandInsert message is created
+    */
+    public static JsonObject createCommandMessage(DeviceCommand command, String subscriptionId, Boolean returnUpdated) {
+        if (returnUpdated) {
+            return createCommandUpdateMessage(command, subscriptionId);
+        }
+        
+        return createCommandInsertMessage(command, subscriptionId);
+    }
+
     public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, String subscriptionId) {
 
         JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
