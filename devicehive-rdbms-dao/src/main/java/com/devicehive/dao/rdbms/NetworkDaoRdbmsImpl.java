@@ -138,7 +138,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId) {
-        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
+        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.get()))
                 .setParameter("id", networkId)
                 .getResultList();
         return networks.isEmpty() ? Optional.empty() : Optional.ofNullable(Network.convertWithDevicesAndUsers(networks.get(0)));

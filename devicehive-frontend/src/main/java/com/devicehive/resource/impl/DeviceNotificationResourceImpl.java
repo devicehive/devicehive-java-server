@@ -256,7 +256,8 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Response response = ResponseFactory.response(FORBIDDEN, errorCode);
             asyncResponse.resume(response);
         } else {
-            DeviceVO device = deviceService.findById(deviceId);
+            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
             if (device == null) {
                 logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", deviceId);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
