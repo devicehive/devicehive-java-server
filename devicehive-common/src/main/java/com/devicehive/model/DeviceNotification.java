@@ -149,11 +149,13 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public int getFactoryId() {
         return FACTORY_ID;
     }
 
     @Override
+    @ApiModelProperty(hidden = true)
     public int getClassId() {
         return CLASS_ID;
     }
