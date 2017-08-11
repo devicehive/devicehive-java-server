@@ -24,6 +24,7 @@ import com.devicehive.shim.api.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
@@ -32,6 +33,7 @@ public class RequestResponseMatcher {
     private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
     private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> subscriptionMap = new HashMap<>();
 
     //TODO [rafa] we do not really need FJP, but rather some other pool implementation. Though FJP looks good, it might be over kill for our use case.
     private final ForkJoinPool executionPool = new ForkJoinPool();
@@ -61,4 +63,21 @@ public class RequestResponseMatcher {
         }
     }
 
+    public void addSubscription(String subscriptionId, String correlationId) {
+        if (subscriptionMap.containsKey(subscriptionId)) {
+            Set<String> corrIds = subscriptionMap.get(subscriptionId);
+            corrIds.add(correlationId);
+        } else {
+            Set<String> set = new HashSet<>();
+            set.add(correlationId);
+            subscriptionMap.put(subscriptionId, set);
+        }
+    }
+
+    public void removeSubscription(String subscriptionId) {
+        if (subscriptionMap.containsKey(subscriptionId)) {
+            subscriptionMap.get(subscriptionId).forEach(correlationMap::remove);
+            subscriptionMap.remove(subscriptionId);
+        }
+    }
 }

@@ -54,7 +54,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
 
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else if (body.getDeviceIds() != null) {
@@ -72,7 +71,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
             CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(null, body.getDeviceIds());
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else {
