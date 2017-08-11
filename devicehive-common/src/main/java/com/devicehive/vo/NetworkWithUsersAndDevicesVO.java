@@ -22,6 +22,7 @@ package com.devicehive.vo;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
 
@@ -29,6 +30,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLIS
 
 public class NetworkWithUsersAndDevicesVO extends NetworkVO {
 
+    @ApiModelProperty(hidden = true)
     private Set<UserVO> users;
 
     @JsonPolicyDef({NETWORK_PUBLISHED})

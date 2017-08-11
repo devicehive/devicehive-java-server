@@ -22,6 +22,7 @@ package com.devicehive.resource;
 
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -115,7 +116,7 @@ public interface NetworkResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     @ApiResponses({
-            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkVO.class),
+            @ApiResponse(code = 200, message = "If successful, this method returns a Network resource in the response body.", response = NetworkWithUsersAndDevicesVO.class),
             @ApiResponse(code = 400, message = "If request is malformed"),
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),

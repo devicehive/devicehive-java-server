@@ -34,9 +34,11 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 public class DeviceVO implements HiveEntity {
 
     @SerializedName("sid")
+    @ApiModelProperty(hidden = true)
     private Long id;
 
     @SerializedName("id")
+    @ApiModelProperty(name = "id", dataType = "integer")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String deviceId;
 
