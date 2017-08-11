@@ -21,6 +21,7 @@ package com.devicehive.shim.api;
  */
 
 import com.google.gson.annotations.SerializedName;
+import com.fasterxml.uuid.Generators;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -126,7 +127,7 @@ public class Request {
 
     public static class Builder<T extends Body> {
         private T body;
-        private String correlationId = UUID.randomUUID().toString();
+        private String correlationId = Generators.randomBasedGenerator().generate().toString();
         private boolean singleReply = true;
         private String partitionKey;
 
