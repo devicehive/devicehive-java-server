@@ -23,18 +23,32 @@ package com.devicehive.shim.kafka.client;
 import com.devicehive.shim.api.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
+@Component
+@PropertySource("classpath:application.properties")
 public class RequestResponseMatcher {
     private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
+    @Value("${request.response.matcher.threads:8}")
+    private int threadsCount;
+
     private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
 
-    //TODO [rafa] we do not really need FJP, but rather some other pool implementation. Though FJP looks good, it might be over kill for our use case.
-    private final ForkJoinPool executionPool = new ForkJoinPool();
+    private ForkJoinPool executionPool;
+
+    @PostConstruct
+    public void init() {
+        logger.info("ForkJoinPool size: {}", threadsCount);
+        executionPool = new ForkJoinPool(threadsCount);
+    }
 
     void addRequestCallback(String correlationId, Consumer<Response> callback) {
         correlationMap.put(correlationId, callback);

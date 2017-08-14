@@ -64,16 +64,19 @@ import java.util.stream.Collectors;
 import static com.devicehive.configuration.Constants.COMMAND;
 import static com.devicehive.configuration.Constants.COMMANDS;
 import static com.devicehive.configuration.Constants.COMMAND_ID;
+import static com.devicehive.configuration.Constants.DEFAULT_RETURN_UPDATED_COMMANDS;
 import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.configuration.Constants.DEVICE_IDS;
 import static com.devicehive.configuration.Constants.LIMIT;
 import static com.devicehive.configuration.Constants.NAMES;
+import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
 import static com.devicehive.configuration.Constants.TIMESTAMP;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
+import static com.devicehive.util.ServerResponsesFactory.createCommandMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -107,6 +110,8 @@ public class CommandHandlers {
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         final Integer limit = Optional.ofNullable(gson.fromJson(request.get(LIMIT), Integer.class)).orElse(DEFAULT_TAKE);
+        final Boolean returnUpdated = Optional.ofNullable(gson.fromJson(request.get(RETURN_UPDATED_COMMANDS), Boolean.class))
+                .orElse(DEFAULT_RETURN_UPDATED_COMMANDS);
 
         logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session);
@@ -126,16 +131,15 @@ public class CommandHandlers {
         }
 
         BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
-            JsonObject json = ServerResponsesFactory.createCommandInsertMessage(command, subscriptionId);
+            JsonObject json = createCommandMessage(command, subscriptionId, returnUpdated);
             clientHandler.sendMessage(json, session);
         };
 
         Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .sendSubscribeRequest(devices, names, timestamp, false, limit, callback);
+                .sendSubscribeRequest(devices, names, timestamp, returnUpdated, limit, callback);
 
-        pair.getRight().thenAccept(collection ->
-                collection.forEach(cmd ->
-                        clientHandler.sendMessage(ServerResponsesFactory.createCommandInsertMessage(cmd, pair.getLeft()), session)));
+        pair.getRight().thenAccept(collection -> 
+                collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)));
 
         logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, timestamp, names, session.getId());
@@ -203,7 +207,6 @@ public class CommandHandlers {
         for (DeviceVO device : devices) {
             commandService.insert(deviceCommand, device, user)
                     .thenAccept(command -> {
-                        commandUpdateSubscribeAction(command.getId(), device.getDeviceId(), session);
                         response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
                         clientHandler.sendMessage(request, response, session);
                     })
@@ -358,14 +361,4 @@ public class CommandHandlers {
         throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
-    private void commandUpdateSubscribeAction(Long commandId, String deviceId, WebSocketSession session) {
-        if (commandId == null) {
-            throw new HiveException(String.format(Messages.COLUMN_CANNOT_BE_NULL, "commandId"), SC_BAD_REQUEST);
-        }
-        BiConsumer<DeviceCommand, String> callback =  (command, subscriptionId) -> {
-            JsonObject json = ServerResponsesFactory.createCommandUpdateMessage(command, subscriptionId);
-            clientHandler.sendMessage(json, session);
-        };
-        commandService.sendSubscribeToUpdateRequest(commandId, deviceId, callback); // TODO: make sure this is the correct place to create update message
-    }
 }
