@@ -29,8 +29,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 
 @Component
@@ -43,13 +42,12 @@ public class RequestResponseMatcher {
 
     private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
 
-    //TODO [rafa] we do not really need FJP, but rather some other pool implementation. Though FJP looks good, it might be over kill for our use case.
-    private ExecutorService executionPool;
+    private ForkJoinPool executionPool;
 
     @PostConstruct
     public void init() {
-        logger.info("RequestResponseMatcher executor pool size: {}", threadsCount);
-        executionPool = Executors.newFixedThreadPool(threadsCount);
+        logger.info("ForkJoinPool size: {}", threadsCount);
+        executionPool = new ForkJoinPool(threadsCount);
     }
 
     void addRequestCallback(String correlationId, Consumer<Response> callback) {

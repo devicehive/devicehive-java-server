@@ -63,7 +63,7 @@ public class Device implements HiveEntity {
     @SerializedName("id")
     @Column(name = "device_id")
     @NotNull(message = "id field cannot be null.")
-    @Size(min = 1, max = 48, message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
+    @Size(min = 1, max = 48, message = "Field cannot be empty. The length of id should not be more than 48 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String deviceId;
 
