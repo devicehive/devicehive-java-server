@@ -171,6 +171,17 @@ public class UserService {
             return existing;
         }
 
+        final boolean isClient = UserRole.CLIENT.equals(curUser.getRole());
+        if (isClient) {
+            if (userToUpdate.getLogin().isPresent() ||
+                    userToUpdate.getStatus().isPresent() ||
+                    userToUpdate.getRole().isPresent()) {
+                logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
+                        "login, status or role", id);
+                throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
+            }
+        }
+
         if (userToUpdate.getLogin().isPresent()) {
             final String newLogin = StringUtils.trim(userToUpdate.getLogin().orElse(null));
             Optional<UserVO> withSuchLogin = userDao.findByName(newLogin);
@@ -181,35 +192,8 @@ public class UserService {
             existing.setLogin(newLogin);
         }
 
-        final boolean isClient = UserRole.CLIENT.equals(curUser.getRole());
-
         final Optional<String> newPassword = userToUpdate.getPassword();
-        final Optional<String> oldPassword = userToUpdate.getOldPassword();
-        final boolean oldPasswordNotEmpty = oldPassword.isPresent() && StringUtils.isNotEmpty(oldPassword.get());
-
-        if (isClient) {
-            if (newPassword.isPresent() && !oldPasswordNotEmpty) {
-                logger.error("Can't update user with id {}: old password required", id);
-                throw new ActionNotAllowedException(Messages.OLD_PASSWORD_REQUIRED);
-            }
-
-            if (userToUpdate.getStatus().isPresent() || userToUpdate.getRole().isPresent()) {
-                logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
-                        "status or role", id);
-                throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
-            }
-        }
-
         if (newPassword.isPresent() && StringUtils.isNotEmpty(newPassword.get())) {
-            if (oldPasswordNotEmpty) {
-                final String hash = passwordService.hashPassword(oldPassword.get(),
-                        existing.getPasswordSalt());
-                if (!hash.equals(existing.getPasswordHash())) {
-                    logger.error("Can't update user with id {}: incorrect password provided", id);
-                    throw new ActionNotAllowedException(Messages.INCORRECT_CREDENTIALS);
-                }
-            }
-
             final String password = newPassword.get();
             if (StringUtils.isEmpty(password) || !password.matches(PASSWORD_REGEXP)) {
                 logger.error("Can't update user with id {}: password required", id);

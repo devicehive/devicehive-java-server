@@ -52,9 +52,6 @@ public class UserUpdate implements HiveEntity {
     @Size(max = 128, message = "The length of password should not be more than 128 symbols.")
     private String password;
 
-    @Size(max = 128, message = "The length of old password should not be more than 128 symbols.")
-    private String oldPassword;
-
     private JsonStringWrapper data;
 
     private Boolean introReviewed;
@@ -89,14 +86,6 @@ public class UserUpdate implements HiveEntity {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public Optional<String> getOldPassword() {
-        return Optional.ofNullable(oldPassword);
-    }
-
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
     }
 
     public Optional<JsonStringWrapper> getData() {

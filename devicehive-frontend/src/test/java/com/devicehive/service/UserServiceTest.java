@@ -962,7 +962,6 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = new UserUpdate();
         testUser.setLogin(login);
         testUser.setPassword(newPwd);
-        testUser.setOldPassword(pwd);
 
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
 
@@ -990,7 +989,6 @@ public class UserServiceTest extends AbstractResourceTest {
         testUser = new UserUpdate();
         testUser.setLogin(login);
         testUser.setPassword(newPwd);
-        testUser.setOldPassword(pwd);
 
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, NO_CONTENT, UserVO.class);
 
@@ -1003,27 +1001,7 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_not_allow_updating_password_with_client_role_without_old_password() throws Exception {
-        UserVO user = new UserVO();
-        user.setLogin(RandomStringUtils.randomAlphabetic(10));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setRole(UserRole.CLIENT);
-        user = userService.createUser(user, VALID_PASSWORD);
-
-        JwtPayload payload = new JwtPayload.Builder()
-                .withUserId(user.getId())
-                .withTokenType(TokenType.ACCESS)
-                .withActions(new HashSet<String>(Arrays.asList("*")))
-                .buildPayload();
-        JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
-
-        UserUpdate update = new UserUpdate();
-        update.setPassword("new_pass");
-        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, FORBIDDEN, UserVO.class);
-    }
-
-    @Test
-    public void should_update_password_with_client_role_if_old_password_provided() throws Exception {
+    public void should_update_password_with_client_role() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
@@ -1038,7 +1016,6 @@ public class UserServiceTest extends AbstractResourceTest {
 
         UserUpdate update = new UserUpdate();
         update.setPassword("new_pass");
-        update.setOldPassword(VALID_PASSWORD);
         performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(jwtTokeVO.getAccessToken())), update, NO_CONTENT, UserVO.class);
         UserVO updatedUser = userService.getActiveUser(user.getLogin(), "new_pass");
 
@@ -1046,27 +1023,6 @@ public class UserServiceTest extends AbstractResourceTest {
         assertThat(updatedUser.getId(), equalTo(user.getId()));
         assertThat(updatedUser.getPasswordHash(), not(equalTo(user.getPasswordHash())));
         assertThat(updatedUser.getPasswordSalt(), not(equalTo(user.getPasswordSalt())));
-    }
-
-    @Test
-    public void should_throw_ActionNotAllowedException_if_updating_password_with_client_role_with_wrong_old_password() throws Exception {
-        String login = RandomStringUtils.randomAlphabetic(10);
-        String pwd = RandomStringUtils.randomAlphabetic(10);
-
-        UserUpdate testUser = new UserUpdate();
-        testUser.setLogin(login);
-        testUser.setStatus(UserStatus.ACTIVE.getValue());
-        testUser.setPassword(pwd);
-
-        UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
-
-        testUser = new UserUpdate();
-        testUser.setLogin(login);
-        testUser.setRole(UserRole.CLIENT.getValue());
-        testUser.setPassword("new_pass");
-        testUser.setOldPassword("wrong_pass");
-
-        performRequest("/user/" + user.getId(), "PUT", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, FORBIDDEN, UserVO.class);
     }
 
     @Test
