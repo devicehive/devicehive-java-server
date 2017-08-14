@@ -45,6 +45,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 @Configuration
@@ -108,6 +109,10 @@ public class KafkaRpcServerConfig {
         switch (waitStrategy) {
             case "blocking":
                 strategy = new BlockingWaitStrategy(); break;
+            case "lite_blocking":
+                strategy = new LiteBlockingWaitStrategy(); break;
+            case "lite_timeout":
+                strategy = new LiteTimeoutBlockingWaitStrategy(100, TimeUnit.NANOSECONDS); break;
             case "sleeping":
                 strategy =  new SleepingWaitStrategy(); break;
             case "yielding":

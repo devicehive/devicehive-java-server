@@ -59,7 +59,7 @@
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
         <swagger.version>1.5.4</swagger.version>
-        <lmax-disruptor.version>3.3.5</lmax-disruptor.version>
+        <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
