@@ -20,16 +20,26 @@ package com.devicehive.shim.api;
  * #L%
  */
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class Response {
 
+    @SerializedName("b")
     private Body body;
+
+    @SerializedName("cId")
     private String correlationId;
+
+    @SerializedName("l")
     private boolean last;
 
+    @SerializedName("err")
     private int errorCode;
+
+    @SerializedName("fld")
     private boolean failed;
 
     private Response(Body body, String correlationId, boolean last, int errorCode, boolean failed) {

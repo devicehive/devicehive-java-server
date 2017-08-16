@@ -20,6 +20,7 @@ package com.devicehive.shim.kafka.fixture;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class TestRequestBody extends Body {
@@ -27,11 +28,11 @@ public class TestRequestBody extends Body {
     private String body;
 
     public TestRequestBody() {
-        super("test_request");
+        super(Action.EMPTY);
     }
 
     public TestRequestBody(String body) {
-        super("test_request");
+        super(Action.EMPTY);
         this.body = body;
     }
 

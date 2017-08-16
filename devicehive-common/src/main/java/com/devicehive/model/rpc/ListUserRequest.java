@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.enums.SortOrder;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -42,7 +43,7 @@ public class ListUserRequest extends Body {
     private Integer skip;
 
     public ListUserRequest() {
-        super(Action.LIST_USER_REQUEST.name());
+        super(Action.LIST_USER_REQUEST);
     }
 
     public static ListUserRequest createListUserRequest(JsonObject request) {

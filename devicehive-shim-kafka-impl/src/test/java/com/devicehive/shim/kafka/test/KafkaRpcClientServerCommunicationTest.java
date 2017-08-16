@@ -21,6 +21,7 @@ package com.devicehive.shim.kafka.test;
  */
 
 import com.devicehive.json.adapters.RuntimeTypeAdapterFactory;
+import com.devicehive.shim.api.Action;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
@@ -67,9 +68,9 @@ public class KafkaRpcClientServerCommunicationTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        RuntimeTypeAdapterFactory<Body> requestFactory = RuntimeTypeAdapterFactory.of(Body.class, "action")
-                .registerSubtype(TestRequestBody.class, "test_request")
-                .registerSubtype(TestResponseBody.class, "test_response");
+        RuntimeTypeAdapterFactory<Body> requestFactory = RuntimeTypeAdapterFactory.of(Body.class, "a")
+                .registerSubtype(TestRequestBody.class, Action.EMPTY.ordinal())
+                .registerSubtype(TestResponseBody.class, Action.EMPTY.ordinal());
 
         gson = new GsonBuilder()
                 .registerTypeAdapterFactory(requestFactory)

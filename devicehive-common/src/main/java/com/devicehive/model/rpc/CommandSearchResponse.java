@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Collections;
@@ -31,7 +32,7 @@ public class CommandSearchResponse extends Body {
     private List<DeviceCommand> commands;
 
     public CommandSearchResponse() {
-        super(Action.COMMAND_SEARCH_RESPONSE.name());
+        super(Action.COMMAND_SEARCH_RESPONSE);
         this.commands = Collections.emptyList();
     }
 

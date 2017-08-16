@@ -21,13 +21,14 @@ package com.devicehive.model.eventbus.events;
  */
 
 import com.devicehive.model.eventbus.Subscription;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Collection;
 
 public abstract class Event extends Body {
 
-    public Event(String action) {
+    public Event(Action action) {
         super(action);
     }
 

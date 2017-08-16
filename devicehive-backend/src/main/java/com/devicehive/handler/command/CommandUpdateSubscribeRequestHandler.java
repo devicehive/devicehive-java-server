@@ -24,7 +24,7 @@ import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.CommandUpdateSubscribeRequest;
 import com.devicehive.model.rpc.CommandUpdateSubscribeResponse;
 import com.devicehive.service.HazelcastService;

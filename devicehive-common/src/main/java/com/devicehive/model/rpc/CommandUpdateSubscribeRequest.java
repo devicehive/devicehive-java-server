@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class CommandUpdateSubscribeRequest extends Body {
@@ -29,7 +30,7 @@ public class CommandUpdateSubscribeRequest extends Body {
     private String subscriptionId;
 
     public CommandUpdateSubscribeRequest(long commandId, String deviceId, String subscriptionId) {
-        super(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.name());
+        super(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST);
         this.commandId = commandId;
         this.deviceId = deviceId;
         this.subscriptionId = subscriptionId;

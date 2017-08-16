@@ -28,6 +28,7 @@ import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -160,12 +161,12 @@ public class DeviceNotificationService {
         for (NotificationSubscribeRequest sr : subscribeRequests) {
             CompletableFuture<Collection<DeviceNotification>> future = new CompletableFuture<>();
             Consumer<Response> responseConsumer = response -> {
-                String resAction = response.getBody().getAction();
-                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                Action resAction = response.getBody().getAction();
+                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE)) {
                     NotificationSubscribeResponse r = response.getBody().cast(NotificationSubscribeResponse.class);
                     requestResponseMatcher.addSubscription(subscriptionId, response.getCorrelationId());
                     future.complete(r.getNotifications());
-                } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                } else if (resAction.equals(Action.NOTIFICATION_EVENT)) {
                     NotificationEvent event = response.getBody().cast(NotificationEvent.class);
                     callback.accept(event.getNotification(), subscriptionId);
                 } else {
@@ -196,9 +197,9 @@ public class DeviceNotificationService {
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
-            String resAction = response.getBody().getAction();
+            Action resAction = response.getBody().getAction();
             CompletableFuture<String> future = new CompletableFuture<>();
-            if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name())) {
+            if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionId());
                 requestResponseMatcher.removeSubscription(subId);
             } else {

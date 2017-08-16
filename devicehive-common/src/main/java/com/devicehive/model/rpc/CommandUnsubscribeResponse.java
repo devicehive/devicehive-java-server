@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Objects;
@@ -31,7 +32,7 @@ public class CommandUnsubscribeResponse extends Body {
     private Set<String> deviceIds;
 
     public CommandUnsubscribeResponse(String subscriptionId, Set<String> deviceIds) {
-        super(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name());
+        super(Action.COMMAND_UNSUBSCRIBE_RESPONSE);
         this.subscriptionId = subscriptionId;
         this.deviceIds = deviceIds;
     }

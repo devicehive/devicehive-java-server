@@ -22,7 +22,7 @@ package com.devicehive.model.eventbus.events;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,7 +33,7 @@ public class CommandsUpdateEvent extends Event {
     private DeviceCommand command;
 
     public CommandsUpdateEvent(DeviceCommand command) {
-        super(Action.COMMANDS_UPDATE_EVENT.name());
+        super(Action.COMMANDS_UPDATE_EVENT);
         this.command = command;
     }
 

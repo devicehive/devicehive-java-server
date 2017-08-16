@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class CommandGetSubscriptionRequest extends Body {
@@ -27,7 +28,7 @@ public class CommandGetSubscriptionRequest extends Body {
     private String subscriptionId;
 
     public CommandGetSubscriptionRequest(String subscriptionId) {
-        super(Action.COMMAND_GET_SUBSCRIPTION_REQUEST.name());
+        super(Action.COMMAND_GET_SUBSCRIPTION_REQUEST);
         this.subscriptionId = subscriptionId;
     }
 
