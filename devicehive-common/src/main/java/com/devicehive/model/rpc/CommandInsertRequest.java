@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class CommandInsertRequest extends Body {
@@ -28,7 +29,7 @@ public class CommandInsertRequest extends Body {
     private DeviceCommand deviceCommand;
 
     public CommandInsertRequest(DeviceCommand deviceCommand) {
-        super(Action.COMMAND_INSERT_REQUEST.name());
+        super(Action.COMMAND_INSERT_REQUEST);
         this.deviceCommand = deviceCommand;
     }
 

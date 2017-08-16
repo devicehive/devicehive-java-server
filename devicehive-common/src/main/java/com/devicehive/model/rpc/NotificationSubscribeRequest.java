@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
@@ -34,7 +35,7 @@ public class NotificationSubscribeRequest extends Body {
     private Date timestamp;
 
     public NotificationSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp) {
-        super(Action.NOTIFICATION_SUBSCRIBE_REQUEST.name());
+        super(Action.NOTIFICATION_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.device = device;
         this.names = names;

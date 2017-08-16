@@ -27,7 +27,7 @@ import com.devicehive.handler.command.CommandUnsubscribeRequestHandler;
 import com.devicehive.handler.notification.NotificationInsertHandler;
 import com.devicehive.handler.notification.NotificationSearchHandler;
 import com.devicehive.handler.notification.NotificationUnsubscribeRequestHandler;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;

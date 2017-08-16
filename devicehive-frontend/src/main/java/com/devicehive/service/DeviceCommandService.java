@@ -28,6 +28,7 @@ import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -147,13 +148,13 @@ public class DeviceCommandService {
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
-                        String resAction = response.getBody().getAction();
-                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
+                        Action resAction = response.getBody().getAction();
+                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE)) {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
                             requestResponseMatcher.addSubscription(subscriptionId, response.getCorrelationId());
-                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT.name())) {
+                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT)) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
-                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT.name())) {
+                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT)) {
                             callback.accept(response.getBody().cast(CommandsUpdateEvent.class).getDeviceCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);
@@ -183,9 +184,9 @@ public class DeviceCommandService {
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
-            String resAction = response.getBody().getAction();
+            Action resAction = response.getBody().getAction();
             CompletableFuture<String> future = new CompletableFuture<>();
-            if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name())) {
+            if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionId());
                 requestResponseMatcher.removeSubscription(subId);
             } else {
@@ -199,10 +200,10 @@ public class DeviceCommandService {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
         final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {
-            String resAction = response.getBody().getAction();
-            if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())) {
+            Action resAction = response.getBody().getAction();
+            if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE)) {
                 future.complete(Pair.of(response.getBody().cast(CommandUpdateSubscribeResponse.class).getSubscriptionId(), response.getBody().cast(CommandUpdateSubscribeResponse.class).getDeviceCommand()));
-            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
+            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT)) {
                 callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);

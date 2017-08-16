@@ -1,4 +1,4 @@
-package com.devicehive.model.rpc;
+package com.devicehive.shim.api;
 
 /*
  * #%L
@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 public enum Action {
+    EMPTY,
     ERROR_RESPONSE,
 
     NOTIFICATION_SEARCH_REQUEST,

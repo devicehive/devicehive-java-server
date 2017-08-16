@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class CommandsUpdateRequest extends Body {
@@ -28,7 +29,7 @@ public class CommandsUpdateRequest extends Body {
     private DeviceCommand deviceCommand;
 
     public CommandsUpdateRequest(DeviceCommand deviceCommand) {
-        super(Action.COMMANDS_UPDATE_REQUEST.name());
+        super(Action.COMMANDS_UPDATE_REQUEST);
         this.deviceCommand = deviceCommand;
     }
 

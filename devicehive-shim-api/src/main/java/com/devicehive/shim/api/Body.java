@@ -20,18 +20,21 @@ package com.devicehive.shim.api;
  * #L%
  */
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Objects;
 
 public abstract class Body {
 
-    protected String action;
+    @SerializedName("a")
+    protected int action;
 
-    protected Body(String action) {
-        this.action = action;
+    protected Body(Action action) {
+        this.action = action.ordinal();
     }
 
-    public String getAction() {
-        return action;
+    public Action getAction() {
+        return Action.values()[action];
     }
 
     /**

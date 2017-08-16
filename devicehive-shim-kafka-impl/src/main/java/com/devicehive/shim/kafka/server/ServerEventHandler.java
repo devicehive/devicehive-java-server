@@ -78,7 +78,7 @@ public class ServerEventHandler implements MessageDispatcher, WorkHandler<Server
                     .orElseThrow(() -> new NullPointerException("Response must not be null"));
         } catch (Exception e) {
             logger.error("Unexpected exception occurred during request handling (action='{}', handler='{}')",
-                    request.getBody().getAction(), requestHandler.getClass().getCanonicalName(), e);
+                    request.getBody().getAction().name(), requestHandler.getClass().getCanonicalName(), e);
 
             response = Response.newBuilder()
                     .withLast(request.isSingleReplyExpected())

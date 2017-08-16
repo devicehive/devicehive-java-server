@@ -22,7 +22,7 @@ package com.devicehive.model.eventbus.events;
 
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,7 +33,7 @@ public class NotificationEvent extends Event {
     private DeviceNotification notification;
 
     public NotificationEvent(DeviceNotification notification) {
-        super(Action.NOTIFICATION_EVENT.name());
+        super(Action.NOTIFICATION_EVENT);
         this.notification = notification;
     }
 

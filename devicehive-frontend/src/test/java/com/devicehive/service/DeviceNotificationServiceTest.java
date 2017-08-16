@@ -27,6 +27,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.*;
 import com.devicehive.service.exception.BackendException;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -115,7 +116,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
-        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
+        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST, argument.getValue().getBody().getAction());
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
@@ -147,7 +148,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
-        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
+        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST, argument.getValue().getBody().getAction());
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
@@ -182,7 +183,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
                 }).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
-        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST.name(), argument.getValue().getBody().getAction());
+        assertEquals(Action.NOTIFICATION_SEARCH_REQUEST, argument.getValue().getBody().getAction());
 
         NotificationSearchRequest request = argument.getValue().getBody().cast(NotificationSearchRequest.class);
         assertEquals(id, request.getId().longValue());
@@ -305,7 +306,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
         verify(requestHandler, times(1)).handle(argument.capture());
 
         NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
-        assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());
+        assertEquals(Action.NOTIFICATION_INSERT_REQUEST, request.getAction());
         assertEquals(deviceNotification, request.getDeviceNotification());
     }
 
@@ -343,7 +344,7 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
         verify(requestHandler, times(1)).handle(argument.capture());
 
         NotificationInsertRequest request = argument.getValue().getBody().cast(NotificationInsertRequest.class);
-        assertEquals(Action.NOTIFICATION_INSERT_REQUEST.name(), request.getAction());
+        assertEquals(Action.NOTIFICATION_INSERT_REQUEST, request.getAction());
         assertEquals(deviceNotification, request.getDeviceNotification());
     }
 }

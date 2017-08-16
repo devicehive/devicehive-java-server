@@ -22,6 +22,7 @@ package com.devicehive.base.handler;
 
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -107,7 +108,7 @@ public class MockCommandHandler {
                         .buildSuccess();
             } else {
                 return com.devicehive.shim.api.Response.newBuilder()
-                        .withBody(new Body("") {
+                        .withBody(new Body(Action.EMPTY) {
                         })
                         .buildSuccess();
             }

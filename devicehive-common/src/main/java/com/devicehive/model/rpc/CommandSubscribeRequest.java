@@ -19,6 +19,7 @@ package com.devicehive.model.rpc;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
@@ -36,7 +37,7 @@ public class CommandSubscribeRequest extends Body {
 
     public CommandSubscribeRequest(String subscriptionId, String device,
             Set<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
-        super(Action.COMMAND_SUBSCRIBE_REQUEST.name());
+        super(Action.COMMAND_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.device = device;
         this.names = names;

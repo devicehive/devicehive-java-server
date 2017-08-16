@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
@@ -36,7 +37,7 @@ public class CommandSearchRequest extends Body {
     private String status;
 
     public CommandSearchRequest() {
-        super(Action.COMMAND_SEARCH_REQUEST.name());
+        super(Action.COMMAND_SEARCH_REQUEST);
     }
 
     public Long getId() {

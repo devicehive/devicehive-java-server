@@ -21,19 +21,18 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Collection;
 import java.util.Objects;
-
-import static com.devicehive.configuration.Constants.*;
 
 public class NotificationSubscribeResponse extends Body {
     private String subId;
     private Collection<DeviceNotification> notifications;
 
     public NotificationSubscribeResponse(String subId, Collection<DeviceNotification> notifications) {
-        super(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name());
+        super(Action.NOTIFICATION_SUBSCRIBE_RESPONSE);
         this.subId = subId;
         this.notifications = notifications;
     }

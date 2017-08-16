@@ -36,8 +36,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
-import static com.devicehive.model.rpc.Action.COMMANDS_UPDATE_EVENT;
-import static com.devicehive.model.rpc.Action.COMMAND_EVENT;
+import static com.devicehive.shim.api.Action.COMMANDS_UPDATE_EVENT;
+import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
