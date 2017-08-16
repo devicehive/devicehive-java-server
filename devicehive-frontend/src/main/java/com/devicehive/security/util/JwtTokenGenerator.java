@@ -63,11 +63,14 @@ public class JwtTokenGenerator {
         Date expiration = useExpiration && payload.getExpiration() != null ? payload.getExpiration() :
                 timestampService.getDate(System.currentTimeMillis() + maxAge);
         
-        payload.setExpiration(expiration);
-        payload.setTokenType(tokenType);
+        JwtPayload generatedPayload = JwtPayload.newBuilder()
+                .withPayload(payload)
+                .withExpirationDate(expiration)
+                .withTokenType(tokenType)
+                .buildPayload();
         
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put(JwtPayload.JWT_CLAIM_KEY, payload);
+        jwtMap.put(JwtPayload.JWT_CLAIM_KEY, generatedPayload);
 
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()
