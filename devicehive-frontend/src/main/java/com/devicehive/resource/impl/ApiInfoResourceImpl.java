@@ -27,6 +27,7 @@ import com.devicehive.resource.ApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.CacheInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
@@ -83,9 +84,18 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         } else {
             apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
-        apiInfo.setEhcacheStats(getCacheStats());
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
+    }
+
+    @Override
+    public Response getApiInfoCache(UriInfo uriInfo) {
+        logger.debug("ApiInfoVO requested");
+        CacheInfoVO cacheInfoVO = new CacheInfoVO();
+        cacheInfoVO.setServerTimestamp(timestampService.getDate());
+        cacheInfoVO.setEhcacheStats(getCacheStats());
+
+        return ResponseFactory.response(Response.Status.OK, cacheInfoVO, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
 
     @Override
