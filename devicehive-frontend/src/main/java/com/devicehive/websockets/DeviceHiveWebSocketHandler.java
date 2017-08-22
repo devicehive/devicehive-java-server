@@ -110,7 +110,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             logger.error("Access to action is denied", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         } catch (HiveException ex) {
-            logger.error("Error executing the request", ex);
+            logger.error("Error executing the request\n" + ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(ex.getCode(), ex.getMessage());
         } catch (IllegalParametersException ex) {
             logger.error("Error executing the request", ex);
@@ -171,7 +171,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
         sessionMonitor.removeSession(session.getId());
 
-        if(session.isOpen()) {
+        if (session.isOpen()) {
             session.close();
         }
         logger.info("Websocket Connection Closed: session id {}, close status is {} ", session.getId(), status);
