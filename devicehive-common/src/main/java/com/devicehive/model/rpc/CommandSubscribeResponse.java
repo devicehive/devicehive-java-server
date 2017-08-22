@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Collection;
@@ -31,7 +32,7 @@ public class CommandSubscribeResponse extends Body {
     private Collection<DeviceCommand> commands;
 
     public CommandSubscribeResponse(String subId, Collection<DeviceCommand> commands) {
-        super(Action.COMMAND_SUBSCRIBE_RESPONSE.name());
+        super(Action.COMMAND_SUBSCRIBE_RESPONSE);
         this.subId = subId;
         this.commands = commands;
     }

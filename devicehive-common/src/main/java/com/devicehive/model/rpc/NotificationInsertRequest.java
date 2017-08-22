@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class NotificationInsertRequest extends Body {
@@ -28,7 +29,7 @@ public class NotificationInsertRequest extends Body {
     private DeviceNotification deviceNotification;
 
     public NotificationInsertRequest(DeviceNotification deviceNotification) {
-        super(Action.NOTIFICATION_INSERT_REQUEST.name());
+        super(Action.NOTIFICATION_INSERT_REQUEST);
         this.deviceNotification = deviceNotification;
     }
 

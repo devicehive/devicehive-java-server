@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -42,7 +43,7 @@ public class ListNetworkRequest extends Body {
     private Optional<HivePrincipal> principal;
 
     public ListNetworkRequest() {
-        super(Action.LIST_NETWORK_REQUEST.name());
+        super(Action.LIST_NETWORK_REQUEST);
     }
 
     public static ListNetworkRequest createListNetworkRequest(JsonObject request) {

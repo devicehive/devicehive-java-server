@@ -20,7 +20,7 @@ package com.devicehive.handler;
  * #L%
  */
 
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.ErrorResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -50,7 +50,7 @@ public class RequestDispatcher implements RequestHandler {
     @Override
     @SuppressWarnings("unchecked")
     public Response handle(Request request) {
-        final Action action = Action.valueOf(request.getBody().getAction());
+        final Action action = request.getBody().getAction();
         try {
             return Optional.ofNullable(handlerMap.get(action))
                     .map(handler -> handler.handle(request))

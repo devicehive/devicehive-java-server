@@ -24,6 +24,7 @@ import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -217,10 +218,10 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
 
         @Override
         public void accept(Response response) {
-            if (response.getBody().getAction().equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())
-                    || response.getBody().getAction().equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE.name())) {
+            if (response.getBody().getAction().equals(Action.COMMAND_SUBSCRIBE_RESPONSE)
+                    || response.getBody().getAction().equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
                 subscribeFuture.complete(response.getBody());
-            } else if (response.getBody().getAction().equals(Action.COMMAND_EVENT.name())) {
+            } else if (response.getBody().getAction().equals(Action.COMMAND_EVENT)) {
                 commands.add((CommandEvent) response.getBody());
             } else {
                 throw new IllegalArgumentException("Unexpected response " + response);

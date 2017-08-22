@@ -20,6 +20,7 @@ package com.devicehive.base;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -37,7 +38,7 @@ public class RequestDispatcherProxy implements RequestHandler {
     public Response handle(Request request) {
         if (requestHandler == null) {
             return Response.newBuilder()
-                    .withBody(new Body("") {
+                    .withBody(new Body(Action.EMPTY) {
                     })
                     .buildSuccess();
         } else {

@@ -29,6 +29,7 @@ import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -63,49 +64,49 @@ public class GsonFactory {
 
 
     private static GsonBuilder createGsonBuilder() {
-        RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "action")
-                .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.name())
+        RuntimeTypeAdapterFactory<Body> req = RuntimeTypeAdapterFactory.of(Body.class, "a")
+                .registerSubtype(ErrorResponse.class, Action.ERROR_RESPONSE.ordinal())
 
-                .registerSubtype(CommandInsertRequest.class, Action.COMMAND_INSERT_REQUEST.name())
-                .registerSubtype(CommandInsertResponse.class, Action.COMMAND_INSERT_RESPONSE.name())
-                .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.name())
-                .registerSubtype(CommandSearchResponse.class, Action.COMMAND_SEARCH_RESPONSE.name())
-                .registerSubtype(CommandSubscribeRequest.class, Action.COMMAND_SUBSCRIBE_REQUEST.name())
-                .registerSubtype(CommandSubscribeResponse.class, Action.COMMAND_SUBSCRIBE_RESPONSE.name())
-                .registerSubtype(CommandUnsubscribeRequest.class, Action.COMMAND_UNSUBSCRIBE_REQUEST.name())
-                .registerSubtype(CommandUnsubscribeResponse.class, Action.COMMAND_UNSUBSCRIBE_RESPONSE.name())
-                .registerSubtype(CommandUpdateSubscribeRequest.class, Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.name())
-                .registerSubtype(CommandUpdateSubscribeResponse.class, Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())
-                .registerSubtype(CommandUpdateRequest.class, Action.COMMAND_UPDATE_REQUEST.name())
-                .registerSubtype(CommandsUpdateRequest.class, Action.COMMANDS_UPDATE_REQUEST.name())
-                .registerSubtype(CommandGetSubscriptionRequest.class, Action.COMMAND_GET_SUBSCRIPTION_REQUEST.name())
-                .registerSubtype(CommandGetSubscriptionResponse.class, Action.COMMAND_GET_SUBSCRIPTION_RESPONSE.name())
+                .registerSubtype(CommandInsertRequest.class, Action.COMMAND_INSERT_REQUEST.ordinal())
+                .registerSubtype(CommandInsertResponse.class, Action.COMMAND_INSERT_RESPONSE.ordinal())
+                .registerSubtype(CommandSearchRequest.class, Action.COMMAND_SEARCH_REQUEST.ordinal())
+                .registerSubtype(CommandSearchResponse.class, Action.COMMAND_SEARCH_RESPONSE.ordinal())
+                .registerSubtype(CommandSubscribeRequest.class, Action.COMMAND_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(CommandSubscribeResponse.class, Action.COMMAND_SUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(CommandUnsubscribeRequest.class, Action.COMMAND_UNSUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(CommandUnsubscribeResponse.class, Action.COMMAND_UNSUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(CommandUpdateSubscribeRequest.class, Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(CommandUpdateSubscribeResponse.class, Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(CommandUpdateRequest.class, Action.COMMAND_UPDATE_REQUEST.ordinal())
+                .registerSubtype(CommandsUpdateRequest.class, Action.COMMANDS_UPDATE_REQUEST.ordinal())
+                .registerSubtype(CommandGetSubscriptionRequest.class, Action.COMMAND_GET_SUBSCRIPTION_REQUEST.ordinal())
+                .registerSubtype(CommandGetSubscriptionResponse.class, Action.COMMAND_GET_SUBSCRIPTION_RESPONSE.ordinal())
 
-                .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.name())
-                .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.name())
-                .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT_REQUEST.name())
-                .registerSubtype(NotificationInsertResponse.class, Action.NOTIFICATION_INSERT_RESPONSE.name())
-                .registerSubtype(NotificationSubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.name())
-                .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())
-                .registerSubtype(NotificationUnsubscribeRequest.class, Action.NOTIFICATION_UNSUBSCRIBE_REQUEST.name())
-                .registerSubtype(NotificationUnsubscribeResponse.class, Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.name())
+                .registerSubtype(NotificationSearchRequest.class, Action.NOTIFICATION_SEARCH_REQUEST.ordinal())
+                .registerSubtype(NotificationSearchResponse.class, Action.NOTIFICATION_SEARCH_RESPONSE.ordinal())
+                .registerSubtype(NotificationInsertRequest.class, Action.NOTIFICATION_INSERT_REQUEST.ordinal())
+                .registerSubtype(NotificationInsertResponse.class, Action.NOTIFICATION_INSERT_RESPONSE.ordinal())
+                .registerSubtype(NotificationSubscribeRequest.class, Action.NOTIFICATION_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(NotificationSubscribeResponse.class, Action.NOTIFICATION_SUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(NotificationUnsubscribeRequest.class, Action.NOTIFICATION_UNSUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(NotificationUnsubscribeResponse.class, Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE.ordinal())
 
-                .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.name())
-                .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.name())
-                .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.name())
-                .registerSubtype(CommandsUpdateEvent.class, Action.COMMANDS_UPDATE_EVENT.name())
+                .registerSubtype(NotificationEvent.class, Action.NOTIFICATION_EVENT.ordinal())
+                .registerSubtype(CommandEvent.class, Action.COMMAND_EVENT.ordinal())
+                .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.ordinal())
+                .registerSubtype(CommandsUpdateEvent.class, Action.COMMANDS_UPDATE_EVENT.ordinal())
 
-                .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.name())
-                .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.name())
+                .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.ordinal())
+                .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.ordinal())
 
-                .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.name())
-                .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.name())
+                .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.ordinal())
+                .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.ordinal())
 
-                .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.name())
-                .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.name())
+                .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.ordinal())
+                .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.ordinal())
 
-                .registerSubtype(ListCommandRequest.class, Action.LIST_COMMAND_REQUEST.name())
-                .registerSubtype(ListNotificationRequest.class, Action.LIST_NOTIFICATION_REQUEST.name());
+                .registerSubtype(ListCommandRequest.class, Action.LIST_COMMAND_REQUEST.ordinal())
+                .registerSubtype(ListNotificationRequest.class, Action.LIST_NOTIFICATION_REQUEST.ordinal());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()
@@ -115,9 +116,6 @@ public class GsonFactory {
                 .registerTypeAdapter(Date.class, new TimestampAdapter())
                 .registerTypeAdapter(UserRole.class, new UserRoleAdapter())
                 .registerTypeAdapter(UserStatus.class, new UserStatusAdapter())
-                .registerTypeAdapter(Type.class, new OAuthTypeAdapter())
-                .registerTypeAdapter(AccessType.class, new AccessTypeAdapter())
-                .registerTypeAdapter(AccessKeyType.class, new AccessKeyStatusAdapter())
                 .registerTypeAdapterFactory(req);
     }
 

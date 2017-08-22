@@ -22,11 +22,11 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.model.enums.SortOrder;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import javax.xml.bind.annotation.XmlType;
 import java.lang.reflect.Modifier;
 import java.util.Date;
 import java.util.Optional;
@@ -47,7 +47,7 @@ public class ListCommandRequest extends Body {
     private Integer skip;
 
     public ListCommandRequest() {
-        super(Action.LIST_COMMAND_REQUEST.name());
+        super(Action.LIST_COMMAND_REQUEST);
     }
 
     public static ListCommandRequest createListCommandRequest(JsonObject request) {

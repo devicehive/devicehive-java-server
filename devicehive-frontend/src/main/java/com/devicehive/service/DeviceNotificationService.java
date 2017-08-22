@@ -28,9 +28,11 @@ import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.StringUtils;
@@ -66,6 +68,9 @@ public class DeviceNotificationService {
         this.rpcClient = rpcClient;
         this.hiveValidator = hiveValidator;
     }
+
+    @Autowired
+    private RequestResponseMatcher requestResponseMatcher;
 
     public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String deviceId) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
@@ -156,11 +161,12 @@ public class DeviceNotificationService {
         for (NotificationSubscribeRequest sr : subscribeRequests) {
             CompletableFuture<Collection<DeviceNotification>> future = new CompletableFuture<>();
             Consumer<Response> responseConsumer = response -> {
-                String resAction = response.getBody().getAction();
-                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE.name())) {
+                Action resAction = response.getBody().getAction();
+                if (resAction.equals(Action.NOTIFICATION_SUBSCRIBE_RESPONSE)) {
                     NotificationSubscribeResponse r = response.getBody().cast(NotificationSubscribeResponse.class);
+                    requestResponseMatcher.addSubscription(subscriptionId, response.getCorrelationId());
                     future.complete(r.getNotifications());
-                } else if (resAction.equals(Action.NOTIFICATION_EVENT.name())) {
+                } else if (resAction.equals(Action.NOTIFICATION_EVENT)) {
                     NotificationEvent event = response.getBody().cast(NotificationEvent.class);
                     callback.accept(event.getNotification(), subscriptionId);
                 } else {
@@ -190,7 +196,17 @@ public class DeviceNotificationService {
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
-        rpcClient.push(request);
+        Consumer<Response> responseConsumer = response -> {
+            Action resAction = response.getBody().getAction();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
+                future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionId());
+                requestResponseMatcher.removeSubscription(subId);
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
+        rpcClient.call(request, responseConsumer);
     }
 
     public DeviceNotification convertWrapperToNotification(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {

@@ -25,7 +25,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.eventbus.events.NotificationEvent;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import org.junit.Before;

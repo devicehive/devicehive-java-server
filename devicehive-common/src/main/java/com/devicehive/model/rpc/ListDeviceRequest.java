@@ -22,6 +22,7 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.enums.SortOrder;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
@@ -44,16 +45,16 @@ public class ListDeviceRequest extends Body {
     private HivePrincipal principal;
 
     public ListDeviceRequest() {
-        super(Action.LIST_DEVICE_REQUEST.name());
+        super(Action.LIST_DEVICE_REQUEST);
     }
 
     public ListDeviceRequest(Long networkId) {
-        super(Action.LIST_DEVICE_REQUEST.name());
+        super(Action.LIST_DEVICE_REQUEST);
         this.networkId = networkId;
     }
 
     public ListDeviceRequest(String sortOrder, HivePrincipal principal) {
-        super(Action.LIST_DEVICE_REQUEST.name());
+        super(Action.LIST_DEVICE_REQUEST);
         this.sortOrder = sortOrder;
         this.principal = principal;
     }

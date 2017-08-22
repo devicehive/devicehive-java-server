@@ -87,7 +87,7 @@ public class KafkaRpcClientConfig {
     @Autowired
     private KafkaTopicService kafkaTopicService;
 
-    @Value("${rpc.client.response-consumer.threads:1}")
+    @Value("${rpc.client.response-consumer.threads:3}")
     private int responseConsumerThreads;
 
     @PostConstruct

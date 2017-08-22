@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
@@ -36,7 +37,7 @@ public class NotificationSearchRequest extends Body {
     private String status;
 
     public NotificationSearchRequest() {
-        super(Action.NOTIFICATION_SEARCH_REQUEST.name());
+        super(Action.NOTIFICATION_SEARCH_REQUEST);
     }
 
     public Long getId() {

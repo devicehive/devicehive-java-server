@@ -24,6 +24,7 @@ import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.rpc.*;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -53,7 +54,6 @@ public class NotificationUnsubscribeRequestHandler implements RequestHandler {
 
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else if (body.getDeviceIds() != null) {
@@ -72,7 +72,6 @@ public class NotificationUnsubscribeRequestHandler implements RequestHandler {
                     new NotificationUnsubscribeResponse(null, body.getDeviceIds());
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else {

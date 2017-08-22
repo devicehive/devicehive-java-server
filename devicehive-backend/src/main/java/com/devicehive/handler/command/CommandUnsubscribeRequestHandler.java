@@ -24,7 +24,7 @@ package com.devicehive.handler.command;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.model.rpc.Action;
+import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.CommandUnsubscribeRequest;
 import com.devicehive.model.rpc.CommandUnsubscribeResponse;
 import com.devicehive.shim.api.Request;
@@ -54,7 +54,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
 
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else if (body.getDeviceIds() != null) {
@@ -72,7 +71,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
             CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(null, body.getDeviceIds());
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
-                    .withLast(false)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else {

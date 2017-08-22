@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 public class ErrorResponse extends Body {
@@ -27,7 +28,7 @@ public class ErrorResponse extends Body {
     private String message;
 
     public ErrorResponse(String message) {
-        super(Action.ERROR_RESPONSE.name());
+        super(Action.ERROR_RESPONSE);
         this.message = message;
     }
 

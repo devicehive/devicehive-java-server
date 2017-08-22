@@ -45,6 +45,7 @@ public class Constants {
     public static final int WEBSOCKET_TIMEOUT = 4 * 60 * 1000;
     public static final Integer DEFAULT_TAKE = 100;
     public static final Integer DEFAULT_SKIP = 0;
+    public static final Boolean DEFAULT_RETURN_UPDATED_COMMANDS = false;
     public static final String DEFAULT_TAKE_STR = "100";
     public static final String DEFAULT_SKIP_STR = "0";
     public static final String CURRENT_USER = "current";
@@ -68,6 +69,7 @@ public class Constants {
     public static final String END_TIMESTAMP = "end";
     public static final String LIMIT = "limit";
     public static final String COMMAND_ID = "commandId";
+    public static final String RETURN_UPDATED_COMMANDS = "returnUpdatedCommands";
     public static final String NOTIFICATION = "notification";
     public static final String NOTIFICATIONS = "notifications";
     public static final String NOTIFICATION_ID = "notificationId";

@@ -189,7 +189,7 @@ public class UserHandlers {
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
         
-        userService.updateUser(userId, user, curUser);
+        userService.updateUser(userId, user, findCurrentUserFromAuthContext());
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 

@@ -28,9 +28,11 @@ import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
@@ -64,6 +66,9 @@ public class DeviceCommandService {
         this.hiveValidator = hiveValidator;
         this.rpcClient = rpcClient;
     }
+
+    @Autowired
+    private RequestResponseMatcher requestResponseMatcher;
 
     public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
@@ -143,12 +148,13 @@ public class DeviceCommandService {
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
-                        String resAction = response.getBody().getAction();
-                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE.name())) {
+                        Action resAction = response.getBody().getAction();
+                        if (resAction.equals(Action.COMMAND_SUBSCRIBE_RESPONSE)) {
                             future.complete(response.getBody().cast(CommandSubscribeResponse.class).getCommands());
-                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT.name())) {
+                            requestResponseMatcher.addSubscription(subscriptionId, response.getCorrelationId());
+                        } else if (!returnUpdated && resAction.equals(Action.COMMAND_EVENT)) {
                             callback.accept(response.getBody().cast(CommandEvent.class).getCommand(), subscriptionId);
-                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT.name())) {
+                        } else if (returnUpdated && resAction.equals(Action.COMMANDS_UPDATE_EVENT)) {
                             callback.accept(response.getBody().cast(CommandsUpdateEvent.class).getDeviceCommand(), subscriptionId);
                         } else {
                             logger.warn("Unknown action received from backend {}", resAction);
@@ -177,17 +183,27 @@ public class DeviceCommandService {
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
-        rpcClient.push(request);
+        Consumer<Response> responseConsumer = response -> {
+            Action resAction = response.getBody().getAction();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
+                future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionId());
+                requestResponseMatcher.removeSubscription(subId);
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
+        rpcClient.call(request, responseConsumer);
     }
 
     public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, String> callback) {
         CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
         final String subscriptionId = UUID.randomUUID().toString();
         Consumer<Response> responseConsumer = response -> {
-            String resAction = response.getBody().getAction();
-            if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE.name())) {
+            Action resAction = response.getBody().getAction();
+            if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE)) {
                 future.complete(Pair.of(response.getBody().cast(CommandUpdateSubscribeResponse.class).getSubscriptionId(), response.getBody().cast(CommandUpdateSubscribeResponse.class).getDeviceCommand()));
-            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT.name())) {
+            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT)) {
                 callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);

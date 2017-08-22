@@ -20,6 +20,7 @@ package com.devicehive.shim.api;
  * #L%
  */
 
+import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
@@ -29,17 +30,23 @@ import static com.devicehive.shim.api.RequestType.clientRequest;
 
 public class Request {
 
+    @SerializedName("b")
     private Body body;
 
+    @SerializedName("cId")
     private String correlationId;
 
+    @SerializedName("pK")
     private String partitionKey;
 
+    @SerializedName("sre")
     private boolean singleReplyExpected;
 
+    @SerializedName("rTo")
     private String replyTo;
 
-    private String type;
+    @SerializedName("t")
+    private int type;
 
     private Request(Body body,
                     boolean singleReplyExpected,
@@ -49,7 +56,7 @@ public class Request {
         this.singleReplyExpected = singleReplyExpected;
         this.correlationId = correlationId;
         this.partitionKey = partitionKey;
-        this.type = clientRequest.name();
+        this.type = clientRequest.ordinal();
     }
 
     public Body getBody() {
@@ -77,11 +84,11 @@ public class Request {
     }
 
     public void setType(RequestType type) {
-        this.type = type.name();
+        this.type = type.ordinal();
     }
 
     public RequestType getType() {
-        return RequestType.valueOf(type);
+        return RequestType.values()[type];
     }
 
     @Override
