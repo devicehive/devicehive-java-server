@@ -104,34 +104,34 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (BadCredentialsException ex) {
-            logger.error("Unauthorized access: {}", ex.getMessage());
+            logger.error("Unauthorized access", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
         } catch (AccessDeniedException | AuthenticationCredentialsNotFoundException ex) {
-            logger.error("Access to action is denied: {}", ex.getMessage());
+            logger.error("Access to action is denied", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
         } catch (HiveException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request\n" + ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(ex.getCode(), ex.getMessage());
         } catch (IllegalParametersException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
         } catch (ActionNotAllowedException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
         } catch (ConstraintViolationException ex) {
             Set<ConstraintViolation<?>> constraintViolations = ex.getConstraintViolations();
             StringBuilder errors = new StringBuilder();
             constraintViolations.forEach(exc -> errors.append(exc.getMessage()));
-            logger.error("Error executing the request: {}", errors.toString());
+            logger.error("Error executing the request", errors);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, errors.toString());
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, ex.getMessage());
         } catch (JsonParseException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Invalid request parameters");
         } catch (OptimisticLockException ex) {
-            logger.error("Error executing the request. Data conflict: {}", ex.getMessage());
+            logger.error("Error executing the request. Data conflict", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, Messages.CONFLICT_MESSAGE);
         } catch (PersistenceException ex) {
             if (ex.getCause() instanceof org.hibernate.exception.ConstraintViolationException) {
@@ -140,7 +140,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
                 response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
             }
         } catch (Exception ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
+            logger.error("Error executing the request", ex);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
         }
 
@@ -171,7 +171,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
         sessionMonitor.removeSession(session.getId());
 
-        if(session.isOpen()) {
+        if (session.isOpen()) {
             session.close();
         }
         logger.info("Websocket Connection Closed: session id {}, close status is {} ", session.getId(), status);
@@ -179,7 +179,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
-        logger.error("Error in session {}: {}", session.getId(), exception.getMessage());
+        logger.error("Error in session {}: {}", session.getId(), exception);
         if (exception.getMessage().contains("Connection reset by peer")) {
             afterConnectionClosed(session, CloseStatus.SESSION_NOT_RELIABLE);
             return;
