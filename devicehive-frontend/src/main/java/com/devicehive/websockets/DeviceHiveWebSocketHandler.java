@@ -24,6 +24,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.DeviceCommandService;
@@ -108,7 +109,10 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
         } catch (AccessDeniedException | AuthenticationCredentialsNotFoundException ex) {
             logger.error("Access to action is denied", ex);
-            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
+        } catch (InvalidPrincipalException ex) {
+            logger.error("Unauthorized access", ex);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
         } catch (HiveException ex) {
             logger.error("Error executing the request\n" + ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(ex.getCode(), ex.getMessage());
@@ -171,7 +175,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
         sessionMonitor.removeSession(session.getId());
 
-        if (session.isOpen()) {
+        if(session.isOpen()) {
             session.close();
         }
         logger.info("Websocket Connection Closed: session id {}, close status is {} ", session.getId(), status);

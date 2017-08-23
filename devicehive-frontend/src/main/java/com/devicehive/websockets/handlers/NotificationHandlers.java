@@ -147,7 +147,14 @@ public class NotificationHandlers {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), String.class);
         Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
+        CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME));
+
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
+        if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
+            throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
+        }
         if (subscriptionId == null && deviceIds == null) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
             List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
@@ -158,10 +165,7 @@ public class NotificationHandlers {
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
 
-        ((CopyOnWriteArraySet) session
-                .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
-                .remove(Optional.ofNullable(subscriptionId));
+        sessionSubIds.remove(subscriptionId);
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 

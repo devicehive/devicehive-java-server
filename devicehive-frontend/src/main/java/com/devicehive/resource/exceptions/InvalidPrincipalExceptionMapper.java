@@ -2,9 +2,9 @@ package com.devicehive.resource.exceptions;
 
 /*
  * #%L
- * DeviceHive Java Server Common business logic
+ * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ package com.devicehive.resource.exceptions;
  * #L%
  */
 
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.ErrorResponse;
-import org.springframework.security.access.AccessDeniedException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
@@ -31,17 +31,16 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 @Provider
-public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDeniedException> {
+public class InvalidPrincipalExceptionMapper implements ExceptionMapper<InvalidPrincipalException> {
 
     @Context
     private HttpServletRequest request;
 
     @Override
-    public Response toResponse(AccessDeniedException exception) {
-        return Response.status(Response.Status.FORBIDDEN)
+    public Response toResponse(InvalidPrincipalException exception) {
+        return Response.status(Response.Status.UNAUTHORIZED)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(new ErrorResponse(Response.Status.FORBIDDEN.getStatusCode(), exception.getMessage()))
+                .entity(new ErrorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), exception.getMessage()))
                 .build();
     }
-
 }
