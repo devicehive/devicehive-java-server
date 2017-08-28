@@ -31,6 +31,20 @@ node('docker') {
       backend.push()
       hazelcast.push()
     }
+
+    if (deployable_branches.contains(env.BRANCH_NAME)) {
+      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+        sh '''
+          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
+          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
+          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
+
+          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
+          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
+          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
+        '''
+      }
+    }
   }
 }
 
