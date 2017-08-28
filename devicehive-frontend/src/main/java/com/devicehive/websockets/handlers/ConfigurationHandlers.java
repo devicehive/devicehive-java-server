@@ -64,7 +64,7 @@ public class ConfigurationHandlers {
     public void processConfigurationGet(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
-            logger.error("congiguration/get proceed with error. Name should be provided.");
+            logger.error("configuration/get proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
         
@@ -83,7 +83,7 @@ public class ConfigurationHandlers {
     public void processConfigurationPut(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
-            logger.error("congiguration/put proceed with error. Name should be provided.");
+            logger.error("configuration/put proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
         
@@ -100,7 +100,7 @@ public class ConfigurationHandlers {
     public void processConfigurationDelete(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
         if (Objects.isNull(name)) {
-            logger.error("congiguration/delete proceed with error. Name should be provided.");
+            logger.error("configuration/delete proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
         

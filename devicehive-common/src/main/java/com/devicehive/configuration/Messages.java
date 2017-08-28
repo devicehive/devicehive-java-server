@@ -114,6 +114,7 @@ public class Messages {
     public static final String FORBIDDEN_INSERT_SPECIAL_NOTIFICATION = BidBundle.get("FORBIDDEN_INSERT_SPECIAL_NOTIFICATION");
     public static final String NOTIFICATION_INSERT_FAILED = BidBundle.get("NOTIFICATION_INSERT_FAILED");
     public static final String PAYLOAD_NOT_FOUND = BidBundle.get("PAYLOAD_NOT_FOUND");
+    public static final String SUBSCRIPTION_NOT_FOUND = BidBundle.get("SUBSCRIPTION_NOT_FOUND");
 
     /**
      * Bundle to extract localized strings from property files.

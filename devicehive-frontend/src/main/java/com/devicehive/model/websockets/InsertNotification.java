@@ -21,6 +21,7 @@ package com.devicehive.model.websockets;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Date;
@@ -31,6 +32,7 @@ public class InsertNotification {
     private Long id;
 
     @JsonPolicyDef({JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT, JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE})
+    @ApiModelProperty(dataType = "integer")
     private Date timestamp;
 
     public InsertNotification(Long id, Date timestamp) {

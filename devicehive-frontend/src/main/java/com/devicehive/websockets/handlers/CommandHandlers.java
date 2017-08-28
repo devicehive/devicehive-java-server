@@ -27,13 +27,11 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.ListCommandRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.websockets.InsertCommand;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -53,7 +51,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -159,9 +156,15 @@ public class CommandHandlers {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), String.class);
         Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
+        CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME));
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
-        if (Objects.isNull(subscriptionId) && deviceIds == null) {
+        if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
+            throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
+        }
+        if (subscriptionId == null && deviceIds == null) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
             List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
             deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
@@ -170,10 +173,7 @@ public class CommandHandlers {
             commandService.sendUnsubscribeRequest(subscriptionId, deviceIds);
         }
 
-        ((CopyOnWriteArraySet) session
-                .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
-                .remove(Optional.ofNullable(subscriptionId));
+        sessionSubIds.remove(subscriptionId);
 
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
@@ -295,7 +295,7 @@ public class CommandHandlers {
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 }).join();
         
-        if (Objects.isNull(webSocketResponse)) {
+        if (webSocketResponse == null) {
             logger.error(String.format(Messages.COMMAND_NOT_FOUND, commandId));
             throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
         }

@@ -27,6 +27,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
@@ -107,18 +108,18 @@ public class UserService {
                 .orElseThrow(() -> new ActionNotAllowedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
-    @Transactional(noRollbackFor = AccessDeniedException.class)
+    @Transactional(noRollbackFor = InvalidPrincipalException.class)
     public UserVO getActiveUser(String login, String password) {
         Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
-            throw new AccessDeniedException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
+            throw new InvalidPrincipalException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
         } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
             logger.error("User with login {} is not active", login);
-            throw new AccessDeniedException(Messages.USER_NOT_ACTIVE);
+            throw new InvalidPrincipalException(Messages.USER_NOT_ACTIVE);
         }
         return checkPassword(userOpt.get(), password)
-                .orElseThrow(() -> new AccessDeniedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
+                .orElseThrow(() -> new InvalidPrincipalException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
     private Optional<UserVO> checkPassword(UserVO user, String password) {
