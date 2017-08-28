@@ -53,7 +53,7 @@ public class WebSocketRequestProcessor {
     @Autowired
     private UserHandlers userHandlers;
 
-    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
+    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException, HiveException {
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
