@@ -84,13 +84,13 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public NetworkVO find(@NotNull Long networkId) {
-        Network network = find(Network.class, networkId);
+        Network network = find(Network.class, networkId, of(CacheConfig.get()));
         return network != null ? Network.convertNetwork(network) : null;
     }
 
     @Override
     public NetworkVO merge(NetworkVO existing) {
-        Network network = find(Network.class, existing.getId());
+        Network network = find(Network.class, existing.getId(), of(CacheConfig.get()));
         network.setName(existing.getName());
         network.setDescription(existing.getDescription());
         network.setEntityVersion(existing.getEntityVersion());
@@ -102,7 +102,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     public void assignToNetwork(NetworkVO network, UserVO user) {
         assert network != null && network.getId() != null;
         assert user != null && user.getId() != null;
-        Network existing = find(Network.class, network.getId());
+        Network existing = find(Network.class, network.getId(), of(CacheConfig.get()));
         User userReference = reference(User.class, user.getId());
         if (existing.getUsers() == null) {
             existing.setUsers(new HashSet<>());
@@ -138,7 +138,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId) {
-        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.refresh()))
+        List<Network> networks = createNamedQuery(Network.class, "Network.findWithUsers", Optional.of(CacheConfig.get()))
                 .setParameter("id", networkId)
                 .getResultList();
         return networks.isEmpty() ? Optional.empty() : Optional.ofNullable(Network.convertWithDevicesAndUsers(networks.get(0)));

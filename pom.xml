@@ -59,7 +59,7 @@
         <jackson2.version>2.4.5</jackson2.version>
         <hibernate-version>4.3.5.Final</hibernate-version>
         <swagger.version>1.5.4</swagger.version>
-        <lmax-disruptor.version>3.3.5</lmax-disruptor.version>
+        <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -78,6 +78,7 @@
         <tomcat.version>8.0.21</tomcat.version>
 
         <jjwt.version>0.7.0</jjwt.version>
+        <java-uid-generator.version>3.1.3</java-uid-generator.version>
 
         <skipTests>false</skipTests>
         <packaging.type>jar</packaging.type>

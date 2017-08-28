@@ -22,7 +22,6 @@ package com.devicehive.vo;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
 
 import javax.persistence.Temporal;
@@ -33,36 +32,20 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_SERVER_IN
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERVER_INFO;
 
 /**
- * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/ApiInfo">ApiInfoVO</a>
+ * Represents meta-information about the current API. For more details see <a href="http://www.devicehive.com/restful#Reference/CacheInfoVO">CacheInfoVO</a>
  */
-public class ApiInfoVO implements HiveEntity {
+public class CacheInfoVO implements HiveEntity {
 
-
-    private static final long serialVersionUID = -4899398629379606180L;
-
-    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
-    private String apiVersion;
-
+    private static final long serialVersionUID = 5237102920159287968L;
+    
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
     @Temporal(TemporalType.TIMESTAMP)
     private Date serverTimestamp;
 
-    @JsonPolicyDef(REST_SERVER_INFO)
-    private String webSocketServerUrl;
+    @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
+    private String ehcacheStats;
 
-    @ApiModelProperty(hidden = true)
-    @JsonPolicyDef(WEBSOCKET_SERVER_INFO)
-    private String restServerUrl;
-
-    public ApiInfoVO() {
-    }
-
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(String apiVersion) {
-        this.apiVersion = apiVersion;
+    public CacheInfoVO() {
     }
 
     public Date getServerTimestamp() {
@@ -73,21 +56,11 @@ public class ApiInfoVO implements HiveEntity {
         this.serverTimestamp = ObjectUtils.cloneIfPossible(serverTimestamp);
     }
 
-    public String getWebSocketServerUrl() {
-        return webSocketServerUrl;
+    public String getEhcacheStats() {
+        return ehcacheStats;
     }
 
-    public void setWebSocketServerUrl(String webSocketServerUrl) {
-        this.webSocketServerUrl = webSocketServerUrl;
+    public void setEhcacheStats(String ehcacheStats) {
+        this.ehcacheStats = ehcacheStats;
     }
-
-
-    public String getRestServerUrl() {
-        return restServerUrl;
-    }
-
-    public void setRestServerUrl(String restServerUrl) {
-        this.restServerUrl = restServerUrl;
-    }
-
 }

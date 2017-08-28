@@ -21,6 +21,7 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.CacheInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -50,6 +51,18 @@ public interface ApiInfoResource {
                     response = ApiInfoVO.class),
     })
     Response getApiInfo(@Context UriInfo uriInfo);
+
+    @GET
+    @Path("/cache")
+    @PreAuthorize("permitAll")
+    @ApiOperation(value = "Get cache info", notes = "Returns cache info"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,
+                    message = "Returns cache info",
+                    response = CacheInfoVO.class),
+    })
+    Response getApiInfoCache(@Context UriInfo uriInfo);
 
 
     @GET
