@@ -61,12 +61,10 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public void list(String name, String namePattern, String sortField, String sortOrderSt, Integer take, Integer skip,
+    public void list(String name, String namePattern, String sortField, String sortOrder, Integer take, Integer skip,
                      @Suspended final AsyncResponse asyncResponse) {
 
         logger.debug("Network list requested");
-
-        boolean sortOrder = SortOrder.parse(sortOrderSt);
 
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {
             logger.error("Unable to proceed network list request. Invalid sortField");

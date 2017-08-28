@@ -143,7 +143,7 @@ public class NetworkService {
     public CompletableFuture<List<NetworkVO>> list(String name,
             String namePattern,
             String sortField,
-            boolean sortOrderAsc,
+            String sortOrder,
             Integer take,
             Integer skip,
             HivePrincipal principal) {
@@ -153,7 +153,7 @@ public class NetworkService {
         request.setName(name);
         request.setNamePattern(namePattern);
         request.setSortField(sortField);
-        request.setSortOrderAsc(sortOrderAsc);
+        request.setSortOrder(sortOrder);
         request.setTake(take);
         request.setSkip(skip);
         request.setPrincipal(principalOpt);

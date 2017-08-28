@@ -21,6 +21,7 @@ package com.devicehive.model.rpc;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.enums.SortOrder;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
@@ -37,7 +38,7 @@ public class ListNetworkRequest extends Body {
     private String name;
     private String namePattern;
     private String sortField;
-    private boolean sortOrderAsc;
+    private String sortOrder;
     private Integer take;
     private Integer skip;
     private Optional<HivePrincipal> principal;
@@ -55,6 +56,10 @@ public class ListNetworkRequest extends Body {
         listNetworkRequest.setSkip(Optional.ofNullable(listNetworkRequest.getSkip()).orElse(DEFAULT_SKIP));
 
         return listNetworkRequest;
+    }
+
+    public boolean isSortOrderAsc() {
+        return SortOrder.parse(sortOrder);
     }
 
     public String getName() {
@@ -81,12 +86,12 @@ public class ListNetworkRequest extends Body {
         this.sortField = sortField;
     }
 
-    public boolean getSortOrderAsc() {
-        return sortOrderAsc;
+    public String getSortOrder() {
+        return sortOrder;
     }
 
-    public void setSortOrderAsc(boolean sortOrderAsc) {
-        this.sortOrderAsc = sortOrderAsc;
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
     }
 
     public Integer getTake() {
