@@ -62,6 +62,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static com.devicehive.model.enums.SortOrder.ASC;
+import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.contains;
@@ -301,7 +302,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks.get(4).getDescription(), equalTo("e"));
                 }).get(5, TimeUnit.SECONDS);
 
-        networkService.list(null, namePrefix + "%", "description", ASC.name(), 100, 0, null)
+        networkService.list(null, namePrefix + "%", "description", DESC.name(), 100, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(descriptions.size()));
 
