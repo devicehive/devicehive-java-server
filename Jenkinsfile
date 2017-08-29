@@ -48,9 +48,9 @@ node('docker') {
   }
 }
 
-node('dev-server') {
-  if (deployable_branches.contains(env.BRANCH_NAME)) {
-    stage('Deploy build to dev server'){
+if (deployable_branches.contains(env.BRANCH_NAME)) {
+  stage('Deploy build to dev server'){
+    node('dev-server') {
       sh '''
         cd ~/devicehive-docker/rdbms-image
         sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
