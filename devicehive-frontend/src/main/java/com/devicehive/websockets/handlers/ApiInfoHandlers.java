@@ -24,19 +24,24 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.ApiInfoVO;
+import com.devicehive.vo.CacheInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.JsonObject;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import static com.devicehive.configuration.Constants.BOOTSTRAP_SERVERS;
+import static com.devicehive.configuration.Constants.CACHE_INFO;
 import static com.devicehive.configuration.Constants.CLUSTER_INFO;
 import static com.devicehive.configuration.Constants.INFO;
 import static com.devicehive.configuration.Constants.ZOOKEEPER_CONNECT;
@@ -56,6 +61,9 @@ public class ApiInfoHandlers {
     
     @Autowired
     private WebSocketClientHandler clientHandler;
+
+    @Autowired
+    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -78,6 +86,18 @@ public class ApiInfoHandlers {
     }
 
     @PreAuthorize("permitAll")
+    public void processServerCacheInfo(JsonObject request, WebSocketSession session) {
+        logger.debug("server/cacheInfo action started. Session " + session.getId());
+        CacheInfoVO cacheInfo = new CacheInfoVO();
+        cacheInfo.setServerTimestamp(timestampService.getDate());
+        cacheInfo.setEhcacheStats(getCacheStats());
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue(CACHE_INFO, cacheInfo, WEBSOCKET_SERVER_INFO);
+        logger.debug("server/cacheI action completed. Session {}", session.getId());
+        clientHandler.sendMessage(request, response, session);
+    }
+
+    @PreAuthorize("permitAll")
     public void processClusterConfigInfo(JsonObject request, WebSocketSession session) {
         logger.debug("cluster/info action started. Session " + session.getId());
         ClusterConfigVO clusterConfig = new ClusterConfigVO();
@@ -87,6 +107,13 @@ public class ApiInfoHandlers {
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CLUSTER_INFO, clusterConfig, REST_CLUSTER_CONFIG);
         clientHandler.sendMessage(request, response, session);
+    }
+
+    private String getCacheStats() {
+        SessionFactory sessionFactory = entityManagerFactory.nativeEntityManagerFactory.unwrap(SessionFactory.class);
+        Statistics statistics = sessionFactory.getStatistics();
+
+        return statistics.toString();
     }
 
 }
