@@ -54,7 +54,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
 
     @Override
     public DeviceVO findById(String id) {
-        Device deviceEntity = createNamedQuery(Device.class, "Device.findById", Optional.of(CacheConfig.refresh()))
+        Device deviceEntity = createNamedQuery(Device.class, "Device.findById", Optional.of(CacheConfig.get()))
                 .setParameter("deviceId", id)
                 .getResultList()
                 .stream().findFirst().orElse(null);

@@ -73,7 +73,7 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
 
     @Override
     public UserWithNetworkVO getWithNetworksById(long id) {
-        User user = createNamedQuery(User.class, "User.getWithNetworksById", of(CacheConfig.refresh()))
+        User user = createNamedQuery(User.class, "User.getWithNetworksById", of(CacheConfig.get()))
                 .setParameter("id", id)
                 .getResultList()
                 .stream().findFirst().orElse(null);

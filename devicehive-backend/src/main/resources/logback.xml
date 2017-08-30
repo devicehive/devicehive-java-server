@@ -31,7 +31,11 @@
         <appender-ref ref="STDOUT"/>
     </appender>
 
-    <logger name="com.devicehive" level="${com.devicehive.log.level:-INFO}" additivity="false">
+    <logger name="org.hibernate.cache" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <logger name="com.devicehive" level="${com.devicehive.log.level:-DEBUG}" additivity="false">
         <appender-ref ref="ASYNC"/>
     </logger>
 
