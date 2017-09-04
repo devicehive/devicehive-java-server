@@ -22,6 +22,7 @@ package com.devicehive.service.configuration;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.ConfigurationDao;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.ConfigurationVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ public class ConfigurationService {
 
     @Autowired
     private ConfigurationDao configurationDao;
+    @Autowired
+    private HiveValidator hiveValidator;
 
     @Transactional
     public <T> ConfigurationVO save(@NotNull String name, T value) {
@@ -50,6 +53,7 @@ public class ConfigurationService {
         if (existingOpt.isPresent()) {
             ConfigurationVO existing = existingOpt.get();
             existing.setValue(str);
+            hiveValidator.validate(existing);
 
             return configurationDao.merge(existing);
         }
@@ -57,6 +61,7 @@ public class ConfigurationService {
         ConfigurationVO configuration = new ConfigurationVO();
         configuration.setName(name);
         configuration.setValue(str);
+        hiveValidator.validate(configuration);
         configurationDao.persist(configuration);
 
         return configuration;

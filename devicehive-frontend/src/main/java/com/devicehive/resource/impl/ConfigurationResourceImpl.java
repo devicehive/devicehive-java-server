@@ -22,9 +22,11 @@ package com.devicehive.resource.impl;
 
 
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.updates.ConfigurationUpdate;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.resource.ConfigurationResource;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +37,6 @@ import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Messages.CONFIG_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
@@ -45,6 +46,8 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
 
     @Autowired
     private ConfigurationService configurationService;
+    @Autowired
+    private HiveValidator hiveValidator;
 
     @Value("${server.context-path}")
     private String contextPath;
@@ -60,8 +63,10 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
     }
 
     @Override
-    public Response setProperty(String name, String value) {
-        return ResponseFactory.response(OK, configurationService.save(name, value));
+    public Response updateProperty(String name, ConfigurationUpdate configurationUpdate) {
+        hiveValidator.validate(configurationUpdate);
+        
+        return ResponseFactory.response(OK, configurationService.save(name, configurationUpdate.getValue()));
     }
 
     @Override

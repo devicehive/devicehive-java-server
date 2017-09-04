@@ -20,6 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
+import com.devicehive.model.updates.ConfigurationUpdate;
 import com.devicehive.vo.ConfigurationVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -74,12 +75,12 @@ public interface ConfigurationResource {
         @ApiResponse(code = 401, message = "If request is not authorized"),
         @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response setProperty(
+    Response updateProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
                     String name,
-            @ApiParam(value = "Property value", required = true)
-                    String value);
+            @ApiParam(value = "Configuration Update body", defaultValue = "{}", required = true)
+                    ConfigurationUpdate configurationUpdate);
 
     @DELETE
     @Path("/{name}")
