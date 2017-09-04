@@ -43,7 +43,7 @@ then
     DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
-# Check if Zookeper, Kafka and Postgres are ready
+# Check if Zookeper, Kafka, Postgres and Hazelcast are ready
 while true; do
     nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
     result_zk=$?
