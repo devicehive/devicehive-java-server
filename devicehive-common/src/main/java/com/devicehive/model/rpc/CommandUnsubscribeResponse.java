@@ -28,20 +28,20 @@ import java.util.Set;
 
 public class CommandUnsubscribeResponse extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private Set<String> deviceIds;
 
-    public CommandUnsubscribeResponse(String subscriptionId, Set<String> deviceIds) {
+    public CommandUnsubscribeResponse(Long subscriptionId, Set<String> deviceIds) {
         super(Action.COMMAND_UNSUBSCRIBE_RESPONSE);
         this.subscriptionId = subscriptionId;
         this.deviceIds = deviceIds;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 

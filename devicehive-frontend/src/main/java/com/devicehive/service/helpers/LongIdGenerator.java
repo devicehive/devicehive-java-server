@@ -1,10 +1,10 @@
-package com.devicehive.resource.util;
+package com.devicehive.service.helpers;
 
 /*
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,8 @@ package com.devicehive.resource.util;
  * #L%
  */
 
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.HashSet;
+public interface LongIdGenerator {
 
-public interface JsonTypes {
-    Type STRING_SET_TYPE = new TypeToken<HashSet<String>>() {}.getType();
-    Type LONG_SET_TYPE = new TypeToken<HashSet<Long>>() {}.getType();
+    long generate();
 }

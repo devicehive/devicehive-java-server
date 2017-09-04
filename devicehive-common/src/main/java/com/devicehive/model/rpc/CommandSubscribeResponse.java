@@ -28,20 +28,20 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class CommandSubscribeResponse extends Body {
-    private String subId;
+    private Long subId;
     private Collection<DeviceCommand> commands;
 
-    public CommandSubscribeResponse(String subId, Collection<DeviceCommand> commands) {
+    public CommandSubscribeResponse(Long subId, Collection<DeviceCommand> commands) {
         super(Action.COMMAND_SUBSCRIBE_RESPONSE);
         this.subId = subId;
         this.commands = commands;
     }
 
-    public String getSubId() {
+    public Long getSubId() {
         return subId;
     }
 
-    public void setSubId(String subId) {
+    public void setSubId(Long subId) {
         this.subId = subId;
     }
 

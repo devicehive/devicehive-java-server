@@ -68,7 +68,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
     @Test
     public void shouldSubscribeToDeviceNotifications() throws Exception {
-        String subscriptionId = randomUUID().toString();
+        Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         NotificationSubscribeRequest sr =
                 new NotificationSubscribeRequest(subscriptionId, device, null, null);
@@ -98,7 +98,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
     @Test
     public void shouldSubscribeToDeviceNotificationsNames() throws Exception {
-        String subscriptionId = randomUUID().toString();
+        Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         Set<String> names = Stream.of("a", "b", "c").collect(Collectors.toSet());
         NotificationSubscribeRequest sr =
@@ -136,7 +136,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
     @Test
     public void shouldSubscribeAndSearchNotificationsInCache() throws Exception {
-        String subscriptionId = randomUUID().toString();
+        Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         Set<String> names = Stream.of("a", "b", "c").collect(Collectors.toSet());
         Date timestamp = new Date();
@@ -207,7 +207,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         ex.expectMessage("Device id is null");
 
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(randomUUID().toString(), null, null, null);
+                new NotificationSubscribeRequest(randomUUID().getMostSignificantBits(), null, null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())

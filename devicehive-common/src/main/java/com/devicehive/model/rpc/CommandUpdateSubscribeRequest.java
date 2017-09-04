@@ -27,9 +27,9 @@ public class CommandUpdateSubscribeRequest extends Body {
 
     private long commandId;
     private String deviceId;
-    private String subscriptionId;
+    private Long subscriptionId;
 
-    public CommandUpdateSubscribeRequest(long commandId, String deviceId, String subscriptionId) {
+    public CommandUpdateSubscribeRequest(long commandId, String deviceId, Long subscriptionId) {
         super(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST);
         this.commandId = commandId;
         this.deviceId = deviceId;
@@ -44,7 +44,7 @@ public class CommandUpdateSubscribeRequest extends Body {
         return deviceId;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 }

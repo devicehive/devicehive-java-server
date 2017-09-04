@@ -87,8 +87,8 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
 
-        session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
-        session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<String>());
+        session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
+        session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
 
         sessionMonitor.registerSession(session);
@@ -161,15 +161,15 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        CopyOnWriteArraySet<String> commandSubscriptions = (CopyOnWriteArraySet)
+        CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
-        for (String s : commandSubscriptions) {
+        for (Long s : commandSubscriptions) {
             commandService.sendUnsubscribeRequest(s, null);
         }
 
-        CopyOnWriteArraySet<String> notificationSubscriptions = (CopyOnWriteArraySet)
+        CopyOnWriteArraySet<Long> notificationSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
-        for (String s : notificationSubscriptions) {
+        for (Long s : notificationSubscriptions) {
             notificationService.unsubscribe(s, null);
         }
 

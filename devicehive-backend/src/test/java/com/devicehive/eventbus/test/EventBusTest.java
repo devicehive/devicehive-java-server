@@ -60,7 +60,7 @@ public class EventBusTest {
         String deviceId = UUID.randomUUID().toString();
         String subscriberTopic = "reply_topic";
 
-        Subscriber subscriber = new Subscriber(UUID.randomUUID().toString(), subscriberTopic, "correlation_id");
+        Subscriber subscriber = new Subscriber(UUID.randomUUID().getMostSignificantBits(), subscriberTopic, "correlation_id");
         Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId);
         eventBus.subscribe(subscriber, subscription);
 
@@ -93,19 +93,19 @@ public class EventBusTest {
     public void shouldSubscribeToDeviceNotificationWithName() throws Exception {
         String deviceId = UUID.randomUUID().toString();
 
-        Subscriber subscriber1 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber1 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription1 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId);
         eventBus.subscribe(subscriber1, subscription1);
 
-        Subscriber subscriber2 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber2 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription2 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId, "temperature");
         eventBus.subscribe(subscriber2, subscription2);
 
-        Subscriber subscriber3 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber3 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription3 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId, "vibration");
         eventBus.subscribe(subscriber3, subscription3);
 
-        Subscriber subscriber4 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber4 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription4 = new Subscription(Action.COMMAND_EVENT.name(), deviceId, "go_offline");
         eventBus.subscribe(subscriber4, subscription4);
 
@@ -148,7 +148,7 @@ public class EventBusTest {
         String deviceId2 = UUID.randomUUID().toString();
 
         //subscriber1 subscribes to deviceId1 temperature notifications
-        Subscriber subscriber1 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber1 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription1 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId1, "temperature");
         eventBus.subscribe(subscriber1, subscription1);
 
@@ -157,7 +157,7 @@ public class EventBusTest {
         eventBus.subscribe(subscriber1, subscription2);
 
         //subscriber2 subscribes to deviceId2 temperature notifications
-        Subscriber subscriber2 = new Subscriber(UUID.randomUUID().toString(), randomAlphabetic(5), UUID.randomUUID().toString());
+        Subscriber subscriber2 = new Subscriber(UUID.randomUUID().getMostSignificantBits(), randomAlphabetic(5), UUID.randomUUID().toString());
         Subscription subscription3 = new Subscription(Action.NOTIFICATION_EVENT.name(), deviceId2, "temperature");
         eventBus.subscribe(subscriber2, subscription3);
 

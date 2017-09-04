@@ -36,7 +36,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class ServerResponsesFactory {
 
-    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, String subId) {
+    public static JsonObject createNotificationInsertMessage(DeviceNotification deviceNotification, Long subId) {
         JsonElement deviceNotificationJson =
                 GsonFactory.createGson(NOTIFICATION_TO_CLIENT).toJsonTree(deviceNotification);
         JsonObject resultMessage = new JsonObject();
@@ -50,7 +50,7 @@ public class ServerResponsesFactory {
         If returnUpdated is true this subscription is for updated commands so message for CommandUpdate is created,
         otherwise this subscription is for inserted commands so CommandInsert message is created
     */
-    public static JsonObject createCommandMessage(DeviceCommand command, String subscriptionId, Boolean returnUpdated) {
+    public static JsonObject createCommandMessage(DeviceCommand command, Long subscriptionId, Boolean returnUpdated) {
         if (returnUpdated) {
             return createCommandUpdateMessage(command, subscriptionId);
         }
@@ -58,7 +58,7 @@ public class ServerResponsesFactory {
         return createCommandInsertMessage(command, subscriptionId);
     }
 
-    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, String subscriptionId) {
+    public static JsonObject createCommandInsertMessage(DeviceCommand deviceCommand, Long subscriptionId) {
 
         JsonElement deviceCommandJson = GsonFactory.createGson(COMMAND_TO_DEVICE).toJsonTree(deviceCommand,
                 DeviceCommand.class);
@@ -70,7 +70,7 @@ public class ServerResponsesFactory {
         return resultJsonObject;
     }
 
-    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand, String subscriptionId) {
+    public static JsonObject createCommandUpdateMessage(DeviceCommand deviceCommand, Long subscriptionId) {
         JsonElement deviceCommandJson =
                 GsonFactory.createGson(COMMAND_UPDATE_TO_CLIENT).toJsonTree(deviceCommand);
         JsonObject resultJsonObject = new JsonObject();

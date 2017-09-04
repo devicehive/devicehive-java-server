@@ -1,10 +1,10 @@
-package com.devicehive.resource.util;
+package com.devicehive.service.helpers;
 
 /*
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,20 @@ package com.devicehive.resource.util;
  * #L%
  */
 
-import com.google.gson.reflect.TypeToken;
+import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Type;
-import java.util.HashSet;
+@Component
+public class TimestampLongIdGenerator implements LongIdGenerator {
 
-public interface JsonTypes {
-    Type STRING_SET_TYPE = new TypeToken<HashSet<String>>() {}.getType();
-    Type LONG_SET_TYPE = new TypeToken<HashSet<Long>>() {}.getType();
+    private final static int MAX_VALUE = 999;
+    private int inc = 0;
+
+    @Override
+    public long generate() {
+        if (inc > MAX_VALUE) {
+            inc = 0;
+        }
+
+        return System.currentTimeMillis() * 1000 + inc++;
+    }
 }

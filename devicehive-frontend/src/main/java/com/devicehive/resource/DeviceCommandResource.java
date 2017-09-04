@@ -110,6 +110,9 @@ public interface DeviceCommandResource {
             @ApiParam(name = "deviceIds", value = "List of device IDs")
             @QueryParam("deviceIds")
             String deviceIdsString,
+            @ApiParam(name = "networkIds", value = "List of network IDs")
+            @QueryParam("networkIds")
+            String networkIdsString,
             @ApiParam(name = "names", value = "Command names")
             @QueryParam("names")
             String namesString,

@@ -20,6 +20,7 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
@@ -32,10 +33,13 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -64,10 +68,16 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandResourceImpl.class);
 
     @Autowired
+    private Gson gson;
+
+    @Autowired
     private DeviceCommandService commandService;
 
     @Autowired
     private DeviceService deviceService;
+
+    @Autowired
+    private NetworkService networkService;
 
     @Autowired
     private TimestampService timestampService;
@@ -82,23 +92,26 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     public void poll(final String deviceId, final String namesString, final String timestamp,
             boolean returnUpdatedCommands, final long timeout, final int limit, final AsyncResponse asyncResponse)
             throws Exception {
-        poll(timeout, deviceId, namesString, timestamp, returnUpdatedCommands, limit, asyncResponse);
+        poll(timeout, deviceId, null, namesString, timestamp, returnUpdatedCommands, limit, asyncResponse);
     }
 
     @Override
-    public void pollMany(final String deviceIdsString, final String namesString, final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceIdsString, namesString, timestamp, false, limit, asyncResponse);
+    public void pollMany(final String deviceIdsString, final String networkIdsString, final String namesString,
+            final String timestamp, final long timeout, final int limit, final AsyncResponse asyncResponse)
+            throws Exception {
+        poll(timeout, deviceIdsString, networkIdsString, namesString, timestamp, false, limit, asyncResponse);
     }
 
     private void poll(final long timeout,
                       final String deviceIdsCsv,
+                      final String networkIdsCsv,
                       final String namesCsv,
                       final String timestamp,
                       final boolean returnUpdated,
                       final Integer limit,
                       final AsyncResponse asyncResponse) throws InterruptedException {
-        final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
+        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
 
         final Date ts = Optional.ofNullable(timestamp).map(TimestampQueryParamParser::parse)
                 .orElse(timestampService.getDate());
@@ -110,19 +123,33 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
-        Set<String> availableDevices;
-        if (deviceIdsCsv == null) {
-            availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
-                    .stream()
-                    .map(DeviceVO::getDeviceId)
-                    .collect(Collectors.toSet());
-
-        } else {
+        Set<String> availableDevices = new HashSet<>();
+        if (deviceIdsCsv != null) {
             availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
                     .map(Arrays::asList)
                     .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
                     .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
                     .orElse(Collections.emptySet());
+        }
+        if (networkIdsCsv != null) {
+            Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
+                    .map(Arrays::asList)
+                    .map(list -> list.stream()
+                            .map(n -> gson.fromJson(n, Long.class))
+                            .map(network -> networkService.getWithDevices(network, authentication))
+                            .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
+                            .flatMap(Collection::stream)
+                            .map(DeviceVO::getDeviceId)
+                            .collect(Collectors.toSet())
+                    ).orElse(Collections.emptySet());
+            availableDevices.addAll(networkDevices);
+        }
+        if (availableDevices.isEmpty()) {
+            availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
+                    .stream()
+                    .map(DeviceVO::getDeviceId)
+                    .collect(Collectors.toSet());
+
         }
 
         Set<String> names = Optional.ofNullable(StringUtils.split(namesCsv, ','))
@@ -130,7 +157,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
+        BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
@@ -140,7 +167,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         };
 
         if (!availableDevices.isEmpty()) {
-            Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
+            Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
                     .sendSubscribeRequest(availableDevices, names, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
@@ -218,7 +245,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        BiConsumer<DeviceCommand, String> callback = (com, subscriptionId) -> {
+        BiConsumer<DeviceCommand, Long> callback = (com, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
                         Response.Status.OK,
@@ -228,7 +255,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         };
 
         if (!command.get().getIsUpdated()) {
-            CompletableFuture<Pair<String, DeviceCommand>> future = commandService
+            CompletableFuture<Pair<Long, DeviceCommand>> future = commandService
                     .sendSubscribeToUpdateRequest(Long.valueOf(commandId), deviceId, callback);
             future.thenAccept(pair -> {
                 final DeviceCommand deviceCommand = pair.getRight();

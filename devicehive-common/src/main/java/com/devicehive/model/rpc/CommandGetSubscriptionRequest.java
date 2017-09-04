@@ -25,18 +25,18 @@ import com.devicehive.shim.api.Body;
 
 public class CommandGetSubscriptionRequest extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
 
-    public CommandGetSubscriptionRequest(String subscriptionId) {
+    public CommandGetSubscriptionRequest(Long subscriptionId) {
         super(Action.COMMAND_GET_SUBSCRIPTION_REQUEST);
         this.subscriptionId = subscriptionId;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 }

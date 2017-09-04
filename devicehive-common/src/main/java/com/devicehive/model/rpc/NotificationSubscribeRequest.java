@@ -29,12 +29,12 @@ import java.util.Set;
 
 public class NotificationSubscribeRequest extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private String device;
     private Set<String> names;
     private Date timestamp;
 
-    public NotificationSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp) {
+    public NotificationSubscribeRequest(Long subscriptionId, String device, Set<String> names, Date timestamp) {
         super(Action.NOTIFICATION_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.device = device;
@@ -42,11 +42,11 @@ public class NotificationSubscribeRequest extends Body {
         this.timestamp = timestamp;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 
