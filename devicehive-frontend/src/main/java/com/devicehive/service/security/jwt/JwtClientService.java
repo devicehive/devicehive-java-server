@@ -28,6 +28,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -51,6 +52,7 @@ public class JwtClientService {
         return tokenGenerator.generateToken(payload, TokenType.REFRESH, useExpiration);
     }
 
+    @Cacheable("payload")
     public JwtPayload getPayload(String jwtToken) {
         Claims claims = Jwts.parser()
                 .setSigningKey(jwtSecretService.getJwtSecret())

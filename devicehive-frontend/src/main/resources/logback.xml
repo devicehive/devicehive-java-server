@@ -61,6 +61,10 @@
         <appender-ref ref="ASYNC"/>
     </logger>
 
+    <logger name="org.hibernate.cache" level="WARN" additivity="false">
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
     <logger name="com.devicehive.auth.rest.providers" level="WARN" additivity="false">
         <appender-ref ref="ASYNC"/>
     </logger>
