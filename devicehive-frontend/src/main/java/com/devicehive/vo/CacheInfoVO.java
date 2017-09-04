@@ -43,7 +43,7 @@ public class CacheInfoVO implements HiveEntity {
     private Date serverTimestamp;
 
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})
-    private String ehcacheStats;
+    private String cacheStats;
 
     public CacheInfoVO() {
     }
@@ -56,12 +56,12 @@ public class CacheInfoVO implements HiveEntity {
         this.serverTimestamp = ObjectUtils.cloneIfPossible(serverTimestamp);
     }
 
-    public String getEhcacheStats() {
-        return ehcacheStats;
+    public String getCacheStats() {
+        return cacheStats;
     }
 
-    public void setEhcacheStats(String ehcacheStats) {
-        this.ehcacheStats = ehcacheStats;
+    public void setCacheStats(String cacheStats) {
+        this.cacheStats = cacheStats;
     }
     
 }

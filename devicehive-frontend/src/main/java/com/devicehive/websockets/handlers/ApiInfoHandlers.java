@@ -90,7 +90,7 @@ public class ApiInfoHandlers {
         logger.debug("server/cacheInfo action started. Session " + session.getId());
         CacheInfoVO cacheInfo = new CacheInfoVO();
         cacheInfo.setServerTimestamp(timestampService.getDate());
-        cacheInfo.setEhcacheStats(getCacheStats());
+        cacheInfo.setCacheStats(getCacheStats());
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CACHE_INFO, cacheInfo, WEBSOCKET_SERVER_INFO);
         logger.debug("server/cacheI action completed. Session {}", session.getId());

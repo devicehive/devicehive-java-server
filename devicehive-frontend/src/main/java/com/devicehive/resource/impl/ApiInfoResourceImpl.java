@@ -93,7 +93,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
         logger.debug("ApiInfoVO requested");
         CacheInfoVO cacheInfoVO = new CacheInfoVO();
         cacheInfoVO.setServerTimestamp(timestampService.getDate());
-        cacheInfoVO.setEhcacheStats(getCacheStats());
+        cacheInfoVO.setCacheStats(getCacheStats());
 
         return ResponseFactory.response(Response.Status.OK, cacheInfoVO, JsonPolicyDef.Policy.REST_SERVER_INFO);
     }
