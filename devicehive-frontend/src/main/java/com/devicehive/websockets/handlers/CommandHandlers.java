@@ -192,9 +192,13 @@ public class CommandHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
+
+        DeviceVO deviceVO = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+        if (deviceVO == null) {
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
         
-        devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
-        
+        devices.add(deviceVO);
         if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
@@ -233,13 +237,15 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            devices.addAll(principal.getDeviceIds().stream()
-                    .map(devId -> deviceService.findByIdWithPermissionsCheck(devId, principal))
-                    .collect(Collectors.toList()));
-        } else {
-            devices.add(deviceService.findByIdWithPermissionsCheck(deviceId, principal));
+            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
+        DeviceVO deviceVO = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+        if (deviceVO == null) {
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+        }
+
+        devices.add(deviceVO);
         if (devices.isEmpty()) {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, id), SC_NOT_FOUND);
         }
