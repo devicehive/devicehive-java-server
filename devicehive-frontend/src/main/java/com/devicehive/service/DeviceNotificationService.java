@@ -20,12 +20,12 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
+import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
@@ -53,20 +53,20 @@ public class DeviceNotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationService.class);
 
-    private TimestampService timestampService;
-    private DeviceDao deviceDao;
-    private RpcClient rpcClient;
-    private HiveValidator hiveValidator;
+    private final TimestampService timestampService;
+    private final RpcClient rpcClient;
+    private final HiveValidator hiveValidator;
+    private final LongIdGenerator idGenerator;
 
     @Autowired
     public DeviceNotificationService(TimestampService timestampService,
-                                     DeviceDao deviceDao,
                                      RpcClient rpcClient,
-                                     HiveValidator hiveValidator) {
+                                     HiveValidator hiveValidator,
+                                     LongIdGenerator idGenerator) {
         this.timestampService = timestampService;
-        this.deviceDao = deviceDao;
         this.rpcClient = rpcClient;
         this.hiveValidator = hiveValidator;
+        this.idGenerator = idGenerator;
     }
 
     @Autowired
@@ -147,13 +147,13 @@ public class DeviceNotificationService {
                         .collect(Collectors.toList()).get(0)); // after filter we should get only one notification
     }
 
-    public Pair<String, CompletableFuture<List<DeviceNotification>>> subscribe(
+    public Pair<Long, CompletableFuture<List<DeviceNotification>>> subscribe(
             final Set<String> devices,
             final Set<String> names,
             final Date timestamp,
-            final BiConsumer<DeviceNotification, String> callback) {
+            final BiConsumer<DeviceNotification, Long> callback) {
 
-        final String subscriptionId = UUID.randomUUID().toString();
+        final Long subscriptionId = idGenerator.generate();
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
                 .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
                 .collect(Collectors.toSet());
@@ -191,14 +191,14 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void unsubscribe(String subId, Set<String> deviceIds) {
+    public void unsubscribe(Long subId, Set<String> deviceIds) {
         NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<String> future = new CompletableFuture<>();
+            CompletableFuture<Long> future = new CompletableFuture<>();
             if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionId());
                 requestResponseMatcher.removeSubscription(subId);

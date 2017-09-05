@@ -26,6 +26,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.resource.util.ResponseFactory;
 import com.google.gson.JsonParseException;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
@@ -35,7 +36,9 @@ public class JsonParseExceptionMapper implements ExceptionMapper<JsonParseExcept
 
     @Override
     public Response toResponse(JsonParseException exception) {
-        return ResponseFactory
-            .response(Response.Status.BAD_REQUEST, new ErrorResponse(Messages.INVALID_REQUEST_PARAMETERS));
+        return Response.status(Response.Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(new ErrorResponse(Response.Status.BAD_REQUEST.getStatusCode(), Messages.INVALID_REQUEST_PARAMETERS))
+                .build();
     }
 }

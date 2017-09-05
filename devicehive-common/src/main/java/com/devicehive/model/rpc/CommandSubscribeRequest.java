@@ -28,14 +28,14 @@ import java.util.Set;
 
 public class CommandSubscribeRequest extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private String device;
     private Set<String> names;
     private Date timestamp;
     private boolean returnUpdated;
     private Integer limit;
 
-    public CommandSubscribeRequest(String subscriptionId, String device,
+    public CommandSubscribeRequest(Long subscriptionId, String device,
             Set<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
@@ -46,11 +46,11 @@ public class CommandSubscribeRequest extends Body {
         this.limit = limit;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 

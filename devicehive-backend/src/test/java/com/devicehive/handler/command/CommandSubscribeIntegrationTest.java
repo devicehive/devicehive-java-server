@@ -56,9 +56,9 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
-        String subscriber3 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
+        Long subscriber3 = randomUUID().getMostSignificantBits();
 
         CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, 
                 null, null, false, 100);
@@ -156,8 +156,8 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
     public void shouldUnsubscribeFromCommands() throws Exception {
         String device1 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
 
         CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, 
                 null, null, false, 100);

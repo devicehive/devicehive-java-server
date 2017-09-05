@@ -57,9 +57,9 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
-        String subscriber3 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
+        Long subscriber3 = randomUUID().getMostSignificantBits();
 
         NotificationSubscribeRequest sr1 = new NotificationSubscribeRequest(subscriber1, device1, null, null);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
@@ -154,8 +154,8 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
     public void shouldUnsubscribeFromNotifications() throws Exception {
         String device1 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
 
         NotificationSubscribeRequest sr1 = new NotificationSubscribeRequest(subscriber1, device1, null, null);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();

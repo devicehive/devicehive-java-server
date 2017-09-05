@@ -28,20 +28,20 @@ import java.util.Collection;
 import java.util.Objects;
 
 public class NotificationSubscribeResponse extends Body {
-    private String subId;
+    private Long subId;
     private Collection<DeviceNotification> notifications;
 
-    public NotificationSubscribeResponse(String subId, Collection<DeviceNotification> notifications) {
+    public NotificationSubscribeResponse(Long subId, Collection<DeviceNotification> notifications) {
         super(Action.NOTIFICATION_SUBSCRIBE_RESPONSE);
         this.subId = subId;
         this.notifications = notifications;
     }
 
-    public String getSubId() {
+    public Long getSubId() {
         return subId;
     }
 
-    public void setSubId(String subId) {
+    public void setSubId(Long subId) {
         this.subId = subId;
     }
 

@@ -29,20 +29,20 @@ import java.util.Set;
 
 public class NotificationUnsubscribeRequest extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private Set<String> deviceIds;
 
-    public NotificationUnsubscribeRequest(String subscriptionId, Set<String> deviceIds) {
+    public NotificationUnsubscribeRequest(Long subscriptionId, Set<String> deviceIds) {
         super(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.deviceIds = deviceIds;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 

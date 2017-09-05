@@ -38,6 +38,7 @@ public class Messages {
     public static final String CONFIGURATION_NAME_REQUIRED = BidBundle.get("CONFIGURATION_NAME_REQUIRED");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
+    public static final String NETWORKS_NOT_FOUND = BidBundle.get("NETWORKS_NOT_FOUND");
     public static final String COMMAND_NOT_FOUND = BidBundle.get("COMMAND_NOT_FOUND");
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
     public static final String NOTIFICATION_NOT_FOUND_LOG = BidBundle.get("NOTIFICATION_NOT_FOUND_LOG");

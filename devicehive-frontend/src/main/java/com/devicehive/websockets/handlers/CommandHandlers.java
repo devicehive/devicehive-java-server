@@ -20,6 +20,7 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -32,7 +33,9 @@ import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.NetworkService;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
@@ -46,30 +49,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import static com.devicehive.configuration.Constants.COMMAND;
-import static com.devicehive.configuration.Constants.COMMANDS;
-import static com.devicehive.configuration.Constants.COMMAND_ID;
-import static com.devicehive.configuration.Constants.DEFAULT_RETURN_UPDATED_COMMANDS;
-import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
-import static com.devicehive.configuration.Constants.DEVICE_ID;
-import static com.devicehive.configuration.Constants.DEVICE_IDS;
-import static com.devicehive.configuration.Constants.LIMIT;
-import static com.devicehive.configuration.Constants.NAMES;
-import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
-import static com.devicehive.configuration.Constants.SUBSCRIPTION_ID;
-import static com.devicehive.configuration.Constants.TIMESTAMP;
+import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
@@ -93,6 +79,9 @@ public class CommandHandlers {
     private DeviceService deviceService;
 
     @Autowired
+    private NetworkService networkService;
+
+    @Autowired
     private DeviceCommandService commandService;
 
     @Autowired
@@ -101,45 +90,62 @@ public class CommandHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
+        final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
         final Integer limit = Optional.ofNullable(gson.fromJson(request.get(LIMIT), Integer.class)).orElse(DEFAULT_TAKE);
         final Boolean returnUpdated = Optional.ofNullable(gson.fromJson(request.get(RETURN_UPDATED_COMMANDS), Boolean.class))
                 .orElse(DEFAULT_RETURN_UPDATED_COMMANDS);
 
-        logger.debug("command/subscribe requested for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session);
+        logger.debug("command/subscribe requested for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, networks, timestamp, names, session);
 
         devices = prepareActualList(devices, deviceId);
 
         List<DeviceVO> actualDevices;
-        if (devices != null) {
+        if (!devices.isEmpty()) {
             actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
-        } else {
+        }
+        if (networks != null) {
+            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
+                    networkService.getWithDevices(network, authentication)
+            ).filter(Objects::nonNull).collect(Collectors.toSet());
+            if (actualNetworks.size() != networks.size()) {
+                throw new HiveException(String.format(Messages.NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
+            }
+            Set<String> networkDevices = actualNetworks.stream()
+                    .map(NetworkWithUsersAndDevicesVO::getDevices)
+                    .flatMap(Collection::stream)
+                    .map(DeviceVO::getDeviceId)
+                    .collect(Collectors.toSet());
+            devices.addAll(networkDevices);
+        }
+        if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
             actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
         }
 
-        BiConsumer<DeviceCommand, String> callback = (command, subscriptionId) -> {
+        BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
             JsonObject json = createCommandMessage(command, subscriptionId, returnUpdated);
             clientHandler.sendMessage(json, session);
         };
 
-        Pair<String, CompletableFuture<List<DeviceCommand>>> pair = commandService
+        Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
                 .sendSubscribeRequest(devices, names, timestamp, returnUpdated, limit, callback);
 
         pair.getRight().thenAccept(collection -> 
                 collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)));
 
-        logger.debug("command/subscribe done for devices: {}, {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, timestamp, names, session.getId());
+        logger.debug("command/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, networks, timestamp, names, session.getId());
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()
@@ -154,7 +160,7 @@ public class CommandHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final String subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), String.class);
+        final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
         Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
@@ -343,7 +349,7 @@ public class CommandHandlers {
 
     private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
         if (deviceId == null && deviceIdSet == null) {
-            return null;
+            return new HashSet<>();
         }
         if (deviceIdSet != null && deviceId == null) {
             deviceIdSet.remove(null);

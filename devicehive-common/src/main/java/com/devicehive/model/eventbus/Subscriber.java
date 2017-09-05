@@ -24,17 +24,17 @@ import java.util.Objects;
 
 public class Subscriber {
 
-    private String id;
+    private Long id;
     private String replyTo;
     private String correlationId;
 
-    public Subscriber(String id, String replyTo, String correlationId) {
+    public Subscriber(Long id, String replyTo, String correlationId) {
         this.id = id;
         this.replyTo = replyTo;
         this.correlationId = correlationId;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
