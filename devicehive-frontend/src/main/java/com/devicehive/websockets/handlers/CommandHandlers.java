@@ -199,9 +199,6 @@ public class CommandHandlers {
         }
         
         devices.add(deviceVO);
-        if (devices.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
-        }
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
@@ -246,9 +243,6 @@ public class CommandHandlers {
         }
 
         devices.add(deviceVO);
-        if (devices.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, id), SC_NOT_FOUND);
-        }
 
         Optional<DeviceCommand> savedCommand = Optional.empty();
         for (DeviceVO device : devices) {
