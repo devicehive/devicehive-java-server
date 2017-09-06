@@ -29,6 +29,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.Network;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.ListUserRequest;
@@ -256,7 +257,12 @@ public class UserService {
         UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
-            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, userId));
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        NetworkVO existingNetwork = networkDao.find(networkId);
+        if (existingNetwork == null) {
+            logger.error("Can't unassign user with id {}: network {} not found", userId, networkId);
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
         }
         userDao.unassignNetwork(existingUser, networkId);
     }

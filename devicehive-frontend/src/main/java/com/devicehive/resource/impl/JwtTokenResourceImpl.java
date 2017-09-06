@@ -75,7 +75,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         if (user == null) {
             logger.warn("JwtToken: User with specified id {} was not found", payload.getUserId());
             return ResponseFactory
-                    .response(Response.Status.BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                    .response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
         }
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
