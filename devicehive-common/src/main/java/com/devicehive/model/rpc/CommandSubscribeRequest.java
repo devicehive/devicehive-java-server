@@ -19,6 +19,7 @@ package com.devicehive.model.rpc;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
@@ -30,17 +31,17 @@ public class CommandSubscribeRequest extends Body {
 
     private Long subscriptionId;
     private String device;
-    private Set<String> names;
+    private Filter filter;
     private Date timestamp;
     private boolean returnUpdated;
     private Integer limit;
 
     public CommandSubscribeRequest(Long subscriptionId, String device,
-            Set<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
+            Filter filter, Date timestamp, boolean returnUpdated, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.device = device;
-        this.names = names;
+        this.filter = filter;
         this.timestamp = timestamp;
         this.returnUpdated = returnUpdated;
         this.limit = limit;
@@ -62,12 +63,12 @@ public class CommandSubscribeRequest extends Body {
         this.device = device;
     }
 
-    public Set<String> getNames() {
-        return names;
+    public Filter getFilter() {
+        return filter;
     }
 
-    public void setNames(Set<String> names) {
-        this.names = names;
+    public void setFilter(Filter filter) {
+        this.filter = filter;
     }
 
     public Date getTimestamp() {
@@ -108,13 +109,13 @@ public class CommandSubscribeRequest extends Body {
         CommandSubscribeRequest that = (CommandSubscribeRequest) o;
         return Objects.equals(subscriptionId, that.subscriptionId)
                 && Objects.equals(device, that.device)
-                && Objects.equals(names, that.names)
+                && Objects.equals(filter, that.filter)
                 && Objects.equals(timestamp, that.timestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, device, names, timestamp);
+        return Objects.hash(super.hashCode(), subscriptionId, device, filter, timestamp);
     }
 
     @Override
@@ -122,7 +123,7 @@ public class CommandSubscribeRequest extends Body {
         return "CommandSubscribeRequest{"
                 + "subscriptionId='" + subscriptionId + '\''
                 + ", device='" + device + '\''
-                + ", names=" + names
+                + ", filter=" + filter
                 + ", timestamp=" + timestamp
                 + ", limit=" + limit
                 + '}';

@@ -27,6 +27,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListNotificationRequest;
 import com.devicehive.model.websockets.InsertNotification;
@@ -36,6 +37,7 @@ import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -103,6 +105,10 @@ public class NotificationHandlers {
 
         devices = prepareActualList(devices, deviceId);
 
+        Filter filter = new Filter();
+        filter.setNames(names);
+        filter.setPrincipal(principal);
+        filter.setEventName(Action.NOTIFICATION_EVENT.name());
         List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
             actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
@@ -123,11 +129,13 @@ public class NotificationHandlers {
                     .map(DeviceVO::getDeviceId)
                     .collect(Collectors.toSet());
             devices.addAll(networkDevices);
+            filter.setNetworkIds(networks);
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
             actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
+            filter.setGlobal(true);
         }
 
         BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
@@ -136,7 +144,7 @@ public class NotificationHandlers {
         };
 
         Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                .subscribe(devices, names, timestamp, callback);
+                .subscribe(devices, filter, timestamp, callback);
 
         pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());

@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -149,13 +150,13 @@ public class DeviceNotificationService {
 
     public Pair<Long, CompletableFuture<List<DeviceNotification>>> subscribe(
             final Set<String> devices,
-            final Set<String> names,
+            final Filter filter,
             final Date timestamp,
             final BiConsumer<DeviceNotification, Long> callback) {
 
         final Long subscriptionId = idGenerator.generate();
         Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
-                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, names, timestamp))
+                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, filter, timestamp))
                 .collect(Collectors.toSet());
         Collection<CompletableFuture<Collection<DeviceNotification>>> futures = new ArrayList<>();
         for (NotificationSubscribeRequest sr : subscribeRequests) {
