@@ -50,10 +50,10 @@ public class NotificationInsertHandler implements RequestHandler {
     @Override
     public Response handle(Request request) {
         DeviceNotification notification = ((NotificationInsertRequest) request.getBody()).getDeviceNotification();
-        hazelcastService.store(notification);
-
         NotificationEvent notificationEvent = new NotificationEvent(notification);
+
         eventBus.publish(notificationEvent);
+        hazelcastService.store(notification);
 
         NotificationInsertResponse payload = new NotificationInsertResponse(notification);
         return Response.newBuilder()
