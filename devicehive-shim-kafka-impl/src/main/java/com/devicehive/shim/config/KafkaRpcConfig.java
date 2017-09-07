@@ -82,10 +82,14 @@ public class KafkaRpcConfig {
     @Value("${retention.ms:120000}")
     private String retentionMs;
 
+    @Value("${linger.ms:0}")
+    private String lingerMs;
+
     public Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
+        props.put(ProducerConfig.LINGER_MS_CONFIG, lingerMs);
         props.put(ProducerConfig.ACKS_CONFIG, acks);
         return props;
     }
