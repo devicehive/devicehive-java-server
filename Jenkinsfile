@@ -20,7 +20,6 @@ node('docker') {
 
   stage('Build Docker images') {
     echo 'Building Frontend image ...'
-    checkout scm
     unstash 'jars'
     def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
     def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
