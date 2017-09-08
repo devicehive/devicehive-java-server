@@ -58,6 +58,7 @@ import java.util.concurrent.Executors;
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcClientConfig {
 
+    public static final String REQUEST_TOPIC = "request_topic";
     private static String RESPONSE_TOPIC;
 
     static {
@@ -93,6 +94,7 @@ public class KafkaRpcClientConfig {
     @PostConstruct
     private void initializeTopics() {
         kafkaTopicService.createTopic(RESPONSE_TOPIC);
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
     }
 
     @Bean

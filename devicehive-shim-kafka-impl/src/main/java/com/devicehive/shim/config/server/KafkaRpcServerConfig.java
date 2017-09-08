@@ -77,11 +77,6 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.wait.strategy:blocking}")
     private String waitStrategy;
 
-    @PostConstruct
-    private void initializeTopics() {
-        kafkaTopicService.createTopic(REQUEST_TOPIC);
-    }
-    
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new ResponseSerializer(gson));
