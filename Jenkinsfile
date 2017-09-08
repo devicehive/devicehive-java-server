@@ -2,6 +2,7 @@ properties([
   buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
 ])
 
+def publishable_branches = ["development", "master"]
 def deployable_branches = ["development"]
 
 node('docker') {
@@ -36,7 +37,6 @@ node('docker') {
 stage('Run regression tests'){
   node('tests-runner'){
     try {
-
       dir('devicehive-docker'){
         echo("Clone Docker Compose files")
         git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
@@ -96,19 +96,22 @@ stage('Run regression tests'){
   }
 }
 
-if (deployable_branches.contains(env.BRANCH_NAME)) {
+if (publishable_branches.contains(env.BRANCH_NAME)) {
   node('docker') {
     stage('Publish image in main repository') {
-      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
-        sh '''
-          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
-          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
-          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
+      // Builds from 'master' branch will have 'latest' tag
+      def IMAGE_TAG = (env.BRANCH_NAME == 'master') ? 'latest' : env.BRANCH_NAME
 
-          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
-          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
-          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
-        '''
+      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+        sh """
+          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+
+          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+        """
       }
     }
   }
