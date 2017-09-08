@@ -23,6 +23,7 @@ package com.devicehive.eventbus;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
 
@@ -31,85 +32,44 @@ import java.util.*;
  */
 public class FilterRegistry {
 
-    private final Map<Long, Set<Long>> networkSubscriptions = new HashMap<>();
-
-    private final Set<Long> globalSubscriptions = new HashSet<>();
-
-    private final Map<Long, Filter> subscriptionFilter = new HashMap<>();
+    private final Map<Filter, Set<Long>> filterSubscriptionsMap = new HashMap<>();
 
     public void register(Filter filter, Long subscriptionId) {
         HivePrincipal principal = filter.getPrincipal();
         if (filter.isGlobal() && principal.areAllDevicesAvailable()) {
-            if (principal.areAllNetworksAvailable()) {
-                globalSubscriptions.add(subscriptionId);
-            } else {
-                principal.getNetworkIds().forEach(network -> addNetwork(network, subscriptionId));
+            if (!principal.areAllNetworksAvailable()) {
+                filter.setGlobal(false);
+                filter.setNetworkIds(principal.getNetworkIds());
             }
-            subscriptionFilter.put(subscriptionId, filter);
+            addFilter(filter, subscriptionId);
             return;
         }
         Set<Long> networkIds = filter.getNetworkIds();
         if (networkIds != null) {
-            networkIds.forEach(network -> addNetwork(network, subscriptionId));
-            subscriptionFilter.put(subscriptionId, filter);
+            addFilter(filter, subscriptionId);
         }
     }
 
     public void unregister(Long subscriptionId) {
-        Filter filter = subscriptionFilter.get(subscriptionId);
-        if (filter != null) {
-            if (filter.isGlobal()) {
-                globalSubscriptions.remove(subscriptionId);
+        filterSubscriptionsMap.values().forEach(subscriptionIds -> subscriptionIds.remove(subscriptionId));
+    }
+
+    public Set<Pair<Long, Filter>> getSubscriptions(Long networkId) {
+        Set<Pair<Long, Filter>> subs = new HashSet<>();
+        filterSubscriptionsMap.keySet().forEach( filter -> {
+            if (filter.isGlobal() || filter.getNetworkIds().contains(networkId)) {
+                filterSubscriptionsMap.get(filter).forEach(subId -> subs.add(Pair.of(subId, filter)));
             }
-            Set<Long> networkIds = filter.getNetworkIds();
-            if (networkIds != null) {
-                networkIds.forEach(network -> removeNetwork(network, subscriptionId));
-            }
-            subscriptionFilter.remove(subscriptionId);
-        }
-    }
-
-    private Set<Long> getGlobalSubscriptions() {
-        return globalSubscriptions;
-    }
-
-    private Set<Long> getNetworkSubscriptions(Long networkId) {
-        return networkSubscriptions.get(networkId);
-    }
-
-    public Set<Long> getSubscriptions(Long networkId) {
-        Set<Long> subs = new HashSet<>();
-        Set<Long> gSubs = getGlobalSubscriptions();
-        if (gSubs != null) {
-            subs.addAll(gSubs);
-        }
-        Set<Long> nSubs = getNetworkSubscriptions(networkId);
-        if (nSubs != null) {
-            subs.addAll(nSubs);
-        }
+        });
         return subs;
     }
 
-    public Filter getFilter(Long subscriptionId) {
-        return subscriptionFilter.get(subscriptionId);
-    }
-
-    private void addNetwork(Long networkId, Long subscriptionId) {
-        Set<Long> subscriptionIds = networkSubscriptions.get(networkId);
+    private void addFilter(Filter filter, Long subscriptionId) {
+        Set<Long> subscriptionIds = filterSubscriptionsMap.get(filter);
         if (subscriptionIds == null) {
-            networkSubscriptions.put(networkId, Sets.newHashSet(subscriptionId));
+            filterSubscriptionsMap.put(filter, Sets.newHashSet(subscriptionId));
         } else {
             subscriptionIds.add(subscriptionId);
-        }
-    }
-
-    private void removeNetwork(Long networkId, Long subscriptionId) {
-        Set<Long> subscriptionIds = networkSubscriptions.get(networkId);
-        if (subscriptionIds != null) {
-            subscriptionIds.remove(subscriptionId);
-            if (subscriptionIds.isEmpty()) {
-                networkSubscriptions.remove(networkId);
-            }
         }
     }
 }

@@ -59,7 +59,8 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
-        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
+        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name();
+        body.getFilter().setEventName(eventName);
         if (CollectionUtils.isEmpty(body.getFilter().getNames())) {
             Subscription subscription = new Subscription(eventName, body.getDevice());
             subscriptions.add(subscription);

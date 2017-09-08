@@ -72,7 +72,7 @@ public class CommandHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandHandlers.class);
 
-    public static final String SUBSCSRIPTION_SET_NAME = "commandSubscriptions";
+    public static final String SUBSCRIPTION_SET_NAME = "commandSubscriptions";
 
     @Autowired
     private Gson gson;
@@ -111,7 +111,6 @@ public class CommandHandlers {
         Filter filter = new Filter();
         filter.setNames(names);
         filter.setPrincipal(principal);
-        filter.setEventName(Action.COMMAND_EVENT.name());
         List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
             actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
@@ -157,7 +156,7 @@ public class CommandHandlers {
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
+                .get(SUBSCRIPTION_SET_NAME))
                 .add(pair.getLeft());
 
         WebSocketResponse response = new WebSocketResponse();
@@ -172,7 +171,7 @@ public class CommandHandlers {
         Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME));
+                .get(SUBSCRIPTION_SET_NAME));
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {

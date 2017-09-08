@@ -30,13 +30,12 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceVO;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 
 public class DeviceCreateHandler implements RequestHandler {
 
@@ -50,7 +49,7 @@ public class DeviceCreateHandler implements RequestHandler {
     public Response handle(Request request) {
         final DeviceCreateRequest req = (DeviceCreateRequest) request.getBody();
         final DeviceVO device = req.getDevice();
-        final Set<Long> subs = filterRegistry.getSubscriptions(device.getNetworkId());
+        final Set<Pair<Long, Filter>> subs = filterRegistry.getSubscriptions(device.getNetworkId());
 
         if (req.getOldNetwork() != null && !req.getOldNetwork().equals(device.getNetworkId())) {
             eventBus.getAllSubscriptions().stream()
@@ -59,8 +58,8 @@ public class DeviceCreateHandler implements RequestHandler {
         }
 
         if (subs != null) {
-            subs.forEach(subId -> {
-                Filter filter = filterRegistry.getFilter(subId);
+            subs.forEach(sub -> {
+                Filter filter = sub.getRight();
                 Set<String> names = filter.getNames();
                 String eventName = filter.getEventName();
 
@@ -76,7 +75,7 @@ public class DeviceCreateHandler implements RequestHandler {
                 }
 
                 subscriptions.forEach(subscription ->
-                        eventBus.subscribe(eventBus.getSubscriber(subId), subscription));
+                        eventBus.subscribe(eventBus.getSubscriber(sub.getLeft()), subscription));
             });
         }
 
