@@ -48,6 +48,69 @@ node('docker') {
   }
 }
 
+stage('Run regression tests'){
+  node('tests-runner'){
+    try {
+
+      dir('devicehive-docker'){
+        echo("Clone Docker Compose files")
+        git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
+      }
+
+      dir('devicehive-docker/rdbms-image'){
+        writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:development-images.yml
+        DH_TAG=${BRANCH_NAME}
+        JWT_SECRET=devicehive
+        """
+
+        echo("Start DeviceHive")
+        sh '''
+          sudo docker-compose pull
+          sudo docker-compose up -d
+        '''
+      }
+
+      echo("Wait for devicehive")
+      waitUntil{
+        def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
+        return (fe_status == 0)
+      }
+
+      dir('devicehive-tests') {
+        echo("Clone regression tests")
+        git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
+
+        echo("Install dependencies with npm")
+        sh '''
+          sudo npm install -g mocha mochawesome
+          sudo npm i
+        '''
+
+        echo("Configure tests")
+        sh '''
+          cp config.json config.json.orig
+          cat config.json.orig | \\
+          jq ".server.wsUrl = \\"ws://127.0.0.1:8080/api/websocket\\"" | \\
+          jq ".server.ip = \\"127.0.0.1\\"" | \\
+          jq ".server.port = \\"8080\\"" | \\
+          jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" > config.json
+        '''
+
+        echo("Run integration tests")
+        sh 'mocha -R mochawesome integration-tests'
+      }
+
+      archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
+
+    } finally {
+      dir('devicehive-docker/rdbms-image') {
+        sh 'sudo docker-compose down'
+      }
+      cleanWs()
+    }
+  }
+}
+
 if (deployable_branches.contains(env.BRANCH_NAME)) {
   stage('Deploy build to dev server'){
     node('dev-server') {
