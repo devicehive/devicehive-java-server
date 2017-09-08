@@ -18,7 +18,7 @@ node('docker') {
     }
   }
 
-  stage('Build Docker images') {
+  stage('Build and publish Docker images in CI repository') {
     echo 'Building Frontend image ...'
     unstash 'jars'
     def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
@@ -29,20 +29,6 @@ node('docker') {
       frontend.push()
       backend.push()
       hazelcast.push()
-    }
-
-    if (deployable_branches.contains(env.BRANCH_NAME)) {
-      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
-        sh '''
-          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
-          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
-          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
-
-          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
-          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
-          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
-        '''
-      }
     }
   }
 }
@@ -106,6 +92,24 @@ stage('Run regression tests'){
         sh 'sudo docker-compose down'
       }
       cleanWs()
+    }
+  }
+}
+
+if (deployable_branches.contains(env.BRANCH_NAME)) {
+  node('docker') {
+    stage('Publish image in main repository') {
+      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+        sh '''
+          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
+          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
+          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
+
+          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${BRANCH_NAME}
+          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${BRANCH_NAME}
+          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${BRANCH_NAME}
+        '''
+      }
     }
   }
 }
