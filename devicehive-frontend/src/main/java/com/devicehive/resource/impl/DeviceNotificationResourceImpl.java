@@ -146,7 +146,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                             }))
                     .exceptionally(e -> {
                         //TODO: change error message here
-                        logger.warn("Device notification get failed. NOT FOUND: No notification with id = {} found for device with deviceId = {}", notificationId, deviceId);
+                        logger.error("Device notification get failed. NOT FOUND: No notification with id = {} found for device with deviceId = {}", notificationId, deviceId);
                         ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NOTIFICATION_NOT_FOUND, notificationId));
                         return ResponseFactory.response(NOT_FOUND, errorCode);
                     })
@@ -192,9 +192,18 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         if (deviceIdsString != null) {
             availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsString, ','))
                     .map(Arrays::asList)
-                    .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
-                    .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
+                    .map(list -> list.stream().collect(Collectors.toSet()))
                     .orElse(Collections.emptySet());
+        }
+        for (String deviceId : availableDevices) {
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+            if (device == null) {
+                logger.error("Device command poll failed. No device with id = {} found", deviceId);
+                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+                Response failedResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                asyncResponse.resume(failedResponse);
+                return;
+            }
         }
         if (networkIdsCsv != null) {
             Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
@@ -272,27 +281,27 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         logger.debug("DeviceNotification insert requested: {}", notificationSubmit);
         final String notificationName = notificationSubmit.getNotification();
         if (notificationName == null) {
-            logger.warn("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
+            logger.error("DeviceNotification insert proceed with error. BAD REQUEST: notification is required.");
             ErrorResponse errorResponseEntity = new ErrorResponse(BAD_REQUEST.getStatusCode(),
                     Messages.INVALID_REQUEST_PARAMETERS);
             Response response = ResponseFactory.response(BAD_REQUEST, errorResponseEntity);
             asyncResponse.resume(response);
         } else if (SpecialNotifications.DEVICE_UPDATE.equals(notificationName) || // Prevent inserting special notification manually
                     SpecialNotifications.DEVICE_ADD.equals(notificationName)){
-            logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: it's not allow to insert special notification.");
+            logger.error("DeviceNotification insert proceed with error. FORBIDDEN: it's not allow to insert special notification.");
             ErrorResponse errorCode = new ErrorResponse(FORBIDDEN.getStatusCode(), Messages.FORBIDDEN_INSERT_SPECIAL_NOTIFICATION);
             Response response = ResponseFactory.response(FORBIDDEN, errorCode);
             asyncResponse.resume(response);
         } else {
             DeviceVO device = deviceService.findById(deviceId);
             if (device == null) {
-                logger.warn("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", deviceId);
+                logger.error("DeviceNotification insert proceed with error. NOT FOUND: device {} not found.", deviceId);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                         String.format(Messages.DEVICE_NOT_FOUND, deviceId)));
                 asyncResponse.resume(response);
             } else {
                 if (device.getNetworkId() == null) {
-                    logger.warn("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", deviceId);
+                    logger.error("DeviceNotification insert proceed with error. FORBIDDEN: Device {} is not connected to network.", deviceId);
                     Response response = ResponseFactory.response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
                             String.format(Messages.DEVICE_IS_NOT_CONNECTED_TO_NETWORK, deviceId)));
                     asyncResponse.resume(response);
@@ -309,7 +318,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                                         JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT));
                             })
                             .exceptionally(e -> {
-                                logger.warn("Device notification insert failed for device with deviceId = {}.", deviceId);
+                                logger.error("Device notification insert failed for device with deviceId = {}.", deviceId);
                                 ErrorResponse errorCode = new ErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(), String.format(Messages.NOTIFICATION_INSERT_FAILED, deviceId));
                                 Response jaxResponse = ResponseFactory.response(INTERNAL_SERVER_ERROR, errorCode);
                                 asyncResponse.resume(jaxResponse);

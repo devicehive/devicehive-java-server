@@ -127,9 +127,18 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         if (deviceIdsCsv != null) {
             availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
                     .map(Arrays::asList)
-                    .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
-                    .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
+                    .map(list -> list.stream().collect(Collectors.toSet()))
                     .orElse(Collections.emptySet());
+        }
+        for (String deviceId : availableDevices) {
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+            if (device == null) {
+                LOGGER.error("Device command poll failed. No device with id = {} found", deviceId);
+                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
+                Response failedResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                asyncResponse.resume(failedResponse);
+                return;
+            }
         }
         if (networkIdsCsv != null) {
             Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
@@ -216,7 +225,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 asyncRes.resume(ResponseFactory.response(Response.Status.NO_CONTENT)));
 
         if (deviceId == null || commandId == null) {
-            LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: deviceId and commandId required", deviceId);
+            LOGGER.error("DeviceCommand wait request failed. BAD REQUEST: deviceId and commandId required", deviceId);
             asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST));
             return;
         }
@@ -224,7 +233,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         DeviceVO device = deviceService.findById(deviceId);
 
         if (device == null) {
-            LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceId);
+            LOGGER.error("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceId);
             asyncResponse.resume(ResponseFactory.response(Response.Status.NOT_FOUND));
             return;
         }
@@ -232,14 +241,14 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         Optional<DeviceCommand> command = commandService.findOne(Long.valueOf(commandId), device.getDeviceId()).join();
 
         if (!command.isPresent()) {
-            LOGGER.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
+            LOGGER.error("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
                     commandId, deviceId);
             asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
             return;
         }
 
         if (!command.get().getDeviceId().equals(device.getDeviceId())) {
-            LOGGER.warn("DeviceCommand wait request failed. BAD REQUEST: Command with id = {} was not sent for device with id = {}",
+            LOGGER.error("DeviceCommand wait request failed. BAD REQUEST: Command with id = {} was not sent for device with id = {}",
                     commandId, deviceId);
             asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST));
             return;
@@ -343,13 +352,13 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         commandService.findOne(Long.valueOf(commandId), device.getDeviceId())
                 .thenApply(command -> {
                     if (!command.isPresent()) {
-                        LOGGER.warn("Device command get failed. No command with id = {} found for device with id = {}", commandId, deviceId);
+                        LOGGER.error("Device command get failed. No command with id = {} found for device with id = {}", commandId, deviceId);
                         return ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                                 String.format(Messages.COMMAND_NOT_FOUND, commandId)));
                     }
 
                     if (!command.get().getDeviceId().equals(deviceId)) {
-                        LOGGER.debug("DeviceCommand wait request failed. Command with id = {} was not sent for device with id = {}",
+                        LOGGER.error("DeviceCommand wait request failed. Command with id = {} was not sent for device with id = {}",
                                 commandId, deviceId);
                         return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
                                 String.format(Messages.COMMAND_NOT_FOUND, commandId)));
@@ -373,7 +382,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         DeviceVO device = deviceService.findById(deviceId);
 
         if (device == null) {
-            LOGGER.warn("Device command insert failed. No device with id = {} found", deviceId);
+            LOGGER.error("Device command insert failed. No device with id = {} found", deviceId);
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
@@ -385,7 +394,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, command, Policy.COMMAND_TO_CLIENT);
                 asyncResponse.resume(jaxResponse);
             } else {
-                LOGGER.warn("Device command insert failed for device with id = {}.", deviceId);
+                LOGGER.error("Device command insert failed for device with id = {}.", deviceId);
                 ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1L));
                 Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
                 asyncResponse.resume(jaxResponse);
@@ -402,14 +411,14 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         LOGGER.debug("Device command update requested. command {}", command);
         DeviceVO device = deviceService.findById(deviceId);
         if (device == null) {
-            LOGGER.warn("Device command update failed. No device with id = {} found", deviceId);
+            LOGGER.error("Device command update failed. No device with id = {} found", deviceId);
             ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.DEVICE_NOT_FOUND, deviceId));
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
             Optional<DeviceCommand> savedCommand = commandService.findOne(commandId, deviceId).join();
             if (!savedCommand.isPresent()) {
-                LOGGER.warn("Device command update failed. No command with id = {} found for device with id = {}", commandId, deviceId);
+                LOGGER.error("Device command update failed. No command with id = {} found for device with id = {}", commandId, deviceId);
                 Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
                         String.format(Messages.COMMAND_NOT_FOUND, commandId)));
                 asyncResponse.resume(response);
