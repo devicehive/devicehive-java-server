@@ -22,9 +22,9 @@ node('docker') {
   stage('Build and publish Docker images in CI repository') {
     echo 'Building Frontend image ...'
     unstash 'jars'
-    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
-    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
-    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile.Jenkins .')
+    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
+    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
+    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
       frontend.push()
