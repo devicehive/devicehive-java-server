@@ -71,20 +71,24 @@ public class NotificationHandlers {
 
     public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final DeviceNotificationService notificationService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    private NetworkService networkService;
-
-    @Autowired
-    private DeviceNotificationService notificationService;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
-    private WebSocketClientHandler clientHandler;
+    public NotificationHandlers(DeviceService deviceService,
+                                NetworkService networkService,
+                                DeviceNotificationService notificationService,
+                                Gson gson,
+                                WebSocketClientHandler clientHandler) {
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.notificationService = notificationService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
 
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")

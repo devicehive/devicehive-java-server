@@ -25,9 +25,7 @@ package com.devicehive.model;
  */
 public class ErrorResponse implements HiveEntity {
 
-
     private static final long serialVersionUID = 286844689037405279L;
-
 
     private Integer error = null;
 

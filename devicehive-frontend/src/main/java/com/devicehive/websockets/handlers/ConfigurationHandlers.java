@@ -48,17 +48,24 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class ConfigurationHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationHandlers.class);
 
-    @Autowired
-    private ConfigurationService configurationService;
-    @Autowired
-    private Gson gson;
-    @Autowired
-    private WebSocketClientHandler clientHandler;
+    private final ConfigurationService configurationService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
+
+    @Autowired
+    public ConfigurationHandlers(ConfigurationService configurationService,
+                                 Gson gson,
+                                 WebSocketClientHandler clientHandler) {
+        this.configurationService = configurationService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationGet(JsonObject request, WebSocketSession session) {

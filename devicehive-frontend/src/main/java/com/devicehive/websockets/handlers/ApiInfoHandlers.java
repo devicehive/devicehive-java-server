@@ -53,21 +53,24 @@ public class ApiInfoHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoHandlers.class);
 
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private Environment env;
-    
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-
-    @Autowired
-    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
+    private final TimestampService timestampService;
+    private final Environment env;
+    private final WebSocketClientHandler clientHandler;
+    private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Value("${server.context-path}")
     private String contextPath;
 
+    @Autowired
+    public ApiInfoHandlers(TimestampService timestampService,
+                           Environment env,
+                           WebSocketClientHandler clientHandler,
+                           LocalContainerEntityManagerFactoryBean entityManagerFactory) {
+        this.timestampService = timestampService;
+        this.env = env;
+        this.clientHandler = clientHandler;
+        this.entityManagerFactory = entityManagerFactory;
+    }
 
     @PreAuthorize("permitAll")
     public void processServerInfo(JsonObject request, WebSocketSession session) {

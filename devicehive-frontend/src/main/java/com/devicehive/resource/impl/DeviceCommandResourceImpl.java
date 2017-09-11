@@ -67,23 +67,27 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceCommandResourceImpl.class);
 
-    @Autowired
-    private Gson gson;
+    private final Gson gson;
+    private final DeviceCommandService commandService;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final TimestampService timestampService;
+    private final HiveValidator hiveValidator;
 
     @Autowired
-    private DeviceCommandService commandService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private NetworkService networkService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private HiveValidator hiveValidator;
+    public DeviceCommandResourceImpl(Gson gson,
+                                     DeviceCommandService commandService,
+                                     DeviceService deviceService,
+                                     NetworkService networkService,
+                                     TimestampService timestampService,
+                                     HiveValidator hiveValidator) {
+        this.gson = gson;
+        this.commandService = commandService;
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.timestampService = timestampService;
+        this.hiveValidator = hiveValidator;
+    }
 
     /**
      * {@inheritDoc}
@@ -185,12 +189,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 }
             });
 
-            asyncResponse.register(new CompletionCallback() {
-                @Override
-                public void onComplete(Throwable throwable) {
-                    commandService.sendUnsubscribeRequest(pair.getLeft(), null);
-                }
-            });
+            asyncResponse.register((CompletionCallback) throwable -> commandService.sendUnsubscribeRequest(pair.getLeft(), null));
         } else {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(response);
@@ -273,15 +272,12 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     asyncResponse.setTimeout(timeout, TimeUnit.SECONDS);
                 }
             });
-            asyncResponse.register(new CompletionCallback() {
-                @Override
-                public void onComplete(Throwable throwable) {
-                    try {
-                        commandService.sendUnsubscribeRequest(future.get().getLeft(), null);
-                    } catch (InterruptedException | ExecutionException e) {
-                        if (!asyncResponse.isDone()) {
-                            asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
-                        }
+            asyncResponse.register((CompletionCallback) throwable -> {
+                try {
+                    commandService.sendUnsubscribeRequest(future.get().getLeft(), null);
+                } catch (InterruptedException | ExecutionException e) {
+                    if (!asyncResponse.isDone()) {
+                        asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
                     }
                 }
             });

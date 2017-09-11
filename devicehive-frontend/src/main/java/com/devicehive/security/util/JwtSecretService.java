@@ -35,11 +35,15 @@ import com.devicehive.service.configuration.ConfigurationService;
 @Component
 public class JwtSecretService {
 
+    private final ConfigurationService configurationService;
+
     private String secret;
-    
+
     @Autowired
-    private ConfigurationService configurationService;
-    
+    public JwtSecretService(ConfigurationService configurationService) {
+        this.configurationService = configurationService;
+    }
+
     @PostConstruct
     public void init() {
     	secret = System.getenv(Constants.ENV_SECRET_VAR_NAME);

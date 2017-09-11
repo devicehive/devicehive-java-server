@@ -62,27 +62,31 @@ public class CommonHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
 
-    @Autowired
-    private WebSocketAuthenticationManager authenticationManager;
+    private final WebSocketAuthenticationManager authenticationManager;
+    private final JwtClientService tokenService;
+    private final JwtTokenService jwtTokenService;
+    private final UserService userService;
+    private final TimestampService timestampService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    private JwtClientService tokenService;
+    public CommonHandlers(WebSocketAuthenticationManager authenticationManager,
+                          JwtClientService tokenService,
+                          JwtTokenService jwtTokenService,
+                          UserService userService,
+                          TimestampService timestampService,
+                          Gson gson,
+                          WebSocketClientHandler clientHandler) {
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+        this.jwtTokenService = jwtTokenService;
+        this.userService = userService;
+        this.timestampService = timestampService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
 
-    @Autowired
-    private JwtTokenService jwtTokenService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-    
     @PreAuthorize("permitAll")
     public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 

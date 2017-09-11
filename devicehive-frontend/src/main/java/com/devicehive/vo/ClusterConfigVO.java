@@ -31,6 +31,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.REST_CLUSTER_C
  * Created by tatyana on 2/9/15.
  */
 public class ClusterConfigVO implements HiveEntity {
+
     private static final long serialVersionUID = -4731922300811943546L;
 
     @JsonPolicyDef(REST_CLUSTER_CONFIG)

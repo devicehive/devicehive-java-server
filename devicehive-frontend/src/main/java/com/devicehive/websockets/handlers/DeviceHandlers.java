@@ -51,16 +51,21 @@ import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final WebSocketClientHandler webSocketClientHandler;
+    private final Gson gson;
 
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
-
-    @Autowired
-    private Gson gson;
+    public DeviceHandlers(DeviceService deviceService,
+                          WebSocketClientHandler webSocketClientHandler,
+                          Gson gson) {
+        this.deviceService = deviceService;
+        this.webSocketClientHandler = webSocketClientHandler;
+        this.gson = gson;
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     public void processDeviceDelete(JsonObject request, WebSocketSession session) throws HiveException {

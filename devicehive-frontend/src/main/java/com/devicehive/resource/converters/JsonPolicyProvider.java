@@ -40,6 +40,7 @@ import java.nio.charset.Charset;
 import static com.devicehive.configuration.Constants.UTF8;
 
 public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, MessageBodyReader<T> {
+
     @Override
     public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return MediaType.APPLICATION_JSON_TYPE.getType().equals(mediaType.getType()) && MediaType

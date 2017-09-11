@@ -77,22 +77,32 @@ public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
-    @Autowired
-    private PasswordProcessor passwordService;
-    @Autowired
-    private NetworkDao networkDao;
-    @Autowired
+    private final PasswordProcessor passwordService;
+    private final NetworkDao networkDao;
+    private final UserDao userDao;
+    private final TimestampService timestampService;
+    private final ConfigurationService configurationService;
+    private final HiveValidator hiveValidator;
+    private final RpcClient rpcClient;
+
     private NetworkService networkService;
+
     @Autowired
-    private UserDao userDao;
-    @Autowired
-    private TimestampService timestampService;
-    @Autowired
-    private ConfigurationService configurationService;
-    @Autowired
-    private HiveValidator hiveValidator;
-    @Autowired
-    private RpcClient rpcClient;
+    public UserService(PasswordProcessor passwordService,
+                       NetworkDao networkDao,
+                       UserDao userDao,
+                       TimestampService timestampService,
+                       ConfigurationService configurationService,
+                       HiveValidator hiveValidator,
+                       RpcClient rpcClient) {
+        this.passwordService = passwordService;
+        this.networkDao = networkDao;
+        this.userDao = userDao;
+        this.timestampService = timestampService;
+        this.configurationService = configurationService;
+        this.hiveValidator = hiveValidator;
+        this.rpcClient = rpcClient;
+    }
 
     /**
      * Tries to authenticate with given credentials
@@ -121,43 +131,6 @@ public class UserService {
         }
         return checkPassword(userOpt.get(), password)
                 .orElseThrow(() -> new InvalidPrincipalException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
-    }
-
-    private Optional<UserVO> checkPassword(UserVO user, String password) {
-        boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
-
-        long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
-        boolean mustUpdateLoginStatistic = user.getLoginAttempts() != 0
-                || user.getLastLogin() == null
-                || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout;
-
-        if (validPassword && mustUpdateLoginStatistic) {
-            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
-            return of(user1);
-        } else if (!validPassword) {
-            user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts()
-                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
-                user.setStatus(UserStatus.LOCKED_OUT);
-                user.setLoginAttempts(0);
-            }
-            userDao.merge(user);
-            return empty();
-        }
-        return of(user);
-    }
-
-    private UserVO updateStatisticOnSuccessfulLogin(UserVO user, long loginTimeout) {
-        boolean update = false;
-        if (user.getLoginAttempts() != 0) {
-            update = true;
-            user.setLoginAttempts(0);
-        }
-        if (user.getLastLogin() == null || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout) {
-            update = true;
-            user.setLastLogin(timestampService.getDate());
-        }
-        return update ? userDao.merge(user) : user;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -393,4 +366,45 @@ public class UserService {
         return updateStatisticOnSuccessfulLogin(user, loginTimeout);
     }
 
+    private Optional<UserVO> checkPassword(UserVO user, String password) {
+        boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
+
+        long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
+        boolean mustUpdateLoginStatistic = user.getLoginAttempts() != 0
+                || user.getLastLogin() == null
+                || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout;
+
+        if (validPassword && mustUpdateLoginStatistic) {
+            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
+            return of(user1);
+        } else if (!validPassword) {
+            user.setLoginAttempts(user.getLoginAttempts() + 1);
+            if (user.getLoginAttempts()
+                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
+                user.setStatus(UserStatus.LOCKED_OUT);
+                user.setLoginAttempts(0);
+            }
+            userDao.merge(user);
+            return empty();
+        }
+        return of(user);
+    }
+
+    private UserVO updateStatisticOnSuccessfulLogin(UserVO user, long loginTimeout) {
+        boolean update = false;
+        if (user.getLoginAttempts() != 0) {
+            update = true;
+            user.setLoginAttempts(0);
+        }
+        if (user.getLastLogin() == null || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout) {
+            update = true;
+            user.setLastLogin(timestampService.getDate());
+        }
+        return update ? userDao.merge(user) : user;
+    }
+
+    @Autowired
+    public void setNetworkService(NetworkService networkService) {
+        this.networkService = networkService;
+    }
 }

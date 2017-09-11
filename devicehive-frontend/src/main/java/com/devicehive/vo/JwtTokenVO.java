@@ -23,7 +23,6 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
-import io.swagger.annotations.ApiModelProperty;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED;

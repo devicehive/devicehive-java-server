@@ -70,14 +70,21 @@ public class UserHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(UserHandlers.class);
 
+    private final UserService userService;
+    private final HiveValidator hiveValidator;
+    private final WebSocketClientHandler clientHandler;
+    private final Gson gson;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private HiveValidator hiveValidator;
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-    @Autowired
-    private Gson gson;
+    public UserHandlers(UserService userService,
+                        HiveValidator hiveValidator,
+                        WebSocketClientHandler clientHandler,
+                        Gson gson) {
+        this.userService = userService;
+        this.hiveValidator = hiveValidator;
+        this.clientHandler = clientHandler;
+        this.gson = gson;
+    }
 
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")

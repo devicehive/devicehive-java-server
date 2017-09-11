@@ -36,22 +36,33 @@ import java.io.IOException;
 @Component
 public class WebSocketRequestProcessor {
 
+    private final CommonHandlers commonHandlers;
+    private final ApiInfoHandlers apiInfoHandlers;
+    private final ConfigurationHandlers configurationHandlers;
+    private final NotificationHandlers notificationHandlers;
+    private final CommandHandlers commandHandlers;
+    private final DeviceHandlers deviceHandlers;
+    private final NetworkHandlers networkHandlers;
+    private final UserHandlers userHandlers;
+
     @Autowired
-    private CommonHandlers commonHandlers;
-    @Autowired
-    private ApiInfoHandlers apiInfoHandlers;
-    @Autowired
-    private ConfigurationHandlers configurationHandlers;
-    @Autowired
-    private NotificationHandlers notificationHandlers;
-    @Autowired
-    private CommandHandlers commandHandlers;
-    @Autowired
-    private DeviceHandlers deviceHandlers;
-    @Autowired
-    private NetworkHandlers networkHandlers;
-    @Autowired
-    private UserHandlers userHandlers;
+    public WebSocketRequestProcessor(CommonHandlers commonHandlers,
+                                     ApiInfoHandlers apiInfoHandlers,
+                                     ConfigurationHandlers configurationHandlers,
+                                     NotificationHandlers notificationHandlers,
+                                     CommandHandlers commandHandlers,
+                                     DeviceHandlers deviceHandlers,
+                                     NetworkHandlers networkHandlers,
+                                     UserHandlers userHandlers) {
+        this.commonHandlers = commonHandlers;
+        this.apiInfoHandlers = apiInfoHandlers;
+        this.configurationHandlers = configurationHandlers;
+        this.notificationHandlers = notificationHandlers;
+        this.commandHandlers = commandHandlers;
+        this.deviceHandlers = deviceHandlers;
+        this.networkHandlers = networkHandlers;
+        this.userHandlers = userHandlers;
+    }
 
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException, HiveException {
         WebsocketAction action = getAction(request);

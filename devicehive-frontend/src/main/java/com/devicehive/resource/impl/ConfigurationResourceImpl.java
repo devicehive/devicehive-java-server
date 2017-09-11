@@ -44,13 +44,17 @@ import static javax.ws.rs.core.Response.Status.OK;
 @Service
 public class ConfigurationResourceImpl implements ConfigurationResource {
 
-    @Autowired
-    private ConfigurationService configurationService;
-    @Autowired
-    private HiveValidator hiveValidator;
+    private final ConfigurationService configurationService;
+    private final HiveValidator hiveValidator;
 
     @Value("${server.context-path}")
     private String contextPath;
+
+    @Autowired
+    public ConfigurationResourceImpl(ConfigurationService configurationService, HiveValidator hiveValidator) {
+        this.configurationService = configurationService;
+        this.hiveValidator = hiveValidator;
+    }
 
     @Override
     public Response get(String name) {

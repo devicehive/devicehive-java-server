@@ -72,20 +72,24 @@ public class CommandHandlers {
 
     public static final String SUBSCSRIPTION_SET_NAME = "commandSubscriptions";
 
-    @Autowired
-    private Gson gson;
+    private final Gson gson;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final DeviceCommandService commandService;
+    private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private NetworkService networkService;
-
-    @Autowired
-    private DeviceCommandService commandService;
-
-    @Autowired
-    private WebSocketClientHandler clientHandler;
+    public CommandHandlers(Gson gson,
+                           DeviceService deviceService,
+                           NetworkService networkService,
+                           DeviceCommandService commandService,
+                           WebSocketClientHandler clientHandler) {
+        this.gson = gson;
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.commandService = commandService;
+        this.clientHandler = clientHandler;
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandSubscribe(JsonObject request, WebSocketSession session)
@@ -253,9 +257,7 @@ public class CommandHandlers {
         Optional<DeviceCommand> savedCommand = Optional.empty();
         for (DeviceVO device : devices) {
             savedCommand = commandService.findOne(id, device.getDeviceId()).join();
-            if (savedCommand.isPresent()) {
-                commandService.update(savedCommand.get(), commandUpdate);
-            }
+            savedCommand.ifPresent(deviceCommand -> commandService.update(deviceCommand, commandUpdate));
         }
 
         if (!savedCommand.isPresent()) {

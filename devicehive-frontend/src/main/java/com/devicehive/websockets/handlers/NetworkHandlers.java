@@ -59,14 +59,16 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class NetworkHandlers {
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private NetworkService networkService;
+    private final NetworkService networkService;
+    private final WebSocketClientHandler webSocketClientHandler;
+    private final Gson gson;
 
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
-
-    @Autowired
-    private Gson gson;
+    public NetworkHandlers(NetworkService networkService, WebSocketClientHandler webSocketClientHandler, Gson gson) {
+        this.networkService = networkService;
+        this.webSocketClientHandler = webSocketClientHandler;
+        this.gson = gson;
+    }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     public void processNetworkList(JsonObject request, WebSocketSession session) {

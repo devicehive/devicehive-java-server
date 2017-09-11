@@ -37,8 +37,12 @@ import org.springframework.web.socket.WebSocketSession;
 @Order(0)
 public class WebSocketActionAuthenticationAspect {
 
+    private final WebSocketAuthenticationManager authenticationManager;
+
     @Autowired
-    private WebSocketAuthenticationManager authenticationManager;
+    public WebSocketActionAuthenticationAspect(WebSocketAuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
 
     @Pointcut("execution(public * com.devicehive.websockets.handlers..*(..)) && args(..,session)")
     public void publicHandlerMethod(WebSocketSession session) {}

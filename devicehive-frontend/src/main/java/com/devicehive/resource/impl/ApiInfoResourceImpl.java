@@ -47,22 +47,25 @@ import javax.ws.rs.core.UriInfo;
  */
 @Service
 public class ApiInfoResourceImpl implements ApiInfoResource {
+
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoResourceImpl.class);
 
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private Environment env;
-
-    @Autowired
-    private LocalContainerEntityManagerFactoryBean entityManagerFactory;
+    private final TimestampService timestampService;
+    private final Environment env;
+    private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Value("${server.context-path}")
     private String contextPath;
 
     @Value("${build.version}")
     private String appVersion;
+
+    @Autowired
+    public ApiInfoResourceImpl(TimestampService timestampService, Environment env, LocalContainerEntityManagerFactoryBean entityManagerFactory) {
+        this.timestampService = timestampService;
+        this.env = env;
+        this.entityManagerFactory = entityManagerFactory;
+    }
 
     @Override
     public Response getApiInfo(UriInfo uriInfo) {

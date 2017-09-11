@@ -35,6 +35,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @Component
 public class SessionMonitor {
+
     private static final Logger logger = LoggerFactory.getLogger(SessionMonitor.class);
 
     private ConcurrentMap<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
