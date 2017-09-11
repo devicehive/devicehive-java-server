@@ -21,12 +21,6 @@ package com.devicehive.shim.config;
  */
 
 
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
-import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.ZkConnection;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,10 +76,22 @@ public class KafkaRpcConfig {
     @Value("${retention.ms:120000}")
     private String retentionMs;
 
+    @Value("${linger.ms:0}")
+    private String lingerMs;
+
+    @Value("${max.block.ms:60000}")
+    private String maxBlockTimeMs;
+    
+    @Value("${buffer.memory:33554432}")
+    private String bufferMemory;
+
     public Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.BATCH_SIZE_CONFIG, batchSize);
+        props.put(ProducerConfig.LINGER_MS_CONFIG, lingerMs);
+        props.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, maxBlockTimeMs);
+        props.put(ProducerConfig.BUFFER_MEMORY_CONFIG, bufferMemory);
         props.put(ProducerConfig.ACKS_CONFIG, acks);
         return props;
     }
