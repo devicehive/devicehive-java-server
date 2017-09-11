@@ -313,10 +313,6 @@ public class DeviceNotificationServiceTest extends AbstractResourceTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testSubmitDeviceNotificationWithRefreshEquipmentShouldInsertSingleNotification() throws Exception {
-        // mock DeviceDao
-        final DeviceDao deviceDaoMock = Mockito.mock(DeviceDao.class);
-        Whitebox.setInternalState(notificationService, "deviceDao", deviceDaoMock);
-
         // create inputs
         final DeviceVO deviceVO = new DeviceVO();
         deviceVO.setId(System.nanoTime());
