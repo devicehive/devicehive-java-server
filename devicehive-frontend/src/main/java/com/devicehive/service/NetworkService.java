@@ -72,6 +72,11 @@ public class NetworkService {
         this.rpcClient = rpcClient;
     }
 
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
@@ -245,10 +250,5 @@ public class NetworkService {
         return ofNullable(network.getId())
                 .map(id -> ofNullable(networkDao.find(id)))
                 .orElseGet(() -> networkDao.findFirstByName(network.getName()));
-    }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
     }
 }

@@ -104,6 +104,11 @@ public class UserService {
         this.rpcClient = rpcClient;
     }
 
+    @Autowired
+    public void setNetworkService(NetworkService networkService) {
+        this.networkService = networkService;
+    }
+
     /**
      * Tries to authenticate with given credentials
      *
@@ -401,10 +406,5 @@ public class UserService {
             user.setLastLogin(timestampService.getDate());
         }
         return update ? userDao.merge(user) : user;
-    }
-
-    @Autowired
-    public void setNetworkService(NetworkService networkService) {
-        this.networkService = networkService;
     }
 }
