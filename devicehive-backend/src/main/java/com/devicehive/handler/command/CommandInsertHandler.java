@@ -39,10 +39,10 @@ public class CommandInsertHandler implements RequestHandler {
     @Override
     public Response handle(Request request) {
         DeviceCommand deviceCommand = request.getBody().cast(CommandInsertRequest.class).getDeviceCommand();
-        hazelcastService.store(deviceCommand);
-
         CommandEvent commandEvent = new CommandEvent(deviceCommand);
+
         eventBus.publish(commandEvent);
+        hazelcastService.store(deviceCommand);
 
         CommandInsertResponse payload = new CommandInsertResponse(deviceCommand);
         return Response.newBuilder()

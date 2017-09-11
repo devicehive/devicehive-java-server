@@ -26,6 +26,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
@@ -166,9 +167,11 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
         };
 
+        Filter filter = new Filter();
+        filter.setNames(names);
         if (!availableDevices.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDevices, names, ts, returnUpdated, limit, callback);
+                    .sendSubscribeRequest(availableDevices, filter, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

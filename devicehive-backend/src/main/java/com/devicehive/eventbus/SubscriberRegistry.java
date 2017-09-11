@@ -25,6 +25,7 @@ import com.devicehive.model.eventbus.Subscription;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
@@ -105,6 +106,12 @@ class SubscriberRegistry {
         });
     }
 
+    void unregister(Subscription subscription) {
+        this.subscriptions.getOrDefault(subscription, new CopyOnWriteArraySet<>())
+                .forEach(subId -> subscriberSubscriptions.get(subId).remove(subscription));
+        this.subscriptions.remove(subscription);
+    }
+
     /**
      * @param subscription - subscription
      * @return - list of subscribers for subscription
@@ -115,9 +122,21 @@ class SubscriberRegistry {
                 .stream().map(subscribers::get).collect(Collectors.toList());
     }
 
+    /**
+     * @param subscriptionId - subscriptionId
+     * @return - subscriber for subscriptionId
+     */
+    Subscriber getSubscriber(Long subscriptionId) {
+        return this.subscribers.get(subscriptionId);
+    }
+
     Collection<Subscription> getSubscriptions(Subscriber subscriber) {
         Assert.notNull(subscriber);
         return this.subscriberSubscriptions.getOrDefault(subscriber.getId(), new CopyOnWriteArraySet<>());
+    }
+
+    Collection<Subscription> getAllSubscriptions() {
+        return Collections.list(this.subscriptions.keys());
     }
 
     private static <T> T firstNonNull(T first, T second) {

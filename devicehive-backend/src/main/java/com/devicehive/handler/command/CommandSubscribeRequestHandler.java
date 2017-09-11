@@ -21,6 +21,7 @@ package com.devicehive.handler.command;
  */
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
@@ -45,6 +46,9 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
     private EventBus eventBus;
 
     @Autowired
+    private FilterRegistry filterRegistry;
+
+    @Autowired
     private HazelcastService hazelcastService;
 
     @Override
@@ -55,20 +59,22 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
-        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name(); 
-        if (CollectionUtils.isEmpty(body.getNames())) {
+        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name();
+        body.getFilter().setEventName(eventName);
+        if (CollectionUtils.isEmpty(body.getFilter().getNames())) {
             Subscription subscription = new Subscription(eventName, body.getDevice());
             subscriptions.add(subscription);
         } else {
-            for (String name : body.getNames()) {
+            for (String name : body.getFilter().getNames()) {
                 Subscription subscription = new Subscription(eventName, body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }
 
         subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
+        filterRegistry.register(body.getFilter(), body.getSubscriptionId());
 
-        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
+        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getFilter().getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
         CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
         return Response.newBuilder()

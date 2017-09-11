@@ -21,6 +21,7 @@ package com.devicehive.service;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
@@ -140,7 +141,7 @@ public class DeviceCommandService {
 
     public Pair<Long, CompletableFuture<List<DeviceCommand>>> sendSubscribeRequest(
             final Set<String> devices,
-            final Set<String> names,
+            final Filter filter,
             final Date timestamp,
             final boolean returnUpdated,
             final Integer limit,
@@ -148,7 +149,7 @@ public class DeviceCommandService {
 
         final Long subscriptionId = idGenerator.generate();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, returnUpdated, limit))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, filter, timestamp, returnUpdated, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {

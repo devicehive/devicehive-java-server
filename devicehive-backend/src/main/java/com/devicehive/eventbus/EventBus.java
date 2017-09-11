@@ -53,12 +53,24 @@ public class EventBus {
         registry.unregister(subscriber);
     }
 
+    public void unsubscribe(Subscription subscription) {
+        registry.unregister(subscription);
+    }
+
     public Collection<Subscriber> getSubscribers(Subscription subscription) {
         return registry.getSubscribers(subscription);
     }
 
+    public Subscriber getSubscriber(Long subscriptionId) {
+        return registry.getSubscriber(subscriptionId);
+    }
+
     public Collection<Subscription> getSubscriptions(Subscriber subscriber) {
        return registry.getSubscriptions(subscriber);
+    }
+
+    public Collection<Subscription> getAllSubscriptions() {
+        return registry.getAllSubscriptions();
     }
 
     public void publish(Event event) {

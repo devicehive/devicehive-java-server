@@ -22,6 +22,7 @@ package com.devicehive.handler.notification;
 
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Action;
@@ -66,8 +67,10 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         TestCallback c1 = new TestCallback();
         client.call(r1, c1);
 
+        Filter filter = new Filter();
+        filter.setNames(Collections.singleton("temperature"));
         NotificationSubscribeRequest sr2 = new NotificationSubscribeRequest(subscriber1, device2,
-                Collections.singleton("temperature"), null);
+                filter, null);
         Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
         TestCallback c2 = new TestCallback();
         client.call(r2, c2);
@@ -77,8 +80,10 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         TestCallback c3 = new TestCallback();
         client.call(r3, c3);
 
+        Filter filter1 = new Filter();
+        filter1.setNames(Collections.singleton("vibration"));
         NotificationSubscribeRequest sr4 = new NotificationSubscribeRequest(subscriber2, device1,
-                Collections.singleton("vibration"), null);
+                filter1, null);
         Request r4 = Request.newBuilder().withBody(sr4).withSingleReply(false).build();
         TestCallback c4 = new TestCallback();
         client.call(r4, c4);
