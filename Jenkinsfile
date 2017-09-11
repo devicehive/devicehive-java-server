@@ -85,10 +85,8 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           echo("Run integration tests")
           sh 'mocha -R mochawesome integration-tests'
         }
-
-        archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
-
       } finally {
+        archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
         dir('devicehive-docker/rdbms-image') {
           sh 'sudo docker-compose down'
         }
