@@ -123,6 +123,7 @@ public class KafkaRpcServerConfig {
 
     @Bean
     public RequestConsumer requestConsumer(Gson gson) {
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
         return new RequestConsumer(REQUEST_TOPIC, kafkaRpcConfig.serverConsumerProps(), consumerThreads, new RequestSerializer(gson));
     }
 
