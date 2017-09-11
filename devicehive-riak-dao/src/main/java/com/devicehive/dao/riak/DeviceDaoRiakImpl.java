@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Repository
 public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(DeviceDaoRiakImpl.class);
 
     private static final Namespace DEVICE_NS = new Namespace("device");
     private static final Location COUNTERS_LOCATION = new Location(new Namespace("counters", "dh_counters"),
@@ -92,7 +92,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             refreshRefs(deviceVO);
             return deviceVO;
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot find device by UUID.", e);
         }
     }
@@ -112,15 +112,15 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             client.execute(storeOp);
             vo.setId(device.getId());
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot persist device.", e);
         }
 
         RiakNetwork network = device.getNetwork();
         if (network != null && network.getId() != null) {
-            LOGGER.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getDeviceId());
+            logger.debug("Creating relation between network[{}] and device[{}]", network.getId(), device.getDeviceId());
             networkDeviceDao.saveOrUpdate(new NetworkDevice(network.getId(), device.getDeviceId()));
-            LOGGER.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getDeviceId());
+            logger.debug("Creating relation finished between network[{}] and device[{}]", network.getId(), device.getDeviceId());
         }
     }
 
@@ -144,7 +144,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             client.execute(deleteOp);
             return 1;
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot delete device by UUID.", e);
         }
     }
@@ -223,7 +223,7 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
             return response.getResultsFromAllPhases(RiakDevice.class).stream()
                     .map(RiakDevice::convertToVo).collect(Collectors.toList());
         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot get list of devices.", e);
         }
     }

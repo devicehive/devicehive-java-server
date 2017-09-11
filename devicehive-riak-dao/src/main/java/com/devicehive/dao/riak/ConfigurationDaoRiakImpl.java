@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class ConfigurationDaoRiakImpl extends RiakGenericDao implements ConfigurationDao {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationDaoRiakImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationDaoRiakImpl.class);
 
     private static final Namespace CONFIG_NS = new Namespace("configuration");
 
@@ -54,7 +54,7 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
             RiakConfiguration configuration = getOrNull(response, RiakConfiguration.class);
             return Optional.ofNullable(RiakConfiguration.convert(configuration));
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot fetch configuration by name.", e);
         }
     }
@@ -66,7 +66,7 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
             DeleteValue delete = new DeleteValue.Builder(objectKey).build();
             client.execute(delete);
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot delete configuration by name.", e);
         }
         return 1;
@@ -82,7 +82,7 @@ public class ConfigurationDaoRiakImpl extends RiakGenericDao implements Configur
                     .build();
             client.execute(storeOp);
         } catch (ExecutionException | InterruptedException e) {
-            LOGGER.error("Exception accessing Riak Storage.", e);
+            logger.error("Exception accessing Riak Storage.", e);
             throw new HivePersistenceLayerException("Cannot store configuration.", e);
         }
     }
