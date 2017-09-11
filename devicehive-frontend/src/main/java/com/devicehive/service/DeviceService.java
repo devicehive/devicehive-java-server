@@ -27,11 +27,13 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.rpc.DeviceCreateRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
@@ -47,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -84,10 +88,27 @@ public class DeviceService {
         if (!principalHasUserAndAuthenticated) {
         	throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
+        DeviceVO oldDevice = deviceDao.findById(device.getId().orElse(null));
 
         DeviceNotification dn = deviceSaveByUser(device, principal.getUser());
         dn.setTimestamp(timestampService.getDate());
         deviceNotificationService.insert(dn, device.convertTo());
+
+        DeviceCreateRequest deviceCreateRequest = new DeviceCreateRequest(findById(device.getId().orElse(null)),
+                oldDevice != null? oldDevice.getNetworkId() : null);
+        Request request = Request.newBuilder()
+                .withBody(deviceCreateRequest)
+                .build();
+        Consumer<Response> responseConsumer = response -> {
+            Action resAction = response.getBody().getAction();
+            CompletableFuture<String> future = new CompletableFuture<>();
+            if (resAction.equals(Action.DEVICE_CREATE_RESPONSE)) {
+                future.complete(response.getBody().getAction().name());
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
+        rpcClient.call(request, responseConsumer);
     }
 
     @Transactional

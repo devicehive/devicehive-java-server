@@ -22,6 +22,7 @@ package com.devicehive.handler.command;
 
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.shim.api.Action;
@@ -41,6 +42,9 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
     @Autowired
     private EventBus eventBus;
 
+    @Autowired
+    private FilterRegistry filterRegistry;
+
     @Override
     public Response handle(Request request) {
         CommandUnsubscribeRequest body = (CommandUnsubscribeRequest) request.getBody();
@@ -49,6 +53,7 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
         if (body.getSubscriptionId() != null) {
             Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
             eventBus.unsubscribe(subscriber);
+            filterRegistry.unregister(body.getSubscriptionId());
 
             CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionId(), null);
 

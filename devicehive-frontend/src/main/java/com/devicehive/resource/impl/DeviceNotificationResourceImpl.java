@@ -27,6 +27,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
@@ -236,9 +237,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
         };
 
+        Filter filter = new Filter();
+        filter.setNames(notifications);
         if (!availableDevices.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                    .subscribe(availableDevices, notifications, ts, callback);
+                    .subscribe(availableDevices, filter, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

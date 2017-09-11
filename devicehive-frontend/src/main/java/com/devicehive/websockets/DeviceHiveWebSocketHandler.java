@@ -83,7 +83,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
 
-        session.getAttributes().put(CommandHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
+        session.getAttributes().put(CommandHandlers.SUBSCRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
         session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
 
@@ -158,7 +158,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
-                session.getAttributes().get(CommandHandlers.SUBSCSRIPTION_SET_NAME);
+                session.getAttributes().get(CommandHandlers.SUBSCRIPTION_SET_NAME);
         for (Long s : commandSubscriptions) {
             commandService.sendUnsubscribeRequest(s, null);
         }

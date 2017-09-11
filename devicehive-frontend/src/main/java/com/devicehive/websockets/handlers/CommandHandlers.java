@@ -26,6 +26,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListCommandRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -34,6 +35,7 @@ import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
@@ -70,7 +72,7 @@ public class CommandHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandHandlers.class);
 
-    public static final String SUBSCSRIPTION_SET_NAME = "commandSubscriptions";
+    public static final String SUBSCRIPTION_SET_NAME = "commandSubscriptions";
 
     private final Gson gson;
     private final DeviceService deviceService;
@@ -110,6 +112,9 @@ public class CommandHandlers {
 
         devices = prepareActualList(devices, deviceId);
 
+        Filter filter = new Filter();
+        filter.setNames(names);
+        filter.setPrincipal(principal);
         List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
             actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
@@ -130,11 +135,13 @@ public class CommandHandlers {
                     .map(DeviceVO::getDeviceId)
                     .collect(Collectors.toSet());
             devices.addAll(networkDevices);
+            filter.setNetworkIds(networks);
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
             actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
+            filter.setGlobal(true);
         }
 
         BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
@@ -143,7 +150,7 @@ public class CommandHandlers {
         };
 
         Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                .sendSubscribeRequest(devices, names, timestamp, returnUpdated, limit, callback);
+                .sendSubscribeRequest(devices, filter, timestamp, returnUpdated, limit, callback);
 
         pair.getRight().thenAccept(collection -> 
                 collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)));
@@ -153,7 +160,7 @@ public class CommandHandlers {
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
+                .get(SUBSCRIPTION_SET_NAME))
                 .add(pair.getLeft());
 
         WebSocketResponse response = new WebSocketResponse();
@@ -168,7 +175,7 @@ public class CommandHandlers {
         Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME));
+                .get(SUBSCRIPTION_SET_NAME));
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {

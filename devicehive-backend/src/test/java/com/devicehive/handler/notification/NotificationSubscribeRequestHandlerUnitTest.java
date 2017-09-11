@@ -22,6 +22,7 @@ package com.devicehive.handler.notification;
 
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.shim.api.Action;
@@ -58,12 +59,6 @@ public class NotificationSubscribeRequestHandlerUnitTest {
     @Before
     public void setUp() throws Exception {
         this.handler = new NotificationSubscribeRequestHandler();
-
-        this.eventBus = mock(EventBus.class);
-        this.hazelcastService = mock(HazelcastService.class);
-
-        this.handler.setEventBus(eventBus);
-        this.handler.setHazelcastService(hazelcastService);
     }
 
     @Test
@@ -101,8 +96,10 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         Set<String> names = Stream.of("a", "b", "c").collect(Collectors.toSet());
+        Filter filter = new Filter();
+        filter.setNames(names);
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(subscriptionId, device, names, null);
+                new NotificationSubscribeRequest(subscriptionId, device, filter, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())
@@ -140,8 +137,10 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         String device = randomUUID().toString();
         Set<String> names = Stream.of("a", "b", "c").collect(Collectors.toSet());
         Date timestamp = new Date();
+        Filter filter = new Filter();
+        filter.setNames(names);
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(subscriptionId, device, names, timestamp);
+                new NotificationSubscribeRequest(subscriptionId, device, filter, timestamp);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())
