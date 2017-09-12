@@ -145,10 +145,10 @@ public class Device implements HiveEntity {
 
     public static class Queries {
 
-        public static interface Parameters {
+        public interface Parameters {
 
-            static final String DEVICE_ID = "deviceId";
-            static final String ID = "id";
+            String DEVICE_ID = "deviceId";
+            String ID = "id";
         }
     }
 

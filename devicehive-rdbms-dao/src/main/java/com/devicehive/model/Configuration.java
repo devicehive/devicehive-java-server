@@ -143,23 +143,23 @@ public class Configuration implements HiveEntity {
 
     public static class Queries {
 
-        public static interface Names {
+        public interface Names {
 
-            static final String GET_ALL = "Configuration.getAll";
-            static final String GET_BY_NAME = "Configuration.getByName";
-            static final String DELETE = "Configuration.delete";
+            String GET_ALL = "Configuration.getAll";
+            String GET_BY_NAME = "Configuration.getByName";
+            String DELETE = "Configuration.delete";
         }
 
-        static interface Values {
+        interface Values {
 
-            public static final String GET_ALL = "select c from Configuration c";
-            public static final String DELETE = "delete from Configuration c where c.name = :name";
-            public static final String GET_BY_NAME = "select c from Configuration c where c.name = :name";
+            String GET_ALL = "select c from Configuration c";
+            String DELETE = "delete from Configuration c where c.name = :name";
+            String GET_BY_NAME = "select c from Configuration c where c.name = :name";
         }
 
-        public static interface Parameters {
+        public interface Parameters {
 
-            static final String NAME = "name";
+            String NAME = "name";
         }
     }
 
