@@ -29,15 +29,19 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
 public class ServerEventHandler implements MessageDispatcher, WorkHandler<ServerEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ServerEventHandler.class);
 
     private RequestHandler requestHandler;
     private Producer<String, Response> responseProducer;
 
+    @Autowired
     public ServerEventHandler(RequestHandler requestHandler, Producer<String, Response> responseProducer) {
         this.requestHandler = requestHandler;
         this.responseProducer = responseProducer;

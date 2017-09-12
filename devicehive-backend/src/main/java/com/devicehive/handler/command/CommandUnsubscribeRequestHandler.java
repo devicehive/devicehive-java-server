@@ -32,18 +32,27 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@Component
 public class CommandUnsubscribeRequestHandler implements RequestHandler {
 
-    @Autowired
     private EventBus eventBus;
+    private FilterRegistry filterRegistry;
 
     @Autowired
-    private FilterRegistry filterRegistry;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setFilterRegistry(FilterRegistry filterRegistry) {
+        this.filterRegistry = filterRegistry;
+    }
 
     @Override
     public Response handle(Request request) {

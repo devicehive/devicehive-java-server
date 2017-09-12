@@ -47,13 +47,17 @@ public class HazelcastService {
     private static final String NOTIFICATIONS_MAP = "NOTIFICATIONS-MAP";
     private static final String COMMANDS_MAP = "COMMANDS-MAP";
 
-    @Autowired
-    private HazelcastInstance hazelcastClient;
+    private final HazelcastInstance hazelcastClient;
 
-    @Autowired
-    private HazelcastHelper hazelcastHelper;
+    private final HazelcastHelper hazelcastHelper;
 
     private Map<Class, IMap<String, HazelcastEntity>> mapsHolder = new HashMap<>(2);
+
+    @Autowired
+    public HazelcastService(HazelcastInstance hazelcastClient, HazelcastHelper hazelcastHelper) {
+        this.hazelcastClient = hazelcastClient;
+        this.hazelcastHelper = hazelcastHelper;
+    }
 
     @PostConstruct
     protected void init() {

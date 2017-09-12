@@ -28,13 +28,19 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class ListNetworkHandler implements RequestHandler {
 
-    @Autowired
     private NetworkDao networkDao;
+
+    @Autowired
+    public void setNetworkDao(NetworkDao networkDao) {
+        this.networkDao = networkDao;
+    }
 
     @Override
     public Response handle(Request request) {

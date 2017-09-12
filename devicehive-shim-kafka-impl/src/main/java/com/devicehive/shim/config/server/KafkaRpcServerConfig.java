@@ -83,8 +83,8 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public WorkerPool<ServerEvent> workerPool(RequestHandler requestHandler,
-                                                 @Qualifier("server-producer") Producer<String, Response> responseProducer) {
+    public WorkerPool<ServerEvent> workerPool(@Qualifier("RequestDispatcher") RequestHandler requestHandler,
+                                              @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
         IntStream.range(0, workerThreads).forEach(
                 nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
@@ -102,21 +102,26 @@ public class KafkaRpcServerConfig {
 
         switch (waitStrategy) {
             case "blocking":
-                strategy = new BlockingWaitStrategy(); break;
+                strategy = new BlockingWaitStrategy();
+                break;
             case "sleeping":
-                strategy =  new SleepingWaitStrategy(); break;
+                strategy = new SleepingWaitStrategy();
+                break;
             case "yielding":
-                strategy = new YieldingWaitStrategy(); break;
+                strategy = new YieldingWaitStrategy();
+                break;
             case "busyspin":
-                strategy =  new BusySpinWaitStrategy(); break;
+                strategy = new BusySpinWaitStrategy();
+                break;
             default:
-                strategy =  new BlockingWaitStrategy(); break;
+                strategy = new BlockingWaitStrategy();
+                break;
         }
         return strategy;
     }
 
     @Bean
-    public ServerEventHandler serverEventHandler(RequestHandler requestHandler,
+    public ServerEventHandler serverEventHandler(@Qualifier("RequestDispatcher") RequestHandler requestHandler,
                                                  @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         return new ServerEventHandler(requestHandler, responseProducer);
     }

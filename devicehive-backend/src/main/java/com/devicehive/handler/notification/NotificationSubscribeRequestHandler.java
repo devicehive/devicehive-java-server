@@ -33,23 +33,35 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
+@Component
 public class NotificationSubscribeRequestHandler implements RequestHandler {
 
     public static final int LIMIT = 100;
 
-    @Autowired
     private EventBus eventBus;
-
-    @Autowired
     private FilterRegistry filterRegistry;
+    private HazelcastService hazelcastService;
 
     @Autowired
-    private HazelcastService hazelcastService;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setFilterRegistry(FilterRegistry filterRegistry) {
+        this.filterRegistry = filterRegistry;
+    }
+
+    @Autowired
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
+    }
 
     @Override
     public Response handle(Request request) {

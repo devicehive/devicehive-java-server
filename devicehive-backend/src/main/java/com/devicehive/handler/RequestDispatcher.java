@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Optional;
 
-@Component
+@Component("RequestDispatcher")
 public class RequestDispatcher implements RequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);

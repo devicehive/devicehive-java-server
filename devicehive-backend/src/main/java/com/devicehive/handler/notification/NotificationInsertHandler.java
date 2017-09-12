@@ -30,11 +30,12 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class NotificationInsertHandler implements RequestHandler {
 
     private HazelcastService hazelcastService;
-
     private EventBus eventBus;
 
     @Autowired
