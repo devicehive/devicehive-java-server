@@ -192,17 +192,17 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void unsubscribe(Long subId, Set<String> deviceIds) {
-        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceIds);
+    public void unsubscribe(Set<Long> subIds) {
+        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Long> future = new CompletableFuture<>();
+            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
-                future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionId());
-                requestResponseMatcher.removeSubscription(subId);
+                future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionIds());
+                subIds.forEach(requestResponseMatcher::removeSubscription);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }

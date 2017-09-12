@@ -20,12 +20,9 @@ package com.devicehive.handler.command;
  * #L%
  */
 
-
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.CommandUnsubscribeRequest;
 import com.devicehive.model.rpc.CommandUnsubscribeResponse;
 import com.devicehive.shim.api.Request;
@@ -34,9 +31,6 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 public class CommandUnsubscribeRequestHandler implements RequestHandler {
@@ -59,36 +53,21 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
         CommandUnsubscribeRequest body = (CommandUnsubscribeRequest) request.getBody();
         validate(body);
 
-        if (body.getSubscriptionId() != null) {
-            Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
-            eventBus.unsubscribe(subscriber);
-            filterRegistry.unregister(body.getSubscriptionId());
-
-            CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionId(), null);
-
-            return Response.newBuilder()
-                    .withBody(unsubscribeResponse)
-                    .withCorrelationId(request.getCorrelationId())
-                    .buildSuccess();
-        } else if (body.getDeviceIds() != null) {
-            Set<Subscription> subscriptions = new HashSet<>();
-            Set<Subscriber> subscribers = new HashSet<>();
-
-            for (String name : body.getDeviceIds()) {
-                Subscription subscription = new Subscription(Action.COMMAND_EVENT.name(), name);
-                subscriptions.add(subscription);
+        if (body.getSubscriptionIds() != null) {
+            for (Long subId : body.getSubscriptionIds()) {
+                Subscriber subscriber = new Subscriber(subId, request.getReplyTo(), request.getCorrelationId());
+                eventBus.unsubscribe(subscriber);
+                filterRegistry.unregister(subId);
             }
 
-            subscriptions.forEach(subscription -> subscribers.addAll(eventBus.getSubscribers(subscription)));
-            subscribers.forEach(subscriber -> eventBus.unsubscribe(subscriber));
+            CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionIds());
 
-            CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(null, body.getDeviceIds());
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
         } else {
-            throw new IllegalArgumentException("Both subscription id and device deviceIds are null");
+            throw new IllegalArgumentException("Subscription ids are null");
         }
     }
 

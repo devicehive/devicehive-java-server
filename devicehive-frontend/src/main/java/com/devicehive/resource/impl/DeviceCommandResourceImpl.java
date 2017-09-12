@@ -191,7 +191,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 }
             });
 
-            asyncResponse.register((CompletionCallback) throwable -> commandService.sendUnsubscribeRequest(pair.getLeft(), null));
+            asyncResponse.register((CompletionCallback) throwable -> commandService.sendUnsubscribeRequest(Collections.singleton(pair.getLeft())));
         } else {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(response);
@@ -276,7 +276,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             });
             asyncResponse.register((CompletionCallback) throwable -> {
                 try {
-                    commandService.sendUnsubscribeRequest(future.get().getLeft(), null);
+                    commandService.sendUnsubscribeRequest(Collections.singleton(future.get().getLeft()));
                 } catch (InterruptedException | ExecutionException e) {
                     if (!asyncResponse.isDone()) {
                         asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
