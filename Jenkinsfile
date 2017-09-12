@@ -93,7 +93,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           }
         }
       } finally {
-        archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
+        zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         dir('devicehive-docker/rdbms-image') {
           sh '''
             sudo docker-compose kill
