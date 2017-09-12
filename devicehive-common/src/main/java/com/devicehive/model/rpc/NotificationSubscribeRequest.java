@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
@@ -29,24 +30,24 @@ import java.util.Set;
 
 public class NotificationSubscribeRequest extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private String device;
-    private Set<String> names;
+    private Filter filter;
     private Date timestamp;
 
-    public NotificationSubscribeRequest(String subscriptionId, String device, Set<String> names, Date timestamp) {
+    public NotificationSubscribeRequest(Long subscriptionId, String device, Filter filter, Date timestamp) {
         super(Action.NOTIFICATION_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.device = device;
-        this.names = names;
+        this.filter = filter;
         this.timestamp = timestamp;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 
-    public void setSubscriptionId(String subscriptionId) {
+    public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
     }
 
@@ -58,12 +59,12 @@ public class NotificationSubscribeRequest extends Body {
         this.device = device;
     }
 
-    public Set<String> getNames() {
-        return names;
+    public Filter getFilter() {
+        return filter;
     }
 
-    public void setNames(Set<String> names) {
-        this.names = names;
+    public void setFilter(Filter filter) {
+        this.filter = filter;
     }
 
     public Date getTimestamp() {
@@ -82,13 +83,13 @@ public class NotificationSubscribeRequest extends Body {
         NotificationSubscribeRequest that = (NotificationSubscribeRequest) o;
         return Objects.equals(subscriptionId, that.subscriptionId) &&
                 Objects.equals(device, that.device) &&
-                Objects.equals(names, that.names) &&
+                Objects.equals(filter, that.filter) &&
                 Objects.equals(timestamp, that.timestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, device, names, timestamp);
+        return Objects.hash(super.hashCode(), subscriptionId, device, filter, timestamp);
     }
 
     @Override
@@ -96,7 +97,7 @@ public class NotificationSubscribeRequest extends Body {
         return "NotificationSubscribeRequest{" +
                 "subscriptionId='" + subscriptionId + '\'' +
                 ", device='" + device + '\'' +
-                ", names=" + names +
+                ", filter=" + filter +
                 ", timestamp=" + timestamp +
                 '}';
     }

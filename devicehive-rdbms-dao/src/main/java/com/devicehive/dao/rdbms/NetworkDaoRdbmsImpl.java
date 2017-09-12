@@ -59,7 +59,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     @Override
     public List<NetworkWithUsersAndDevicesVO> getNetworksByIdsAndUsers(Long idForFiltering, Set<Long> networkId, Set<Long> permittedNetworks) {
         TypedQuery<Network> query = createNamedQuery(Network.class, "Network.getNetworksByIdsAndUsers",
-                Optional.of(CacheConfig.bypass()))
+                Optional.of(CacheConfig.get()))
                 .setParameter("userId", idForFiltering)
                 .setParameter("networkIds", networkId)
                 .setParameter("permittedNetworks", permittedNetworks);

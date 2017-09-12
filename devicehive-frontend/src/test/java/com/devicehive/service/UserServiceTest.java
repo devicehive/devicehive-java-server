@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
@@ -57,7 +58,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.annotation.DirtiesContext;
 
 import javax.validation.ConstraintViolationException;
@@ -454,10 +454,10 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_AccessDeniedException_if_user_does_not_exists_when_findUser_called() throws Exception {
+    public void should_throw_InvalidPrincipalException_if_user_does_not_exists_when_findUser_called() throws Exception {
         String login = String.valueOf(System.currentTimeMillis());
         String password = String.valueOf(System.currentTimeMillis());
-        expectedException.expect(AccessDeniedException.class);
+        expectedException.expect(InvalidPrincipalException.class);
         expectedException.expectMessage(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
         try {
             userService.getActiveUser(login, password);
@@ -468,20 +468,20 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_AccessDeniedException_if_user_is_disabled_when_findUser_called() throws Exception {
+    public void should_throw_InvalidPrincipalException_if_user_is_disabled_when_findUser_called() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.DISABLED);
         user = userService.createUser(user, VALID_PASSWORD);
 
-        expectedException.expect(AccessDeniedException.class);
+        expectedException.expect(InvalidPrincipalException.class);
         expectedException.expectMessage(Messages.USER_NOT_ACTIVE);
 
         userService.getActiveUser(user.getLogin(), VALID_PASSWORD);
     }
 
     @Test
-    public void should_throw_AccessDeniedException_if_password_is_wrong_when_funcUser_called() throws Exception {
+    public void should_throw_InvalidPrincipalException_if_password_is_wrong_when_funcUser_called() throws Exception {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
@@ -495,8 +495,8 @@ public class UserServiceTest extends AbstractResourceTest {
 
         try {
             userService.getActiveUser(user.getLogin(), "wrong_password");
-            fail("should throw AccessDeniedException exception");
-        } catch (AccessDeniedException e) {
+            fail("should throw InvalidPrincipalException exception");
+        } catch (InvalidPrincipalException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
 
@@ -550,7 +550,7 @@ public class UserServiceTest extends AbstractResourceTest {
             try {
                 userService.getActiveUser(user.getLogin(), "wrong_password");
                 fail("should throw login exception");
-            } catch (AccessDeniedException e) {
+            } catch (InvalidPrincipalException e) {
                 assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
             }
             UserVO updatedUser = userDao.find(user.getId());
@@ -563,7 +563,7 @@ public class UserServiceTest extends AbstractResourceTest {
         try {
             userService.getActiveUser(user.getLogin(), "wrong_password");
             fail("should throw login exception");
-        } catch (AccessDeniedException e) {
+        } catch (InvalidPrincipalException e) {
             assertThat(e.getMessage(), equalTo(String.format(Messages.INCORRECT_CREDENTIALS, user.getLogin())));
         }
         UserVO updatedUser = userDao.find(user.getId());

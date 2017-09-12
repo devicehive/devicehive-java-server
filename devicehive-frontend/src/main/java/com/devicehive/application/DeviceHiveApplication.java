@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -47,6 +48,7 @@ import java.util.concurrent.Executors;
 })
 @ServletComponentScan("com.devicehive.application.filter")
 @EnableScheduling
+@EnableCaching
 @EnableAsync(proxyTargetClass = true)
 public class DeviceHiveApplication extends SpringBootServletInitializer {
 

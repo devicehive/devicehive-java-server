@@ -53,11 +53,14 @@ public class WebSocketRequestProcessor {
     @Autowired
     private UserHandlers userHandlers;
 
-    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException {
+    public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException, HiveException {
         WebsocketAction action = getAction(request);
         switch (action) {
             case SERVER_INFO:
                 apiInfoHandlers.processServerInfo(request, session);
+                break;
+            case SERVER_CACHE_INFO:
+                apiInfoHandlers.processServerCacheInfo(request, session);
                 break;
             case CLUSTER_CONFIG_INFO:
                 apiInfoHandlers.processClusterConfigInfo(request, session);
@@ -188,6 +191,7 @@ public class WebSocketRequestProcessor {
 
     public enum WebsocketAction {
         SERVER_INFO("server/info"),
+        SERVER_CACHE_INFO("server/cacheInfo"),
         CLUSTER_CONFIG_INFO("cluster/info"),
         AUTHENTICATE("authenticate"),
         TOKEN("token"),

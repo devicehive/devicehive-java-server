@@ -61,6 +61,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import static com.devicehive.model.enums.SortOrder.ASC;
+import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.contains;
@@ -211,7 +213,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             assertThat(created.getId(), notNullValue());
         }
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", null, true, 10, 0, null)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 10, 0, null)
                 .thenAccept(networks -> assertThat(networks, hasSize(10))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -232,7 +234,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         int index = new Random().nextInt(10);
         Pair<Long, String> randomNetwork = names.get(index);
         handleListNetworkRequest();
-        networkService.list(randomNetwork.getRight(), null, null, true, 10, 0, null)
+        networkService.list(randomNetwork.getRight(), null, null, ASC.name(), 10, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(1));
                     assertThat(networks.get(0).getId(), equalTo(randomNetwork.getKey()));
@@ -261,7 +263,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             assertThat(created.getId(), notNullValue());
         }
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, null)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 100, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(count));
                     assertThat(networks,
@@ -289,7 +291,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             assertThat(created.getId(), notNullValue());
         });
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", "description", true, 100, 0, null)
+        networkService.list(null, namePrefix + "%", "description", ASC.name(), 100, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(descriptions.size()));
 
@@ -300,7 +302,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
                     assertThat(networks.get(4).getDescription(), equalTo("e"));
                 }).get(5, TimeUnit.SECONDS);
 
-        networkService.list(null, namePrefix + "%", "description", false, 100, 0, null)
+        networkService.list(null, namePrefix + "%", "description", DESC.name(), 100, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(descriptions.size()));
 
@@ -325,12 +327,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
             assertThat(created.getId(), notNullValue());
         }
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", "entityVersion", true, 100, 0, null)
+        networkService.list(null, namePrefix + "%", "entityVersion", ASC.name(), 100, 0, null)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(100));
 
                     try {
-                        networkService.list(null, namePrefix + "%", "entityVersion", true, 20, 30, null)
+                        networkService.list(null, namePrefix + "%", "entityVersion", ASC.name(), 20, 30, null)
                                 .thenAccept(sliced -> {
                                     assertThat(sliced, hasSize(20));
                                     List<NetworkVO> expected = networks.stream().skip(30).limit(20).collect(Collectors.toList());
@@ -370,11 +372,11 @@ public class NetworkServiceTest extends AbstractResourceTest {
             userService.assignNetwork(user2.getId(), created.getId());
         }
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, null)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 100, 0, null)
                 .thenAccept(networks -> assertThat(networks, hasSize(10))).get(5, TimeUnit.SECONDS);
 
         HivePrincipal principal = new HivePrincipal(user1);
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 100, 0, principal)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(5));
                     Set<String> names = networks.stream().map(NetworkVO::getName).collect(Collectors.toSet());
@@ -410,7 +412,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         }
         handleListNetworkRequest();
         HivePrincipal principal = new HivePrincipal(user1);
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 100, 0, principal)
                 .thenAccept(networks -> assertThat(networks, hasSize(20))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -440,7 +442,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         handleListNetworkRequest();
         HivePrincipal principal = new HivePrincipal();
         principal.setNetworkIds(allowedIds);
-        networkService.list(null, namePrefix + "%", null, true, 100, 0, principal)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 100, 0, principal)
                 .thenAccept(networks -> {
                     assertThat(networks, hasSize(allowedIds.size()));
                     Set<Long> ids = networks.stream().map(NetworkVO::getId).collect(Collectors.toSet());
@@ -480,7 +482,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         HivePrincipal principal = new HivePrincipal(user);
         handleListNetworkRequest();
-        networkService.list(null, namePrefix + "%", null, true, 200, 0, principal)
+        networkService.list(null, namePrefix + "%", null, ASC.name(), 200, 0, principal)
                 .thenAccept(networks -> assertThat(networks, hasSize(assignedToUserCount))).get(5, TimeUnit.SECONDS);
 
         verify(requestHandler, times(1)).handle(argument.capture());
@@ -842,7 +844,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
             ListNetworkRequest req = request.getBody().cast(ListNetworkRequest.class);
             final List<NetworkVO> networks =
                     networkDao.list(req.getName(), req.getNamePattern(),
-                            req.getSortField(), req.getSortOrderAsc(),
+                            req.getSortField(), req.isSortOrderAsc(),
                             req.getTake(), req.getSkip(), req.getPrincipal());
 
             return Response.newBuilder()

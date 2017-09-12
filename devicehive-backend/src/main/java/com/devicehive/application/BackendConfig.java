@@ -20,6 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
@@ -38,5 +39,10 @@ public class BackendConfig {
     @Bean
     public EventBus eventBus(RpcServer rpcServer) {
         return new EventBus(rpcServer.getDispatcher());
+    }
+
+    @Bean
+    public FilterRegistry filterRegistry() {
+        return new FilterRegistry();
     }
 }

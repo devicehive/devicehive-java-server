@@ -20,6 +20,7 @@ package com.devicehive.auth;
  * #L%
  */
 
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.vo.UserVO;
 
 import java.security.Principal;
@@ -173,7 +174,10 @@ public class HivePrincipal implements Principal {
     }
 
     public boolean isAuthenticated() {
-        return user != null || actions != null || subnets != null || networkIds != null || deviceIds != null;
+        if (user != null || actions != null || subnets != null || networkIds != null || deviceIds != null) {
+            return true;
+        }
+        throw new InvalidPrincipalException("Unauthorized");
     }
 
     @Override

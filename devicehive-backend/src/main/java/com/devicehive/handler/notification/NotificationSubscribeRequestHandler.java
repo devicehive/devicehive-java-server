@@ -21,6 +21,7 @@ package com.devicehive.handler.notification;
  */
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
@@ -41,18 +42,14 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
 
     public static final int LIMIT = 100;
 
+    @Autowired
     private EventBus eventBus;
+
+    @Autowired
+    private FilterRegistry filterRegistry;
+
+    @Autowired
     private HazelcastService hazelcastService;
-
-    @Autowired
-    public void setEventBus(EventBus eventBus) {
-        this.eventBus = eventBus;
-    }
-
-    @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
-    }
 
     @Override
     public Response handle(Request request) {
@@ -62,19 +59,20 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
 
         Set<Subscription> subscriptions = new HashSet<>();
-        if (CollectionUtils.isEmpty(body.getNames())) {
+        if (CollectionUtils.isEmpty(body.getFilter().getNames())) {
             Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice());
             subscriptions.add(subscription);
         } else {
-            for (String name : body.getNames()) {
+            for (String name : body.getFilter().getNames()) {
                 Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice(), name);
                 subscriptions.add(subscription);
             }
         }
 
         subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
+        filterRegistry.register(body.getFilter(), body.getSubscriptionId());
 
-        Collection<DeviceNotification> notifications = findNotifications(body.getDevice(), body.getNames(), body.getTimestamp());
+        Collection<DeviceNotification> notifications = findNotifications(body.getDevice(), body.getFilter().getNames(), body.getTimestamp());
         NotificationSubscribeResponse subscribeResponse = new NotificationSubscribeResponse(body.getSubscriptionId(), notifications);
 
         return Response.newBuilder()

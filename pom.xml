@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.1</version>
+    <version>3.3.2</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -44,6 +44,7 @@
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <hazelcast.version>3.8.1</hazelcast.version>
+        <hazelcast-hibernate.version>3.8.1</hazelcast-hibernate.version>
         <curator.version>2.8.0</curator.version>
         <flyway-core.version>3.2.1</flyway-core.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
@@ -57,9 +58,9 @@
         <kafka.version>0.10.0.1</kafka.version>
         <springframework.version>4.1.6.RELEASE</springframework.version>
         <jackson2.version>2.4.5</jackson2.version>
-        <hibernate-version>4.3.5.Final</hibernate-version>
+        <hibernate-version>4.3.8.Final</hibernate-version>
         <swagger.version>1.5.4</swagger.version>
-        <lmax-disruptor.version>3.3.5</lmax-disruptor.version>
+        <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -157,11 +158,6 @@
             <version>${gson.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-ehcache</artifactId>
-            <version>${hibernate-version}</version>
-        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -381,7 +377,7 @@
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-hibernate4</artifactId>
-                <version>${hazelcast.version}</version>
+                <version>${hazelcast-hibernate.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.lmax</groupId>

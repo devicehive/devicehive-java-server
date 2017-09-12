@@ -38,9 +38,9 @@ public class AccessDeniedExceptionMapper implements ExceptionMapper<AccessDenied
 
     @Override
     public Response toResponse(AccessDeniedException exception) {
-        return Response.status(Response.Status.UNAUTHORIZED)
+        return Response.status(Response.Status.FORBIDDEN)
                 .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(new ErrorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), "Unauthorized"))
+                .entity(new ErrorResponse(Response.Status.FORBIDDEN.getStatusCode(), exception.getMessage()))
                 .build();
     }
 

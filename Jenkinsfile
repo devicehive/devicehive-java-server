@@ -2,6 +2,9 @@ properties([
   buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
 ])
 
+def publishable_branches = ["development", "master"]
+def deployable_branches = ["development"]
+
 node('docker') {
   stage('Build jars') {
     echo 'Building jars ...'
@@ -16,18 +19,112 @@ node('docker') {
     }
   }
 
-  stage('Build Docker images') {
+  stage('Build and publish Docker images in CI repository') {
     echo 'Building Frontend image ...'
-    checkout scm
     unstash 'jars'
-    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile.Jenkins .')
-    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile.Jenkins .')
-    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile.Jenkins .')
+    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
+    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
+    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
       frontend.push()
       backend.push()
       hazelcast.push()
+    }
+  }
+}
+
+if (publishable_branches.contains(env.BRANCH_NAME)) {
+  stage('Run regression tests'){
+    node('tests-runner'){
+      try {
+        dir('devicehive-docker'){
+          echo("Clone Docker Compose files")
+          git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
+        }
+
+        dir('devicehive-docker/rdbms-image'){
+          writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:development-images.yml
+          DH_TAG=${BRANCH_NAME}
+          JWT_SECRET=devicehive
+          """
+
+          echo("Start DeviceHive")
+          sh '''
+            sudo docker-compose pull
+            sudo docker-compose up -d
+          '''
+        }
+
+        echo("Wait for devicehive")
+        waitUntil{
+          def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
+          return (fe_status == 0)
+        }
+
+        dir('devicehive-tests') {
+          echo("Clone regression tests")
+          git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
+
+          echo("Install dependencies with npm")
+          sh '''
+            sudo npm install -g mocha mochawesome
+            sudo npm i
+          '''
+
+          echo("Configure tests")
+          sh '''
+            cp config.json config.json.orig
+            cat config.json.orig | \\
+            jq ".server.wsUrl = \\"ws://127.0.0.1:8080/api/websocket\\"" | \\
+            jq ".server.ip = \\"127.0.0.1\\"" | \\
+            jq ".server.port = \\"8080\\"" | \\
+            jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" > config.json
+          '''
+
+          echo("Run integration tests")
+          sh 'mocha -R mochawesome integration-tests'
+        }
+      } finally {
+        archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
+        dir('devicehive-docker/rdbms-image') {
+          sh 'sudo docker-compose down'
+        }
+        cleanWs()
+      }
+    }
+  }
+
+  node('docker') {
+    stage('Publish image in main repository') {
+      // Builds from 'master' branch will have 'latest' tag
+      def IMAGE_TAG = (env.BRANCH_NAME == 'master') ? 'latest' : env.BRANCH_NAME
+
+      docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+        sh """
+          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+
+          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+        """
+      }
+    }
+  }
+}
+
+if (deployable_branches.contains(env.BRANCH_NAME)) {
+  stage('Deploy build to dev server'){
+    node('dev-server') {
+      sh '''
+        cd ~/devicehive-docker/rdbms-image
+        sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
+        sudo docker-compose pull
+        sudo docker-compose up -d
+        echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
+      '''
     }
   }
 }

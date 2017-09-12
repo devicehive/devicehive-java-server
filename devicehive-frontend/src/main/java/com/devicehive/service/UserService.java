@@ -27,7 +27,9 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.Network;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.ListUserRequest;
@@ -107,18 +109,18 @@ public class UserService {
                 .orElseThrow(() -> new ActionNotAllowedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
-    @Transactional(noRollbackFor = AccessDeniedException.class)
+    @Transactional(noRollbackFor = InvalidPrincipalException.class)
     public UserVO getActiveUser(String login, String password) {
         Optional<UserVO> userOpt = userDao.findByName(login);
         if (!userOpt.isPresent()) {
             logger.error("Can't find user with login {} and password {}", login, password);
-            throw new AccessDeniedException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
+            throw new InvalidPrincipalException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
         } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
             logger.error("User with login {} is not active", login);
-            throw new AccessDeniedException(Messages.USER_NOT_ACTIVE);
+            throw new InvalidPrincipalException(Messages.USER_NOT_ACTIVE);
         }
         return checkPassword(userOpt.get(), password)
-                .orElseThrow(() -> new AccessDeniedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
+                .orElseThrow(() -> new InvalidPrincipalException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
     private Optional<UserVO> checkPassword(UserVO user, String password) {
@@ -255,7 +257,12 @@ public class UserService {
         UserVO existingUser = userDao.find(userId);
         if (existingUser == null) {
             logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
-            throw new NoSuchElementException(String.format(Messages.USER_NOT_FOUND, userId));
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        NetworkVO existingNetwork = networkDao.find(networkId);
+        if (existingNetwork == null) {
+            logger.error("Can't unassign user with id {}: network {} not found", userId, networkId);
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
         }
         userDao.unassignNetwork(existingUser, networkId);
     }

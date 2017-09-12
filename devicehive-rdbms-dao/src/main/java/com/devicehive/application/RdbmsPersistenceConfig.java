@@ -21,6 +21,7 @@ package com.devicehive.application;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
@@ -29,10 +30,12 @@ import org.springframework.context.annotation.*;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.util.CollectionUtils;
 
 import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.Properties;
 
 @Configuration
@@ -42,6 +45,15 @@ import java.util.Properties;
 @EntityScan(basePackages = {"com.devicehive.model"})
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class RdbmsPersistenceConfig {
+    
+    @Value("${spring.jpa.properties.hibernate.cache.hazelcast.use_native_client:true}")
+    private boolean useNativeClient;
+    @Value("${hazelcast.group.name}")
+    private String groupName;
+    @Value("${hazelcast.group.password}")
+    private String groupPassword;
+    @Value("#{'${hazelcast.cluster.members}'.split(',')}")
+    private List<String> clusterMembers;
 
     @Autowired
     private DataSource dataSource;
@@ -65,6 +77,14 @@ public class RdbmsPersistenceConfig {
 
         final Properties props = new Properties();
         props.putAll(this.properties.getHibernateProperties(this.dataSource));
+        if (useNativeClient) {
+            props.put("hibernate.cache.hazelcast.native_client_group", groupName);
+            props.put("hibernate.cache.hazelcast.native_client_password", groupPassword);
+            if (!CollectionUtils.isEmpty(clusterMembers)) {
+                props.put("hibernate.cache.hazelcast.native_client_address", clusterMembers.get(0));
+            }
+        }
+
         factoryBean.setJpaProperties(props);
         return factoryBean;
     }

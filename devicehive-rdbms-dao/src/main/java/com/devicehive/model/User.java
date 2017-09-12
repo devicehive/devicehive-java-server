@@ -91,6 +91,7 @@ public class User implements HiveEntity {
 
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @JsonPolicyDef({USER_PUBLISHED})
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Set<Network> networks;
 
     @Column(name = "last_login")

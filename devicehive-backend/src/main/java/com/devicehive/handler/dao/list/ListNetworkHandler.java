@@ -41,7 +41,7 @@ public class ListNetworkHandler implements RequestHandler {
         final ListNetworkRequest req = (ListNetworkRequest) request.getBody();
 
         final List<NetworkVO> networks = networkDao.list(req.getName(), req.getNamePattern(),
-                req.getSortField(), req.getSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
+                req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
 
         return Response.newBuilder()
                 .withBody(new ListNetworkResponse(networks))

@@ -21,6 +21,7 @@ package com.devicehive.handler.notification;
  */
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.rpc.*;
@@ -39,6 +40,9 @@ public class NotificationUnsubscribeRequestHandler implements RequestHandler {
     @Autowired
     private EventBus eventBus;
 
+    @Autowired
+    private FilterRegistry filterRegistry;
+
     @Override
     public Response handle(Request request) {
         NotificationUnsubscribeRequest body = (NotificationUnsubscribeRequest) request.getBody();
@@ -48,6 +52,7 @@ public class NotificationUnsubscribeRequestHandler implements RequestHandler {
             Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(),
                     request.getCorrelationId());
             eventBus.unsubscribe(subscriber);
+            filterRegistry.unregister(body.getSubscriptionId());
 
             NotificationUnsubscribeResponse unsubscribeResponse =
                     new NotificationUnsubscribeResponse(body.getSubscriptionId(), null);

@@ -21,11 +21,13 @@ package com.devicehive.service;
  */
 
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
+import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
@@ -57,14 +59,17 @@ public class DeviceCommandService {
     private final TimestampService timestampService;
     private final HiveValidator hiveValidator;
     private final RpcClient rpcClient;
+    private final LongIdGenerator idGenerator;
 
     @Autowired
     public DeviceCommandService(TimestampService timestampService,
                                 HiveValidator hiveValidator,
-                                RpcClient rpcClient) {
+                                RpcClient rpcClient,
+                                LongIdGenerator idGenerator) {
         this.timestampService = timestampService;
         this.hiveValidator = hiveValidator;
         this.rpcClient = rpcClient;
+        this.idGenerator = idGenerator;
     }
 
     @Autowired
@@ -134,17 +139,17 @@ public class DeviceCommandService {
         return future.thenApply(r -> ((CommandInsertResponse) r.getBody()).getDeviceCommand());
     }
 
-    public Pair<String, CompletableFuture<List<DeviceCommand>>> sendSubscribeRequest(
+    public Pair<Long, CompletableFuture<List<DeviceCommand>>> sendSubscribeRequest(
             final Set<String> devices,
-            final Set<String> names,
+            final Filter filter,
             final Date timestamp,
             final boolean returnUpdated,
             final Integer limit,
-            final BiConsumer<DeviceCommand, String> callback) throws InterruptedException {
+            final BiConsumer<DeviceCommand, Long> callback) throws InterruptedException {
 
-        final String subscriptionId = UUID.randomUUID().toString();
+        final Long subscriptionId = idGenerator.generate();
         Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, names, timestamp, returnUpdated, limit))
+                .map(device -> new CommandSubscribeRequest(subscriptionId, device, filter, timestamp, returnUpdated, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
@@ -178,14 +183,14 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(String subId, Set<String> deviceIds) {
+    public void sendUnsubscribeRequest(Long subId, Set<String> deviceIds) {
         CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<String> future = new CompletableFuture<>();
+            CompletableFuture<Long> future = new CompletableFuture<>();
             if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionId());
                 requestResponseMatcher.removeSubscription(subId);
@@ -196,9 +201,9 @@ public class DeviceCommandService {
         rpcClient.call(request, responseConsumer);
     }
 
-    public CompletableFuture<Pair<String, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, String> callback) {
-        CompletableFuture<Pair<String, DeviceCommand>> future = new CompletableFuture<>();
-        final String subscriptionId = UUID.randomUUID().toString();
+    public CompletableFuture<Pair<Long, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, Long> callback) {
+        CompletableFuture<Pair<Long, DeviceCommand>> future = new CompletableFuture<>();
+        final Long subscriptionId = idGenerator.generate();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
             if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE)) {

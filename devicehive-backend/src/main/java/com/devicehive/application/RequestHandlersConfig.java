@@ -20,6 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.handler.DeviceCreateHandler;
 import com.devicehive.handler.command.*;
 import com.devicehive.handler.dao.list.*;
 import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
@@ -72,6 +73,8 @@ public class RequestHandlersConfig {
             put(Action.LIST_NETWORK_REQUEST, new ListNetworkHandler());
 
             put(Action.LIST_DEVICE_REQUEST, new ListDeviceHandler());
+
+            put(Action.DEVICE_CREATE_REQUEST, new DeviceCreateHandler());
         }};
     }
 

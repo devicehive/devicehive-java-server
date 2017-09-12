@@ -26,16 +26,16 @@ import com.devicehive.shim.api.Body;
 
 public class CommandUpdateSubscribeResponse extends Body {
 
-    private String subscriptionId;
+    private Long subscriptionId;
     private DeviceCommand deviceCommand;
 
-    public CommandUpdateSubscribeResponse(String subscriptionId, DeviceCommand deviceCommand) {
+    public CommandUpdateSubscribeResponse(Long subscriptionId, DeviceCommand deviceCommand) {
         super(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE);
         this.subscriptionId = subscriptionId;
         this.deviceCommand = deviceCommand;
     }
 
-    public String getSubscriptionId() {
+    public Long getSubscriptionId() {
         return subscriptionId;
     }
 

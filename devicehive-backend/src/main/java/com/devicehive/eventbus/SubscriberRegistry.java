@@ -25,8 +25,10 @@ import com.devicehive.model.eventbus.Subscription;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
 /**
  * Class for handling all subscribe, unsubscribe and get subscribers tricky logic
@@ -40,16 +42,18 @@ class SubscriberRegistry {
      * This map keeps track of all subscriptions for single subscriber so that it is possible to remove all of them
      * from {@link SubscriberRegistry#subscriptions} map during {@link SubscriberRegistry#unregister(Subscriber)} call
      */
-    private final ConcurrentHashMap<String, CopyOnWriteArraySet<Subscription>> subscriberSubscriptions =
+    private final ConcurrentHashMap<Long, CopyOnWriteArraySet<Subscription>> subscriberSubscriptions =
             new ConcurrentHashMap<>();
 
     /**
      * Map that contains an information about subscribers for single subscription.
-     * The KEY is subscription (e.g. subscription on device notifications) and the VALUE is a set of all subscribers.
+     * The KEY is subscription (e.g. subscription on device notifications) and the VALUE is a set of all subscriber's ids.
      * This map is used for actual routing of messages through the event bus
      */
-    private final ConcurrentHashMap<Subscription, CopyOnWriteArraySet<Subscriber>> subscriptions =
+    private final ConcurrentHashMap<Subscription, CopyOnWriteArraySet<Long>> subscriptions =
             new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<Long, Subscriber> subscribers = new ConcurrentHashMap<>();
 
     /**
      * Registers subscription and subscriber in registry maps.
@@ -71,13 +75,14 @@ class SubscriberRegistry {
         }
         subscriptions.add(subscription);
 
-        CopyOnWriteArraySet<Subscriber> subscribers = this.subscriptions.get(subscription);
-        if (subscribers == null) {
+        CopyOnWriteArraySet<Long> subIds = this.subscriptions.get(subscription);
+        if (subIds == null) {
             //initialize list in a thread safe manner
-            CopyOnWriteArraySet<Subscriber> newSet = new CopyOnWriteArraySet<>();
-            subscribers = firstNonNull(this.subscriptions.putIfAbsent(subscription, newSet), newSet);
+            CopyOnWriteArraySet<Long> newSet = new CopyOnWriteArraySet<>();
+            subIds = firstNonNull(this.subscriptions.putIfAbsent(subscription, newSet), newSet);
         }
-        subscribers.add(subscriber);
+        subIds.add(subscriber.getId());
+        subscribers.put(subscriber.getId(), subscriber);
     }
 
     /**
@@ -92,11 +97,19 @@ class SubscriberRegistry {
         CopyOnWriteArraySet<Subscription> subs =
                 subscriberSubscriptions.getOrDefault(subscriber.getId(), new CopyOnWriteArraySet<>());
         subs.forEach(s -> {
-            CopyOnWriteArraySet<Subscriber> subscribers = this.subscriptions.get(s);
-            if (subscribers != null) {
-                subscribers.remove(subscriber);
+            CopyOnWriteArraySet<Long> subIds = this.subscriptions.get(s);
+            if (subIds != null) {
+                Long id = subscriber.getId();
+                subIds.remove(id);
+                subscribers.remove(id);
             }
         });
+    }
+
+    void unregister(Subscription subscription) {
+        this.subscriptions.getOrDefault(subscription, new CopyOnWriteArraySet<>())
+                .forEach(subId -> subscriberSubscriptions.get(subId).remove(subscription));
+        this.subscriptions.remove(subscription);
     }
 
     /**
@@ -105,12 +118,25 @@ class SubscriberRegistry {
      */
     Collection<Subscriber> getSubscribers(Subscription subscription) {
         Assert.notNull(subscription);
-        return this.subscriptions.getOrDefault(subscription, new CopyOnWriteArraySet<>());
+        return this.subscriptions.getOrDefault(subscription, new CopyOnWriteArraySet<>())
+                .stream().map(subscribers::get).collect(Collectors.toList());
+    }
+
+    /**
+     * @param subscriptionId - subscriptionId
+     * @return - subscriber for subscriptionId
+     */
+    Subscriber getSubscriber(Long subscriptionId) {
+        return this.subscribers.get(subscriptionId);
     }
 
     Collection<Subscription> getSubscriptions(Subscriber subscriber) {
         Assert.notNull(subscriber);
         return this.subscriberSubscriptions.getOrDefault(subscriber.getId(), new CopyOnWriteArraySet<>());
+    }
+
+    Collection<Subscription> getAllSubscriptions() {
+        return Collections.list(this.subscriptions.keys());
     }
 
     private static <T> T firstNonNull(T first, T second) {

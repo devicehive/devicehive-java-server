@@ -22,6 +22,7 @@ package com.devicehive.handler.notification;
 
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Action;
@@ -57,17 +58,19 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
-        String subscriber3 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
+        Long subscriber3 = randomUUID().getMostSignificantBits();
 
         NotificationSubscribeRequest sr1 = new NotificationSubscribeRequest(subscriber1, device1, null, null);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();
         TestCallback c1 = new TestCallback();
         client.call(r1, c1);
 
+        Filter filter = new Filter();
+        filter.setNames(Collections.singleton("temperature"));
         NotificationSubscribeRequest sr2 = new NotificationSubscribeRequest(subscriber1, device2,
-                Collections.singleton("temperature"), null);
+                filter, null);
         Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
         TestCallback c2 = new TestCallback();
         client.call(r2, c2);
@@ -77,8 +80,10 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         TestCallback c3 = new TestCallback();
         client.call(r3, c3);
 
+        Filter filter1 = new Filter();
+        filter1.setNames(Collections.singleton("vibration"));
         NotificationSubscribeRequest sr4 = new NotificationSubscribeRequest(subscriber2, device1,
-                Collections.singleton("vibration"), null);
+                filter1, null);
         Request r4 = Request.newBuilder().withBody(sr4).withSingleReply(false).build();
         TestCallback c4 = new TestCallback();
         client.call(r4, c4);
@@ -154,8 +159,8 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
     public void shouldUnsubscribeFromNotifications() throws Exception {
         String device1 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
 
         NotificationSubscribeRequest sr1 = new NotificationSubscribeRequest(subscriber1, device1, null, null);
         Request r1 = Request.newBuilder().withBody(sr1).withSingleReply(false).build();

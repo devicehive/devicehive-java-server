@@ -63,7 +63,7 @@ public class DeviceHandlers {
     private Gson gson;
 
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
-    public void processDeviceDelete(JsonObject request, WebSocketSession session) {
+    public void processDeviceDelete(JsonObject request, WebSocketSession session) throws HiveException {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         if (deviceId == null) {
             logger.error("device/delete proceed with error. Device ID should be provided.");
@@ -81,7 +81,7 @@ public class DeviceHandlers {
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public void processDeviceGet(JsonObject request, WebSocketSession session) {
+    public void processDeviceGet(JsonObject request, WebSocketSession session) throws HiveException {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -104,7 +104,7 @@ public class DeviceHandlers {
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public void processDeviceList(JsonObject request, WebSocketSession session) {
+    public void processDeviceList(JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ListDeviceRequest listDeviceRequest = createListDeviceRequest(request, principal);
         WebSocketResponse response = new WebSocketResponse();
@@ -122,7 +122,7 @@ public class DeviceHandlers {
     }
 
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
-    public void processDeviceSave(JsonObject request, WebSocketSession session) {
+    public void processDeviceSave(JsonObject request, WebSocketSession session) throws HiveException {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
         String deviceId = device.getId().orElse(null);
 

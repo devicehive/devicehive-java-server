@@ -20,6 +20,7 @@ package com.devicehive.auth;
  * #L%
  */
 
+import com.devicehive.exceptions.InvalidPrincipalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class JwtPermissionEvaluator implements PermissionEvaluator {
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
         if (authentication != null && authentication instanceof HiveAuthentication) {
+            if ("anonymousPrincipal".equals(authentication.getName())) throw new InvalidPrincipalException("Unauthorized");
             HiveAuthentication hiveAuthentication = (HiveAuthentication) authentication;
             HivePrincipal hivePrincipal = (HivePrincipal) hiveAuthentication.getPrincipal();
             HiveAction action = HiveAction.valueOf(permission.toString().trim());

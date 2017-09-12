@@ -27,4 +27,5 @@ import java.util.HashSet;
 
 public interface JsonTypes {
     Type STRING_SET_TYPE = new TypeToken<HashSet<String>>() {}.getType();
+    Type LONG_SET_TYPE = new TypeToken<HashSet<Long>>() {}.getType();
 }

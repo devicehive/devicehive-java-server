@@ -22,6 +22,7 @@ package com.devicehive.handler.command;
 
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Action;
@@ -56,9 +57,9 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
-        String subscriber3 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
+        Long subscriber3 = randomUUID().getMostSignificantBits();
 
         CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, 
                 null, null, false, 100);
@@ -66,8 +67,10 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         TestCallback c1 = new TestCallback();
         client.call(r1, c1);
 
+        Filter filter = new Filter();
+        filter.setNames(Collections.singleton("increase_temperature"));
         CommandSubscribeRequest sr2 = new CommandSubscribeRequest(subscriber1, device2,
-                Collections.singleton("increase_temperature"), null, false, 100);
+                filter, null, false, 100);
         Request r2 = Request.newBuilder().withBody(sr2).withSingleReply(false).build();
         TestCallback c2 = new TestCallback();
         client.call(r2, c2);
@@ -78,8 +81,10 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         TestCallback c3 = new TestCallback();
         client.call(r3, c3);
 
+        Filter filter1 = new Filter();
+        filter1.setNames(Collections.singleton("toggle_lights"));
         CommandSubscribeRequest sr4 = new CommandSubscribeRequest(subscriber2, device1,
-                Collections.singleton("toggle_lights"), null, false, 100);
+                filter1, null, false, 100);
         Request r4 = Request.newBuilder().withBody(sr4).withSingleReply(false).build();
         TestCallback c4 = new TestCallback();
         client.call(r4, c4);
@@ -156,8 +161,8 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
     public void shouldUnsubscribeFromCommands() throws Exception {
         String device1 = randomUUID().toString();
 
-        String subscriber1 = randomUUID().toString();
-        String subscriber2 = randomUUID().toString();
+        Long subscriber1 = randomUUID().getMostSignificantBits();
+        Long subscriber2 = randomUUID().getMostSignificantBits();
 
         CommandSubscribeRequest sr1 = new CommandSubscribeRequest(subscriber1, device1, 
                 null, null, false, 100);
