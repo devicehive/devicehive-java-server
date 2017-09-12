@@ -88,7 +88,10 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
       } finally {
         archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
         dir('devicehive-docker/rdbms-image') {
-          sh 'sudo docker-compose down'
+          sh '''
+            sudo docker-compose kill
+            sudo docker-compose down
+          '''
         }
         cleanWs()
       }
