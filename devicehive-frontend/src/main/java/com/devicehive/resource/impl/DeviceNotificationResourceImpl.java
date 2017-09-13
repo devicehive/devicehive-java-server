@@ -193,8 +193,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         if (deviceIdsString != null) {
             availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsString, ','))
                     .map(Arrays::asList)
-                    .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
-                    .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
+                    .map(list -> list.stream().map(el -> deviceService.findByIdWithPermissionsCheckIfExists(el, principal)).map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
                     .orElse(Collections.emptySet());
         }
         if (networkIdsCsv != null) {

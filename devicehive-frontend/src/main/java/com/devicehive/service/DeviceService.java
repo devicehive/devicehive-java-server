@@ -189,6 +189,17 @@ public class DeviceService {
         return getDeviceList(new ArrayList<>(deviceIds), principal);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
+        DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (deviceVO == null) {
+            logger.error("Device with ID {} not found", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
+        }
+        return deviceVO;
+    }
+
     @Transactional(readOnly = true)
     public DeviceVO findById(String deviceId) {
         DeviceVO device = deviceDao.findById(deviceId);
