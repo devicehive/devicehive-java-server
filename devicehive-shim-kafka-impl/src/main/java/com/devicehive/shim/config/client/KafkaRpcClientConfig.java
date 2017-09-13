@@ -22,7 +22,6 @@ package com.devicehive.shim.config.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.config.server.KafkaRpcServerConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
@@ -51,6 +50,9 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
+
 
 @Configuration
 @Profile("rpc-client")
@@ -92,6 +94,7 @@ public class KafkaRpcClientConfig {
 
     @PostConstruct
     private void initializeTopics() {
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
         kafkaTopicService.createTopic(RESPONSE_TOPIC);
     }
 
@@ -109,7 +112,7 @@ public class KafkaRpcClientConfig {
     @Bean(destroyMethod = "shutdown")
     public RpcClient rpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
                                ServerResponseListener responseListener) {
-        KafkaRpcClient client = new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
+        KafkaRpcClient client = new KafkaRpcClient(REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
         client.start();
         return client;
     }
@@ -123,7 +126,7 @@ public class KafkaRpcClientConfig {
     @Bean(destroyMethod = "shutdown")
     public RpcClient testRpcClient(Producer<String, Request> requestProducer, RequestResponseMatcher responseMatcher,
                                ServerResponseListener responseListener) {
-        KafkaRpcClient client = new KafkaRpcClient(KafkaRpcServerConfig.REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
+        KafkaRpcClient client = new KafkaRpcClient(REQUEST_TOPIC, RESPONSE_TOPIC, requestProducer, responseMatcher, responseListener);
         client.start();
         return client;
     }
