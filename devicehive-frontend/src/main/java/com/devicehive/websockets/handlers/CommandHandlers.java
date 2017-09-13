@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
@@ -93,6 +94,7 @@ public class CommandHandlers {
         this.clientHandler = clientHandler;
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
@@ -168,6 +170,7 @@ public class CommandHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -195,6 +198,7 @@ public class CommandHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
     public void processCommandInsert(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -235,6 +239,7 @@ public class CommandHandlers {
         }
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
     public void processCommandUpdate(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -276,6 +281,7 @@ public class CommandHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandGet(JsonObject request, WebSocketSession session)  {
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -318,6 +324,7 @@ public class CommandHandlers {
         clientHandler.sendMessage(request, webSocketResponse, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     public void processCommandList(JsonObject request, WebSocketSession session) {
         ListCommandRequest listCommandRequest = createListCommandRequest(request);

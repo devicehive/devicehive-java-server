@@ -20,6 +20,7 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.service.time.TimestampService;
@@ -72,6 +73,7 @@ public class ApiInfoHandlers {
         this.entityManagerFactory = entityManagerFactory;
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processServerInfo(JsonObject request, WebSocketSession session) {
         logger.debug("server/info action started. Session " + session.getId());
@@ -88,6 +90,7 @@ public class ApiInfoHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processServerCacheInfo(JsonObject request, WebSocketSession session) {
         logger.debug("server/cacheInfo action started. Session " + session.getId());
@@ -100,6 +103,7 @@ public class ApiInfoHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processClusterConfigInfo(JsonObject request, WebSocketSession session) {
         logger.debug("cluster/info action started. Session " + session.getId());

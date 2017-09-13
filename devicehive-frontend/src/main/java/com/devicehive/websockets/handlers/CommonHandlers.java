@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -87,6 +88,7 @@ public class CommonHandlers {
         this.clientHandler = clientHandler;
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 
@@ -112,6 +114,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processLogin(JsonObject request, WebSocketSession session) throws IOException {
         JwtRequestVO loginRequest = new JwtRequestVO();
@@ -129,6 +132,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
         JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
@@ -159,6 +163,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processRefresh(JsonObject request, WebSocketSession session) throws IOException {
         String refreshToken = null;

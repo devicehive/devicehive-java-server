@@ -44,10 +44,10 @@ public class WebSocketActionAuthenticationAspect {
         this.authenticationManager = authenticationManager;
     }
 
-    @Pointcut("execution(public * com.devicehive.websockets.handlers..*(..)) && args(..,session)")
+    @Pointcut("@annotation(HiveWebsocketAuth) && args(..,session)")
     public void publicHandlerMethod(WebSocketSession session) {}
 
-    @Before("publicHandlerMethod(session)")
+    @Before(value = "publicHandlerMethod(session)", argNames = "session")
     public void authenticate(WebSocketSession session) throws Exception {
         HiveAuthentication authentication = (HiveAuthentication) session.getAttributes()
                 .get(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION);

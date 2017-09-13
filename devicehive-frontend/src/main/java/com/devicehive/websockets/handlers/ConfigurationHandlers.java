@@ -20,6 +20,7 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
@@ -67,6 +68,7 @@ public class ConfigurationHandlers {
         this.clientHandler = clientHandler;
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationGet(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
@@ -86,6 +88,7 @@ public class ConfigurationHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationPut(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
@@ -103,6 +106,7 @@ public class ConfigurationHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationDelete(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);

@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -92,7 +93,7 @@ public class NotificationHandlers {
         this.clientHandler = clientHandler;
     }
 
-
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
@@ -176,6 +177,7 @@ public class NotificationHandlers {
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
      * {object} } </code>
      */
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) throws IOException {
@@ -204,6 +206,7 @@ public class NotificationHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
     public void processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
@@ -245,6 +248,7 @@ public class NotificationHandlers {
                 });
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationGet(JsonObject request, WebSocketSession session) {
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -282,6 +286,7 @@ public class NotificationHandlers {
                 });
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationList(JsonObject request, WebSocketSession session) {
         ListNotificationRequest listNotificationRequest = createListNotificationRequest(request);
