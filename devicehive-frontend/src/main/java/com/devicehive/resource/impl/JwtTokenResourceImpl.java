@@ -109,7 +109,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         try {
             payload = tokenService.getPayload(requestTokenVO.getRefreshToken());
         } catch (JwtException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             return ResponseFactory.response(UNAUTHORIZED);
         }
 

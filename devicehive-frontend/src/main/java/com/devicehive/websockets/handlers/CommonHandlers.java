@@ -176,7 +176,7 @@ public class CommonHandlers {
         try {
             payload = tokenService.getPayload(refreshToken);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("Attempt to refresh access token has failed: {}", e.getMessage());
             throw new BadCredentialsException(e.getMessage());
         }
 
