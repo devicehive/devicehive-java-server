@@ -36,7 +36,6 @@ public class DeviceHiveApplication {
                 .web(false)
                 .run(args);
 
-        DeviceHiveApplication app = context.getBean(DeviceHiveApplication.class);
         context.registerShutdownHook();
     }
 

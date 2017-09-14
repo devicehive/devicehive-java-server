@@ -39,10 +39,14 @@ import java.util.Optional;
 public class ConfigurationService {
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationService.class);
 
+    private final ConfigurationDao configurationDao;
+    private final HiveValidator hiveValidator;
+
     @Autowired
-    private ConfigurationDao configurationDao;
-    @Autowired
-    private HiveValidator hiveValidator;
+    public ConfigurationService(ConfigurationDao configurationDao, HiveValidator hiveValidator) {
+        this.configurationDao = configurationDao;
+        this.hiveValidator = hiveValidator;
+    }
 
     @Transactional
     public <T> ConfigurationVO save(@NotNull String name, T value) {

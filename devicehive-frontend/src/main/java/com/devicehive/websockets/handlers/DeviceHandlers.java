@@ -21,6 +21,7 @@ package com.devicehive.websockets.handlers;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -51,17 +52,23 @@ import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final WebSocketClientHandler webSocketClientHandler;
+    private final Gson gson;
 
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
+    public DeviceHandlers(DeviceService deviceService,
+                          WebSocketClientHandler webSocketClientHandler,
+                          Gson gson) {
+        this.deviceService = deviceService;
+        this.webSocketClientHandler = webSocketClientHandler;
+        this.gson = gson;
+    }
 
-    @Autowired
-    private Gson gson;
-
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
     public void processDeviceDelete(JsonObject request, WebSocketSession session) throws HiveException {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -80,6 +87,7 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public void processDeviceGet(JsonObject request, WebSocketSession session) throws HiveException {
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -103,6 +111,7 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public void processDeviceList(JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -121,6 +130,7 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public void processDeviceSave(JsonObject request, WebSocketSession session) throws HiveException {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);

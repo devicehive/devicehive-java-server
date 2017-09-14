@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -59,15 +60,18 @@ import static javax.ws.rs.core.Response.Status.OK;
 public class NetworkHandlers {
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private NetworkService networkService;
+    private final NetworkService networkService;
+    private final WebSocketClientHandler webSocketClientHandler;
+    private final Gson gson;
 
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
+    public NetworkHandlers(NetworkService networkService, WebSocketClientHandler webSocketClientHandler, Gson gson) {
+        this.networkService = networkService;
+        this.webSocketClientHandler = webSocketClientHandler;
+        this.gson = gson;
+    }
 
-    @Autowired
-    private Gson gson;
-
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     public void processNetworkList(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -95,6 +99,7 @@ public class NetworkHandlers {
         }
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'GET_NETWORK')")
     public void processNetworkGet(JsonObject request, WebSocketSession session) {
         logger.debug("Network get requested.");
@@ -115,7 +120,7 @@ public class NetworkHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
-
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     public void processNetworkInsert(JsonObject request, WebSocketSession session) {
         logger.debug("Network insert requested");
@@ -132,6 +137,7 @@ public class NetworkHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     public void processNetworkUpdate(JsonObject request, WebSocketSession session) {
         NetworkUpdate networkToUpdate = gson.fromJson(request.get(NETWORK), NetworkUpdate.class);
@@ -142,6 +148,7 @@ public class NetworkHandlers {
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
     public void processNetworkDelete(JsonObject request, WebSocketSession session) {
         logger.debug("Network delete requested");

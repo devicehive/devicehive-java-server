@@ -37,13 +37,17 @@ import org.springframework.web.socket.WebSocketSession;
 @Order(0)
 public class WebSocketActionAuthenticationAspect {
 
-    @Autowired
-    private WebSocketAuthenticationManager authenticationManager;
+    private final WebSocketAuthenticationManager authenticationManager;
 
-    @Pointcut("execution(public * com.devicehive.websockets.handlers..*(..)) && args(..,session)")
+    @Autowired
+    public WebSocketActionAuthenticationAspect(WebSocketAuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
+    @Pointcut("@annotation(HiveWebsocketAuth) && args(..,session)")
     public void publicHandlerMethod(WebSocketSession session) {}
 
-    @Before("publicHandlerMethod(session)")
+    @Before(value = "publicHandlerMethod(session)", argNames = "session")
     public void authenticate(WebSocketSession session) throws Exception {
         HiveAuthentication authentication = (HiveAuthentication) session.getAttributes()
                 .get(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION);

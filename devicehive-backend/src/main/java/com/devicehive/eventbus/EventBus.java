@@ -25,6 +25,8 @@ import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -32,6 +34,7 @@ import java.util.Collection;
  * Central class for interaction with devicehive-backend subscription mechanism.
  * Provides basic interfaces and operations for subscription, unsubscription and publishing of events.
  */
+@Component
 public class EventBus {
 
     private final SubscriberRegistry registry = new SubscriberRegistry();
@@ -41,6 +44,7 @@ public class EventBus {
      * Creates new instance of EventBus
      * @param dispatcher - interface, that controls message delivery strategy
      */
+    @Autowired
     public EventBus(MessageDispatcher dispatcher) {
         this.dispatcher = dispatcher;
     }

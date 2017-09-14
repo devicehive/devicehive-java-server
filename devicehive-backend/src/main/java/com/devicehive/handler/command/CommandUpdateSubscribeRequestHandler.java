@@ -32,14 +32,23 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
 
-    @Autowired
     private HazelcastService hazelcastService;
+    private EventBus eventBus;
 
     @Autowired
-    private EventBus eventBus;
+    public void setHazelcastService(HazelcastService hazelcastService) {
+        this.hazelcastService = hazelcastService;
+    }
+
+    @Autowired
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
     @Override
     public Response handle(Request request) {

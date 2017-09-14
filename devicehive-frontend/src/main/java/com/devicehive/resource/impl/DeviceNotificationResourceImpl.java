@@ -67,25 +67,30 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 public class DeviceNotificationResourceImpl implements DeviceNotificationResource {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationResourceImpl.class);
 
-    @Autowired
-    private Gson gson;
+    private final Gson gson;
+    private final DeviceNotificationService notificationService;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final TimestampService timestampService;
+    private final HiveValidator hiveValidator;
 
     @Autowired
-    private DeviceNotificationService notificationService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private NetworkService networkService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private HiveValidator hiveValidator;
+    public DeviceNotificationResourceImpl(Gson gson,
+                                          DeviceNotificationService notificationService,
+                                          DeviceService deviceService,
+                                          NetworkService networkService,
+                                          TimestampService timestampService,
+                                          HiveValidator hiveValidator) {
+        this.gson = gson;
+        this.notificationService = notificationService;
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.timestampService = timestampService;
+        this.hiveValidator = hiveValidator;
+    }
 
     /**
      * {@inheritDoc}
@@ -253,12 +258,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 }
             });
 
-            asyncResponse.register(new CompletionCallback() {
-                @Override
-                public void onComplete(Throwable throwable) {
-                    notificationService.unsubscribe(pair.getLeft(), null);
-                }
-            });
+            asyncResponse.register((CompletionCallback) throwable -> notificationService.unsubscribe(pair.getLeft(), null));
         } else {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(response);

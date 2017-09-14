@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -62,27 +63,32 @@ public class CommonHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
 
-    @Autowired
-    private WebSocketAuthenticationManager authenticationManager;
+    private final WebSocketAuthenticationManager authenticationManager;
+    private final JwtClientService tokenService;
+    private final JwtTokenService jwtTokenService;
+    private final UserService userService;
+    private final TimestampService timestampService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    private JwtClientService tokenService;
+    public CommonHandlers(WebSocketAuthenticationManager authenticationManager,
+                          JwtClientService tokenService,
+                          JwtTokenService jwtTokenService,
+                          UserService userService,
+                          TimestampService timestampService,
+                          Gson gson,
+                          WebSocketClientHandler clientHandler) {
+        this.authenticationManager = authenticationManager;
+        this.tokenService = tokenService;
+        this.jwtTokenService = jwtTokenService;
+        this.userService = userService;
+        this.timestampService = timestampService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
 
-    @Autowired
-    private JwtTokenService jwtTokenService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-    
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processAuthenticate(JsonObject request, WebSocketSession session) throws IOException {
 
@@ -108,6 +114,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processLogin(JsonObject request, WebSocketSession session) throws IOException {
         JwtRequestVO loginRequest = new JwtRequestVO();
@@ -125,6 +132,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
         JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
@@ -155,6 +163,7 @@ public class CommonHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processRefresh(JsonObject request, WebSocketSession session) throws IOException {
         String refreshToken = null;

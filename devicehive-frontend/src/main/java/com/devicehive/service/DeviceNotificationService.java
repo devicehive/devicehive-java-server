@@ -58,20 +58,20 @@ public class DeviceNotificationService {
     private final RpcClient rpcClient;
     private final HiveValidator hiveValidator;
     private final LongIdGenerator idGenerator;
+    private final RequestResponseMatcher requestResponseMatcher;
 
     @Autowired
     public DeviceNotificationService(TimestampService timestampService,
                                      RpcClient rpcClient,
                                      HiveValidator hiveValidator,
-                                     LongIdGenerator idGenerator) {
+                                     LongIdGenerator idGenerator,
+                                     RequestResponseMatcher requestResponseMatcher) {
         this.timestampService = timestampService;
         this.rpcClient = rpcClient;
         this.hiveValidator = hiveValidator;
         this.idGenerator = idGenerator;
+        this.requestResponseMatcher = requestResponseMatcher;
     }
-
-    @Autowired
-    private RequestResponseMatcher requestResponseMatcher;
 
     public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String deviceId) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
@@ -89,7 +89,7 @@ public class DeviceNotificationService {
     public CompletableFuture<List<DeviceNotification>> find(ListNotificationRequest request) {
         String deviceId = request.getDeviceId();
         String notification = request.getNotification();
-        Set<String> notificationNames = 
+        Set<String> notificationNames =
                 StringUtils.isNoneEmpty(notification) ? Collections.singleton(notification) : Collections.emptySet();
         return find(Collections.singleton(deviceId), notificationNames,
                 request.getStart(), request.getEnd());

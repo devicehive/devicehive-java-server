@@ -248,14 +248,14 @@ public class UserServiceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_throw_NoSuchElementException_if_user_is_null_when_unassign_network() throws Exception {
+    public void should_throw_HiveException_if_user_is_null_when_unassign_network() throws Exception {
         NetworkVO network = new NetworkVO();
         network.setName(RandomStringUtils.randomAlphabetic(10));
         NetworkVO created = networkService.create(network);
         assertThat(created, notNullValue());
         assertThat(created.getId(), notNullValue());
 
-        expectedException.expect(NoSuchElementException.class);
+        expectedException.expect(HiveException.class);
         expectedException.expectMessage(String.format(Messages.USER_NOT_FOUND, -1));
 
         userService.unassignNetwork(-1, created.getId());
@@ -268,6 +268,9 @@ public class UserServiceTest extends AbstractResourceTest {
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
+
+        expectedException.expect(HiveException.class);
+        expectedException.expectMessage(String.format(Messages.NETWORK_NOT_FOUND, -1));
 
         userService.unassignNetwork(user.getId(), -1);
     }

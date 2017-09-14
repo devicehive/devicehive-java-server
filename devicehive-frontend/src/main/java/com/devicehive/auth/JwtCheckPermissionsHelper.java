@@ -23,16 +23,20 @@ package com.devicehive.auth;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.service.DeviceService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Set;
 
-@Service
+@Component
 public class JwtCheckPermissionsHelper {
 
+    private final DeviceService deviceService;
+
     @Autowired
-    private DeviceService deviceService;
+    public JwtCheckPermissionsHelper(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
 
     public boolean checkPermissions(
             HivePrincipal hivePrincipal,

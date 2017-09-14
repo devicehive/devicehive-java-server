@@ -21,13 +21,10 @@ package com.devicehive.resource.impl;
  */
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserNetworkResponse;
-import com.devicehive.model.response.UserResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -42,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
@@ -57,11 +53,14 @@ public class UserResourceImpl implements UserResource {
 
     private static final Logger logger = LoggerFactory.getLogger(UserResourceImpl.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final HiveValidator hiveValidator;
 
     @Autowired
-    private HiveValidator hiveValidator;
+    public UserResourceImpl(UserService userService, HiveValidator hiveValidator) {
+        this.userService = userService;
+        this.hiveValidator = hiveValidator;
+    }
 
     /**
      * {@inheritDoc}

@@ -55,7 +55,7 @@ import com.google.gson.stream.JsonWriter;
 
 /**
  * Copy of https://github.com/google/gson/blob/master/extras/src/main/java/com/google/gson/typeadapters/RuntimeTypeAdapterFactory.java
- *
+ * <p>
  * Adapts values whose runtime type may differ from their declaration type. This
  * is necessary when a field's type is not the same type that GSON should create
  * when deserializing that field. For example, consider these types:
@@ -115,7 +115,7 @@ import com.google.gson.stream.JsonWriter;
  *   }}</pre>
  * Both the type field name ({@code "type"}) and the type labels ({@code
  * "Rectangle"}) are configurable.
- *
+ * <p>
  * <h3>Registering Types</h3>
  * Create a {@code RuntimeTypeAdapterFactory} by passing the base type and type field
  * name to the {@link #of} factory method. If you don't supply an explicit type
@@ -163,7 +163,7 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
      * typeFieldName} as the type field name. Type field names are case sensitive.
      */
     public static <T> RuntimeTypeAdapterFactory<T> of(Class<T> baseType, String typeFieldName) {
-        return new RuntimeTypeAdapterFactory<T>(baseType, typeFieldName);
+        return new RuntimeTypeAdapterFactory<>(baseType, typeFieldName);
     }
 
     /**
@@ -171,7 +171,7 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
      * the type field name.
      */
     public static <T> RuntimeTypeAdapterFactory<T> of(Class<T> baseType) {
-        return new RuntimeTypeAdapterFactory<T>(baseType, "type");
+        return new RuntimeTypeAdapterFactory<>(baseType, "type");
     }
 
     /**
@@ -179,7 +179,7 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
      * sensitive.
      *
      * @throws IllegalArgumentException if either {@code type} or {@code label}
-     *     have already been registered on this type adapter.
+     *                                  have already been registered on this type adapter.
      */
     public RuntimeTypeAdapterFactory<T> registerSubtype(Class<? extends T> type, Integer label) {
         if (type == null) {
@@ -198,10 +198,8 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
             return null;
         }
 
-        final Map<Integer, TypeAdapter<?>> labelToDelegate
-                = new LinkedHashMap<>();
-        final Map<Class<?>, TypeAdapter<?>> subtypeToDelegate
-                = new LinkedHashMap<Class<?>, TypeAdapter<?>>();
+        final Map<Integer, TypeAdapter<?>> labelToDelegate = new LinkedHashMap<>();
+        final Map<Class<?>, TypeAdapter<?>> subtypeToDelegate = new LinkedHashMap<>();
         for (Map.Entry<Integer, Class<?>> entry : labelToSubtype.entrySet()) {
             TypeAdapter<?> delegate = gson.getDelegateAdapter(this, TypeToken.get(entry.getValue()));
             labelToDelegate.put(entry.getKey(), delegate);
@@ -209,7 +207,8 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
         }
 
         return new TypeAdapter<R>() {
-            @Override public R read(JsonReader in) throws IOException {
+            @Override
+            public R read(JsonReader in) throws IOException {
                 JsonElement jsonElement = Streams.parse(in);
 //                JsonElement labelJsonElement = jsonElement.getAsJsonObject().remove(typeFieldName);
                 JsonElement labelJsonElement = jsonElement.getAsJsonObject().get(typeFieldName);
@@ -227,10 +226,11 @@ public final class RuntimeTypeAdapterFactory<T> implements TypeAdapterFactory {
                 return delegate.fromJsonTree(jsonElement);
             }
 
-            @Override public void write(JsonWriter out, R value) throws IOException {
+            @Override
+            public void write(JsonWriter out, R value) throws IOException {
                 Class<?> srcType = value.getClass();
                 @SuppressWarnings("unchecked") // registration requires that subtype extends T
-                TypeAdapter<R> delegate = (TypeAdapter<R>) subtypeToDelegate.get(srcType);
+                        TypeAdapter<R> delegate = (TypeAdapter<R>) subtypeToDelegate.get(srcType);
                 if (delegate == null) {
                     throw new JsonParseException("cannot serialize " + srcType.getName()
                             + "; did you forget to register a subtype?");

@@ -60,7 +60,6 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
                 .web(true)
                 .run(args);
 
-        DeviceHiveApplication app = context.getBean(DeviceHiveApplication.class);
         context.registerShutdownHook();
     }
 

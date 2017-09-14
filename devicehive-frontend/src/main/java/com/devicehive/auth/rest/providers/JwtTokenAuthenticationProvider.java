@@ -41,21 +41,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Component
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
+
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenAuthenticationProvider.class);
 
-    @Autowired
     private JwtClientService jwtClientService;
-
-    @Autowired
     private UserService userService;
-
-    @Autowired
     private TimestampService timestampService;
 
     @Override
@@ -123,5 +121,20 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return PreAuthenticatedAuthenticationToken.class.equals(authentication);
+    }
+
+    @Autowired
+    public void setJwtClientService(JwtClientService jwtClientService) {
+        this.jwtClientService = jwtClientService;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    @Autowired
+    public void setTimestampService(TimestampService timestampService) {
+        this.timestampService = timestampService;
     }
 }

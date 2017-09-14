@@ -52,10 +52,15 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 public class NetworkResourceImpl implements NetworkResource {
+
     private static final Logger logger = LoggerFactory.getLogger(NetworkResourceImpl.class);
 
+    private final NetworkService networkService;
+
     @Autowired
-    private NetworkService networkService;
+    public NetworkResourceImpl(NetworkService networkService) {
+        this.networkService = networkService;
+    }
 
     /**
      * {@inheritDoc}

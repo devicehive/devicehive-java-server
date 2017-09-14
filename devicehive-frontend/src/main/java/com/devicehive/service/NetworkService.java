@@ -56,14 +56,26 @@ import static java.util.Optional.*;
 public class NetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
-    @Autowired
+
+    private final HiveValidator hiveValidator;
+    private final NetworkDao networkDao;
+    private final RpcClient rpcClient;
+
     private UserService userService;
+
     @Autowired
-    private HiveValidator hiveValidator;
+    public NetworkService(HiveValidator hiveValidator,
+                          NetworkDao networkDao,
+                          RpcClient rpcClient) {
+        this.hiveValidator = hiveValidator;
+        this.networkDao = networkDao;
+        this.rpcClient = rpcClient;
+    }
+
     @Autowired
-    private NetworkDao networkDao;
-    @Autowired
-    private RpcClient rpcClient;
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {

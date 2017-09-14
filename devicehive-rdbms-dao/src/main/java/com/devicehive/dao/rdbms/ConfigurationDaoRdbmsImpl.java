@@ -32,7 +32,7 @@ public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements Config
 
     @Override
     public Optional<ConfigurationVO> getByName(String name) {
-        return Configuration.convert(createNamedQuery(Configuration.class, "Configuration.getByName", Optional.<CacheConfig>empty())
+        return Configuration.convert(createNamedQuery(Configuration.class, "Configuration.getByName", Optional.empty())
                 .setParameter("name", name)
                 .getResultList()
                 .stream().findFirst());
@@ -40,7 +40,7 @@ public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements Config
 
     @Override
     public int delete(String name) {
-        return createNamedQuery("Configuration.delete", Optional.<CacheConfig>empty())
+        return createNamedQuery("Configuration.delete", Optional.empty())
                 .setParameter("name", name)
                 .executeUpdate();
     }

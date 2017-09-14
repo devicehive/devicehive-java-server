@@ -40,8 +40,12 @@ public class WebSocketAuthenticationManager {
 
     public static final String SESSION_ATTR_AUTHENTICATION = "authentication";
 
+    private final AuthenticationManager authenticationManager;
+
     @Autowired
-    private AuthenticationManager authenticationManager;
+    public WebSocketAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
 
     public HiveAuthentication authenticateJWT(String token, HiveAuthentication.HiveAuthDetails details) {
         PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(token, null);

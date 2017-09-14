@@ -32,18 +32,27 @@ import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.HashSet;
 import java.util.Set;
 
+@Component
 public class DeviceCreateHandler implements RequestHandler {
 
-    @Autowired
     private EventBus eventBus;
+    private FilterRegistry filterRegistry;
 
     @Autowired
-    private FilterRegistry filterRegistry;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setFilterRegistry(FilterRegistry filterRegistry) {
+        this.filterRegistry = filterRegistry;
+    }
 
     @Override
     public Response handle(Request request) {

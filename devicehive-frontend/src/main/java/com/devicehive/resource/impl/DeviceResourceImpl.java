@@ -22,10 +22,8 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
@@ -55,10 +53,15 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
  */
 @Service
 public class DeviceResourceImpl implements DeviceResource {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceResourceImpl.class);
 
+    private final DeviceService deviceService;
+
     @Autowired
-    private DeviceService deviceService;
+    public DeviceResourceImpl(DeviceService deviceService) {
+        this.deviceService = deviceService;
+    }
 
     /**
      * {@inheritDoc}

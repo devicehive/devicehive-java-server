@@ -70,7 +70,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
 
     @Override
     public int deleteById(long id) {
-        return createNamedQuery("Network.deleteById", Optional.<CacheConfig>empty())
+        return createNamedQuery("Network.deleteById", Optional.empty())
                 .setParameter("id", id)
                 .executeUpdate();
     }
@@ -150,7 +150,7 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
                 .setParameter("id", userId)
                 .getResultList().stream()
                 .findFirst()
-                .map(n -> Network.convertNetwork(n));
+                .map(Network::convertNetwork);
     }
 
 }

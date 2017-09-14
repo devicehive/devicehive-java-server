@@ -29,13 +29,19 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
+@Component
 public class CommandGetSubscriptionRequestHandler implements RequestHandler {
 
-    @Autowired
     private EventBus eventBus;
+
+    @Autowired
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
     @Override
     public Response handle(Request request) {
