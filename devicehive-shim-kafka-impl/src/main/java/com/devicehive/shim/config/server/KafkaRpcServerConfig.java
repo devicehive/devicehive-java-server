@@ -83,7 +83,7 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public WorkerPool<ServerEvent> workerPool(@Qualifier("RequestDispatcher") RequestHandler requestHandler,
+    public WorkerPool<ServerEvent> workerPool(@Qualifier("request-dispatcher") RequestHandler requestHandler,
                                               @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
         IntStream.range(0, workerThreads).forEach(
@@ -121,7 +121,7 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public ServerEventHandler serverEventHandler(@Qualifier("RequestDispatcher") RequestHandler requestHandler,
+    public ServerEventHandler serverEventHandler(@Qualifier("request-dispatcher") RequestHandler requestHandler,
                                                  @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         return new ServerEventHandler(requestHandler, responseProducer);
     }

@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Profile("test")
-@Component("RequestDispatcher")
+@Component("request-dispatcher")
 public class RequestDispatcherProxy implements RequestHandler {
 
     private RequestHandler requestHandler;
