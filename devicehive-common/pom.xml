@@ -21,7 +21,7 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-shim-api</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.commons</groupId>
@@ -91,13 +91,6 @@
     
     <build>
         <plugins>
-            <plugin>
-                <groupId>com.googlecode.maven-download-plugin</groupId>
-                <artifactId>download-maven-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

@@ -21,17 +21,17 @@
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common-dao</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
