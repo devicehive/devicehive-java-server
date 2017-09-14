@@ -26,13 +26,14 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class for handling all subscriber's filters
  */
 public class FilterRegistry {
 
-    private final Map<Filter, Set<Long>> filterSubscriptionsMap = new HashMap<>();
+    private final Map<Filter, Set<Long>> filterSubscriptionsMap = new ConcurrentHashMap<>();
 
     public void register(Filter filter, Long subscriptionId) {
         HivePrincipal principal = filter.getPrincipal();
@@ -41,23 +42,33 @@ public class FilterRegistry {
                 filter.setGlobal(false);
                 filter.setNetworkIds(principal.getNetworkIds());
             }
-            addFilter(filter, subscriptionId);
-            return;
         }
-        Set<Long> networkIds = filter.getNetworkIds();
-        if (networkIds != null) {
-            addFilter(filter, subscriptionId);
-        }
+        addFilter(filter, subscriptionId);
     }
 
     public void unregister(Long subscriptionId) {
-        filterSubscriptionsMap.values().forEach(subscriptionIds -> subscriptionIds.remove(subscriptionId));
+        for (Map.Entry<Filter, Set<Long>> entry : filterSubscriptionsMap.entrySet()) {
+            Set<Long> subsIds = entry.getValue();
+            subsIds.remove(subscriptionId);
+            if (subsIds.isEmpty()) {
+                filterSubscriptionsMap.remove(entry.getKey());
+            }
+        }
+    }
+
+    public Filter getFilter(Long subscriptionId) {
+        for (Map.Entry<Filter, Set<Long>> entry : filterSubscriptionsMap.entrySet()) {
+            if (entry.getValue().contains(subscriptionId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public Set<Pair<Long, Filter>> getSubscriptions(Long networkId) {
         Set<Pair<Long, Filter>> subs = new HashSet<>();
         filterSubscriptionsMap.keySet().forEach( filter -> {
-            if (filter.isGlobal() || filter.getNetworkIds().contains(networkId)) {
+            if (filter.isGlobal() || (filter.getNetworkIds() != null && filter.getNetworkIds().contains(networkId))) {
                 filterSubscriptionsMap.get(filter).forEach(subId -> subs.add(Pair.of(subId, filter)));
             }
         });

@@ -120,6 +120,7 @@ public class NotificationHandlers {
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
+            filter.setDeviceIds(devices);
         }
         if (networks != null) {
             Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->

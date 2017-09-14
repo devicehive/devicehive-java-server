@@ -41,6 +41,7 @@ public class WebSocketRequestProcessor {
     private final ConfigurationHandlers configurationHandlers;
     private final NotificationHandlers notificationHandlers;
     private final CommandHandlers commandHandlers;
+    private final SubscriptionHandlers subscriptionHandlers;
     private final DeviceHandlers deviceHandlers;
     private final NetworkHandlers networkHandlers;
     private final UserHandlers userHandlers;
@@ -51,6 +52,7 @@ public class WebSocketRequestProcessor {
                                      ConfigurationHandlers configurationHandlers,
                                      NotificationHandlers notificationHandlers,
                                      CommandHandlers commandHandlers,
+                                     SubscriptionHandlers subscriptionHandlers,
                                      DeviceHandlers deviceHandlers,
                                      NetworkHandlers networkHandlers,
                                      UserHandlers userHandlers) {
@@ -59,6 +61,7 @@ public class WebSocketRequestProcessor {
         this.configurationHandlers = configurationHandlers;
         this.notificationHandlers = notificationHandlers;
         this.commandHandlers = commandHandlers;
+        this.subscriptionHandlers = subscriptionHandlers;
         this.deviceHandlers = deviceHandlers;
         this.networkHandlers = networkHandlers;
         this.userHandlers = userHandlers;
@@ -129,6 +132,9 @@ public class WebSocketRequestProcessor {
                 break;
             case COMMAND_LIST:
                 commandHandlers.processCommandList(request, session);
+                break;
+            case SUBSCRIPTION_LIST:
+                subscriptionHandlers.processSubscribeList(request, session);
                 break;
             case DEVICE_GET:
                 deviceHandlers.processDeviceGet(request, session);
@@ -222,6 +228,7 @@ public class WebSocketRequestProcessor {
         COMMAND_UPDATE("command/update"),
         COMMAND_GET("command/get"),
         COMMAND_LIST("command/list"),
+        SUBSCRIPTION_LIST("subscription/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
         DEVICE_SAVE("device/save"),

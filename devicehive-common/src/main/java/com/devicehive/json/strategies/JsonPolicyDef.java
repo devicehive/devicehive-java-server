@@ -59,6 +59,7 @@ public @interface JsonPolicyDef {
         USERS_LISTED,
         NETWORK_PUBLISHED,
         NETWORKS_LISTED,
-        NETWORK_SUBMITTED
+        NETWORK_SUBMITTED,
+        SUBSCRIPTIONS_LISTED
     }
 }
