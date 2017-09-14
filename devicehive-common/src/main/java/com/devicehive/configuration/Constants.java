@@ -57,6 +57,7 @@ public class Constants {
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
     public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
+    public static final String REQUEST_TOPIC = "request_topic";   
     //API constants
     public static final String INFO = "info";
     public static final String CACHE_INFO = "cacheInfo";
