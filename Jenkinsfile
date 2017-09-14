@@ -57,9 +57,11 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         }
 
         echo("Wait for devicehive")
-        waitUntil{
-          def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
-          return (fe_status == 0)
+        timeout(time:2, unit: 'MINUTES') {
+          waitUntil{
+            def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
+            return (fe_status == 0)
+          }
         }
 
         dir('devicehive-tests') {
