@@ -21,13 +21,13 @@ package com.devicehive.service.helpers;
  */
 
 import com.devicehive.configuration.Constants;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 
 /**
  * this one uses the same scheme as .net server TODO investigate maybe it makes sense to replace it with some
@@ -43,7 +43,7 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
     public String generateSalt() {
         byte[] saltBytes = new byte[18]; // .net server uses 18 bytes salt
         secureRandom.nextBytes(saltBytes);
-        return Base64.encodeBase64String(saltBytes);
+        return Base64.getEncoder().encodeToString(saltBytes);
     }
 
     /**
@@ -62,7 +62,7 @@ public class DefaultPasswordProcessor implements PasswordProcessor {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest((salt + password).getBytes(Constants.UTF8));
-            return Base64.encodeBase64String(hashBytes);
+            return Base64.getEncoder().encodeToString(hashBytes);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
