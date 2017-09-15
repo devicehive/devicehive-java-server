@@ -59,8 +59,24 @@ public class RequestHandlersMapper {
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
+    //TODO - too many parameters, consider refactoring. Is it possible to find implementation without explicit map?
     @Autowired
-    public RequestHandlersMapper(CommandUpdateHandler commandUpdateHandler, NotificationSearchHandler notificationSearchHandler, NotificationInsertHandler notificationInsertHandler, ListUserHandler listUserHandler, ListDeviceHandler listDeviceHandler, NotificationSubscribeRequestHandler notificationSubscribeRequestHandler, CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler, NotificationUnsubscribeRequestHandler notificationUnsubscribeRequestHandler, CommandInsertHandler commandInsertHandler, CommandSearchHandler commandSearchHandler, CommandsUpdateHandler commandsUpdateHandler, ListNetworkHandler listNetworkHandler, DeviceCreateHandler deviceCreateHandler, CommandSubscribeRequestHandler commandSubscribeRequestHandler, CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler, CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler) {
+    public RequestHandlersMapper(CommandUpdateHandler commandUpdateHandler,
+                                 NotificationSearchHandler notificationSearchHandler,
+                                 NotificationInsertHandler notificationInsertHandler,
+                                 ListUserHandler listUserHandler,
+                                 ListDeviceHandler listDeviceHandler,
+                                 NotificationSubscribeRequestHandler notificationSubscribeRequestHandler,
+                                 CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler,
+                                 NotificationUnsubscribeRequestHandler notificationUnsubscribeRequestHandler,
+                                 CommandInsertHandler commandInsertHandler,
+                                 CommandSearchHandler commandSearchHandler,
+                                 CommandsUpdateHandler commandsUpdateHandler,
+                                 ListNetworkHandler listNetworkHandler,
+                                 DeviceCreateHandler deviceCreateHandler,
+                                 CommandSubscribeRequestHandler commandSubscribeRequestHandler,
+                                 CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
+                                 CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
         this.notificationInsertHandler = notificationInsertHandler;
