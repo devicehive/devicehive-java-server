@@ -20,38 +20,24 @@
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.lmax</groupId>
-            <artifactId>disruptor</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka.version}</version>
-            <scope>test</scope>
-            <classifier>test</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-common</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>${lmax-disruptor.version}</version>
         </dependency>
     </dependencies>
 
