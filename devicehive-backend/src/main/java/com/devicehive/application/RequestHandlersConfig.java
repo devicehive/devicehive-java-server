@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@ComponentScan("com.devicehive")
+@ComponentScan("com.devicehive.handler")
 public class RequestHandlersConfig {
 
     @Autowired

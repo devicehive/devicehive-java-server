@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,12 +41,8 @@ public class RequestDispatcher implements RequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);
 
+    @Resource(name = "requestHandlerMap")
     private Map<Action, RequestHandler> handlerMap;
-
-    @Autowired
-    public void setHandlerMap(@Value("#{requestHandlerMap}") Map<Action, RequestHandler> handlerMap) {
-        this.handlerMap = handlerMap;
-    }
 
     @Override
     @SuppressWarnings("unchecked")
