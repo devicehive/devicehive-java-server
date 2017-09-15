@@ -35,47 +35,78 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
-@ComponentScan("com.devicehive.handler")
+@Component
 public class RequestHandlersConfig {
 
     @Autowired
-    private ApplicationContext context;
+    private NotificationSearchHandler notificationSearchHandler;
+    @Autowired
+    private NotificationInsertHandler notificationInsertHandler;
+    @Autowired
+    private NotificationSubscribeRequestHandler notificationSubscribeRequestHandler;
+    @Autowired
+    private NotificationUnsubscribeRequestHandler notificationUnsubscribeRequestHandler;
+    @Autowired
+    private CommandInsertHandler commandInsertHandler;
+    @Autowired
+    private CommandSearchHandler commandSearchHandler;
+    @Autowired
+    private CommandUpdateHandler commandUpdateHandler;
+    @Autowired
+    private CommandsUpdateHandler commandsUpdateHandler;
+    @Autowired
+    private CommandSubscribeRequestHandler commandSubscribeRequestHandler;
+    @Autowired
+    private CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler;
+    @Autowired
+    private CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler;
+    @Autowired
+    private CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler;
+    @Autowired
+    private ListUserHandler listUserHandler;
+    @Autowired
+    private ListNetworkHandler listNetworkHandler;
+    @Autowired
+    private ListDeviceHandler listDeviceHandler;
+    @Autowired
+    private DeviceCreateHandler deviceCreateHandler;
+
+    private Map<Action, RequestHandler> requestHandlerMap;
 
     @PostConstruct
     public void init() {
-        requestHandlerMap().values().forEach(x -> context.getAutowireCapableBeanFactory().autowireBean(x));
+        requestHandlerMap = new HashMap<Action, RequestHandler>() {{
+            put(Action.NOTIFICATION_SEARCH_REQUEST, notificationSearchHandler);
+            put(Action.NOTIFICATION_INSERT_REQUEST, notificationInsertHandler);
+            put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, notificationSubscribeRequestHandler);
+            put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, notificationUnsubscribeRequestHandler);
+            put(Action.COMMAND_INSERT_REQUEST, commandInsertHandler);
+            put(Action.COMMAND_SEARCH_REQUEST, commandSearchHandler);
+            put(Action.COMMAND_UPDATE_REQUEST, commandUpdateHandler);
+            put(Action.COMMANDS_UPDATE_REQUEST, commandsUpdateHandler);
+            put(Action.COMMAND_SUBSCRIBE_REQUEST, commandSubscribeRequestHandler);
+            put(Action.COMMAND_UNSUBSCRIBE_REQUEST, commandUnsubscribeRequestHandler);
+            put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, commandUpdateSubscribeRequestHandler);
+            put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, commandGetSubscriptionRequestHandler);
+
+            put(Action.LIST_USER_REQUEST, listUserHandler);
+
+            put(Action.LIST_NETWORK_REQUEST, listNetworkHandler);
+
+            put(Action.LIST_DEVICE_REQUEST, listDeviceHandler);
+
+            put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler);
+        }};
     }
 
-    @Bean
     public Map<Action, RequestHandler> requestHandlerMap() {
-        return new HashMap<Action, RequestHandler>() {{
-            put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
-            put(Action.NOTIFICATION_INSERT_REQUEST, new NotificationInsertHandler());
-            put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
-            put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, new NotificationUnsubscribeRequestHandler());
-            put(Action.COMMAND_INSERT_REQUEST, new CommandInsertHandler());
-            put(Action.COMMAND_SEARCH_REQUEST, new CommandSearchHandler());
-            put(Action.COMMAND_UPDATE_REQUEST, new CommandUpdateHandler());
-            put(Action.COMMANDS_UPDATE_REQUEST, new CommandsUpdateHandler());
-            put(Action.COMMAND_SUBSCRIBE_REQUEST, new CommandSubscribeRequestHandler());
-            put(Action.COMMAND_UNSUBSCRIBE_REQUEST, new CommandUnsubscribeRequestHandler());
-            put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, new CommandUpdateSubscribeRequestHandler());
-            put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, new CommandGetSubscriptionRequestHandler());
-
-            put(Action.LIST_USER_REQUEST, new ListUserHandler());
-
-            put(Action.LIST_NETWORK_REQUEST, new ListNetworkHandler());
-
-            put(Action.LIST_DEVICE_REQUEST, new ListDeviceHandler());
-
-            put(Action.DEVICE_CREATE_REQUEST, new DeviceCreateHandler());
-        }};
+        return requestHandlerMap;
     }
 
 }

@@ -20,6 +20,7 @@ package com.devicehive.handler;
  * #L%
  */
 
+import com.devicehive.application.RequestHandlersConfig;
 import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.ErrorResponse;
 import com.devicehive.shim.api.Request;
@@ -40,11 +41,11 @@ public class RequestDispatcher implements RequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);
 
-    private Map<Action, RequestHandler> handlerMap;
+    private final RequestHandlersConfig requestHandlersConfig;
 
     @Autowired
-    public void setHandlerMap(@Value("#{requestHandlerMap}") Map<Action, RequestHandler> handlerMap) {
-        this.handlerMap = handlerMap;
+    public RequestDispatcher(RequestHandlersConfig requestHandlersConfig) {
+        this.requestHandlersConfig = requestHandlersConfig;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class RequestDispatcher implements RequestHandler {
     public Response handle(Request request) {
         final Action action = request.getBody().getAction();
         try {
-            return Optional.ofNullable(handlerMap.get(action))
+            return Optional.ofNullable(requestHandlersConfig.requestHandlerMap().get(action))
                     .map(handler -> handler.handle(request))
                     .orElseThrow(() -> new RuntimeException("Action '" + action + "' is not supported."));
         } catch (Exception e) {
