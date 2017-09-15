@@ -91,6 +91,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           sh '''
             sudo docker-compose kill
             sudo docker-compose down
+            sudo docker volume ls -qf dangling=true | xargs -r sudo docker volume rm
           '''
         }
         cleanWs()
