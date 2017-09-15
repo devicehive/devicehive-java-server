@@ -20,7 +20,7 @@ package com.devicehive.handler;
  * #L%
  */
 
-import com.devicehive.application.RequestHandlersConfig;
+import com.devicehive.application.RequestHandlersMapper;
 import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.ErrorResponse;
 import com.devicehive.shim.api.Request;
@@ -29,11 +29,10 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.Optional;
 
 @Component("request-dispatcher")
@@ -41,11 +40,12 @@ public class RequestDispatcher implements RequestHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);
 
-    private final RequestHandlersConfig requestHandlersConfig;
+    private final RequestHandlersMapper requestHandlersMapper;
 
     @Autowired
-    public RequestDispatcher(RequestHandlersConfig requestHandlersConfig) {
-        this.requestHandlersConfig = requestHandlersConfig;
+    @Lazy
+    public RequestDispatcher(RequestHandlersMapper requestHandlersMapper) {
+        this.requestHandlersMapper = requestHandlersMapper;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class RequestDispatcher implements RequestHandler {
     public Response handle(Request request) {
         final Action action = request.getBody().getAction();
         try {
-            return Optional.ofNullable(requestHandlersConfig.requestHandlerMap().get(action))
+            return Optional.ofNullable(requestHandlersMapper.requestHandlerMap().get(action))
                     .map(handler -> handler.handle(request))
                     .orElseThrow(() -> new RuntimeException("Action '" + action + "' is not supported."));
         } catch (Exception e) {
