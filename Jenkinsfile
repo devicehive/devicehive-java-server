@@ -132,13 +132,14 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 if (deployable_branches.contains(env.BRANCH_NAME)) {
   stage('Deploy build to dev server'){
     node('dev-server') {
-      sh '''
-        cd ~/devicehive-docker/rdbms-image
-        sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
-        sudo docker-compose pull
-        sudo docker-compose up -d
-        echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
-      '''
+      dir('~/devicehive-docker/rdbms-image'){
+        sh '''
+          sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
+          sudo docker-compose pull
+          sudo docker-compose up -d
+          echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
+        '''
+      }
     }
   }
 }
