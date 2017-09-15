@@ -34,7 +34,6 @@ import java.util.Collection;
  * Central class for interaction with devicehive-backend subscription mechanism.
  * Provides basic interfaces and operations for subscription, unsubscription and publishing of events.
  */
-@Component
 public class EventBus {
 
     private final SubscriberRegistry registry = new SubscriberRegistry();
@@ -44,7 +43,6 @@ public class EventBus {
      * Creates new instance of EventBus
      * @param dispatcher - interface, that controls message delivery strategy
      */
-    @Autowired
     public EventBus(MessageDispatcher dispatcher) {
         this.dispatcher = dispatcher;
     }
