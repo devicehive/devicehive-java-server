@@ -37,6 +37,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,14 +48,11 @@ public class RequestHandlersConfig {
     @Autowired
     private ApplicationContext context;
 
+    private Map<Action, RequestHandler> requestHandlerMap;
+
     @PostConstruct
     public void init() {
-        requestHandlerMap().values().forEach(x -> context.getAutowireCapableBeanFactory().autowireBean(x));
-    }
-
-    @Bean
-    public Map<Action, RequestHandler> requestHandlerMap() {
-        return new HashMap<Action, RequestHandler>() {{
+       requestHandlerMap = new HashMap<Action, RequestHandler>() {{
             put(Action.NOTIFICATION_SEARCH_REQUEST, new NotificationSearchHandler());
             put(Action.NOTIFICATION_INSERT_REQUEST, new NotificationInsertHandler());
             put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, new NotificationSubscribeRequestHandler());
@@ -76,6 +74,13 @@ public class RequestHandlersConfig {
 
             put(Action.DEVICE_CREATE_REQUEST, new DeviceCreateHandler());
         }};
+
+        requestHandlerMap.values().forEach(x -> context.getAutowireCapableBeanFactory().autowireBean(x));
+    }
+
+    @Bean
+    public Map<Action, RequestHandler> requestHandlerMap() {
+        return requestHandlerMap;
     }
 
 }
