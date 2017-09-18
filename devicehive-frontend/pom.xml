@@ -20,27 +20,6 @@
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-common-dao</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-kafka-impl</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
@@ -77,15 +56,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.oauth-client</groupId>
-            <artifactId>google-oauth-client</artifactId>
-            <version>${google-oauth-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
