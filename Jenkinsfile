@@ -2,7 +2,7 @@ properties([
   buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
 ])
 
-def publishable_branches = ["development", "master", "linux-build-fix"]
+def publishable_branches = ["development", "master"]
 def deployable_branches = ["development"]
 
 node('docker') {
