@@ -47,8 +47,8 @@ import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.model.rpc.ListDeviceRequest.createListDeviceRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
