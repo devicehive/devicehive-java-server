@@ -120,6 +120,7 @@ public class NotificationHandlers {
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
+            filter.setDeviceIds(devices);
         }
         if (networks != null) {
             Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
@@ -183,8 +184,7 @@ public class NotificationHandlers {
                                                             WebSocketSession session) throws IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
-        Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
-        CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
+        CopyOnWriteArraySet<Long> sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME));
 
@@ -192,17 +192,15 @@ public class NotificationHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
-        if (subscriptionId == null && deviceIds == null) {
-            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
-            deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
-            notificationService.unsubscribe(null, deviceIds);
+        if (subscriptionId == null) {
+            notificationService.unsubscribe(sessionSubIds);
+            sessionSubIds.clear();
         } else {
-            notificationService.unsubscribe(subscriptionId, deviceIds);
+            notificationService.unsubscribe(Collections.singleton(subscriptionId));
+            sessionSubIds.remove(subscriptionId);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
 
-        sessionSubIds.remove(subscriptionId);
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 

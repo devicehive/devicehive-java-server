@@ -4,7 +4,7 @@ package com.devicehive.model.rpc;
  * #%L
  * DeviceHive Common Module
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,14 @@ import com.devicehive.shim.api.Body;
 import java.util.Objects;
 import java.util.Set;
 
-public class CommandUnsubscribeRequest extends Body {
+public class ListSubscribeRequest extends Body {
 
     private Set<Long> subscriptionIds;
 
-    public CommandUnsubscribeRequest(Set<Long> subscriptionIds) {
-        super(Action.COMMAND_UNSUBSCRIBE_REQUEST);
+    public ListSubscribeRequest(Set<Long> subscriptionIds) {
+        super(Action.LIST_SUBSCRIBE_REQUEST);
         this.subscriptionIds = subscriptionIds;
+
     }
 
     public Set<Long> getSubscriptionIds() {
@@ -46,10 +47,10 @@ public class CommandUnsubscribeRequest extends Body {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CommandUnsubscribeRequest)) return false;
+        if (!(o instanceof ListSubscribeRequest)) return false;
         if (!super.equals(o)) return false;
 
-        CommandUnsubscribeRequest that = (CommandUnsubscribeRequest) o;
+        ListSubscribeRequest that = (ListSubscribeRequest) o;
         return Objects.equals(subscriptionIds, that.subscriptionIds);
     }
 
@@ -60,7 +61,7 @@ public class CommandUnsubscribeRequest extends Body {
 
     @Override
     public String toString() {
-        return "CommandUnsubscribeRequest{" +
+        return "ListSubscribeRequest{" +
                 "subscriptionIds='" + subscriptionIds + '\'' +
                 '}';
     }

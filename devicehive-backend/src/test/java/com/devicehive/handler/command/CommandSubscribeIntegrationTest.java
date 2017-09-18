@@ -191,7 +191,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
         assertThat(c1.commands, hasSize(1));
         assertThat(c2.commands, hasSize(1));
 
-        CommandUnsubscribeRequest ur = new CommandUnsubscribeRequest(sr1.getSubscriptionId(), null);
+        CommandUnsubscribeRequest ur = new CommandUnsubscribeRequest(Collections.singleton(sr1.getSubscriptionId()));
         Request r3 = Request.newBuilder().withBody(ur).withSingleReply(false).build();
         client.call(r3, c1);
 

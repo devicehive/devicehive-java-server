@@ -187,7 +187,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
         assertThat(c1.notifications, hasSize(1));
         assertThat(c2.notifications, hasSize(1));
 
-        NotificationUnsubscribeRequest ur = new NotificationUnsubscribeRequest(sr1.getSubscriptionId(), null);
+        NotificationUnsubscribeRequest ur = new NotificationUnsubscribeRequest(Collections.singleton(sr1.getSubscriptionId()));
         Request r3 = Request.newBuilder().withBody(ur).withSingleReply(false).build();
         client.call(r3, c1);
 

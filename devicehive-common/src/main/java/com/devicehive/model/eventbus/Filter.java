@@ -21,15 +21,29 @@ package com.devicehive.model.eventbus;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.json.strategies.JsonPolicyDef;
 
 import java.util.Set;
+
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED;
 
 public class Filter {
 
     private HivePrincipal principal;
+
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private boolean global = false;
+
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private Set<Long> networkIds;
+
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
+    private Set<String> deviceIds;
+
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private String eventName;
+
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private Set<String> names;
 
     public Filter() {
@@ -59,6 +73,14 @@ public class Filter {
         this.networkIds = networkIds;
     }
 
+    public Set<String> getDeviceIds() {
+        return deviceIds;
+    }
+
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
+    }
+
     public Set<String> getNames() {
         return names;
     }
@@ -79,8 +101,9 @@ public class Filter {
     public String toString() {
         return "Filter{" +
                 "principal=" + principal +
-                "global=" + global +
+                ", global=" + global +
                 ", networkIds=" + networkIds +
+                ", deviceIds=" + deviceIds +
                 ", eventName=" + eventName +
                 ", names=" + names +
                 '}';

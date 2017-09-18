@@ -257,7 +257,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 }
             });
 
-            asyncResponse.register((CompletionCallback) throwable -> notificationService.unsubscribe(pair.getLeft(), null));
+            asyncResponse.register((CompletionCallback) throwable -> notificationService.unsubscribe(Collections.singleton(pair.getLeft())));
         } else {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(response);

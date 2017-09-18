@@ -123,6 +123,7 @@ public class CommandHandlers {
             if (actualDevices.size() != devices.size()) {
                 throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
             }
+            filter.setDeviceIds(devices);
         }
         if (networks != null) {
             Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
@@ -175,8 +176,7 @@ public class CommandHandlers {
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
-        Set<String> deviceIds = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
-        CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
+        CopyOnWriteArraySet<Long> sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCRIPTION_SET_NAME));
 
@@ -184,16 +184,14 @@ public class CommandHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
-        if (subscriptionId == null && deviceIds == null) {
-            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
-            deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
-            commandService.sendUnsubscribeRequest(null, deviceIds);
+        if (subscriptionId == null) {
+            commandService.sendUnsubscribeRequest(sessionSubIds);
+            sessionSubIds.clear();
         } else {
-            commandService.sendUnsubscribeRequest(subscriptionId, deviceIds);
+            commandService.sendUnsubscribeRequest(Collections.singleton(subscriptionId));
+            sessionSubIds.remove(subscriptionId);
         }
-
-        sessionSubIds.remove(subscriptionId);
+        logger.debug("command/unsubscribe completed for session {}", session.getId());
 
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }

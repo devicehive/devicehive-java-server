@@ -28,29 +28,19 @@ import java.util.Set;
 
 public class CommandUnsubscribeResponse extends Body {
 
-    private Long subscriptionId;
-    private Set<String> deviceIds;
+    private Set<Long> subscriptionIds;
 
-    public CommandUnsubscribeResponse(Long subscriptionId, Set<String> deviceIds) {
+    public CommandUnsubscribeResponse(Set<Long> subscriptionIds) {
         super(Action.COMMAND_UNSUBSCRIBE_RESPONSE);
-        this.subscriptionId = subscriptionId;
-        this.deviceIds = deviceIds;
+        this.subscriptionIds = subscriptionIds;
     }
 
-    public Long getSubscriptionId() {
-        return subscriptionId;
+    public Set<Long> getSubscriptionIds() {
+        return subscriptionIds;
     }
 
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
-    }
-
-    public Set<String> getDeviceIds() {
-        return deviceIds;
-    }
-
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setSubscriptionIds(Set<Long> subscriptionIds) {
+        this.subscriptionIds = subscriptionIds;
     }
 
     @Override
@@ -59,21 +49,19 @@ public class CommandUnsubscribeResponse extends Body {
         if (!(o instanceof CommandUnsubscribeResponse)) return false;
         if (!super.equals(o)) return false;
         CommandUnsubscribeResponse that = (CommandUnsubscribeResponse) o;
-        return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(deviceIds, that.deviceIds);
+        return Objects.equals(subscriptionIds, that.subscriptionIds);
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, deviceIds);
+        return Objects.hash(super.hashCode(), subscriptionIds);
     }
 
     @Override
     public String toString() {
         return "CommandUnsubscribeResponse{" +
-                "subscriptionId='" + subscriptionId + '\'' +
-                ", deviceIds=" + deviceIds +
+                "subscriptionIds='" + subscriptionIds + '\'' +
                 '}';
     }
 }

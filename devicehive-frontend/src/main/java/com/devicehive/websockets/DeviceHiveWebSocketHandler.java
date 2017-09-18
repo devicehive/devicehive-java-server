@@ -58,6 +58,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -159,15 +160,11 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCRIPTION_SET_NAME);
-        for (Long s : commandSubscriptions) {
-            commandService.sendUnsubscribeRequest(s, null);
-        }
+            commandService.sendUnsubscribeRequest(commandSubscriptions);
 
         CopyOnWriteArraySet<Long> notificationSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
-        for (Long s : notificationSubscriptions) {
-            notificationService.unsubscribe(s, null);
-        }
+        notificationService.unsubscribe(notificationSubscriptions);
 
         sessionMonitor.removeSession(session.getId());
 

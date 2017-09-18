@@ -4,7 +4,7 @@ package com.devicehive.model.rpc;
  * #%L
  * DeviceHive Common Module
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,48 +20,50 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
-public class CommandUnsubscribeRequest extends Body {
+public class ListSubscribeResponse extends Body {
 
-    private Set<Long> subscriptionIds;
+    private Map<Long, Filter> subscriptions;
 
-    public CommandUnsubscribeRequest(Set<Long> subscriptionIds) {
-        super(Action.COMMAND_UNSUBSCRIBE_REQUEST);
-        this.subscriptionIds = subscriptionIds;
+    public ListSubscribeResponse(Map<Long, Filter> subscriptions) {
+        super(Action.LIST_SUBSCRIBE_RESPONSE);
+        this.subscriptions = subscriptions;
+
     }
 
-    public Set<Long> getSubscriptionIds() {
-        return subscriptionIds;
+    public Map<Long, Filter> getSubscriptions() {
+        return subscriptions;
     }
 
-    public void setSubscriptionIds(Set<Long> subscriptionIds) {
-        this.subscriptionIds = subscriptionIds;
+    public void setSubscriptions(Map<Long, Filter> subscriptions) {
+        this.subscriptions = subscriptions;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CommandUnsubscribeRequest)) return false;
+        if (!(o instanceof ListSubscribeResponse)) return false;
         if (!super.equals(o)) return false;
 
-        CommandUnsubscribeRequest that = (CommandUnsubscribeRequest) o;
-        return Objects.equals(subscriptionIds, that.subscriptionIds);
+        ListSubscribeResponse that = (ListSubscribeResponse) o;
+        return Objects.equals(subscriptions, that.subscriptions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionIds);
+        return Objects.hash(super.hashCode(), subscriptions);
     }
 
     @Override
     public String toString() {
-        return "CommandUnsubscribeRequest{" +
-                "subscriptionIds='" + subscriptionIds + '\'' +
+        return "ListSubscribeResponse{" +
+                "subscriptions='" + subscriptions + '\'' +
                 '}';
     }
 }
