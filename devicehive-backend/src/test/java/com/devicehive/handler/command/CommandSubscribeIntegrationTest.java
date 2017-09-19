@@ -53,6 +53,7 @@ public class CommandSubscribeIntegrationTest extends AbstractSpringTest {
     private RpcClient client;
 
     @Test
+    @Ignore
     public void shouldSubscribeToDeviceCommands() throws Exception {
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();

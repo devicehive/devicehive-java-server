@@ -29,11 +29,13 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtPayloadView;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -70,6 +72,7 @@ public class CommonHandlers {
     private final TimestampService timestampService;
     private final Gson gson;
     private final WebSocketClientHandler clientHandler;
+    private final HiveValidator hiveValidator;
 
     @Autowired
     public CommonHandlers(WebSocketAuthenticationManager authenticationManager,
@@ -78,7 +81,8 @@ public class CommonHandlers {
                           UserService userService,
                           TimestampService timestampService,
                           Gson gson,
-                          WebSocketClientHandler clientHandler) {
+                          WebSocketClientHandler clientHandler,
+                          HiveValidator hiveValidator) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.jwtTokenService = jwtTokenService;
@@ -86,6 +90,7 @@ public class CommonHandlers {
         this.timestampService = timestampService;
         this.gson = gson;
         this.clientHandler = clientHandler;
+        this.hiveValidator = hiveValidator;
     }
 
     @HiveWebsocketAuth
@@ -135,7 +140,9 @@ public class CommonHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
-        JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
+        JwtPayloadView payloadView = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayloadView.class);
+        JwtPayload payload = payloadView.convertTo();
+        hiveValidator.validate(payload);
 
         if (payload == null) {
             logger.warn("JwtToken: payload was not found");
@@ -191,7 +198,7 @@ public class CommonHandlers {
             logger.warn(msg);
             throw new BadCredentialsException(msg);
         }
-        if (!payload.getTokenType().equals(TokenType.REFRESH)) {
+        if (!payload.getTokenType().equals(TokenType.REFRESH.getId())) {
             String msg = "JwtToken: refresh token is not valid";
             logger.warn(msg);
             throw new BadCredentialsException(msg);

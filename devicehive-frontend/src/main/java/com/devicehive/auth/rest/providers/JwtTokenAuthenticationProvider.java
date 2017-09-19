@@ -20,12 +20,10 @@ package com.devicehive.auth.rest.providers;
  * #L%
  */
 
-import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.resource.exceptions.ExpiredTokenException;
-import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
@@ -46,6 +44,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.devicehive.auth.HiveAction.ANY;
+import static com.devicehive.auth.HiveAction.getActionSet;
+import static com.devicehive.auth.HiveAction.getAllHiveActions;
+import static com.devicehive.auth.HiveAction.getClientHiveActions;
 
 @Component
 public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
@@ -99,14 +102,14 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> availableActions = jwtPayload.getActions();
+            Set<Integer> availableActions = jwtPayload.getActions();
             if (availableActions != null) {
-                if (availableActions.contains("*")) {
-                    principal.setActions(AvailableActions.getAllHiveActions());
+                if (availableActions.contains(ANY.getId())) {
+                    principal.setActions(getAllHiveActions());
                 } else if (availableActions.isEmpty()) {
-                    principal.setActions(AvailableActions.getClientHiveActions());
+                    principal.setActions(getClientHiveActions());
                 } else {
-                    principal.setActions(availableActions.stream().map(HiveAction::fromString).collect(Collectors.toSet()));
+                    principal.setActions(getActionSet(availableActions));
                 }
             }
 

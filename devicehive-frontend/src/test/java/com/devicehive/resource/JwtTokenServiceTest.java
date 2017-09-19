@@ -38,6 +38,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.*;
 
+import static com.devicehive.auth.HiveAction.ANY;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
@@ -72,7 +73,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         // Check the given user rights
         assertNotNull(jwtTokenVO.getAccessToken());
         JwtPayload payload = jwtClientService.getPayload(jwtTokenVO.getAccessToken());
-        assertThat(payload.getActions(), hasItem("*"));
+        assertThat(payload.getActions(), hasItem(ANY.getId()));
         assertThat(payload.getNetworkIds(), hasItem("*"));
         assertThat(payload.getDeviceIds(), hasItem("*"));
     }

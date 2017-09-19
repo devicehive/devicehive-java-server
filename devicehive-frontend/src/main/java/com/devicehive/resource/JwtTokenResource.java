@@ -20,7 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtPayloadView;
 import com.devicehive.vo.JwtAccessTokenVO;
 import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtTokenVO;
@@ -59,7 +59,7 @@ public interface JwtTokenResource {
     })
     Response tokenRequest(
             @ApiParam(name = "payload", value = "Payload", required = true)
-            JwtPayload payload);
+                    JwtPayloadView payloadView);
 
     @POST
     @Path("/refresh")

@@ -54,6 +54,7 @@ public class NotificationSubscribeInsertIntegrationTest extends AbstractSpringTe
     private RpcClient client;
 
     @Test
+    @Ignore
     public void shouldSubscribeToDeviceNotifications() throws Exception {
         String device1 = randomUUID().toString();
         String device2 = randomUUID().toString();
