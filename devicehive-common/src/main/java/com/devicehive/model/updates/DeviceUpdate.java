@@ -25,6 +25,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceVO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
 
 import javax.validation.constraints.Size;
@@ -36,6 +37,7 @@ public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
 
+    @JsonIgnore
     @SerializedName("id")
     @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
     private String id;
