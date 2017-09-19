@@ -58,7 +58,7 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String INVALID_PASSWORD = "12345";
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5NDExOTQwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.LNaJdW1g3gGHyus3dWgn3IljNJpHnGTj_-cBon4M3ig";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5NDExOTQwMDAwLCJ0IjoxfX0.h74Nn2pSbaN1PxrrF8KfohXeGoGpJ4au4YBpHXyvVsA";
 
     @LocalServerPort
     protected Integer port;

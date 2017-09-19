@@ -21,6 +21,7 @@ package com.devicehive.security.jwt;
  */
 
 import com.devicehive.model.HiveEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -49,41 +50,46 @@ import java.util.Set;
 public class JwtPayload implements HiveEntity {
 
     private static final long serialVersionUID = -6904689203121394308L;
-    public static final String JWT_CLAIM_KEY = "payload";
 
-    public final static String USER_ID = "userId";
-    public final static String ACTIONS = "actions";
-    public final static String NETWORK_IDS = "networkIds";
-    public final static String DEVICE_IDS = "deviceIds";
-    public final static String EXPIRATION = "expiration";
-    public final static String TOKEN_TYPE = "tokenType";
+    public final static String JWT_CLAIM_KEY = "payload";
+    public final static String USER_ID = "u";
+    public final static String ACTIONS = "a";
+    public final static String NETWORK_IDS = "n";
+    public final static String DEVICE_IDS = "d";
+    public final static String EXPIRATION = "e";
+    public final static String TOKEN_TYPE = "t";
 
     //Public claims
 
     @NotNull
-    @SerializedName("userId")
+    @SerializedName(USER_ID)
+    @JsonProperty(USER_ID)
     private Long userId;
 
-    @SerializedName("actions")
-    private Set<String> actions;
+    @SerializedName(ACTIONS)
+    @JsonProperty(ACTIONS)
+    private Set<Integer> actions;
 
-    @SerializedName("networkIds")
+    @SerializedName(NETWORK_IDS)
+    @JsonProperty(NETWORK_IDS)
     private Set<String> networkIds;
 
-    @SerializedName("deviceIds")
+    @SerializedName(DEVICE_IDS)
+    @JsonProperty(DEVICE_IDS)
     private Set<String> deviceIds;
 
     //Registered claims
 
-    @SerializedName("expiration")
+    @SerializedName(EXPIRATION)
+    @JsonProperty(EXPIRATION)
     private Date expiration;
 
-    @SerializedName("tokenType")
+    @SerializedName(TOKEN_TYPE)
     @ApiModelProperty(hidden = true)
-    private TokenType tokenType;
+    private Integer tokenType;
 
-    private JwtPayload(Long userId, Set<String> actions, Set<String> networkIds,
-                       Set<String> deviceIds, Date expiration, TokenType tokenType) {
+    public JwtPayload(Long userId, Set<Integer> actions, Set<String> networkIds,
+                       Set<String> deviceIds, Date expiration, Integer tokenType) {
         this.userId = userId;
         this.actions = actions;
         this.networkIds = networkIds;
@@ -100,11 +106,11 @@ public class JwtPayload implements HiveEntity {
         this.userId = userId;
     }
 
-    public Set<String> getActions() {
+    public Set<Integer> getActions() {
         return actions;
     }
 
-    public void setActions(Set<String> actions) {
+    public void setActions(Set<Integer> actions) {
         this.actions = actions;
     }
 
@@ -132,11 +138,12 @@ public class JwtPayload implements HiveEntity {
         this.expiration = expiration;
     }
 
-    public TokenType getTokenType() {
+    @JsonProperty(TOKEN_TYPE)
+    public Integer getTokenType() {
         return tokenType;
     }
     
-    public void setTokenType(TokenType tokenType) {
+    public void setTokenType(Integer tokenType) {
         this.tokenType = tokenType;
     }
 
@@ -146,13 +153,13 @@ public class JwtPayload implements HiveEntity {
 
     public static class Builder {
         private Long userId;
-        private Set<String> actions;
+        private Set<Integer> actions;
         private Set<String> networkIds;
         private Set<String> deviceIds;
         private Date expiration;
-        private TokenType tokenType;
+        private Integer tokenType;
 
-        public Builder withPublicClaims(Long userId, Set<String> actions,
+        public Builder withPublicClaims(Long userId, Set<Integer> actions,
                                         Set<String> networkIds, Set<String> deviceIds) {
             this.userId = userId;
             this.actions = actions;
@@ -175,7 +182,7 @@ public class JwtPayload implements HiveEntity {
             return this;
         }
 
-        public Builder withActions(Set<String> actions) {
+        public Builder withActions(Set<Integer> actions) {
             this.actions = actions;
             return this;
         }
@@ -190,7 +197,7 @@ public class JwtPayload implements HiveEntity {
             return this;
         }
 
-        public Builder withTokenType(TokenType tokenType) {
+        public Builder withTokenType(Integer tokenType) {
             this.tokenType = tokenType;
             return this;
         }

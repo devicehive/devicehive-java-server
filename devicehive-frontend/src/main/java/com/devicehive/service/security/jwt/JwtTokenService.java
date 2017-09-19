@@ -20,9 +20,9 @@ package com.devicehive.service.security.jwt;
  * #L%
  */
 
+import com.devicehive.auth.HiveAction;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.AvailableActions;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
@@ -38,6 +38,10 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.Set;
+
+import static com.devicehive.auth.HiveAction.ANY;
+import static com.devicehive.auth.HiveAction.getClientHiveActions;
+import static com.devicehive.auth.HiveAction.getIdSet;
 
 @Component
 public class JwtTokenService {
@@ -69,11 +73,11 @@ public class JwtTokenService {
     public JwtTokenVO createJwtToken(@NotNull UserVO user) {
         Set<String> networkIds = new HashSet<>();
         Set<String> deviceIds = new HashSet<>();
-        Set<String> actions = new HashSet<>();
+        Set<Integer> actions = new HashSet<>();
         if (user.isAdmin()) {
             networkIds.add("*");
             deviceIds.add("*");
-            actions.add("*");
+            actions.add(ANY.getId());
         } else {
             UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
 //          TODO: check if needed
@@ -86,7 +90,7 @@ public class JwtTokenService {
                 });
                 deviceIds.add("*");
             }
-            actions = AvailableActions.getClientActions();
+            actions = getIdSet(getClientHiveActions());
         }
 
         JwtTokenVO tokenVO = new JwtTokenVO();

@@ -24,9 +24,11 @@ import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.security.util.JwtTokenGenerator;
+import com.hazelcast.util.MapUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -69,7 +71,7 @@ public class JwtClientService {
         Optional actions = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.ACTIONS));
         Optional deviceIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_IDS));
         Optional expiration = Optional.ofNullable(payloadMap.get(JwtPayload.EXPIRATION));
-        Optional tokenType = Optional.ofNullable(payloadMap.get(JwtPayload.TOKEN_TYPE));
+        Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(JwtPayload.TOKEN_TYPE));
 
         JwtPayload.Builder builder = new JwtPayload.Builder();
         if (userId.isPresent()) builder.withUserId(Long.valueOf(userId.get().toString()));
@@ -80,7 +82,7 @@ public class JwtClientService {
             throw new MalformedJwtException("Token type and expiration date should be provided in the token");
         } else {
             if (tokenType.isPresent())
-                builder.withTokenType(TokenType.valueOf((String)tokenType.get()));
+                builder.withTokenType(tokenType.get());
             else
                 throw new MalformedJwtException("Token type should be provided in the token");
             if (expiration.isPresent())

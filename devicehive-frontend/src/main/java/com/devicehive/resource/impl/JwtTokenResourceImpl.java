@@ -26,6 +26,7 @@ import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtPayloadView;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.security.jwt.JwtClientService;
@@ -71,7 +72,8 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     }
 
     @Override
-    public Response tokenRequest(JwtPayload payload) {
+    public Response tokenRequest(JwtPayloadView payloadView) {
+        JwtPayload payload = payloadView.convertTo();
         hiveValidator.validate(payload);
         JwtTokenVO responseTokenVO = new JwtTokenVO();
 
@@ -122,7 +124,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             logger.warn("JwtToken: User is not active");
             return ResponseFactory.response(UNAUTHORIZED);
         }
-        if (!payload.getTokenType().equals(TokenType.REFRESH)) {
+        if (!payload.getTokenType().equals(TokenType.REFRESH.getId())) {
             logger.warn("JwtToken: refresh token is not valid");
             return ResponseFactory.response(BAD_REQUEST);
         }

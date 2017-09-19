@@ -58,8 +58,8 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
     public void should_generate_jwt_token_with_access_type() throws Exception {
         // Create payload
         Long userId = RandomUtils.nextLong(10, 1000); 
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -70,15 +70,15 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         String token = jwtClientService.generateJwtAccessToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
-        assertEquals(resultPayload.getTokenType(), TokenType.ACCESS);
+        assertEquals(resultPayload.getTokenType(), TokenType.ACCESS.getId());
     }
 
     @Test
     public void should_generate_jwt_token_with_refresh_type() throws Exception {
         // Create payload
         Long userId = RandomUtils.nextLong(10, 1000);
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -89,15 +89,15 @@ public class JwtClientServiceTest  extends AbstractResourceTest {
         String token = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
 
-        assertEquals(resultPayload.getTokenType(), TokenType.REFRESH);
+        assertEquals(resultPayload.getTokenType(), TokenType.REFRESH.getId());
     }
 
     @Test(expected = MalformedJwtException.class)
     public void should_throw_MalformedJwtException_whet_pass_token_without_expiration_and_type() throws Exception {
         // Create payload
         Long userId = RandomUtils.nextLong(10, 1000);
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();

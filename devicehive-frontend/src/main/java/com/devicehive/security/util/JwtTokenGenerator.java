@@ -70,7 +70,7 @@ public class JwtTokenGenerator {
         JwtPayload generatedPayload = JwtPayload.newBuilder()
                 .withPayload(payload)
                 .withExpirationDate(expiration)
-                .withTokenType(tokenType)
+                .withTokenType(tokenType.getId())
                 .buildPayload();
         
         Map<String, Object> jwtMap = new HashMap<>();

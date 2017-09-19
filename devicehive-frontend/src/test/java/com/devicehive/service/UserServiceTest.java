@@ -20,6 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.auth.HiveAction;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.exceptions.HiveException;
@@ -69,6 +70,7 @@ import java.util.stream.IntStream;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import static com.devicehive.auth.HiveAction.ANY;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.Collections.emptyMap;
@@ -1009,8 +1011,8 @@ public class UserServiceTest extends AbstractResourceTest {
 
         JwtPayload payload = new JwtPayload.Builder()
                 .withUserId(user.getId())
-                .withTokenType(TokenType.ACCESS)
-                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .withTokenType(TokenType.ACCESS.getId())
+                .withActions(new HashSet<>(Arrays.asList(ANY.getId())))
                 .buildPayload();
         JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
 
@@ -1040,8 +1042,8 @@ public class UserServiceTest extends AbstractResourceTest {
 
         JwtPayload payload = new JwtPayload.Builder()
                 .withUserId(user.getId())
-                .withTokenType(TokenType.ACCESS)
-                .withActions(new HashSet<String>(Arrays.asList("*")))
+                .withTokenType(TokenType.ACCESS.getId())
+                .withActions(new HashSet<>(Arrays.asList(ANY.getId())))
                 .buildPayload();
         JwtTokenVO jwtTokeVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
 

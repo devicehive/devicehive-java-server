@@ -48,18 +48,14 @@ public class HivePrincipal implements Principal, Portable {
 
     private UserVO user;
     private Set<HiveAction> actions;
-    private Set<String> subnets;
-    private Set<String> domains;
     private Set<Long> networkIds;
     private Set<String> deviceIds;
     private Boolean allNetworksAvailable = false;
     private Boolean allDevicesAvailable = false;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<String> subnets, Set<String> domains, Set<Long> networkIds, Set<String> deviceIds, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
+    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<Long> networkIds, Set<String> deviceIds, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
         this.user = user;
         this.actions = actions;
-        this.subnets = subnets;
-        this.domains = domains;
         this.networkIds = networkIds;
         this.deviceIds = deviceIds;
         if (allNetworksAvailable != null) {
@@ -96,22 +92,6 @@ public class HivePrincipal implements Principal, Portable {
 
     public void setActions(Set<HiveAction> actions) {
         this.actions = actions;
-    }
-
-    public Set<String> getSubnets() {
-        return subnets;
-    }
-
-    public void setSubnets(Set<String> subnets) {
-        this.subnets = subnets;
-    }
-
-    public Set<String> getDomains() {
-        return domains;
-    }
-
-    public void setDomains(Set<String> domains) {
-        this.domains = domains;
     }
 
     public Set<Long> getNetworkIds() {
@@ -169,9 +149,6 @@ public class HivePrincipal implements Principal, Portable {
         if (actions != null) {
             return actions.toString();
         }
-        if (subnets != null) {
-            return subnets.toString();
-        }
         if (networkIds != null) {
             return networkIds.toString();
         }
@@ -183,7 +160,7 @@ public class HivePrincipal implements Principal, Portable {
     }
 
     public boolean isAuthenticated() {
-        if (user != null || actions != null || subnets != null || networkIds != null || deviceIds != null) {
+        if (user != null || actions != null || networkIds != null || deviceIds != null) {
             return true;
         }
         throw new InvalidPrincipalException("Unauthorized");

@@ -41,6 +41,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.*;
 
+import static com.devicehive.auth.HiveAction.ANY;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
@@ -69,8 +70,8 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
 
         // Create payload
 //        Long userId = RandomUtils.nextLong(10, 1000);
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(ANY.getId());
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -88,8 +89,8 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
     public void should_return_401_after_providing_refresh_token_of_unexisting_user() throws Exception {
         // Create payload
         Long userId = RandomUtils.nextLong(10, 1000);
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(ANY.getId());
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -119,8 +120,8 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         final long userid = user.getId();
         // Create payload
         Long userId = userid;
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(ANY.getId());
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -150,8 +151,8 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         final long userid = user.getId();
         // Create payload
         Long userId = userid;
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(ANY.getId());
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -181,8 +182,8 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
         UserVO user = performRequest("/user", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), testUser, CREATED, UserVO.class);
         // Create payload
         Long userId = user.getId();
-        Set<String> actions = new HashSet<>();
-        actions.add("string");
+        Set<Integer> actions = new HashSet<>();
+        actions.add(ANY.getId());
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
         Set<String> deviceIds = new HashSet<>();
@@ -192,7 +193,7 @@ public class JwtTokenResourceTest extends AbstractResourceTest {
 
         // Generate expired refresh token
         payload.setExpiration(new Date(System.currentTimeMillis() - 100));
-        payload.setTokenType(TokenType.REFRESH);
+        payload.setTokenType(TokenType.REFRESH.getId());
         Map<String, Object> jwtMap = new HashMap<>();
         jwtMap.put(JwtPayload.JWT_CLAIM_KEY, payload);
         Claims claims = Jwts.claims(jwtMap);
