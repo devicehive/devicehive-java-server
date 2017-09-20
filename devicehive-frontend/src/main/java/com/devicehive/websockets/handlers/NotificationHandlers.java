@@ -205,11 +205,10 @@ public class NotificationHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
-    public void processNotificationInsert(JsonObject request,
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_NOTIFICATION')")
+    public void processNotificationInsert(String deviceId, JsonObject request,
                                                        WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         DeviceNotificationWrapper notificationSubmit = gson.fromJson(request.get(Constants.NOTIFICATION), DeviceNotificationWrapper.class);
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);

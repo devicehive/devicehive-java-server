@@ -280,9 +280,8 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public void processCommandGet(JsonObject request, WebSocketSession session)  {
-        String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    public void processCommandGet(String deviceId, JsonObject request, WebSocketSession session)  {
         if (deviceId == null) {
             logger.error("command/get proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -323,10 +322,9 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public void processCommandList(JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    public void processCommandList(String deviceId, JsonObject request, WebSocketSession session) {
         ListCommandRequest listCommandRequest = createListCommandRequest(request);
-        String deviceId = listCommandRequest.getDeviceId();
         if (deviceId == null) {
             logger.error("command/list proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
