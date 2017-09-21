@@ -155,7 +155,7 @@ public class NotificationHandlers {
         pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
             clientHandler.sendMessage(json, session);
-        }));
+        })).join();
 
         logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());

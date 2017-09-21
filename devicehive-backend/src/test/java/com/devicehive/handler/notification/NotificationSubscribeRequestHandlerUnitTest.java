@@ -30,6 +30,7 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
