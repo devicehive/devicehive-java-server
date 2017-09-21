@@ -140,6 +140,9 @@ public class DeviceHandlers {
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
+        if (deviceId.contains(",")) {
+            throw new HiveException(Messages.DEVICE_ID_CANNOT_CONTAIN_COMMAS, SC_BAD_REQUEST);
+        }
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
 

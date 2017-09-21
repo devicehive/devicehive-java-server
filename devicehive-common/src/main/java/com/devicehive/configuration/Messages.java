@@ -116,6 +116,7 @@ public class Messages {
     public static final String NOTIFICATION_INSERT_FAILED = BidBundle.get("NOTIFICATION_INSERT_FAILED");
     public static final String PAYLOAD_NOT_FOUND = BidBundle.get("PAYLOAD_NOT_FOUND");
     public static final String SUBSCRIPTION_NOT_FOUND = BidBundle.get("SUBSCRIPTION_NOT_FOUND");
+    public static final String DEVICE_ID_CANNOT_CONTAIN_COMMAS = BidBundle.get("DEVICE_ID_CANNOT_CONTAIN_COMMAS");
 
     /**
      * Bundle to extract localized strings from property files.
