@@ -112,7 +112,7 @@ public class WebSocketRequestProcessor {
                 notificationHandlers.processNotificationInsert(deviceId, request, session);
                 break;
             case NOTIFICATION_SUBSCRIBE:
-                notificationHandlers.processNotificationSubscribe(request, session);
+                notificationHandlers.processNotificationSubscribe(deviceId, request, session);
                 break;
             case NOTIFICATION_UNSUBSCRIBE:
                 notificationHandlers.processNotificationUnsubscribe(request, session);
@@ -130,7 +130,7 @@ public class WebSocketRequestProcessor {
                 commandHandlers.processCommandUpdate(request, session);
                 break;
             case COMMAND_SUBSCRIBE:
-                commandHandlers.processCommandSubscribe(request, session);
+                commandHandlers.processCommandSubscribe(deviceId, request, session);
                 break;
             case COMMAND_UNSUBSCRIBE:
                 commandHandlers.processCommandUnsubscribe(request, session);
