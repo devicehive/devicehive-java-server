@@ -36,7 +36,6 @@ import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
-import com.devicehive.shim.api.Action;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
@@ -95,13 +94,12 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
-    public void processCommandSubscribe(JsonObject request, WebSocketSession session)
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    public void processCommandSubscribe(String deviceId, JsonObject request, WebSocketSession session)
             throws InterruptedException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
@@ -117,12 +115,8 @@ public class CommandHandlers {
         Filter filter = new Filter();
         filter.setNames(names);
         filter.setPrincipal(principal);
-        List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
-            actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
-            if (actualDevices.size() != devices.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
-            }
+            deviceService.getAllowedExistingDevices(devices, principal);
             filter.setDeviceIds(devices);
         }
         if (networks != null) {
@@ -142,7 +136,7 @@ public class CommandHandlers {
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            actualDevices = deviceService.list(listDeviceRequest).join();
+            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             filter.setGlobal(true);
         }
