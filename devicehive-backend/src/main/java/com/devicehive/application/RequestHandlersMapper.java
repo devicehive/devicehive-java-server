@@ -20,14 +20,14 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.handler.DeviceCreateHandler;
-import com.devicehive.handler.command.*;
-import com.devicehive.handler.dao.list.*;
-import com.devicehive.handler.notification.NotificationSubscribeRequestHandler;
-import com.devicehive.handler.command.CommandUnsubscribeRequestHandler;
-import com.devicehive.handler.notification.NotificationInsertHandler;
-import com.devicehive.handler.notification.NotificationSearchHandler;
-import com.devicehive.handler.notification.NotificationUnsubscribeRequestHandler;
+import com.devicehive.messages.handler.DeviceCreateHandler;
+import com.devicehive.messages.handler.command.*;
+import com.devicehive.messages.handler.dao.list.*;
+import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
+import com.devicehive.messages.handler.command.CommandUnsubscribeRequestHandler;
+import com.devicehive.messages.handler.notification.NotificationInsertHandler;
+import com.devicehive.messages.handler.notification.NotificationSearchHandler;
+import com.devicehive.messages.handler.notification.NotificationUnsubscribeRequestHandler;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;

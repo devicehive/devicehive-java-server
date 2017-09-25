@@ -49,7 +49,7 @@ public class SubscriptionService {
         this.rpcClient = rpcClient;
     }
 
-    public Map<Long, Filter> list(Set<Long> subscriptionIds) {
+    public CompletableFuture<Map<Long, Filter>> list(Set<Long> subscriptionIds) {
         ListSubscribeRequest listSubscribeRequest = new ListSubscribeRequest(subscriptionIds);
         Request request = Request.newBuilder()
                 .withBody(listSubscribeRequest)
@@ -66,6 +66,6 @@ public class SubscriptionService {
         };
 
         rpcClient.call(request, responseConsumer);
-        return future.join();
+        return future;
     }
 }

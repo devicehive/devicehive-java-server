@@ -29,6 +29,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.service.BaseUserService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.NetworkVO;

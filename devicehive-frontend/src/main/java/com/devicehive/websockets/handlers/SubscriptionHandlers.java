@@ -86,11 +86,11 @@ public class SubscriptionHandlers {
                         .get(NotificationHandlers.SUBSCSRIPTION_SET_NAME)));
             }
         }
-        Map<Long, Filter> onResponse = subscriptionService.list(subIds);
-        logger.debug("subscribe/list completed for session {}", session.getId());
-
-        WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTIONS, onResponse, JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED);
-        clientHandler.sendMessage(request, response, session);
+        subscriptionService.list(subIds).thenAccept(onResponse -> {
+            logger.debug("subscribe/list completed for session {}", session.getId());
+            WebSocketResponse response = new WebSocketResponse();
+            response.addValue(SUBSCRIPTIONS, onResponse, JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED);
+            clientHandler.sendMessage(request, response, session);
+        });
     }
 }

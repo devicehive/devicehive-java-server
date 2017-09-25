@@ -58,6 +58,10 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Messages.COMMAND_NOT_FOUND;
+import static com.devicehive.configuration.Messages.DEVICE_ID_REQUIRED;
+import static com.devicehive.configuration.Messages.DEVICE_NOT_FOUND;
+import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
@@ -124,7 +128,7 @@ public class CommandHandlers {
                     networkService.getWithDevices(network, authentication)
             ).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualNetworks.size() != networks.size()) {
-                throw new HiveException(String.format(Messages.NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
+                throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
             }
             Set<String> networkDevices = actualNetworks.stream()
                     .map(NetworkWithUsersAndDevicesVO::getDevices)
@@ -136,7 +140,7 @@ public class CommandHandlers {
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
+            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest);
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             filter.setGlobal(true);
         }
@@ -148,15 +152,7 @@ public class CommandHandlers {
 
         Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
                 .sendSubscribeRequest(devices, filter, timestamp, returnUpdated, limit, callback);
-        
-        pair.getRight()
-                .thenAccept(collection -> {
-                    WebSocketResponse response = new WebSocketResponse();
-                    response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-                    clientHandler.sendMessage(request, response, session);
-                    collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session));
-                });
-        
+
         logger.debug("command/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
 
@@ -165,6 +161,13 @@ public class CommandHandlers {
                 .get(SUBSCRIPTION_SET_NAME))
                 .add(pair.getLeft());
         
+        pair.getRight()
+                .thenAccept(collection -> {
+                    WebSocketResponse response = new WebSocketResponse();
+                    response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
+                    clientHandler.sendMessage(request, response, session);
+                    collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session));
+                });
     }
 
     @HiveWebsocketAuth
@@ -180,16 +183,20 @@ public class CommandHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
+        
+        CompletableFuture<Set<Long>> future;
         if (subscriptionId == null) {
-            commandService.sendUnsubscribeRequest(sessionSubIds);
+            future = commandService.sendUnsubscribeRequest(sessionSubIds);
             sessionSubIds.clear();
         } else {
-            commandService.sendUnsubscribeRequest(Collections.singleton(subscriptionId));
+            future = commandService.sendUnsubscribeRequest(Collections.singleton(subscriptionId));
             sessionSubIds.remove(subscriptionId);
         }
-        logger.debug("command/unsubscribe completed for session {}", session.getId());
-
-        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+        
+        future.thenAccept(collection -> {
+            logger.debug("command/unsubscribe completed for session {}", session.getId());
+            clientHandler.sendMessage(request, new WebSocketResponse(), session);    
+        });
     }
 
     @HiveWebsocketAuth
@@ -205,12 +212,12 @@ public class CommandHandlers {
 
         Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+            throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
         DeviceVO deviceVO = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
         if (deviceVO == null) {
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
         
         devices.add(deviceVO);
@@ -248,31 +255,24 @@ public class CommandHandlers {
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
-        Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+            throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
         DeviceVO deviceVO = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
         if (deviceVO == null) {
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
-        devices.add(deviceVO);
-
-        Optional<DeviceCommand> savedCommand = Optional.empty();
-        for (DeviceVO device : devices) {
-            savedCommand = commandService.findOne(id, device.getDeviceId()).join();
-            savedCommand.ifPresent(deviceCommand -> commandService.update(deviceCommand, commandUpdate));
-        }
-
-        if (!savedCommand.isPresent()) {
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, id), SC_NOT_FOUND);
-        }
-
-        logger.debug("command/update proceed successfully for session: {}. Device ID: {}. Command id: {}", session,
-                deviceId, id);
-        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+        commandService.findOne(id, deviceVO.getDeviceId())
+                .thenAccept(optionalCommand -> {
+                    optionalCommand.map(deviceCommand -> commandService.update(deviceCommand, commandUpdate))
+                            .orElseThrow(() -> new HiveException(String.format(COMMAND_NOT_FOUND, id), SC_NOT_FOUND));
+                }).thenAccept(whenUpdated -> {
+                    logger.debug("command/update proceed successfully for session: {}. Device ID: {}. Command id: {}",
+                            session, deviceId, id);
+                    clientHandler.sendMessage(request, new WebSocketResponse(), session);
+                });
     }
 
     @HiveWebsocketAuth
@@ -280,7 +280,7 @@ public class CommandHandlers {
     public void processCommandGet(String deviceId, JsonObject request, WebSocketSession session)  {
         if (deviceId == null) {
             logger.error("command/get proceed with error. Device ID should be provided.");
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+            throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
          
         Long commandId = gson.fromJson(request.get(COMMAND_ID), Long.class);
@@ -293,7 +293,7 @@ public class CommandHandlers {
         DeviceVO device = deviceService.findById(deviceId);
         if (device == null) {
             logger.error("command/get proceed with error. No Device with Device ID = {} found.", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
         
         WebSocketResponse webSocketResponse = commandService.findOne(commandId, deviceId)
@@ -310,8 +310,8 @@ public class CommandHandlers {
                 }).join();
         
         if (webSocketResponse == null) {
-            logger.error(String.format(Messages.COMMAND_NOT_FOUND, commandId));
-            throw new HiveException(String.format(Messages.COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
+            logger.error(String.format(COMMAND_NOT_FOUND, commandId));
+            throw new HiveException(String.format(COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
         }
 
         clientHandler.sendMessage(request, webSocketResponse, session);
@@ -323,7 +323,7 @@ public class CommandHandlers {
         ListCommandRequest listCommandRequest = createListCommandRequest(request);
         if (deviceId == null) {
             logger.error("command/list proceed with error. Device ID should be provided.");
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+            throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
         
         logger.debug("Device command query requested for device {}", deviceId);
@@ -331,7 +331,7 @@ public class CommandHandlers {
         DeviceVO device = deviceService.findById(deviceId);
         if (device == null) {
             logger.error("command/list proceed with error. No Device with Device ID = {} found.", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
         
         WebSocketResponse response = new WebSocketResponse();
