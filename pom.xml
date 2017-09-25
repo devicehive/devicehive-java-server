@@ -33,8 +33,8 @@
         <logback.version>1.1.3</logback.version>
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
-        <springboot.version>1.3.0.RELEASE</springboot.version>
-        <jersey.version>2.23.2</jersey.version>
+        <springboot.version>1.5.7.RELEASE</springboot.version>
+        <jersey.version>2.26</jersey.version>
         <servlet-api.version>3.1.0</servlet-api.version>
         <hsqldb.version>2.3.2</hsqldb.version>
         <postgresql.version>9.4-1201-jdbc4</postgresql.version>
@@ -44,7 +44,7 @@
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <hazelcast.version>3.8.1</hazelcast.version>
-        <hazelcast-hibernate.version>3.8.1</hazelcast-hibernate.version>
+        <hazelcast-hibernate5.version>1.2.2</hazelcast-hibernate5.version>
         <curator.version>2.8.0</curator.version>
         <flyway-core.version>3.2.1</flyway-core.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
@@ -56,11 +56,12 @@
         <joda-time.version>2.5</joda-time.version>
         <jquery.version>1.11.1</jquery.version>
         <kafka.version>0.10.0.1</kafka.version>
-        <springframework.version>4.1.6.RELEASE</springframework.version>
-        <jackson2.version>2.4.5</jackson2.version>
-        <hibernate-version>4.3.8.Final</hibernate-version>
+        <springframework.version>4.3.11.RELEASE</springframework.version>
+        <jackson2.version>2.8.4</jackson2.version>
+        <hibernate-version>5.2.11.Final</hibernate-version>
         <swagger.version>1.5.4</swagger.version>
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
+        <javax.el.version>2.2.4</javax.el.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -182,25 +183,10 @@
             </dependency>
 
             <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet</artifactId>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
                 <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.ext</groupId>
-                <artifactId>jersey-spring3</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.glassfish.jersey.ext</groupId>
-                <artifactId>jersey-bean-validation</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-json-jackson</artifactId>
-                <version>${jersey.version}</version>
+                <type>pom</type>
             </dependency>
 
             <dependency>
@@ -244,6 +230,12 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-entitymanager</artifactId>
                 <version>${hibernate-version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.jboss.logging</groupId>
+                        <artifactId>jboss-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
@@ -344,8 +336,8 @@
             </dependency>
             <dependency>
                 <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-hibernate4</artifactId>
-                <version>${hazelcast-hibernate.version}</version>
+                <artifactId>hazelcast-hibernate52</artifactId>
+                <version>${hazelcast-hibernate5.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.lmax</groupId>

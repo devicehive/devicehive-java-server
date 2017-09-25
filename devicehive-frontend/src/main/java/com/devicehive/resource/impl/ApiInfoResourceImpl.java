@@ -112,7 +112,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     }
 
     private String getCacheStats() {
-        SessionFactory sessionFactory = entityManagerFactory.nativeEntityManagerFactory.unwrap(SessionFactory.class);
+        SessionFactory sessionFactory = entityManagerFactory.getNativeEntityManagerFactory().unwrap(SessionFactory.class);
         Statistics statistics = sessionFactory.getStatistics();
 
         return statistics.toString();

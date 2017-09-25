@@ -27,9 +27,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.Timeout;
 import org.junit.runner.RunWith;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -47,9 +45,8 @@ import java.util.concurrent.TimeUnit;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@IntegrationTest
 @DirtiesContext
-@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class, HazelcastConfigurationTest.class})
+@SpringBootTest(classes = {DeviceHiveApplication.class, HazelcastConfigurationTest.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringTest {
 

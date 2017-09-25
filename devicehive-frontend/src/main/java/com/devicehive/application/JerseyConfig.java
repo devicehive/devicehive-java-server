@@ -22,13 +22,16 @@ package com.devicehive.application;
 
 import com.devicehive.application.filter.ContentTypeFilter;
 import com.devicehive.resource.impl.*;
-import org.glassfish.jersey.filter.LoggingFilter;
+import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
+import org.reflections.Reflections;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.ext.Provider;
 
 @Component
 @ApplicationPath(JerseyConfig.REST_PATH)
@@ -36,7 +39,7 @@ public class JerseyConfig extends ResourceConfig {
     public static final String REST_PATH = "/rest";
 
     public JerseyConfig() {
-        packages("com.devicehive.resource.converters",
+        scan("com.devicehive.resource.converters",
                 "com.devicehive.resource.exceptions",
                 "com.devicehive.resource.filter");
 
@@ -53,10 +56,17 @@ public class JerseyConfig extends ResourceConfig {
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 
         register(RequestContextFilter.class);
-        register(LoggingFilter.class);
+        register(LoggingFeature.class);
         register(ContentTypeFilter.class);
 
         register(io.swagger.jaxrs.listing.ApiListingResource.class);
         register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
+    }
+
+    private void scan(String... packages) {
+        for (String pack : packages) {
+            Reflections reflections = new Reflections(pack);
+            reflections.getTypesAnnotatedWith(Provider.class).forEach(this::register);
+        }
     }
 }
