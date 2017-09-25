@@ -20,17 +20,29 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Objects;
 
 /**
  * Event bus subscription object. Represents subscriptions for all types of events - notification, commands and command updates.
  */
-public class Subscription {
+public class Subscription implements Portable, Serializable {
+
+    public static final int FACTORY_ID = 1;
+    public static final int CLASS_ID = 5;
 
     private String type;
     private String entityId;
     private String name;
 
+    public Subscription() {
+
+    }
     /**
      * @param type - type of event to subscribe to (notification, command, command update)
      * @param entityId - entityId of event to subscribe to (id of device, command)
@@ -85,5 +97,29 @@ public class Subscription {
                 ", entityId='" + entityId + '\'' +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public int getFactoryId() {
+        return FACTORY_ID;
+    }
+
+    @Override
+    public int getClassId() {
+        return CLASS_ID;
+    }
+
+    @Override
+    public void writePortable(PortableWriter writer) throws IOException {
+        writer.writeUTF("type", type);
+        writer.writeUTF("entityId", entityId);
+        writer.writeUTF("name", name);
+    }
+
+    @Override
+    public void readPortable(PortableReader reader) throws IOException {
+        type = reader.readUTF("type");
+        entityId = reader.readUTF("entityId");
+        name = reader.readUTF("name");
     }
 }

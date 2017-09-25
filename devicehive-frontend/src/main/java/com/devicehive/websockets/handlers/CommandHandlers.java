@@ -156,7 +156,8 @@ public class CommandHandlers {
                 .sendSubscribeRequest(devices, filter, timestamp, returnUpdated, limit, callback);
 
         pair.getRight().thenAccept(collection -> 
-                collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)));
+                collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)))
+        .join();
 
         logger.debug("command/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());

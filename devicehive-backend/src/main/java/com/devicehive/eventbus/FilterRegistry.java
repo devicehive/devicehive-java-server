@@ -22,18 +22,25 @@ package com.devicehive.eventbus;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
-import com.google.common.collect.Sets;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.MultiMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class for handling all subscriber's filters
  */
 public class FilterRegistry {
 
-    private final Map<Filter, Set<Long>> filterSubscriptionsMap = new ConcurrentHashMap<>();
+    private MultiMap<Filter, Long> filterSubscriptionsMap;
+    private final String FILTER_SUBSCRIPTION_MAP = "FILTER-SUBSCRIPTION-MAP";
+
+    @Autowired
+    public void getHazelcastMaps(HazelcastInstance hazelcastClient) {
+        filterSubscriptionsMap = hazelcastClient.getMultiMap(FILTER_SUBSCRIPTION_MAP);
+    }
 
     public void register(Filter filter, Long subscriptionId) {
         HivePrincipal principal = filter.getPrincipal();
@@ -43,22 +50,16 @@ public class FilterRegistry {
                 filter.setNetworkIds(principal.getNetworkIds());
             }
         }
-        addFilter(filter, subscriptionId);
+        filterSubscriptionsMap.put(filter, subscriptionId);
     }
 
     public void unregister(Long subscriptionId) {
-        for (Map.Entry<Filter, Set<Long>> entry : filterSubscriptionsMap.entrySet()) {
-            Set<Long> subsIds = entry.getValue();
-            subsIds.remove(subscriptionId);
-            if (subsIds.isEmpty()) {
-                filterSubscriptionsMap.remove(entry.getKey());
-            }
-        }
+        filterSubscriptionsMap.keySet().forEach(filter -> filterSubscriptionsMap.remove(filter, subscriptionId));
     }
 
     public Filter getFilter(Long subscriptionId) {
-        for (Map.Entry<Filter, Set<Long>> entry : filterSubscriptionsMap.entrySet()) {
-            if (entry.getValue().contains(subscriptionId)) {
+        for (Map.Entry<Filter, Long> entry : filterSubscriptionsMap.entrySet()) {
+            if (entry.getValue().equals(subscriptionId)) {
                 return entry.getKey();
             }
         }
@@ -73,14 +74,5 @@ public class FilterRegistry {
             }
         });
         return subs;
-    }
-
-    private void addFilter(Filter filter, Long subscriptionId) {
-        Set<Long> subscriptionIds = filterSubscriptionsMap.get(filter);
-        if (subscriptionIds == null) {
-            filterSubscriptionsMap.put(filter, Sets.newHashSet(subscriptionId));
-        } else {
-            subscriptionIds.add(subscriptionId);
-        }
     }
 }

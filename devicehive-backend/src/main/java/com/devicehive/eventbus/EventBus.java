@@ -36,15 +36,16 @@ import java.util.Collection;
  */
 public class EventBus {
 
-    private final SubscriberRegistry registry = new SubscriberRegistry();
+    private final SubscriberRegistry registry;
     private final MessageDispatcher dispatcher;
 
     /**
      * Creates new instance of EventBus
      * @param dispatcher - interface, that controls message delivery strategy
      */
-    public EventBus(MessageDispatcher dispatcher) {
+    public EventBus(MessageDispatcher dispatcher, SubscriberRegistry registry) {
         this.dispatcher = dispatcher;
+        this.registry = registry;
     }
 
     public void subscribe(Subscriber subscriber, Subscription subscription) {
@@ -57,10 +58,6 @@ public class EventBus {
 
     public void unsubscribe(Subscription subscription) {
         registry.unregister(subscription);
-    }
-
-    public Collection<Subscriber> getSubscribers(Subscription subscription) {
-        return registry.getSubscribers(subscription);
     }
 
     public Subscriber getSubscriber(Long subscriptionId) {

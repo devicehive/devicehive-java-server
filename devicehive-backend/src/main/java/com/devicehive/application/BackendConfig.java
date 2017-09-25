@@ -21,12 +21,15 @@ package com.devicehive.application;
  */
 
 import com.devicehive.eventbus.FilterRegistry;
+import com.devicehive.eventbus.SubscriberRegistry;
 import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.shim.api.server.RpcServer;
+import org.springframework.context.annotation.DependsOn;
 
 @Configuration
 public class BackendConfig {
@@ -37,12 +40,20 @@ public class BackendConfig {
     }
 
     @Bean
-    public EventBus eventBus(RpcServer rpcServer) {
-        return new EventBus(rpcServer.getDispatcher());
+    @DependsOn("hazelcast")
+    public FilterRegistry filterRegistry() {
+        return new FilterRegistry();
     }
 
     @Bean
-    public FilterRegistry filterRegistry() {
-        return new FilterRegistry();
+    @DependsOn("hazelcast")
+    public SubscriberRegistry subscriberRegistry() {
+        return new SubscriberRegistry();
+    }
+
+    @Bean
+    @DependsOn("subscriberRegistry")
+    public EventBus eventBus(RpcServer rpcServer, SubscriberRegistry subscriberRegistry) {
+        return new EventBus(rpcServer.getDispatcher(), subscriberRegistry);
     }
 }
