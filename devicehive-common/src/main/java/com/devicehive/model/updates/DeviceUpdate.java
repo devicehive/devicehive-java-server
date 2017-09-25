@@ -25,7 +25,6 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.vo.DeviceVO;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
