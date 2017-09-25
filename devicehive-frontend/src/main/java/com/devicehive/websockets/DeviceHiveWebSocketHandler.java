@@ -21,12 +21,10 @@ package com.devicehive.websockets;
  */
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.exceptions.InvalidPrincipalException;
+import com.devicehive.exceptions.*;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.resource.exceptions.ExpiredTokenException;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -39,8 +37,6 @@ import com.google.gson.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -58,7 +54,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -104,6 +99,9 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         } catch (BadCredentialsException ex) {
             logger.error("Unauthorized access: {}", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
+        } catch (ExpiredTokenException ex) {
+            logger.info("Access token expired: {}", ex.getMessage());
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
         } catch (AccessDeniedException | AuthenticationCredentialsNotFoundException ex) {
             logger.error("Access to action is denied", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());

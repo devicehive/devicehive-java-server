@@ -24,6 +24,7 @@ import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
+import com.devicehive.resource.exceptions.ExpiredTokenException;
 import com.devicehive.model.AvailableActions;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
@@ -43,7 +44,6 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,11 +64,11 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             JwtPayload jwtPayload = jwtClientService.getPayload(token);
 
             if (jwtPayload == null ||
-                    (jwtPayload.getExpiration() != null &&
-                            jwtPayload.getExpiration().before(timestampService.getDate()
-                            )) ||
                     jwtPayload.getTokenType().equals(TokenType.REFRESH)) {
                 throw new BadCredentialsException("Unauthorized");
+            }
+            if (jwtPayload.getExpiration() != null && jwtPayload.getExpiration().before(timestampService.getDate())) {
+                throw new ExpiredTokenException("Token expired");
             }
             logger.debug("Jwt token authentication successful");
 
@@ -113,6 +113,8 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             return new HiveAuthentication(principal,
                     AuthorityUtils.createAuthorityList(HiveRoles.JWT));
 
+        } catch (ExpiredTokenException e) {
+            throw e;
         } catch (Exception e) {
             throw new BadCredentialsException("Unauthorized");
         }
