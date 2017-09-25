@@ -25,7 +25,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.UserService;
-import com.devicehive.service.security.jwt.JwtClientService;
+import com.devicehive.service.security.jwt.BaseJwtClientService;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -49,7 +49,7 @@ import static org.hamcrest.CoreMatchers.*;
 public class JwtTokenServiceTest extends AbstractResourceTest {
 
     @Autowired
-    private JwtClientService jwtClientService;
+    private BaseJwtClientService jwtClientService;
 
     @Autowired
     private UserService userService;

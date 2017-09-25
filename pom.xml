@@ -39,7 +39,7 @@
         <hsqldb.version>2.3.2</hsqldb.version>
         <postgresql.version>9.4-1201-jdbc4</postgresql.version>
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
-        <httpclient.version>4.3.5</httpclient.version>
+        <httpclient.version>4.5.3</httpclient.version>
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
@@ -97,6 +97,8 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
+        <module>devicehive-auth</module>
+        <module>devicehive-common-auth</module>
     </modules>
 
     <dependencies>
@@ -342,6 +344,11 @@
                 <groupId>com.lmax</groupId>
                 <artifactId>disruptor</artifactId>
                 <version>${lmax-disruptor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

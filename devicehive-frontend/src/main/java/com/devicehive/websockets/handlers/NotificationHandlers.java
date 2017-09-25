@@ -135,7 +135,7 @@ public class NotificationHandlers {
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            actualDevices = deviceService.list(listDeviceRequest).join();
+            actualDevices = deviceService.list(listDeviceRequest);
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             filter.setGlobal(true);
         }

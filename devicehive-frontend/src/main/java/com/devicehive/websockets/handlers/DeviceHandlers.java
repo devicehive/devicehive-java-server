@@ -116,7 +116,7 @@ public class DeviceHandlers {
 
         List<DeviceVO> toResponse;
         try {
-            toResponse = deviceService.list(listDeviceRequest).get();
+            toResponse = deviceService.list(listDeviceRequest);
         } catch (Exception e) {
             logger.error(Messages.INTERNAL_SERVER_ERROR, e);
             throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);

@@ -20,7 +20,6 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.HiveAction;
 import com.devicehive.base.AbstractResourceTest;
 import com.devicehive.base.RequestDispatcherProxy;
 import com.devicehive.exceptions.HiveException;

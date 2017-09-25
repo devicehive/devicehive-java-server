@@ -102,11 +102,10 @@ public class DeviceResourceImpl implements DeviceResource {
             request.setTake(take);
             request.setSkip(skip);
             request.setPrincipal(principal);
-            deviceService.list(request)
-                    .thenApply(devices -> {
-                        logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
-                        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
-                    }).thenAccept(asyncResponse::resume);
+            List<DeviceVO> devices = deviceService.list(request);
+            logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
+            final Response response = ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+            asyncResponse.resume(response);
         }
     }
 

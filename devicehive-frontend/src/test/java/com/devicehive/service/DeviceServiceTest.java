@@ -459,13 +459,11 @@ public class DeviceServiceTest extends AbstractResourceTest {
         handleListDeviceRequest();
         ListDeviceRequest listDeviceRequest = new ListDeviceRequest();
         listDeviceRequest.setName(deviceName1);
-        deviceService.list(listDeviceRequest)
-                .thenAccept(devices -> {
-                    assertNotNull(devices);
-                    assertEquals(devices.size(), 1);
-                    assertEquals(device.getDeviceId(), devices.get(0).getDeviceId());
-                    assertEquals(device.getName(), devices.get(0).getName());
-                }).get(2, TimeUnit.SECONDS);
+        List<DeviceVO> devices = deviceService.list(listDeviceRequest);
+        assertNotNull(devices);
+        assertEquals(devices.size(), 1);
+        assertEquals(device.getDeviceId(), devices.get(0).getDeviceId());
+        assertEquals(device.getName(), devices.get(0).getName());        
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }
@@ -506,14 +504,13 @@ public class DeviceServiceTest extends AbstractResourceTest {
         deviceService.deviceSave(device.getDeviceId(), deviceUpdate);
         deviceService.deviceSave(device1.getDeviceId(), deviceUpdate1);
         handleListDeviceRequest();
-        deviceService.list(new ListDeviceRequest(network1.getId()))
-                .thenAccept(devices -> {
-                    assertNotNull(devices);
-                    assertNotEquals(0, devices.size());
-                    assertEquals(device1.getDeviceId(), devices.get(0).getDeviceId());
-                    assertNotNull(devices.get(0).getNetworkId());
-                    assertEquals(network1.getId(), devices.get(0).getNetworkId());
-                }).get(2, TimeUnit.SECONDS);
+        List<DeviceVO> devices = deviceService.list(new ListDeviceRequest(network1.getId()));
+                
+        assertNotNull(devices);
+        assertNotEquals(0, devices.size());
+        assertEquals(device1.getDeviceId(), devices.get(0).getDeviceId());
+        assertNotNull(devices.get(0).getNetworkId());
+        assertEquals(network1.getId(), devices.get(0).getNetworkId());
 
         verify(requestHandler, times(1)).handle(argument.capture());
     }

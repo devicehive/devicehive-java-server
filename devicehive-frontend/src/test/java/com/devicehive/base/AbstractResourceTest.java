@@ -23,7 +23,6 @@ package com.devicehive.base;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
-import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.google.gson.Gson;
@@ -71,9 +70,6 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     @Autowired
     protected Gson gson;
 
-    @Autowired
-    protected JwtTokenService jwtTokenService;
-
     @Before
     public void initSpringBootIntegrationTest() {
         httpBaseUri = "http://localhost:" + port + "/dh";
@@ -103,14 +99,6 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     protected String tokenAuthHeader(String key) {
         return "Bearer " + key;
-    }
-
-    protected String accessTokenRequest(String login, String password) {
-        JwtRequestVO request = new JwtRequestVO();
-        request.setLogin(login);
-        request.setPassword(password);
-        JwtTokenVO token = jwtTokenService.createJwtToken(request);
-        return token.getAccessToken();
     }
 
     @SuppressWarnings("unchecked")
