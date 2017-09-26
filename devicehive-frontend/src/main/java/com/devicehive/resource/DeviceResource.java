@@ -44,7 +44,7 @@ import javax.ws.rs.core.Response;
 @Api(tags = {"Device"}, description = "Represents a device, a unit that runs microcode and communicates to this API.", consumes = "application/json")
 @Produces({"application/json"})
 public interface DeviceResource {
-    String DEVICE_ID_PATTERN_MESSAGE = "Device Id cannot contain commas";
+    String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = "Device Id can only contain letters, digits, dashes and underscores.";
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
@@ -132,7 +132,7 @@ public interface DeviceResource {
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            @Pattern(regexp = "^[^,]+$", message = DEVICE_ID_PATTERN_MESSAGE)
+            @Pattern(regexp = "[a-zA-Z0-9-_]+", message = DEVICE_ID_CONTAINS_INVALID_CHARACTERS)
             String deviceId);
 
     /**
