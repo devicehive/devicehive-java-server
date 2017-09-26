@@ -74,7 +74,7 @@
         </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-hibernate4</artifactId>
+            <artifactId>hazelcast-hibernate52</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
