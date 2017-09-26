@@ -39,7 +39,6 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,8 +52,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Component
@@ -191,30 +188,6 @@ public class DeviceService {
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> deviceIds) {
         return deviceDao.getAllowedDeviceCount(principal, deviceIds);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
-        List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
-        Set<String> allowedIds = devices.stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-
-        Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);
-        if (unresolvedIds.isEmpty()) {
-            return devices;
-        }
-
-        Set<String> forbiddedIds = unresolvedIds.stream()
-                .filter(deviceId -> !principal.hasAccessToDevice(deviceId))
-                .collect(Collectors.toSet());
-        if (forbiddedIds.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
-        }
-
-        throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
-
-        
     }
 
     private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {

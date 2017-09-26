@@ -94,8 +94,8 @@ public class NotificationHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
-    public void processNotificationSubscribe(String deviceId, JsonObject request,
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    public void processNotificationSubscribe(JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
@@ -103,7 +103,8 @@ public class NotificationHandlers {
         Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
         final Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
-        
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+
         logger.debug("notification/subscribe requested for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
 
@@ -115,7 +116,10 @@ public class NotificationHandlers {
         filter.setEventName(Action.NOTIFICATION_EVENT.name());
         List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
-            deviceService.getAllowedExistingDevices(devices, principal);
+            actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
+            if (actualDevices.size() != devices.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
+            }
             filter.setDeviceIds(devices);
         }
         if (networks != null) {
@@ -201,10 +205,11 @@ public class NotificationHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_NOTIFICATION')")
-    public void processNotificationInsert(String deviceId, JsonObject request,
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
+    public void processNotificationInsert(JsonObject request,
                                                        WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         DeviceNotificationWrapper notificationSubmit = gson.fromJson(request.get(Constants.NOTIFICATION), DeviceNotificationWrapper.class);
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);
