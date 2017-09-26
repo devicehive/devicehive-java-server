@@ -176,7 +176,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     }
 
     private void poll(final long timeout,
-                      final String deviceIdsString,
+                      final String deviceIdsCsv,
                       final String networkIdsCsv,
                       final String namesString,
                       final String timestamp,
@@ -194,13 +194,15 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
-        Set<String> availableDevices = new HashSet<>();
-        if (deviceIdsString != null) {
-            availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsString, ','))
-                    .map(Arrays::asList)
-                    .map(list -> list.stream().map(el -> deviceService.findByIdWithPermissionsCheckIfExists(el, principal)).map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
-                    .orElse(Collections.emptySet());
-        }
+        Set<String> deviceIds = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+
+        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
+                .map(deviceVO -> deviceVO.getDeviceId())
+                .collect(Collectors.toSet());
+
         if (networkIdsCsv != null) {
             Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
                     .map(Arrays::asList)

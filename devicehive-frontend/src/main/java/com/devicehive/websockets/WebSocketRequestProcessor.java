@@ -23,6 +23,7 @@ package com.devicehive.websockets;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
 import com.devicehive.websockets.handlers.*;
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -32,6 +33,9 @@ import org.springframework.web.socket.WebSocketSession;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.NETWORK_ID;
 
 @Component
 public class WebSocketRequestProcessor {
@@ -45,6 +49,7 @@ public class WebSocketRequestProcessor {
     private final DeviceHandlers deviceHandlers;
     private final NetworkHandlers networkHandlers;
     private final UserHandlers userHandlers;
+    private final Gson gson;
 
     @Autowired
     public WebSocketRequestProcessor(CommonHandlers commonHandlers,
@@ -55,7 +60,8 @@ public class WebSocketRequestProcessor {
                                      SubscriptionHandlers subscriptionHandlers,
                                      DeviceHandlers deviceHandlers,
                                      NetworkHandlers networkHandlers,
-                                     UserHandlers userHandlers) {
+                                     UserHandlers userHandlers,
+                                     Gson gson) {
         this.commonHandlers = commonHandlers;
         this.apiInfoHandlers = apiInfoHandlers;
         this.configurationHandlers = configurationHandlers;
@@ -65,10 +71,14 @@ public class WebSocketRequestProcessor {
         this.deviceHandlers = deviceHandlers;
         this.networkHandlers = networkHandlers;
         this.userHandlers = userHandlers;
+        this.gson = gson;
     }
 
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException, HiveException {
         WebsocketAction action = getAction(request);
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+        final Long networkId = gson.fromJson(request.get(NETWORK_ID), Long.class);
+        
         switch (action) {
             case SERVER_INFO:
                 apiInfoHandlers.processServerInfo(request, session);
@@ -101,10 +111,10 @@ public class WebSocketRequestProcessor {
                 configurationHandlers.processConfigurationDelete(request, session);
                 break;    
             case NOTIFICATION_INSERT:
-                notificationHandlers.processNotificationInsert(request, session);
+                notificationHandlers.processNotificationInsert(deviceId, request, session);
                 break;
             case NOTIFICATION_SUBSCRIBE:
-                notificationHandlers.processNotificationSubscribe(request, session);
+                notificationHandlers.processNotificationSubscribe(deviceId, request, session);
                 break;
             case NOTIFICATION_UNSUBSCRIBE:
                 notificationHandlers.processNotificationUnsubscribe(request, session);
@@ -122,22 +132,22 @@ public class WebSocketRequestProcessor {
                 commandHandlers.processCommandUpdate(request, session);
                 break;
             case COMMAND_SUBSCRIBE:
-                commandHandlers.processCommandSubscribe(request, session);
+                commandHandlers.processCommandSubscribe(deviceId, request, session);
                 break;
             case COMMAND_UNSUBSCRIBE:
                 commandHandlers.processCommandUnsubscribe(request, session);
                 break;
             case COMMAND_GET:
-                commandHandlers.processCommandGet(request, session);
+                commandHandlers.processCommandGet(deviceId, request, session);
                 break;
             case COMMAND_LIST:
-                commandHandlers.processCommandList(request, session);
+                commandHandlers.processCommandList(deviceId, request, session);
                 break;
             case SUBSCRIPTION_LIST:
                 subscriptionHandlers.processSubscribeList(request, session);
                 break;
             case DEVICE_GET:
-                deviceHandlers.processDeviceGet(request, session);
+                deviceHandlers.processDeviceGet(deviceId, request, session);
                 break;
             case DEVICE_LIST:
                 deviceHandlers.processDeviceList(request, session);
@@ -146,22 +156,22 @@ public class WebSocketRequestProcessor {
                 deviceHandlers.processDeviceSave(request, session);
                 break;
             case DEVICE_DELETE:
-                deviceHandlers.processDeviceDelete(request, session);
+                deviceHandlers.processDeviceDelete(deviceId, request, session);
                 break;
             case NETWORK_LIST:
                 networkHandlers.processNetworkList(request, session);
                 break;
             case NETWORK_GET:
-                networkHandlers.processNetworkGet(request, session);
+                networkHandlers.processNetworkGet(networkId, request, session);
                 break;
             case NETWORK_INSERT:
                 networkHandlers.processNetworkInsert(request, session);
                 break;
             case NETWORK_UPDATE:
-                networkHandlers.processNetworkUpdate(request, session);
+                networkHandlers.processNetworkUpdate(networkId, request, session);
                 break;
             case NETWORK_DELETE:
-                networkHandlers.processNetworkDelete(request, session);
+                networkHandlers.processNetworkDelete(networkId, request, session);
                 break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);

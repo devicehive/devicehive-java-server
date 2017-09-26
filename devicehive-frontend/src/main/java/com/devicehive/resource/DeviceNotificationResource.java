@@ -153,7 +153,7 @@ public interface DeviceNotificationResource {
      */
     @GET
     @Path("/{deviceId}/notification/poll")
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
     @ApiOperation(value = "Poll for notifications ", notes = "Polls new device notifications for specified device id.\n" +
             "\n" +
             "This method returns all device notifications that were created after specified timestamp.\n" +
