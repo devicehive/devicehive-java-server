@@ -70,8 +70,7 @@ public class DeviceHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
-    public void processDeviceDelete(JsonObject request, WebSocketSession session) throws HiveException {
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+    public void processDeviceDelete(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         if (deviceId == null) {
             logger.error("device/delete proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -88,10 +87,8 @@ public class DeviceHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public void processDeviceGet(JsonObject request, WebSocketSession session) throws HiveException {
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
-        
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE')")
+    public void processDeviceGet(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         WebSocketResponse response = new WebSocketResponse();
 
