@@ -36,6 +36,7 @@ import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
 import com.devicehive.service.NetworkService;
+import com.devicehive.shim.api.Action;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
@@ -94,12 +95,13 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
-    public void processCommandSubscribe(String deviceId, JsonObject request, WebSocketSession session)
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public void processCommandSubscribe(JsonObject request, WebSocketSession session)
             throws InterruptedException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
+        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<String> devices = gson.fromJson(request.getAsJsonArray(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
@@ -115,8 +117,12 @@ public class CommandHandlers {
         Filter filter = new Filter();
         filter.setNames(names);
         filter.setPrincipal(principal);
+        List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
-            deviceService.getAllowedExistingDevices(devices, principal);
+            actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
+            if (actualDevices.size() != devices.size()) {
+                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
+            }
             filter.setDeviceIds(devices);
         }
         if (networks != null) {
@@ -136,7 +142,7 @@ public class CommandHandlers {
         }
         if (devices.isEmpty()) {
             ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
+            actualDevices = deviceService.list(listDeviceRequest).join();
             devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
             filter.setGlobal(true);
         }
@@ -275,8 +281,9 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
-    public void processCommandGet(String deviceId, JsonObject request, WebSocketSession session)  {
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public void processCommandGet(JsonObject request, WebSocketSession session)  {
+        String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         if (deviceId == null) {
             logger.error("command/get proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -317,9 +324,10 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
-    public void processCommandList(String deviceId, JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    public void processCommandList(JsonObject request, WebSocketSession session) {
         ListCommandRequest listCommandRequest = createListCommandRequest(request);
+        String deviceId = listCommandRequest.getDeviceId();
         if (deviceId == null) {
             logger.error("command/list proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);

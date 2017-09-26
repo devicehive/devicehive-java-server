@@ -60,7 +60,7 @@ public interface DeviceCommandResource {
      */
     @GET
     @Path("/{deviceId}/command/poll")
-    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @ApiOperation(value = "Polls the server to get commands.",
             notes = "This method returns all device commands that were created after specified timestamp.\n" +
                     "In the case when no commands were found, the method blocks until new command is received. If no commands are received within the waitTimeout period, the server returns an empty response. In this case, to continue polling, the client should repeat the call with the same timestamp value.",

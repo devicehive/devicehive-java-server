@@ -100,18 +100,19 @@ public class NetworkHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#networkId, 'GET_NETWORK')")
-    public void processNetworkGet(Long networkId, JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'GET_NETWORK')")
+    public void processNetworkGet(JsonObject request, WebSocketSession session) {
         logger.debug("Network get requested.");
-        if (networkId == null) {
+        Long id = gson.fromJson(request.get(ID), Long.class);
+        if (id == null) {
             logger.error(Messages.NETWORK_ID_REQUIRED);
             throw new HiveException(Messages.NETWORK_ID_REQUIRED, BAD_REQUEST.getStatusCode());
         }
 
-        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(networkId, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
         if (existing == null) {
-            logger.error(String.format(Messages.NETWORK_NOT_FOUND, networkId));
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+            logger.error(String.format(Messages.NETWORK_NOT_FOUND, id));
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, id), NOT_FOUND.getStatusCode());
         }
 
         WebSocketResponse response = new WebSocketResponse();
@@ -137,25 +138,27 @@ public class NetworkHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#networkId, 'MANAGE_NETWORK')")
-    public void processNetworkUpdate(Long networkId, JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
+    public void processNetworkUpdate(JsonObject request, WebSocketSession session) {
         NetworkUpdate networkToUpdate = gson.fromJson(request.get(NETWORK), NetworkUpdate.class);
-        logger.debug("Network update requested. Id : {}", networkId);
-        networkService.update(networkId, networkToUpdate);
-        logger.debug("Network has been updated successfully. Id : {}", networkId);
+        Long id = gson.fromJson(request.get(ID), Long.class);
+        logger.debug("Network update requested. Id : {}", id);
+        networkService.update(id, networkToUpdate);
+        logger.debug("Network has been updated successfully. Id : {}", id);
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(#networkId, 'MANAGE_NETWORK')")
-    public void processNetworkDelete(Long networkId, JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#id, 'MANAGE_NETWORK')")
+    public void processNetworkDelete(JsonObject request, WebSocketSession session) {
         logger.debug("Network delete requested");
-        boolean isDeleted = networkService.delete(networkId);
+        Long id = gson.fromJson(request.get(ID), Long.class);
+        boolean isDeleted = networkService.delete(id);
         if (!isDeleted) {
-            logger.error(String.format(Messages.NETWORK_NOT_FOUND, networkId));
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+            logger.error(String.format(Messages.NETWORK_NOT_FOUND, id));
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, id), NOT_FOUND.getStatusCode());
         }
-        logger.debug("Network with id = {} does not exists any more.", networkId);
+        logger.debug("Network with id = {} does not exists any more.", id);
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 

@@ -127,15 +127,14 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 Policy.COMMAND_LISTED);
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
-        Set<String> deviceIds = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
-                .map(Arrays::asList)
-                .map(list -> list.stream().collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
 
-        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-
+        Set<String> availableDevices = new HashSet<>();
+        if (deviceIdsCsv != null) {
+            availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
+                    .map(Arrays::asList)
+                    .map(list -> list.stream().map(el -> deviceService.findByIdWithPermissionsCheckIfExists(el, principal)).map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
+                    .orElse(Collections.emptySet());
+        }
         if (networkIdsCsv != null) {
             Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
                     .map(Arrays::asList)
