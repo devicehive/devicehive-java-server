@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.NETWORK_ID;
 
 @Component
 public class WebSocketRequestProcessor {
@@ -76,6 +77,7 @@ public class WebSocketRequestProcessor {
     public void process(JsonObject request, WebSocketSession session) throws InterruptedException, IOException, HiveException {
         WebsocketAction action = getAction(request);
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+        final Long networkId = gson.fromJson(request.get(NETWORK_ID), Long.class);
         
         switch (action) {
             case SERVER_INFO:
@@ -160,16 +162,16 @@ public class WebSocketRequestProcessor {
                 networkHandlers.processNetworkList(request, session);
                 break;
             case NETWORK_GET:
-                networkHandlers.processNetworkGet(request, session);
+                networkHandlers.processNetworkGet(networkId, request, session);
                 break;
             case NETWORK_INSERT:
                 networkHandlers.processNetworkInsert(request, session);
                 break;
             case NETWORK_UPDATE:
-                networkHandlers.processNetworkUpdate(request, session);
+                networkHandlers.processNetworkUpdate(networkId, request, session);
                 break;
             case NETWORK_DELETE:
-                networkHandlers.processNetworkDelete(request, session);
+                networkHandlers.processNetworkDelete(networkId, request, session);
                 break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);
