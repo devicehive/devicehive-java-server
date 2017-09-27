@@ -58,20 +58,20 @@ public class DeviceNotificationService {
     private final RpcClient rpcClient;
     private final HiveValidator hiveValidator;
     private final LongIdGenerator idGenerator;
+    private final RequestResponseMatcher requestResponseMatcher;
 
     @Autowired
     public DeviceNotificationService(TimestampService timestampService,
                                      RpcClient rpcClient,
                                      HiveValidator hiveValidator,
-                                     LongIdGenerator idGenerator) {
+                                     LongIdGenerator idGenerator,
+                                     RequestResponseMatcher requestResponseMatcher) {
         this.timestampService = timestampService;
         this.rpcClient = rpcClient;
         this.hiveValidator = hiveValidator;
         this.idGenerator = idGenerator;
+        this.requestResponseMatcher = requestResponseMatcher;
     }
-
-    @Autowired
-    private RequestResponseMatcher requestResponseMatcher;
 
     public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String deviceId) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
@@ -89,7 +89,7 @@ public class DeviceNotificationService {
     public CompletableFuture<List<DeviceNotification>> find(ListNotificationRequest request) {
         String deviceId = request.getDeviceId();
         String notification = request.getNotification();
-        Set<String> notificationNames = 
+        Set<String> notificationNames =
                 StringUtils.isNoneEmpty(notification) ? Collections.singleton(notification) : Collections.emptySet();
         return find(Collections.singleton(deviceId), notificationNames,
                 request.getStart(), request.getEnd());
@@ -192,17 +192,17 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void unsubscribe(Long subId, Set<String> deviceIds) {
-        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subId, deviceIds);
+    public void unsubscribe(Set<Long> subIds) {
+        NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Long> future = new CompletableFuture<>();
+            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
-                future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionId());
-                requestResponseMatcher.removeSubscription(subId);
+                future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionIds());
+                subIds.forEach(requestResponseMatcher::removeSubscription);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }

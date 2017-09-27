@@ -39,10 +39,14 @@ import java.util.*;
 @Component
 public class JwtClientService {
 
+    private final JwtTokenGenerator tokenGenerator;
+    private final JwtSecretService jwtSecretService;
+
     @Autowired
-    private JwtTokenGenerator tokenGenerator;
-    @Autowired
-    private JwtSecretService jwtSecretService;
+    public JwtClientService(JwtTokenGenerator tokenGenerator, JwtSecretService jwtSecretService) {
+        this.tokenGenerator = tokenGenerator;
+        this.jwtSecretService = jwtSecretService;
+    }
 
     public String generateJwtAccessToken(JwtPayload payload, boolean useExpiration) {
         return tokenGenerator.generateToken(payload, TokenType.ACCESS, useExpiration);

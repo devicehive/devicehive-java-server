@@ -28,13 +28,19 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class ListDeviceHandler implements RequestHandler {
 
-    @Autowired
     private DeviceDao deviceDao;
+
+    @Autowired
+    public void setDeviceDao(DeviceDao deviceDao) {
+        this.deviceDao = deviceDao;
+    }
 
     @Override
     public Response handle(Request request) {

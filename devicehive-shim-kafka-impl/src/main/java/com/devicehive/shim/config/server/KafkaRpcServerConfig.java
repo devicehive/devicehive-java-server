@@ -47,14 +47,14 @@ import org.springframework.core.env.Environment;
 import javax.annotation.PostConstruct;
 import java.util.stream.IntStream;
 
+import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
+
 @Configuration
 @Profile("rpc-server")
 @ComponentScan({"com.devicehive.shim.config", "com.devicehive.shim.kafka.topic"})
 @PropertySource("classpath:kafka.properties")
 public class KafkaRpcServerConfig {
     private static final Logger logger = LoggerFactory.getLogger(KafkaRpcServerConfig.class);
-
-    public static final String REQUEST_TOPIC = "request_topic";
 
     @Autowired
     private Environment env;
@@ -77,14 +77,19 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.wait.strategy:blocking}")
     private String waitStrategy;
 
+    @PostConstruct
+    private void initializeTopics() {
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
+    }
+
     @Bean(name = "server-producer")
     public Producer<String, Response> kafkaResponseProducer(Gson gson) {
         return new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new ResponseSerializer(gson));
     }
 
     @Bean
-    public WorkerPool<ServerEvent> workerPool(RequestHandler requestHandler,
-                                                 @Qualifier("server-producer") Producer<String, Response> responseProducer) {
+    public WorkerPool<ServerEvent> workerPool(@Qualifier("request-dispatcher") RequestHandler requestHandler,
+                                              @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         final ServerEventHandler[] workHandlers = new ServerEventHandler[workerThreads];
         IntStream.range(0, workerThreads).forEach(
                 nbr -> workHandlers[nbr] = new ServerEventHandler(requestHandler, responseProducer)
@@ -102,28 +107,32 @@ public class KafkaRpcServerConfig {
 
         switch (waitStrategy) {
             case "blocking":
-                strategy = new BlockingWaitStrategy(); break;
+                strategy = new BlockingWaitStrategy();
+                break;
             case "sleeping":
-                strategy =  new SleepingWaitStrategy(); break;
+                strategy = new SleepingWaitStrategy();
+                break;
             case "yielding":
-                strategy = new YieldingWaitStrategy(); break;
+                strategy = new YieldingWaitStrategy();
+                break;
             case "busyspin":
-                strategy =  new BusySpinWaitStrategy(); break;
+                strategy = new BusySpinWaitStrategy();
+                break;
             default:
-                strategy =  new BlockingWaitStrategy(); break;
+                strategy = new BlockingWaitStrategy();
+                break;
         }
         return strategy;
     }
 
     @Bean
-    public ServerEventHandler serverEventHandler(RequestHandler requestHandler,
+    public ServerEventHandler serverEventHandler(@Qualifier("request-dispatcher") RequestHandler requestHandler,
                                                  @Qualifier("server-producer") Producer<String, Response> responseProducer) {
         return new ServerEventHandler(requestHandler, responseProducer);
     }
 
     @Bean
     public RequestConsumer requestConsumer(Gson gson) {
-        kafkaTopicService.createTopic(REQUEST_TOPIC);
         return new RequestConsumer(REQUEST_TOPIC, kafkaRpcConfig.serverConsumerProps(), consumerThreads, new RequestSerializer(gson));
     }
 

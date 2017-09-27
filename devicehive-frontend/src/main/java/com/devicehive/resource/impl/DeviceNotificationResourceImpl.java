@@ -67,25 +67,30 @@ import static javax.ws.rs.core.Response.Status.*;
  */
 @Service
 public class DeviceNotificationResourceImpl implements DeviceNotificationResource {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationResourceImpl.class);
 
-    @Autowired
-    private Gson gson;
+    private final Gson gson;
+    private final DeviceNotificationService notificationService;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final TimestampService timestampService;
+    private final HiveValidator hiveValidator;
 
     @Autowired
-    private DeviceNotificationService notificationService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private NetworkService networkService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private HiveValidator hiveValidator;
+    public DeviceNotificationResourceImpl(Gson gson,
+                                          DeviceNotificationService notificationService,
+                                          DeviceService deviceService,
+                                          NetworkService networkService,
+                                          TimestampService timestampService,
+                                          HiveValidator hiveValidator) {
+        this.gson = gson;
+        this.notificationService = notificationService;
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.timestampService = timestampService;
+        this.hiveValidator = hiveValidator;
+    }
 
     /**
      * {@inheritDoc}
@@ -171,7 +176,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     }
 
     private void poll(final long timeout,
-                      final String deviceIdsString,
+                      final String deviceIdsCsv,
                       final String networkIdsCsv,
                       final String namesString,
                       final String timestamp,
@@ -189,14 +194,15 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
-        Set<String> availableDevices = new HashSet<>();
-        if (deviceIdsString != null) {
-            availableDevices = Optional.ofNullable(StringUtils.split(deviceIdsString, ','))
-                    .map(Arrays::asList)
-                    .map(list -> deviceService.findByIdWithPermissionsCheck(list, principal))
-                    .map(list -> list.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet()))
-                    .orElse(Collections.emptySet());
-        }
+        Set<String> deviceIds = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+
+        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
+                .map(deviceVO -> deviceVO.getDeviceId())
+                .collect(Collectors.toSet());
+
         if (networkIdsCsv != null) {
             Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
                     .map(Arrays::asList)
@@ -253,12 +259,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 }
             });
 
-            asyncResponse.register(new CompletionCallback() {
-                @Override
-                public void onComplete(Throwable throwable) {
-                    notificationService.unsubscribe(pair.getLeft(), null);
-                }
-            });
+            asyncResponse.register((CompletionCallback) throwable -> notificationService.unsubscribe(Collections.singleton(pair.getLeft())));
         } else {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(response);

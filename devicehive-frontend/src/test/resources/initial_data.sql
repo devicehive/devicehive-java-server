@@ -30,4 +30,4 @@ INSERT INTO configuration (name, value, entity_version) VALUES ('jwt.secret', 'd
 INSERT INTO network (name, description) VALUES ('VirtualLed Sample Network', 'A DeviceHive network for VirtualLed sample');
 
 -- 3. Default devices
-INSERT INTO device (guid, name, network_id, blocked) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 1, FALSE);
+INSERT INTO device (device_id, name, network_id, blocked) VALUES ('E50D6085-2ABA-48E9-B1C3-73C673E414BE', 'Sample VirtualLed Device', 1, FALSE);

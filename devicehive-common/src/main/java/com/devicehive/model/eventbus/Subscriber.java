@@ -20,13 +20,26 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Subscriber {
+public class Subscriber implements Portable, Serializable {
+
+    public static final int FACTORY_ID = 1;
+    public static final int CLASS_ID = 6;
 
     private Long id;
     private String replyTo;
     private String correlationId;
+
+    public Subscriber() {
+
+    }
 
     public Subscriber(Long id, String replyTo, String correlationId) {
         this.id = id;
@@ -66,5 +79,29 @@ public class Subscriber {
                 ", replyTo='" + replyTo + '\'' +
                 ", correlationId='" + correlationId + '\'' +
                 '}';
+    }
+
+    @Override
+    public int getFactoryId() {
+        return FACTORY_ID;
+    }
+
+    @Override
+    public int getClassId() {
+        return CLASS_ID;
+    }
+
+    @Override
+    public void writePortable(PortableWriter writer) throws IOException {
+        writer.writeLong("id", id);
+        writer.writeUTF("replyTo", replyTo);
+        writer.writeUTF("correlationId", correlationId);
+    }
+
+    @Override
+    public void readPortable(PortableReader reader) throws IOException {
+        id = reader.readLong("id");
+        replyTo = reader.readUTF("replyTo");
+        correlationId = reader.readUTF("correlationId");
     }
 }

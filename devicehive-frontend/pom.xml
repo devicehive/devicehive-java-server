@@ -5,7 +5,7 @@
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>3.3.2</version>
+        <version>3.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
@@ -20,29 +20,8 @@
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-common</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-common-dao</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-api</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-kafka-impl</artifactId>
-            <version>${parent.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -79,15 +58,6 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.oauth-client</groupId>
-            <artifactId>google-oauth-client</artifactId>
-            <version>${google-oauth-client.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>${jjwt.version}</version>
@@ -122,9 +92,46 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
+                <version>${download-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>swagger-ui</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v2.1.0.tar.gz</url>
+                            <unpack>true</unpack>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resource-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/classes/public</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}/swagger-ui-2.1.0/dist</directory>
+                                    <!--<filtering>true</filtering>-->
+                                    <excludes>
+                                        <exclude>index.html</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -141,7 +148,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-rdbms-dao</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -157,7 +164,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-riak-dao</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -170,7 +177,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-shim-kafka-impl</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>

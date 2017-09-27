@@ -36,8 +36,12 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 @Component
 public class HiveValidator {
 
+    private final Validator validator;
+
     @Autowired
-    private Validator validator;
+    public HiveValidator(Validator validator) {
+        this.validator = validator;
+    }
 
     /**
      * Validates object representation.
@@ -58,7 +62,7 @@ public class HiveValidator {
         }
     }
 
-    public String buildMessage(Set<ConstraintViolation<?>> violations) {
+    private String buildMessage(Set<ConstraintViolation<?>> violations) {
         StringBuilder builder = new StringBuilder("Error! Make sure, that the passed object is correct and properly structured. Validation failed: \n");
         for (ConstraintViolation<?> cv : violations) {
             builder.append(String.format("On property %s (value: %s): %s ; %n", cv.getPropertyPath(),

@@ -21,12 +21,10 @@ package com.devicehive.websockets;
  */
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.exceptions.HiveException;
-import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.exceptions.InvalidPrincipalException;
+import com.devicehive.exceptions.*;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.resource.exceptions.ExpiredTokenException;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.websockets.converters.JsonMessageBuilder;
@@ -42,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
@@ -58,22 +57,15 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+@Component
 public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceHiveWebSocketHandler.class);
 
-    @Autowired
     private SessionMonitor sessionMonitor;
-
-    @Autowired
     private WebSocketRequestProcessor requestProcessor;
-
-    @Autowired
     private DeviceCommandService commandService;
-
-    @Autowired
     private DeviceNotificationService notificationService;
-
-    @Autowired
     private WebSocketClientHandler webSocketClientHandler;
 
     private int sendTimeLimit = 10 * 1000;
@@ -107,6 +99,9 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         } catch (BadCredentialsException ex) {
             logger.error("Unauthorized access: {}", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
+        } catch (ExpiredTokenException ex) {
+            logger.info("Access token expired: {}", ex.getMessage());
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
         } catch (AccessDeniedException | AuthenticationCredentialsNotFoundException ex) {
             logger.error("Access to action is denied", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_FORBIDDEN, ex.getMessage());
@@ -163,15 +158,11 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCRIPTION_SET_NAME);
-        for (Long s : commandSubscriptions) {
-            commandService.sendUnsubscribeRequest(s, null);
-        }
+            commandService.sendUnsubscribeRequest(commandSubscriptions);
 
         CopyOnWriteArraySet<Long> notificationSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
-        for (Long s : notificationSubscriptions) {
-            notificationService.unsubscribe(s, null);
-        }
+        notificationService.unsubscribe(notificationSubscriptions);
 
         sessionMonitor.removeSession(session.getId());
 
@@ -201,5 +192,30 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         }
         session.sendMessage(
                 new TextMessage(GsonFactory.createGson().toJson(builder.build())));
+    }
+
+    @Autowired
+    public void setSessionMonitor(SessionMonitor sessionMonitor) {
+        this.sessionMonitor = sessionMonitor;
+    }
+
+    @Autowired
+    public void setRequestProcessor(WebSocketRequestProcessor requestProcessor) {
+        this.requestProcessor = requestProcessor;
+    }
+
+    @Autowired
+    public void setCommandService(DeviceCommandService commandService) {
+        this.commandService = commandService;
+    }
+
+    @Autowired
+    public void setNotificationService(DeviceNotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    @Autowired
+    public void setWebSocketClientHandler(WebSocketClientHandler webSocketClientHandler) {
+        this.webSocketClientHandler = webSocketClientHandler;
     }
 }

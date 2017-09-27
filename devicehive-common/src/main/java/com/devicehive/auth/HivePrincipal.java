@@ -22,10 +22,16 @@ package com.devicehive.auth;
 
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.vo.UserVO;
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
 
+import java.io.IOException;
 import java.security.Principal;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implements authentication principal for a permission-based security system.
@@ -35,7 +41,10 @@ import java.util.Set;
  * Networks - if present, represents the set of networks that the principal has permission to access
  * Devices - if present, represents the set of the devices that the principal has permission to access
  */
-public class HivePrincipal implements Principal {
+public class HivePrincipal implements Principal, Portable {
+
+    public static final int FACTORY_ID = 1;
+    public static final int CLASS_ID = 3;
 
     private UserVO user;
     private Set<HiveAction> actions;
@@ -187,4 +196,29 @@ public class HivePrincipal implements Principal {
                 '}';
     }
 
+    @Override
+    public int getFactoryId() {
+        return FACTORY_ID;
+    }
+
+    @Override
+    public int getClassId() {
+        return CLASS_ID;
+    }
+
+    @Override
+    public void writePortable(PortableWriter writer) throws IOException {
+        // write only required fields for com.devicehive.model.eventbus.Filter
+        writer.writeBoolean("allNetworksAvailable", allNetworksAvailable);
+        writer.writeBoolean("allDevicesAvailable", allDevicesAvailable);
+        writer.writeLongArray("networkIds", networkIds != null ? networkIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
+    }
+
+    @Override
+    public void readPortable(PortableReader reader) throws IOException {
+        // read only required fields for com.devicehive.model.eventbus.Filter
+        allNetworksAvailable = reader.readBoolean("allNetworksAvailable");
+        allDevicesAvailable = reader.readBoolean("allDevicesAvailable");
+        networkIds = Arrays.stream(reader.readLongArray("networkIds")).boxed().collect(Collectors.toSet());
+    }
 }

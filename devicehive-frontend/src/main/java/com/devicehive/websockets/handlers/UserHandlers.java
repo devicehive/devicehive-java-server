@@ -21,6 +21,7 @@ package com.devicehive.websockets.handlers;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
@@ -70,16 +71,23 @@ public class UserHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(UserHandlers.class);
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private HiveValidator hiveValidator;
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-    @Autowired
-    private Gson gson;
+    private final UserService userService;
+    private final HiveValidator hiveValidator;
+    private final WebSocketClientHandler clientHandler;
+    private final Gson gson;
 
+    @Autowired
+    public UserHandlers(UserService userService,
+                        HiveValidator hiveValidator,
+                        WebSocketClientHandler clientHandler,
+                        Gson gson) {
+        this.userService = userService;
+        this.hiveValidator = hiveValidator;
+        this.clientHandler = clientHandler;
+        this.gson = gson;
+    }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     public void processUserList(JsonObject request, WebSocketSession session) {
         ListUserRequest listUserRequest = createListUserRequest(request);
@@ -98,6 +106,7 @@ public class UserHandlers {
                 });
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     public void processUserGet(JsonObject request, WebSocketSession session) {
         Long userId = gson.fromJson(request.get(USER_ID), Long.class);
@@ -132,6 +141,7 @@ public class UserHandlers {
         }
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_CURRENT_USER')")
     public void processUserGetCurrent(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -148,6 +158,7 @@ public class UserHandlers {
         }
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     public void processUserInsert(JsonObject request, WebSocketSession session) {
         UserUpdate userToCreate = gson.fromJson(request.get(USER), UserUpdate.class);
@@ -169,6 +180,7 @@ public class UserHandlers {
     /**
      * {@inheritDoc}
      */
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     public void processUserUpdate(JsonObject request, WebSocketSession session) {
         UserUpdate user = gson.fromJson(request.get(USER), UserUpdate.class);
@@ -193,6 +205,7 @@ public class UserHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_CURRENT_USER')")
     public void processUserUpdateCurrent(JsonObject request, WebSocketSession session) {
         UserUpdate user = gson.fromJson(request.get(USER), UserUpdate.class);
@@ -207,6 +220,7 @@ public class UserHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
     public void processUserDelete(JsonObject request, WebSocketSession session) {
         Long userId = gson.fromJson(request.get(USER_ID), Long.class);
@@ -232,6 +246,7 @@ public class UserHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
     public void processUserGetNetwork(JsonObject request, WebSocketSession session) {
         Long userId = gson.fromJson(request.get(USER_ID), Long.class);
@@ -264,6 +279,7 @@ public class UserHandlers {
                 String.format(Messages.USER_NETWORK_NOT_FOUND, networkId, userId), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     public void processUserAssignNetwork(JsonObject request, WebSocketSession session) {
         Long userId = gson.fromJson(request.get(USER_ID), Long.class);
@@ -282,6 +298,7 @@ public class UserHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_NETWORK')")
     public void processUserUnassignNetwork(JsonObject request, WebSocketSession session) {
         Long userId = gson.fromJson(request.get(USER_ID), Long.class);
@@ -304,6 +321,4 @@ public class UserHandlers {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return principal.getUser();
     }
-
-    
 }

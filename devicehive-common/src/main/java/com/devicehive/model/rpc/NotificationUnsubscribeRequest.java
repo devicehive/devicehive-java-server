@@ -29,29 +29,19 @@ import java.util.Set;
 
 public class NotificationUnsubscribeRequest extends Body {
 
-    private Long subscriptionId;
-    private Set<String> deviceIds;
+    private Set<Long> subscriptionIds;
 
-    public NotificationUnsubscribeRequest(Long subscriptionId, Set<String> deviceIds) {
+    public NotificationUnsubscribeRequest(Set<Long> subscriptionIds) {
         super(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST);
-        this.subscriptionId = subscriptionId;
-        this.deviceIds = deviceIds;
+        this.subscriptionIds = subscriptionIds;
     }
 
-    public Long getSubscriptionId() {
-        return subscriptionId;
+    public Set<Long> getSubscriptionIds() {
+        return subscriptionIds;
     }
 
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
-    }
-
-    public Set<String> getDeviceIds() {
-        return deviceIds;
-    }
-
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setSubscriptionIds(Set<Long> subscriptionIds) {
+        this.subscriptionIds = subscriptionIds;
     }
 
     @Override
@@ -61,20 +51,18 @@ public class NotificationUnsubscribeRequest extends Body {
         if (!super.equals(o)) return false;
 
         NotificationUnsubscribeRequest that = (NotificationUnsubscribeRequest) o;
-        return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(deviceIds, that.deviceIds);
+        return Objects.equals(subscriptionIds, that.subscriptionIds);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, deviceIds);
+        return Objects.hash(super.hashCode(), subscriptionIds);
     }
 
     @Override
     public String toString() {
         return "NotificationUnsubscribeRequest{" +
-                "subscriptionId='" + subscriptionId + '\'' +
-                ", deviceIds=" + deviceIds +
+                "subscriptionIds='" + subscriptionIds + '\'' +
                 '}';
     }
 }

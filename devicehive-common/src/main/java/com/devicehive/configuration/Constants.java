@@ -57,6 +57,7 @@ public class Constants {
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
     public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
+    public static final String REQUEST_TOPIC = "request_topic";   
     //API constants
     public static final String INFO = "info";
     public static final String CACHE_INFO = "cacheInfo";
@@ -80,6 +81,7 @@ public class Constants {
     public static final String COMMANDS = "commands";
     public static final String PAYLOAD = "payload";
     public static final String SUBSCRIPTION_ID = "subscriptionId";
+    public static final String SUBSCRIPTIONS = "subscriptions";
     public static final String ID = "id";
     public static final String NAME = "name";
     public static final String NAME_PATTERN = "namePattern";
@@ -99,6 +101,7 @@ public class Constants {
     public static final String LOGIN = "login";
     public static final String DEVICE = "device";
     public static final String DEVICES = "devices";
+    public static final String TYPE = "type";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
 
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";

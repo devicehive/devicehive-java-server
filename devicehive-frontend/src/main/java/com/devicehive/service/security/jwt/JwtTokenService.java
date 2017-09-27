@@ -43,13 +43,17 @@ import java.util.Set;
 public class JwtTokenService {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtTokenService.class);
 
+    private final UserService userService;
+    private final JwtClientService tokenService;
+    private final HiveValidator hiveValidator;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private JwtClientService tokenService;
-    @Autowired
-    private HiveValidator hiveValidator;
-    
+    public JwtTokenService(UserService userService, JwtClientService tokenService, HiveValidator hiveValidator) {
+        this.userService = userService;
+        this.tokenService = tokenService;
+        this.hiveValidator = hiveValidator;
+    }
+
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public JwtTokenVO createJwtToken(@NotNull final JwtRequestVO request) {
         hiveValidator.validate(request);
@@ -77,7 +81,7 @@ public class JwtTokenService {
 
             Set<NetworkVO> networks = userWithNetwork.getNetworks();
             if (!networks.isEmpty()) {
-                networks.stream().forEach( network -> {
+                networks.forEach(network -> {
                     networkIds.add(network.getId().toString());
                 });
                 deviceIds.add("*");

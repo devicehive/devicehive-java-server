@@ -21,6 +21,7 @@ package com.devicehive.websockets.handlers;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -46,25 +47,30 @@ import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.model.rpc.ListDeviceRequest.createListDeviceRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 @Component
 public class DeviceHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final WebSocketClientHandler webSocketClientHandler;
+    private final Gson gson;
 
     @Autowired
-    private WebSocketClientHandler webSocketClientHandler;
+    public DeviceHandlers(DeviceService deviceService,
+                          WebSocketClientHandler webSocketClientHandler,
+                          Gson gson) {
+        this.deviceService = deviceService;
+        this.webSocketClientHandler = webSocketClientHandler;
+        this.gson = gson;
+    }
 
-    @Autowired
-    private Gson gson;
-
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'REGISTER_DEVICE')")
-    public void processDeviceDelete(JsonObject request, WebSocketSession session) throws HiveException {
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+    public void processDeviceDelete(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         if (deviceId == null) {
             logger.error("device/delete proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -80,10 +86,9 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
-    public void processDeviceGet(JsonObject request, WebSocketSession session) throws HiveException {
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
-        
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE')")
+    public void processDeviceGet(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         WebSocketResponse response = new WebSocketResponse();
 
@@ -103,6 +108,7 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public void processDeviceList(JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -121,6 +127,7 @@ public class DeviceHandlers {
         webSocketClientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public void processDeviceSave(JsonObject request, WebSocketSession session) throws HiveException {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
@@ -129,6 +136,9 @@ public class DeviceHandlers {
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+        }
+        if (!deviceId.matches("[a-zA-Z0-9-_]+")) {
+            throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
         deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());

@@ -84,7 +84,7 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
 
     @Override
     public int deleteById(String deviceId) {
-        return createNamedQuery("Device.deleteById", Optional.<CacheConfig>empty())
+        return createNamedQuery("Device.deleteById", Optional.empty())
                 .setParameter("deviceId", deviceId)
                 .executeUpdate();
     }

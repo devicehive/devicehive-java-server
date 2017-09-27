@@ -60,20 +60,21 @@ public class DeviceCommandService {
     private final HiveValidator hiveValidator;
     private final RpcClient rpcClient;
     private final LongIdGenerator idGenerator;
+    private final RequestResponseMatcher requestResponseMatcher;
 
     @Autowired
     public DeviceCommandService(TimestampService timestampService,
                                 HiveValidator hiveValidator,
                                 RpcClient rpcClient,
-                                LongIdGenerator idGenerator) {
+                                LongIdGenerator idGenerator,
+                                RequestResponseMatcher requestResponseMatcher) {
         this.timestampService = timestampService;
         this.hiveValidator = hiveValidator;
         this.rpcClient = rpcClient;
         this.idGenerator = idGenerator;
+        this.requestResponseMatcher = requestResponseMatcher;
     }
 
-    @Autowired
-    private RequestResponseMatcher requestResponseMatcher;
 
     public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
@@ -183,17 +184,17 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(Long subId, Set<String> deviceIds) {
-        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subId, deviceIds);
+    public void sendUnsubscribeRequest(Set<Long> subIds) {
+        CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Long> future = new CompletableFuture<>();
+            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
-                future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionId());
-                requestResponseMatcher.removeSubscription(subId);
+                future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionIds());
+                subIds.forEach(requestResponseMatcher::removeSubscription);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }

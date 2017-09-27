@@ -8,7 +8,7 @@ def deployable_branches = ["development"]
 node('docker') {
   stage('Build jars') {
     echo 'Building jars ...'
-    def maven = docker.image('maven:3.3.9-jdk-8')
+    def maven = docker.image('maven:3.5.0-jdk-8')
     maven.pull()
     maven.inside {
       checkout scm
@@ -57,9 +57,11 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         }
 
         echo("Wait for devicehive")
-        waitUntil{
-          def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
-          return (fe_status == 0)
+        timeout(time:2, unit: 'MINUTES') {
+          waitUntil{
+            def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
+            return (fe_status == 0)
+          }
         }
 
         dir('devicehive-tests') {
@@ -88,7 +90,11 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
       } finally {
         archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
         dir('devicehive-docker/rdbms-image') {
-          sh 'sudo docker-compose down'
+          sh '''
+            sudo docker-compose kill
+            sudo docker-compose down
+            sudo docker volume ls -qf dangling=true | xargs -r sudo docker volume rm
+          '''
         }
         cleanWs()
       }

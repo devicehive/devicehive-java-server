@@ -22,6 +22,7 @@ package com.devicehive.websockets.handlers;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
@@ -73,24 +74,28 @@ public class NotificationHandlers {
 
     public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
 
-    @Autowired
-    private DeviceService deviceService;
+    private final DeviceService deviceService;
+    private final NetworkService networkService;
+    private final DeviceNotificationService notificationService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    private NetworkService networkService;
+    public NotificationHandlers(DeviceService deviceService,
+                                NetworkService networkService,
+                                DeviceNotificationService notificationService,
+                                Gson gson,
+                                WebSocketClientHandler clientHandler) {
+        this.deviceService = deviceService;
+        this.networkService = networkService;
+        this.notificationService = notificationService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
 
-    @Autowired
-    private DeviceNotificationService notificationService;
-
-    @Autowired
-    private Gson gson;
-
-    @Autowired
-    private WebSocketClientHandler clientHandler;
-
-
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
-    public void processNotificationSubscribe(JsonObject request,
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
+    public void processNotificationSubscribe(String deviceId, JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
@@ -98,8 +103,7 @@ public class NotificationHandlers {
         Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
         final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
         final Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
-
+        
         logger.debug("notification/subscribe requested for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
 
@@ -111,10 +115,8 @@ public class NotificationHandlers {
         filter.setEventName(Action.NOTIFICATION_EVENT.name());
         List<DeviceVO> actualDevices;
         if (!devices.isEmpty()) {
-            actualDevices = deviceService.findByIdWithPermissionsCheck(devices, principal);
-            if (actualDevices.size() != devices.size()) {
-                throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, devices), SC_FORBIDDEN);
-            }
+            deviceService.getAllowedExistingDevices(devices, principal);
+            filter.setDeviceIds(devices);
         }
         if (networks != null) {
             Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
@@ -149,7 +151,7 @@ public class NotificationHandlers {
         pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
             JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
             clientHandler.sendMessage(json, session);
-        }));
+        })).join();
 
         logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
@@ -172,13 +174,13 @@ public class NotificationHandlers {
      * @return Json object with the following structure <code> { "action": {string}, "status": {string}, "requestId":
      * {object} } </code>
      */
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) throws IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
-        Set<String> deviceIds = gson.fromJson(request.get(DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
-        CopyOnWriteArraySet sessionSubIds = ((CopyOnWriteArraySet) session
+        CopyOnWriteArraySet<Long> sessionSubIds = ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME));
 
@@ -186,25 +188,23 @@ public class NotificationHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
-        if (subscriptionId == null && deviceIds == null) {
-            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            List<DeviceVO> actualDevices = deviceService.list(listDeviceRequest).join();
-            deviceIds = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
-            notificationService.unsubscribe(null, deviceIds);
+        if (subscriptionId == null) {
+            notificationService.unsubscribe(sessionSubIds);
+            sessionSubIds.clear();
         } else {
-            notificationService.unsubscribe(subscriptionId, deviceIds);
+            notificationService.unsubscribe(Collections.singleton(subscriptionId));
+            sessionSubIds.remove(subscriptionId);
         }
         logger.debug("notification/unsubscribe completed for session {}", session.getId());
 
-        sessionSubIds.remove(subscriptionId);
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_NOTIFICATION')")
-    public void processNotificationInsert(JsonObject request,
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_NOTIFICATION')")
+    public void processNotificationInsert(String deviceId, JsonObject request,
                                                        WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         DeviceNotificationWrapper notificationSubmit = gson.fromJson(request.get(Constants.NOTIFICATION), DeviceNotificationWrapper.class);
 
         logger.debug("notification/insert requested. Session {}. Device ID {}", session, deviceId);
@@ -241,6 +241,7 @@ public class NotificationHandlers {
                 });
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationGet(JsonObject request, WebSocketSession session) {
         String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
@@ -278,6 +279,7 @@ public class NotificationHandlers {
                 });
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationList(JsonObject request, WebSocketSession session) {
         ListNotificationRequest listNotificationRequest = createListNotificationRequest(request);

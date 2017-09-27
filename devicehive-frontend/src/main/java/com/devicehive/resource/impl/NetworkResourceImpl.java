@@ -52,10 +52,15 @@ import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 public class NetworkResourceImpl implements NetworkResource {
+
     private static final Logger logger = LoggerFactory.getLogger(NetworkResourceImpl.class);
 
+    private final NetworkService networkService;
+
     @Autowired
-    private NetworkService networkService;
+    public NetworkResourceImpl(NetworkService networkService) {
+        this.networkService = networkService;
+    }
 
     /**
      * {@inheritDoc}
@@ -109,9 +114,9 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response insert(NetworkVO network) {
+    public Response insert(NetworkUpdate network) {
         logger.debug("Network insert requested");
-        NetworkVO result = networkService.create(network);
+        NetworkVO result = networkService.create(network.convertTo());
         logger.debug("New network has been created");
         return ResponseFactory.response(CREATED, result, JsonPolicyDef.Policy.NETWORK_SUBMITTED);
     }

@@ -33,8 +33,8 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -51,9 +51,8 @@ import static org.junit.Assert.assertThat;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = {DeviceHiveApplication.class})
+@SpringBootTest(classes = {DeviceHiveApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext
-@WebIntegrationTest("server.port=0")
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String VALID_PASSWORD = "123456";
@@ -62,7 +61,7 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String ADMIN_PASS = "admin_pass";
     public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5NDExOTQwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.LNaJdW1g3gGHyus3dWgn3IljNJpHnGTj_-cBon4M3ig";
 
-    @Value("${local.server.port}")
+    @LocalServerPort
     protected Integer port;
 
     private String httpBaseUri;

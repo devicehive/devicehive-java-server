@@ -109,7 +109,10 @@ public class GsonFactory {
                 .registerSubtype(ListNotificationRequest.class, Action.LIST_NOTIFICATION_REQUEST.ordinal())
 
                 .registerSubtype(DeviceCreateRequest.class, Action.DEVICE_CREATE_REQUEST.ordinal())
-                .registerSubtype(DeviceCreateResponse.class, Action.DEVICE_CREATE_RESPONSE.ordinal());
+                .registerSubtype(DeviceCreateResponse.class, Action.DEVICE_CREATE_RESPONSE.ordinal())
+
+                .registerSubtype(ListSubscribeRequest.class, Action.LIST_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(ListSubscribeResponse.class, Action.LIST_SUBSCRIBE_RESPONSE.ordinal());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

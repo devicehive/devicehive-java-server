@@ -21,6 +21,7 @@ package com.devicehive.handler.notification;
  */
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
@@ -29,11 +30,13 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.service.HazelcastService;
 import com.devicehive.shim.api.Request;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.Date;
@@ -58,7 +61,13 @@ public class NotificationSubscribeRequestHandlerUnitTest {
 
     @Before
     public void setUp() throws Exception {
+        eventBus = Mockito.mock(EventBus.class);
+        hazelcastService = Mockito.mock(HazelcastService.class);
         this.handler = new NotificationSubscribeRequestHandler();
+        this.handler.setEventBus(eventBus);
+        this.handler.setHazelcastService(hazelcastService);
+
+        this.handler.setFilterRegistry(new FilterRegistry());
     }
 
     @Test
@@ -66,7 +75,7 @@ public class NotificationSubscribeRequestHandlerUnitTest {
         Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(subscriptionId, device, null, null);
+                new NotificationSubscribeRequest(subscriptionId, device, new Filter(), null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())

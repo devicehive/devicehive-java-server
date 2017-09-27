@@ -26,6 +26,7 @@ import com.devicehive.model.HiveEntity;
  * Created by tmatvienko on 1/13/15.
  */
 public class JwtRequestVO implements HiveEntity {
+
     private static final long serialVersionUID = -3876398635939615946L;
 
     private String login;

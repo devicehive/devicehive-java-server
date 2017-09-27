@@ -40,6 +40,9 @@ import java.util.Map;
 @Component
 public class JwtTokenGenerator {
 
+    private final TimestampService timestampService;
+    private final JwtSecretService jwtSecretService;
+
     @Value("${jwt.refresh-token-max-age}")
     long refreshTokenMaxAge;
 
@@ -47,9 +50,10 @@ public class JwtTokenGenerator {
     long accessTokenMaxAge;
 
     @Autowired
-    private TimestampService timestampService;
-    @Autowired
-    private JwtSecretService jwtSecretService;
+    public JwtTokenGenerator(TimestampService timestampService, JwtSecretService jwtSecretService) {
+        this.timestampService = timestampService;
+        this.jwtSecretService = jwtSecretService;
+    }
 
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified

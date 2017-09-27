@@ -5,7 +5,7 @@
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>3.3.2</version>
+        <version>3.3.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,31 +19,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-shim-kafka-impl</artifactId>
-            <version>${parent.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.devicehive</groupId>
-            <artifactId>devicehive-common</artifactId>
-            <version>${parent.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
-            <version>${hazelcast.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-client</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
-            <version>${parent.version}</version>
+            <version>${project.parent.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -66,7 +48,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-rdbms-dao</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -82,7 +64,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-riak-dao</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -95,7 +77,7 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-shim-kafka-impl</artifactId>
-                    <version>${parent.version}</version>
+                    <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>
         </profile>

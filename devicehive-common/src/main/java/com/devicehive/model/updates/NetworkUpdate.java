@@ -23,6 +23,7 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
+import com.devicehive.vo.NetworkVO;
 
 import javax.validation.constraints.Size;
 import java.util.Optional;
@@ -33,9 +34,6 @@ public class NetworkUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -4134073649300446791L;
 
-    @JsonPolicyDef({DEVICE_PUBLISHED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
-    private Long id;
-
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String name;
@@ -43,14 +41,6 @@ public class NetworkUpdate implements HiveEntity {
     @Size(max = 128, message = "The length of description should not be more than 128 symbols.")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, USER_PUBLISHED, NETWORKS_LISTED, NETWORK_PUBLISHED})
     private String description;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Optional<String> getName() {
         return Optional.ofNullable(name);
@@ -66,5 +56,13 @@ public class NetworkUpdate implements HiveEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public NetworkVO convertTo() {
+        NetworkVO networkVO = new NetworkVO();
+        networkVO.setName(name);
+        networkVO.setDescription(description);
+        
+        return networkVO;
     }
 }

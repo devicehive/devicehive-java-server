@@ -39,6 +39,7 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,28 +53,36 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
-import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService {
     private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
 
-    @Autowired
-    private DeviceNotificationService deviceNotificationService;
-    @Autowired
-    private NetworkService networkService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private TimestampService timestampService;
-    @Autowired
-    private DeviceDao deviceDao;
-    @Autowired
-    private RpcClient rpcClient;
+    private final DeviceNotificationService deviceNotificationService;
+    private final NetworkService networkService;
+    private final UserService userService;
+    private final TimestampService timestampService;
+    private final DeviceDao deviceDao;
+    private final RpcClient rpcClient;
 
-    //todo equipmentSet is not used
+    @Autowired
+    public DeviceService(DeviceNotificationService deviceNotificationService,
+                         NetworkService networkService,
+                         UserService userService,
+                         TimestampService timestampService,
+                         DeviceDao deviceDao,
+                         RpcClient rpcClient) {
+        this.deviceNotificationService = deviceNotificationService;
+        this.networkService = networkService;
+        this.userService = userService;
+        this.timestampService = timestampService;
+        this.deviceDao = deviceDao;
+        this.rpcClient = rpcClient;
+    }
+
     @Transactional(propagation = Propagation.REQUIRED)
     public void deviceSaveAndNotify(DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", device.getId(), principal == null ? null : principal.getName());
@@ -103,52 +112,6 @@ public class DeviceService {
             }
         };
         rpcClient.call(request, responseConsumer);
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
-        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getId(), user.getId());
-        //todo: rework when migration to VO will be done
-        Long networkId = deviceUpdate.getNetworkId()
-                .map(id -> {
-                    NetworkVO networkVo = new NetworkVO();
-                    networkVo.setId(id);
-                    if (!userService.hasAccessToNetwork(user, networkVo)) {
-                        throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
-                    }
-                    return id;
-                })
-                .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
-        // TODO [requies a lot of details]!
-        DeviceVO existingDevice = deviceDao.findById(deviceUpdate.getId().orElse(null));
-        if (existingDevice == null) {
-            DeviceVO device = deviceUpdate.convertTo();
-            device.setNetworkId(networkId);
-            if (device.getBlocked() == null) {
-                device.setBlocked(false);
-            }
-            deviceDao.persist(device);
-            return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
-        } else {
-            if (!userService.hasAccessToDevice(user, existingDevice.getDeviceId())) {
-                logger.error("User {} has no access to device {}", user.getId(), existingDevice.getId());
-                throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
-            }
-            
-            existingDevice.setData(deviceUpdate.getData().orElse(null));
-            
-            if (deviceUpdate.getNetworkId().isPresent()){
-                existingDevice.setNetworkId(networkId);
-            }
-            if (deviceUpdate.getName().isPresent()){
-                existingDevice.setName(deviceUpdate.getName().get());
-            }
-            if (deviceUpdate.getBlocked().isPresent()){
-                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
-            }
-            deviceDao.merge(existingDevice);
-            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
-        }
     }
 
     @Transactional
@@ -189,6 +152,17 @@ public class DeviceService {
         return getDeviceList(new ArrayList<>(deviceIds), principal);
     }
 
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
+        DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (deviceVO == null) {
+            logger.error("Device with ID {} not found", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
+        }
+        return deviceVO;
+    }
+
     @Transactional(readOnly = true)
     public DeviceVO findById(String deviceId) {
         DeviceVO device = deviceDao.findById(deviceId);
@@ -217,6 +191,75 @@ public class DeviceService {
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> deviceIds) {
         return deviceDao.getAllowedDeviceCount(principal, deviceIds);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
+        List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
+        Set<String> allowedIds = devices.stream()
+                .map(deviceVO -> deviceVO.getDeviceId())
+                .collect(Collectors.toSet());
+
+        Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);
+        if (unresolvedIds.isEmpty()) {
+            return devices;
+        }
+
+        Set<String> forbiddedIds = unresolvedIds.stream()
+                .filter(deviceId -> !principal.hasAccessToDevice(deviceId))
+                .collect(Collectors.toSet());
+        if (forbiddedIds.isEmpty()) {
+            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
+        }
+
+        throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
+
+        
+    }
+
+    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
+        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getId(), user.getId());
+        //todo: rework when migration to VO will be done
+        Long networkId = deviceUpdate.getNetworkId()
+                .map(id -> {
+                    NetworkVO networkVo = new NetworkVO();
+                    networkVo.setId(id);
+                    if (!userService.hasAccessToNetwork(user, networkVo)) {
+                        throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
+                    }
+                    return id;
+                })
+                .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
+        // TODO [requies a lot of details]!
+        DeviceVO existingDevice = deviceDao.findById(deviceUpdate.getId().orElse(null));
+        if (existingDevice == null) {
+            DeviceVO device = deviceUpdate.convertTo();
+            device.setNetworkId(networkId);
+            if (device.getBlocked() == null) {
+                device.setBlocked(false);
+            }
+            deviceDao.persist(device);
+            return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
+        } else {
+            if (!userService.hasAccessToDevice(user, existingDevice.getDeviceId())) {
+                logger.error("User {} has no access to device {}", user.getId(), existingDevice.getId());
+                throw new HiveException(Messages.NO_ACCESS_TO_DEVICE, FORBIDDEN.getStatusCode());
+            }
+
+            existingDevice.setData(deviceUpdate.getData().orElse(null));
+
+            if (deviceUpdate.getNetworkId().isPresent()){
+                existingDevice.setNetworkId(networkId);
+            }
+            if (deviceUpdate.getName().isPresent()){
+                existingDevice.setName(deviceUpdate.getName().get());
+            }
+            if (deviceUpdate.getBlocked().isPresent()){
+                existingDevice.setBlocked(deviceUpdate.getBlocked().get());
+            }
+            deviceDao.merge(existingDevice);
+            return ServerResponsesFactory.createNotificationForDevice(existingDevice, SpecialNotifications.DEVICE_UPDATE);
+        }
     }
 
     private List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {

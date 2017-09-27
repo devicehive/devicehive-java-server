@@ -99,7 +99,7 @@ public class MockCommandHandler {
 
             } else if (request.getBody() instanceof CommandUnsubscribeRequest) {
                 CommandUnsubscribeRequest body = (CommandUnsubscribeRequest) request.getBody();
-                CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionId(), null);
+                CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionIds());
 
                 return Response.newBuilder()
                         .withBody(unsubscribeResponse)

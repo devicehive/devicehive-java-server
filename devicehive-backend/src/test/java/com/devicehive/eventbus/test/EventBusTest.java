@@ -21,6 +21,7 @@ package com.devicehive.eventbus.test;
  */
 
 import com.devicehive.eventbus.EventBus;
+import com.devicehive.eventbus.SubscriberRegistry;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.Subscription;
@@ -28,6 +29,7 @@ import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
+import com.hazelcast.core.HazelcastInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,11 +50,13 @@ public class EventBusTest {
 
     private EventBus eventBus;
     private MessageDispatcher dispatcher;
+    private SubscriberRegistry registry;
 
     @Before
     public void setUp() throws Exception {
         dispatcher = mock(MessageDispatcher.class);
-        eventBus = new EventBus(dispatcher);
+        registry = mock(SubscriberRegistry.class);
+        eventBus = new EventBus(dispatcher, registry);
     }
 
     @Test

@@ -26,6 +26,7 @@ import java.util.ResourceBundle;
 public class Messages {
 
     public static final String NOT_AUTHORIZED = BidBundle.get("NOT_AUTHORIZED");
+    public static final String ACCESS_DENIED = BidBundle.get("ACCESS_DENIED");
     public static final String TWO_OR_MORE_ACTIVE_JSON_POLICIES = BidBundle.get("TWO_OR_MORE_ACTIVE_JSON_POLICIES");
     public static final String NOT_A_JSON_OBJECT = BidBundle.get("NOT_A_JSON_OBJECT");
     public static final String UNPARSEABLE_TIMESTAMP = BidBundle.get("UNPARSEABLE_TIMESTAMP");
@@ -116,6 +117,7 @@ public class Messages {
     public static final String NOTIFICATION_INSERT_FAILED = BidBundle.get("NOTIFICATION_INSERT_FAILED");
     public static final String PAYLOAD_NOT_FOUND = BidBundle.get("PAYLOAD_NOT_FOUND");
     public static final String SUBSCRIPTION_NOT_FOUND = BidBundle.get("SUBSCRIPTION_NOT_FOUND");
+    public static final String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = BidBundle.get("DEVICE_ID_CONTAINS_INVALID_CHARACTERS");
 
     /**
      * Bundle to extract localized strings from property files.

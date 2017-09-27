@@ -37,7 +37,6 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.WEBSOCKET_SERV
  */
 public class ApiInfoVO implements HiveEntity {
 
-
     private static final long serialVersionUID = -4899398629379606180L;
 
     @JsonPolicyDef({WEBSOCKET_SERVER_INFO, REST_SERVER_INFO})

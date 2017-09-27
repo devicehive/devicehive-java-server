@@ -28,29 +28,19 @@ import java.util.Set;
 
 public class NotificationUnsubscribeResponse extends Body {
 
-    private Long subscriptionId;
-    private Set<String> deviceIds;
+    private Set<Long> subscriptionIds;
 
-    public NotificationUnsubscribeResponse(Long subscriptionId, Set<String> deviceIds) {
+    public NotificationUnsubscribeResponse(Set<Long> subscriptionIds) {
         super(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE);
-        this.subscriptionId = subscriptionId;
-        this.deviceIds = deviceIds;
+        this.subscriptionIds = subscriptionIds;
     }
 
-    public Long getSubscriptionId() {
-        return subscriptionId;
+    public Set<Long> getSubscriptionIds() {
+        return subscriptionIds;
     }
 
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
-    }
-
-    public Set<String> getDeviceIds() {
-        return deviceIds;
-    }
-
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setSubscriptionIds(Set<Long> subscriptionIds) {
+        this.subscriptionIds = subscriptionIds;
     }
 
     @Override
@@ -59,21 +49,19 @@ public class NotificationUnsubscribeResponse extends Body {
         if (!(o instanceof NotificationUnsubscribeResponse)) return false;
         if (!super.equals(o)) return false;
         NotificationUnsubscribeResponse that = (NotificationUnsubscribeResponse) o;
-        return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(deviceIds, that.deviceIds);
+        return Objects.equals(subscriptionIds, that.subscriptionIds);
 
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, deviceIds);
+        return Objects.hash(super.hashCode(), subscriptionIds);
     }
 
     @Override
     public String toString() {
         return "NotificationUnsubscribeResponse{" +
-                "subscriptionId='" + subscriptionId + '\'' +
-                ", deviceIds=" + deviceIds +
+                "subscriptionIds='" + subscriptionIds + '\'' +
                 '}';
     }
 

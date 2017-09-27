@@ -23,64 +23,51 @@ package com.devicehive.handler.notification;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.rpc.*;
-import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.HashSet;
-import java.util.Set;
-
+@Component
 public class NotificationUnsubscribeRequestHandler implements RequestHandler {
 
-    @Autowired
     private EventBus eventBus;
+    private FilterRegistry filterRegistry;
 
     @Autowired
-    private FilterRegistry filterRegistry;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+    @Autowired
+    public void setFilterRegistry(FilterRegistry filterRegistry) {
+        this.filterRegistry = filterRegistry;
+    }
 
     @Override
     public Response handle(Request request) {
         NotificationUnsubscribeRequest body = (NotificationUnsubscribeRequest) request.getBody();
         validate(body);
 
-        if (body.getSubscriptionId() != null) {
-            Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(),
-                    request.getCorrelationId());
-            eventBus.unsubscribe(subscriber);
-            filterRegistry.unregister(body.getSubscriptionId());
-
-            NotificationUnsubscribeResponse unsubscribeResponse =
-                    new NotificationUnsubscribeResponse(body.getSubscriptionId(), null);
-
-            return Response.newBuilder()
-                    .withBody(unsubscribeResponse)
-                    .withCorrelationId(request.getCorrelationId())
-                    .buildSuccess();
-        } else if (body.getDeviceIds() != null) {
-            Set<Subscription> subscriptions = new HashSet<>();
-            Set<Subscriber> subscribers = new HashSet<>();
-
-            for (String name : body.getDeviceIds()) {
-                Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), name);
-                subscriptions.add(subscription);
+        if (body.getSubscriptionIds() != null) {
+            for (Long subId : body.getSubscriptionIds()) {
+                Subscriber subscriber = new Subscriber(subId, request.getReplyTo(), request.getCorrelationId());
+                eventBus.unsubscribe(subscriber);
+                filterRegistry.unregister(subId);
             }
 
-            subscriptions.forEach(subscription -> subscribers.addAll(eventBus.getSubscribers(subscription)));
-            subscribers.forEach(subscriber -> eventBus.unsubscribe(subscriber));
-
             NotificationUnsubscribeResponse unsubscribeResponse =
-                    new NotificationUnsubscribeResponse(null, body.getDeviceIds());
+                    new NotificationUnsubscribeResponse(body.getSubscriptionIds());
+
             return Response.newBuilder()
                     .withBody(unsubscribeResponse)
                     .withCorrelationId(request.getCorrelationId())
                     .buildSuccess();
-        } else {
-            throw new IllegalArgumentException("Both subscription id and device ids are null");
+        }  else {
+            throw new IllegalArgumentException("Subscription ids are null");
         }
     }
 

@@ -161,7 +161,7 @@ public interface NetworkResource {
     })
     Response insert(
             @ApiParam(value = "Network body", defaultValue = "{}", required = true)
-            NetworkVO network);
+            NetworkUpdate network);
 
     /**
      * This method updates network with given Id. Consumes following input:

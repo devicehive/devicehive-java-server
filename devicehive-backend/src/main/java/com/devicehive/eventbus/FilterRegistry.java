@@ -22,8 +22,10 @@ package com.devicehive.eventbus;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
-import com.google.common.collect.Sets;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.MultiMap;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -32,7 +34,13 @@ import java.util.*;
  */
 public class FilterRegistry {
 
-    private final Map<Filter, Set<Long>> filterSubscriptionsMap = new HashMap<>();
+    private MultiMap<Filter, Long> filterSubscriptionsMap;
+    private final String FILTER_SUBSCRIPTION_MAP = "FILTER-SUBSCRIPTION-MAP";
+
+    @Autowired
+    public void getHazelcastMaps(HazelcastInstance hazelcastClient) {
+        filterSubscriptionsMap = hazelcastClient.getMultiMap(FILTER_SUBSCRIPTION_MAP);
+    }
 
     public void register(Filter filter, Long subscriptionId) {
         HivePrincipal principal = filter.getPrincipal();
@@ -41,35 +49,30 @@ public class FilterRegistry {
                 filter.setGlobal(false);
                 filter.setNetworkIds(principal.getNetworkIds());
             }
-            addFilter(filter, subscriptionId);
-            return;
         }
-        Set<Long> networkIds = filter.getNetworkIds();
-        if (networkIds != null) {
-            addFilter(filter, subscriptionId);
-        }
+        filterSubscriptionsMap.put(filter, subscriptionId);
     }
 
     public void unregister(Long subscriptionId) {
-        filterSubscriptionsMap.values().forEach(subscriptionIds -> subscriptionIds.remove(subscriptionId));
+        filterSubscriptionsMap.keySet().forEach(filter -> filterSubscriptionsMap.remove(filter, subscriptionId));
+    }
+
+    public Filter getFilter(Long subscriptionId) {
+        for (Map.Entry<Filter, Long> entry : filterSubscriptionsMap.entrySet()) {
+            if (entry.getValue().equals(subscriptionId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     public Set<Pair<Long, Filter>> getSubscriptions(Long networkId) {
         Set<Pair<Long, Filter>> subs = new HashSet<>();
         filterSubscriptionsMap.keySet().forEach( filter -> {
-            if (filter.isGlobal() || filter.getNetworkIds().contains(networkId)) {
+            if (filter.isGlobal() || (filter.getNetworkIds() != null && filter.getNetworkIds().contains(networkId))) {
                 filterSubscriptionsMap.get(filter).forEach(subId -> subs.add(Pair.of(subId, filter)));
             }
         });
         return subs;
-    }
-
-    private void addFilter(Filter filter, Long subscriptionId) {
-        Set<Long> subscriptionIds = filterSubscriptionsMap.get(filter);
-        if (subscriptionIds == null) {
-            filterSubscriptionsMap.put(filter, Sets.newHashSet(subscriptionId));
-        } else {
-            subscriptionIds.add(subscriptionId);
-        }
     }
 }

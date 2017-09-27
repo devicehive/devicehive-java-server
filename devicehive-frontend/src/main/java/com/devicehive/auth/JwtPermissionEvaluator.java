@@ -24,16 +24,19 @@ import com.devicehive.exceptions.InvalidPrincipalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
-
+@Component
 public class JwtPermissionEvaluator implements PermissionEvaluator {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtPermissionEvaluator.class);
-    @Autowired
+
     private JwtCheckPermissionsHelper jwtCheckPermissionsHelper;
 
     @Override
@@ -62,4 +65,8 @@ public class JwtPermissionEvaluator implements PermissionEvaluator {
         throw new UnsupportedOperationException("Id and Class permissions are not supported by this application");
     }
 
+    @Autowired
+    public void setJwtCheckPermissionsHelper(JwtCheckPermissionsHelper jwtCheckPermissionsHelper) {
+        this.jwtCheckPermissionsHelper = jwtCheckPermissionsHelper;
+    }
 }

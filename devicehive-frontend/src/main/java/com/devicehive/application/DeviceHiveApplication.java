@@ -25,8 +25,8 @@ import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -60,7 +60,6 @@ public class DeviceHiveApplication extends SpringBootServletInitializer {
                 .web(true)
                 .run(args);
 
-        DeviceHiveApplication app = context.getBean(DeviceHiveApplication.class);
         context.registerShutdownHook();
     }
 

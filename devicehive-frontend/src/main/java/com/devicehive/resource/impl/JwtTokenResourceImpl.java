@@ -51,20 +51,24 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenResourceImpl.class);
 
-    @Autowired
-    private JwtClientService tokenService;
+    private final JwtClientService tokenService;
+    private final UserService userService;
+    private final TimestampService timestampService;
+    private final JwtTokenService jwtTokenService;
+    private final HiveValidator hiveValidator;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private TimestampService timestampService;
-
-    @Autowired
-    private JwtTokenService jwtTokenService;
-
-    @Autowired
-    private HiveValidator hiveValidator;
+    public JwtTokenResourceImpl(JwtClientService tokenService,
+                                UserService userService,
+                                TimestampService timestampService,
+                                JwtTokenService jwtTokenService,
+                                HiveValidator hiveValidator) {
+        this.tokenService = tokenService;
+        this.userService = userService;
+        this.timestampService = timestampService;
+        this.jwtTokenService = jwtTokenService;
+        this.hiveValidator = hiveValidator;
+    }
 
     @Override
     public Response tokenRequest(JwtPayload payload) {
@@ -105,7 +109,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         try {
             payload = tokenService.getPayload(requestTokenVO.getRefreshToken());
         } catch (JwtException e) {
-            logger.error(e.getMessage(), e);
+            logger.error(e.getMessage());
             return ResponseFactory.response(UNAUTHORIZED);
         }
 

@@ -66,9 +66,7 @@ public class CriteriaHelper {
             Set<Long> networks = principal.getNetworkIds();
 
             return ofNullable(networks);
-        }).ifPresent(networks -> {
-            predicates.add(from.<Long>get("id").in(networks));
-        });
+        }).ifPresent(networks -> predicates.add(from.<Long>get("id").in(networks)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }
@@ -126,7 +124,7 @@ public class CriteriaHelper {
         final List<Predicate> predicates = new LinkedList<>();
 
         name.ifPresent(n -> predicates.add(cb.equal(from.<String>get("name"), n)));
-        namePattern.ifPresent(np -> predicates.add(cb.like(from.<String>get("name"), np)));
+        namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));
 
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
         networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));

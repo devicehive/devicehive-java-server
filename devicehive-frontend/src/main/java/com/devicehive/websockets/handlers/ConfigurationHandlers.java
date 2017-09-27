@@ -20,6 +20,7 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
+import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
@@ -48,18 +49,26 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class ConfigurationHandlers {
+
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationHandlers.class);
 
-    @Autowired
-    private ConfigurationService configurationService;
-    @Autowired
-    private Gson gson;
-    @Autowired
-    private WebSocketClientHandler clientHandler;
+    private final ConfigurationService configurationService;
+    private final Gson gson;
+    private final WebSocketClientHandler clientHandler;
 
     @Value("${server.context-path}")
     private String contextPath;
 
+    @Autowired
+    public ConfigurationHandlers(ConfigurationService configurationService,
+                                 Gson gson,
+                                 WebSocketClientHandler clientHandler) {
+        this.configurationService = configurationService;
+        this.gson = gson;
+        this.clientHandler = clientHandler;
+    }
+
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationGet(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
@@ -79,6 +88,7 @@ public class ConfigurationHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationPut(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
@@ -96,6 +106,7 @@ public class ConfigurationHandlers {
         clientHandler.sendMessage(request, response, session);
     }
 
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_CONFIGURATION')")
     public void processConfigurationDelete(JsonObject request, WebSocketSession session) {
         final String name = gson.fromJson(request.get(NAME), String.class);
