@@ -41,7 +41,6 @@ public class DeviceFixture {
 
     public static DeviceUpdate createDevice(String deviceId) {
         DeviceUpdate device = new DeviceUpdate();
-        device.setId(deviceId);
         device.setName("device-" + deviceId);
         device.setData(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceId)));
         return device;
@@ -49,7 +48,6 @@ public class DeviceFixture {
 
     public static DeviceUpdate createDevice(DeviceVO device) {
         final DeviceUpdate deviceUpdate = new DeviceUpdate();
-        deviceUpdate.setId(device.getDeviceId());
         deviceUpdate.setName(device.getName());
         return deviceUpdate;
     }

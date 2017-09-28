@@ -764,11 +764,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
-        device.setId(randomUUID().toString());
         device.setNetworkId(network.getId());
-        deviceService.deviceSave(device);
+        deviceService.deviceSave(randomUUID().toString(), device);
 
-        assertTrue(userService.hasAccessToDevice(user, device.getId().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, randomUUID().toString()));
     }
 
     @Test
@@ -785,11 +784,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
-        device.setId(randomUUID().toString());
         device.setNetworkId(network.getId());
-        deviceService.deviceSave(device);
+        deviceService.deviceSave(randomUUID().toString(), device);
 
-        assertFalse(userService.hasAccessToDevice(user, device.getId().orElse(null)));
+        assertFalse(userService.hasAccessToDevice(user, randomUUID().toString()));
     }
 
     @Test
@@ -806,11 +804,10 @@ public class UserServiceTest extends AbstractResourceTest {
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName(randomUUID().toString());
-        device.setId(randomUUID().toString());
         device.setNetworkId(network.getId());
-        deviceService.deviceSave(device);
+        deviceService.deviceSave(randomUUID().toString(), device);
 
-        assertTrue(userService.hasAccessToDevice(user, device.getId().orElse(null)));
+        assertTrue(userService.hasAccessToDevice(user, randomUUID().toString()));
     }
 
     @Test
