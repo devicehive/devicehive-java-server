@@ -20,6 +20,8 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import com.hazelcast.core.HazelcastInstance;
@@ -178,7 +180,11 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
         timestamp = new Date(portableReader.readLong("timestamp"));
         String parametersString = portableReader.readUTF("parameters");
         if (Objects.nonNull(parametersString)) {
-            parameters = new JsonStringWrapper(parametersString);
+            try {
+                parameters = new JsonStringWrapper(parametersString);
+            } catch (HiveException ex) {
+                throw new HiveException(Messages.PARAMS_NOT_JSON, ex.getCode());
+            }
         }
     }
 

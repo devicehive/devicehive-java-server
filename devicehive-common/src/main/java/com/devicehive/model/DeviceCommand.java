@@ -20,6 +20,8 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import com.hazelcast.core.HazelcastInstance;
@@ -288,13 +290,21 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         deviceId = portableReader.readUTF("deviceId");
         String parametersString = portableReader.readUTF("parameters");
         if (Objects.nonNull(parametersString)) {
-            parameters = new JsonStringWrapper(parametersString);
+            try {
+                parameters = new JsonStringWrapper(parametersString);
+            } catch (HiveException ex) {
+                throw new HiveException(Messages.PARAMS_NOT_JSON, ex.getCode());
+            }
         }
         lifetime = portableReader.readInt("lifetime");
         status = portableReader.readUTF("status");
         String resultString = portableReader.readUTF("result");
         if (Objects.nonNull(resultString)) {
-            result = new JsonStringWrapper(resultString);
+            try {
+                result = new JsonStringWrapper(resultString);
+            } catch (HiveException ex) {
+                throw new HiveException(Messages.RESULT_NOT_JSON, ex.getCode());
+            }
         }
         isUpdated = portableReader.readBoolean("isUpdated");
     }
