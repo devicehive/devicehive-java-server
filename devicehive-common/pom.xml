@@ -30,6 +30,11 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-proxy-api</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
             <version>${swagger.version}</version>
