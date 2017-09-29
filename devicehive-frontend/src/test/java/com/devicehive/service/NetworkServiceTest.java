@@ -488,6 +488,15 @@ public class NetworkServiceTest extends AbstractResourceTest {
         verify(requestHandler, times(1)).handle(argument.capture());
     }
 
+    private void populateNetworkWithRandomDevices(NetworkVO network, int devicesAmount) {
+        for (int i = 0; i < devicesAmount; i++) {
+            DeviceUpdate device = new DeviceUpdate();
+            device.setName(randomUUID().toString());
+            device.setNetworkId(network.getId());
+            deviceService.deviceSave(randomUUID().toString(), device);
+        }
+    }
+
     @Test
     public void should_return_network_with_devices_for_admin() throws Exception {
         UserVO user = new UserVO();
@@ -500,13 +509,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(network.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(network, 5);
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevices(created.getId(), authentication);
@@ -527,13 +530,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         assertThat(created.getId(), notNullValue());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(network.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(network, 5);
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevices(created.getId(), authentication);
@@ -553,13 +550,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), created.getId());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(network.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(network, 5);
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         NetworkWithUsersAndDevicesVO returnedNetwork = networkService.getWithDevices(created.getId(), authentication);
@@ -579,13 +570,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(network.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(network, 5);
 
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
@@ -609,13 +594,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(network.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(network, 5);
 
         HiveAuthentication authentication = new HiveAuthentication(new HivePrincipal(user));
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
@@ -662,19 +641,12 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(created.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(created, 5);
 
         DeviceUpdate device = new DeviceUpdate();
         device.setName("allowed_device");
-        device.setId(randomUUID().toString());
         device.setNetworkId(created.getId());
-        DeviceNotification notification = deviceService.deviceSave(device);
+        DeviceNotification notification = deviceService.deviceSave(randomUUID().toString(), device);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setNetworkIds(new HashSet<>(Collections.singleton(created.getId())));
@@ -707,13 +679,7 @@ public class NetworkServiceTest extends AbstractResourceTest {
 
         userService.assignNetwork(user.getId(), created.getId());
 
-        for (int i = 0; i < 5; i++) {
-            DeviceUpdate device = new DeviceUpdate();
-            device.setName(randomUUID().toString());
-            device.setId(randomUUID().toString());
-            device.setNetworkId(created.getId());
-            deviceService.deviceSave(device);
-        }
+        populateNetworkWithRandomDevices(created, 5);
 
         HivePrincipal principal = new HivePrincipal(user);
         principal.setDeviceIds(new HashSet<>(Collections.singleton("-1")));

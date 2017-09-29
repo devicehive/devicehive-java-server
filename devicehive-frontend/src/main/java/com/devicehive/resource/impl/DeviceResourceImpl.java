@@ -123,10 +123,8 @@ public class DeviceResourceImpl implements DeviceResource {
         }
         logger.debug("Device register method requested. Device ID : {}, Device: {}", deviceId, deviceUpdate);
 
-        deviceUpdate.setId(deviceId);
-
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceUpdate, principal);
+        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal);
         logger.debug("Device register finished successfully. Device ID: {}", deviceId);
 
         return ResponseFactory.response(Response.Status.NO_CONTENT);

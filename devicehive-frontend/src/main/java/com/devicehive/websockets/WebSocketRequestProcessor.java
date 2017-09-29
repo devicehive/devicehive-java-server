@@ -153,7 +153,7 @@ public class WebSocketRequestProcessor {
                 deviceHandlers.processDeviceList(request, session);
                 break;
             case DEVICE_SAVE:
-                deviceHandlers.processDeviceSave(request, session);
+                deviceHandlers.processDeviceSave(deviceId, request, session);
                 break;
             case DEVICE_DELETE:
                 deviceHandlers.processDeviceDelete(deviceId, request, session);

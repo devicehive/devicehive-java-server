@@ -84,20 +84,20 @@ public class DeviceService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deviceSaveAndNotify(DeviceUpdate device, HivePrincipal principal) {
-        logger.debug("Device: {}. Current principal: {}.", device.getId(), principal == null ? null : principal.getName());
+    public void deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
+        logger.debug("Device: {}. Current principal: {}.", deviceId, principal == null ? null : principal.getName());
 
         boolean principalHasUserAndAuthenticated = principal != null && principal.getUser() != null && principal.isAuthenticated();
         if (!principalHasUserAndAuthenticated) {
         	throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
-        DeviceVO oldDevice = deviceDao.findById(device.getId().orElse(null));
+        DeviceVO oldDevice = deviceDao.findById(deviceId);
 
-        DeviceNotification dn = deviceSaveByUser(device, principal.getUser());
+        DeviceNotification dn = deviceSaveByUser(deviceId, device, principal.getUser());
         dn.setTimestamp(timestampService.getDate());
-        deviceNotificationService.insert(dn, device.convertTo());
+        deviceNotificationService.insert(dn, device.convertTo(deviceId));
 
-        DeviceCreateRequest deviceCreateRequest = new DeviceCreateRequest(findById(device.getId().orElse(null)),
+        DeviceCreateRequest deviceCreateRequest = new DeviceCreateRequest(findById(deviceId),
                 oldDevice != null? oldDevice.getNetworkId() : null);
         Request request = Request.newBuilder()
                 .withBody(deviceCreateRequest)
@@ -115,14 +115,14 @@ public class DeviceService {
     }
 
     @Transactional
-    public DeviceNotification deviceSave(DeviceUpdate deviceUpdate) {
-        logger.debug("Device save executed for device update: id {}", deviceUpdate.getId());
+    public DeviceNotification deviceSave(String deviceId, DeviceUpdate deviceUpdate) {
+        logger.debug("Device save executed for device update: id {}", deviceId);
         Long networkId = deviceUpdate.getNetworkId().isPresent() ? deviceUpdate.getNetworkId().get() : null;
         //TODO [requires a lot of details]
-        DeviceVO existingDevice = deviceDao.findById(deviceUpdate.getId().orElse(null));
+        DeviceVO existingDevice = deviceDao.findById(deviceId);
 
         if (existingDevice == null) {
-            DeviceVO device = deviceUpdate.convertTo();
+            DeviceVO device = deviceUpdate.convertTo(deviceId);
             device.setNetworkId(networkId);
             deviceDao.persist(device);
             return ServerResponsesFactory.createNotificationForDevice(device, SpecialNotifications.DEVICE_ADD);
@@ -217,8 +217,8 @@ public class DeviceService {
         
     }
 
-    private DeviceNotification deviceSaveByUser(DeviceUpdate deviceUpdate, UserVO user) {
-        logger.debug("Device save executed for device: id {}, user: {}", deviceUpdate.getId(), user.getId());
+    private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, UserVO user) {
+        logger.debug("Device save executed for device: id {}, user: {}", deviceId, user.getId());
         //todo: rework when migration to VO will be done
         Long networkId = deviceUpdate.getNetworkId()
                 .map(id -> {
@@ -231,9 +231,9 @@ public class DeviceService {
                 })
                 .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
         // TODO [requies a lot of details]!
-        DeviceVO existingDevice = deviceDao.findById(deviceUpdate.getId().orElse(null));
+        DeviceVO existingDevice = deviceDao.findById(deviceId);
         if (existingDevice == null) {
-            DeviceVO device = deviceUpdate.convertTo();
+            DeviceVO device = deviceUpdate.convertTo(deviceId);
             device.setNetworkId(networkId);
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
