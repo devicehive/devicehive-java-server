@@ -148,11 +148,15 @@ public class CommandHandlers {
 
         Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
                 .sendSubscribeRequest(devices, filter, timestamp, returnUpdated, limit, callback);
-
-        pair.getRight().thenAccept(collection -> 
-                collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session)))
-        .join();
-
+        
+        pair.getRight()
+                .thenAccept(collection -> {
+                    WebSocketResponse response = new WebSocketResponse();
+                    response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
+                    clientHandler.sendMessage(request, response, session);
+                    collection.forEach(cmd -> clientHandler.sendMessage(createCommandMessage(cmd, pair.getLeft(), returnUpdated), session));
+                });
+        
         logger.debug("command/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
 
@@ -160,10 +164,7 @@ public class CommandHandlers {
                 .getAttributes()
                 .get(SUBSCRIPTION_SET_NAME))
                 .add(pair.getLeft());
-
-        WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-        clientHandler.sendMessage(request, response, session);
+        
     }
 
     @HiveWebsocketAuth

@@ -148,10 +148,15 @@ public class NotificationHandlers {
         Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
                 .subscribe(devices, filter, timestamp, callback);
 
-        pair.getRight().thenAccept(collection -> collection.forEach(notification -> {
-            JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
-            clientHandler.sendMessage(json, session);
-        })).join();
+        pair.getRight().thenAccept(collection -> {
+            WebSocketResponse response = new WebSocketResponse();
+            response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
+            clientHandler.sendMessage(request, response, session);
+            collection.forEach(notification -> {
+                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
+                clientHandler.sendMessage(json, session);
+            });
+        });
 
         logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
                 devices, deviceId, networks, timestamp, names, session.getId());
@@ -160,10 +165,6 @@ public class NotificationHandlers {
                 .getAttributes()
                 .get(SUBSCSRIPTION_SET_NAME))
                 .add(pair.getLeft());
-
-        WebSocketResponse response = new WebSocketResponse();
-        response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-        clientHandler.sendMessage(request, response, session);
     }
 
     /**
