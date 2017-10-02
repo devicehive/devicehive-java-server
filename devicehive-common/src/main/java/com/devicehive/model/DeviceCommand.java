@@ -271,11 +271,11 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         portableWriter.writeLong("lastUpdated", Objects.nonNull(lastUpdated) ? lastUpdated.getTime() :0);
         portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
         portableWriter.writeUTF("deviceId", deviceId);
-        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
+        final boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
         portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
         portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
         portableWriter.writeUTF("status", status);
-        boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
+        final boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
         portableWriter.writeUTF("result", resultIsNotNull ? result.getJsonString() : null);
         portableWriter.writeBoolean("isUpdated", Objects.nonNull(isUpdated)? isUpdated : false);
     }
@@ -288,24 +288,12 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         lastUpdated = new Date(portableReader.readLong("lastUpdated"));
         userId = portableReader.readLong("userId");
         deviceId = portableReader.readUTF("deviceId");
-        String parametersString = portableReader.readUTF("parameters");
-        if (Objects.nonNull(parametersString)) {
-            try {
-                parameters = new JsonStringWrapper(parametersString);
-            } catch (HiveException ex) {
-                throw new HiveException(Messages.PARAMS_NOT_JSON, ex.getCode());
-            }
-        }
+        final String parametersString = portableReader.readUTF("parameters");
+        parameters = JsonStringWrapper.wrapJson(parametersString, Messages.PARAMS_NOT_JSON);
         lifetime = portableReader.readInt("lifetime");
         status = portableReader.readUTF("status");
-        String resultString = portableReader.readUTF("result");
-        if (Objects.nonNull(resultString)) {
-            try {
-                result = new JsonStringWrapper(resultString);
-            } catch (HiveException ex) {
-                throw new HiveException(Messages.RESULT_NOT_JSON, ex.getCode());
-            }
-        }
+        final String resultString = portableReader.readUTF("result");
+        result = JsonStringWrapper.wrapJson(resultString, Messages.RESULT_NOT_JSON);
         isUpdated = portableReader.readBoolean("isUpdated");
     }
 
