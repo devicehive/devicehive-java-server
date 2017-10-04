@@ -148,6 +148,14 @@ public class NotificationHandlers {
         Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
                 .subscribe(devices, filter, timestamp, callback);
 
+        logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
+                devices, deviceId, networks, timestamp, names, session.getId());
+
+        ((CopyOnWriteArraySet) session
+                .getAttributes()
+                .get(SUBSCSRIPTION_SET_NAME))
+                .add(pair.getLeft());
+
         pair.getRight().thenAccept(collection -> {
             WebSocketResponse response = new WebSocketResponse();
             response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
@@ -157,14 +165,6 @@ public class NotificationHandlers {
                 clientHandler.sendMessage(json, session);
             });
         });
-
-        logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, networks, timestamp, names, session.getId());
-
-        ((CopyOnWriteArraySet) session
-                .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
-                .add(pair.getLeft());
     }
 
     /**
@@ -189,16 +189,19 @@ public class NotificationHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
+        CompletableFuture<Set<Long>> future;
         if (subscriptionId == null) {
-            notificationService.unsubscribe(sessionSubIds);
+            future = notificationService.unsubscribe(sessionSubIds);
             sessionSubIds.clear();
         } else {
-            notificationService.unsubscribe(Collections.singleton(subscriptionId));
+            future = notificationService.unsubscribe(Collections.singleton(subscriptionId));
             sessionSubIds.remove(subscriptionId);
         }
-        logger.debug("notification/unsubscribe completed for session {}", session.getId());
-
-        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+        
+        future.thenAccept(collection -> {
+            logger.debug("notification/unsubscribe completed for session {}", session.getId());
+            clientHandler.sendMessage(request, new WebSocketResponse(), session);
+        });
     }
 
     @HiveWebsocketAuth
@@ -237,7 +240,7 @@ public class NotificationHandlers {
         notificationService.insert(message, device)
                 .thenAccept(notification -> {
                     logger.debug("notification/insert proceed successfully. Session {}. Device ID {}", session, deviceId);
-                    response.addValue(NOTIFICATION, new InsertNotification(message.getId(), message.getTimestamp()), NOTIFICATION_TO_DEVICE);
+                    response.addValue(NOTIFICATION, new InsertNotification(notification.getId(), notification.getTimestamp()), NOTIFICATION_TO_DEVICE);
                     clientHandler.sendMessage(request, response, session);
                 });
     }

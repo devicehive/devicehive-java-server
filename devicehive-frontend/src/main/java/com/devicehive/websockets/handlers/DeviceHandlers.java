@@ -138,9 +138,12 @@ public class DeviceHandlers {
         if (!deviceId.matches("[a-zA-Z0-9-_]+")) {
             throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
-        deviceService.deviceSaveAndNotify(deviceId, device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        logger.debug("device/save process ended for session  {}", session.getId());
-
-        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        HivePrincipal hivePrincipal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        deviceService.deviceSaveAndNotify(deviceId, device, hivePrincipal).thenAccept(actionName -> {
+            logger.debug("device/save process ended for session  {}", session.getId());
+            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        });
+        
     }
 }

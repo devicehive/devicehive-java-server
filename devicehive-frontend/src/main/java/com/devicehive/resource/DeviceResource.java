@@ -126,14 +126,15 @@ public interface DeviceResource {
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    Response register(
+    void register(
             @ApiParam(value = "Device body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             @Pattern(regexp = "[a-zA-Z0-9-_]+", message = DEVICE_ID_CONTAINS_INVALID_CHARACTERS)
-            String deviceId);
+            String deviceId,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:

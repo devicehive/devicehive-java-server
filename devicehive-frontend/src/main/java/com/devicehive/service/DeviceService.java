@@ -83,7 +83,7 @@ public class DeviceService extends BaseDeviceService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
+    public CompletableFuture<String> deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", deviceId, principal == null ? null : principal.getName());
 
         boolean principalHasUserAndAuthenticated = principal != null && principal.getUser() != null && principal.isAuthenticated();
@@ -101,16 +101,19 @@ public class DeviceService extends BaseDeviceService {
         Request request = Request.newBuilder()
                 .withBody(deviceCreateRequest)
                 .build();
+        CompletableFuture<String> future = new CompletableFuture<>();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<String> future = new CompletableFuture<>();
             if (resAction.equals(Action.DEVICE_CREATE_RESPONSE)) {
                 future.complete(response.getBody().getAction().name());
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }
         };
+        
         rpcClient.call(request, responseConsumer);
+        
+        return future;
     }
 
     @Transactional
