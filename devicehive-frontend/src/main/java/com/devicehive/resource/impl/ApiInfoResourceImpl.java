@@ -24,9 +24,9 @@ package com.devicehive.resource.impl;
 import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.resource.ApiInfoResource;
+import com.devicehive.resource.BaseApiInfoResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.CacheInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import org.hibernate.SessionFactory;
@@ -34,7 +34,6 @@ import org.hibernate.stat.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
@@ -50,45 +49,25 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiInfoResourceImpl.class);
 
-    private final TimestampService timestampService;
     private final Environment env;
     private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
-
-    @Value("${server.context-path}")
-    private String contextPath;
-
-    @Value("${build.version}")
-    private String appVersion;
+    private final TimestampService timestampService;
+    private final BaseApiInfoResource baseApiInfoResource;
 
     @Autowired
-    public ApiInfoResourceImpl(TimestampService timestampService, Environment env, LocalContainerEntityManagerFactoryBean entityManagerFactory) {
+    public ApiInfoResourceImpl(TimestampService timestampService,
+            Environment env,
+            LocalContainerEntityManagerFactoryBean entityManagerFactory,
+            BaseApiInfoResource baseApiInfoResource) {
         this.timestampService = timestampService;
         this.env = env;
         this.entityManagerFactory = entityManagerFactory;
+        this.baseApiInfoResource = baseApiInfoResource;
     }
 
     @Override
     public Response getApiInfo(UriInfo uriInfo) {
-        logger.debug("ApiInfoVO requested");
-        ApiInfoVO apiInfo = new ApiInfoVO();
-        String version = Constants.class.getPackage().getImplementationVersion();
-
-        if(version == null) {
-            apiInfo.setApiVersion(appVersion);
-        } else {
-            apiInfo.setApiVersion(version);
-        }
-        apiInfo.setServerTimestamp(timestampService.getDate());
-        
-        // Generate websocket url based on current request url
-        int port = uriInfo.getBaseUri().getPort();
-        if (port == -1) {
-            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + contextPath + "/websocket");
-        } else {
-            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
-        }
-        
-        return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
+        return baseApiInfoResource.getApiInfo(uriInfo);
     }
 
     @Override

@@ -58,14 +58,13 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Component
-public class DeviceService {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceService.class);
+public class DeviceService extends BaseDeviceService {
+    private static final Logger logger = LoggerFactory.getLogger(BaseDeviceService.class);
 
     private final DeviceNotificationService deviceNotificationService;
     private final NetworkService networkService;
     private final UserService userService;
     private final TimestampService timestampService;
-    private final DeviceDao deviceDao;
     private final RpcClient rpcClient;
 
     @Autowired
@@ -75,16 +74,16 @@ public class DeviceService {
                          TimestampService timestampService,
                          DeviceDao deviceDao,
                          RpcClient rpcClient) {
+        super(deviceDao);
         this.deviceNotificationService = deviceNotificationService;
         this.networkService = networkService;
         this.userService = userService;
         this.timestampService = timestampService;
-        this.deviceDao = deviceDao;
         this.rpcClient = rpcClient;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
+    public CompletableFuture<String> deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", deviceId, principal == null ? null : principal.getName());
 
         boolean principalHasUserAndAuthenticated = principal != null && principal.getUser() != null && principal.isAuthenticated();
@@ -102,16 +101,19 @@ public class DeviceService {
         Request request = Request.newBuilder()
                 .withBody(deviceCreateRequest)
                 .build();
+        CompletableFuture<String> future = new CompletableFuture<>();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<String> future = new CompletableFuture<>();
             if (resAction.equals(Action.DEVICE_CREATE_RESPONSE)) {
                 future.complete(response.getBody().getAction().name());
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }
         };
+        
         rpcClient.call(request, responseConsumer);
+        
+        return future;
     }
 
     @Transactional
@@ -142,17 +144,6 @@ public class DeviceService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public DeviceVO findByIdWithPermissionsCheck(String deviceId, HivePrincipal principal) {
-        List<DeviceVO> result = findByIdWithPermissionsCheck(Collections.singletonList(deviceId), principal);
-        return result.isEmpty() ? null : result.get(0);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceVO> findByIdWithPermissionsCheck(Collection<String> deviceIds, HivePrincipal principal) {
-        return getDeviceList(new ArrayList<>(deviceIds), principal);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
         DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
 
@@ -180,11 +171,11 @@ public class DeviceService {
         return deviceDao.deleteById(deviceId) != 0;
     }
 
-    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest request) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
-
-        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
-        return future.thenApply(r -> ((ListDeviceResponse) r.getBody()).getDevices());
+    public List<DeviceVO> list(ListDeviceRequest request) {
+        
+        return deviceDao.list(request.getName(), request.getNamePattern(), request.getNetworkId(),
+                request.getNetworkName(), request.getSortField(), request.isSortOrderAsc(),
+                request.getTake(), request.getSkip(), request.getPrincipal());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -262,8 +253,4 @@ public class DeviceService {
         }
     }
 
-    private List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {
-        return deviceDao.getDeviceList(deviceIds, principal);
-    }
-    
 }

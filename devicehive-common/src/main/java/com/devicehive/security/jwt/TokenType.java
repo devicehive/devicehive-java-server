@@ -20,6 +20,34 @@ package com.devicehive.security.jwt;
  * #L%
  */
 
+import com.devicehive.exceptions.HiveException;
+
+import java.util.Arrays;
+
 public enum TokenType {
-    REFRESH, ACCESS
+    REFRESH(0, "REFRESH"),
+    ACCESS(1, "ACCESS");
+
+    private Integer id;
+    private String name;
+    
+    TokenType(Integer id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+    
+    public static TokenType getById(Integer id) {
+        return Arrays.stream(values())
+                .filter(tokenType -> tokenType.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new HiveException("No such a token type"));
+    }
 }

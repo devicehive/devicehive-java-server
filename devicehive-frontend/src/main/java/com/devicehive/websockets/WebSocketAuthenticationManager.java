@@ -39,6 +39,7 @@ import java.util.UUID;
 public class WebSocketAuthenticationManager {
 
     public static final String SESSION_ATTR_AUTHENTICATION = "authentication";
+    public static final String SESSION_ATTR_JWT_TOKEN = "jwtToken";
 
     private final AuthenticationManager authenticationManager;
 

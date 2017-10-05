@@ -23,7 +23,6 @@ package com.devicehive.base;
 import com.devicehive.application.DeviceHiveApplication;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
-import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.google.gson.Gson;
@@ -58,7 +57,7 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
     public static final String INVALID_PASSWORD = "12345";
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6MSwiYWN0aW9ucyI6WyIqIl0sIm5ldHdvcmtJZHMiOlsiKiJdLCJkZXZpY2VJZHMiOlsiKiJdLCJleHBpcmF0aW9uIjoxNTU5NDExOTQwMDAwLCJ0b2tlblR5cGUiOiJBQ0NFU1MifX0.LNaJdW1g3gGHyus3dWgn3IljNJpHnGTj_-cBon4M3ig";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5NDExOTQwMDAwLCJ0IjoxfX0.h74Nn2pSbaN1PxrrF8KfohXeGoGpJ4au4YBpHXyvVsA";
 
     @LocalServerPort
     protected Integer port;
@@ -70,9 +69,6 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     @Autowired
     protected Gson gson;
-
-    @Autowired
-    protected JwtTokenService jwtTokenService;
 
     @Before
     public void initSpringBootIntegrationTest() {
@@ -103,14 +99,6 @@ public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {
 
     protected String tokenAuthHeader(String key) {
         return "Bearer " + key;
-    }
-
-    protected String accessTokenRequest(String login, String password) {
-        JwtRequestVO request = new JwtRequestVO();
-        request.setLogin(login);
-        request.setPassword(password);
-        JwtTokenVO token = jwtTokenService.createJwtToken(request);
-        return token.getAccessToken();
     }
 
     @SuppressWarnings("unchecked")

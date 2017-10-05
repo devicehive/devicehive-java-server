@@ -118,6 +118,8 @@ public class Messages {
     public static final String PAYLOAD_NOT_FOUND = BidBundle.get("PAYLOAD_NOT_FOUND");
     public static final String SUBSCRIPTION_NOT_FOUND = BidBundle.get("SUBSCRIPTION_NOT_FOUND");
     public static final String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = BidBundle.get("DEVICE_ID_CONTAINS_INVALID_CHARACTERS");
+    public static final String INVALID_TOKEN = BidBundle.get("INVALID_TOKEN");
+    public static final String EXPIRED_TOKEN = BidBundle.get("EXPIRED_TOKEN");
 
     /**
      * Bundle to extract localized strings from property files.
