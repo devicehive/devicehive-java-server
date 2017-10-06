@@ -132,7 +132,7 @@ public interface DeviceResource {
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
-            @Pattern(regexp = "[a-zA-Z0-9-_]+", message = DEVICE_ID_CONTAINS_INVALID_CHARACTERS)
+            @Pattern(regexp = "[a-zA-Z0-9-]+", message = DEVICE_ID_CONTAINS_INVALID_CHARACTERS)
             String deviceId);
 
     /**
