@@ -25,13 +25,9 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebSocketClientHandler;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.NetworkService;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -46,7 +42,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -54,7 +49,6 @@ import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.OK;
 
 @Component
 public class NetworkHandlers {

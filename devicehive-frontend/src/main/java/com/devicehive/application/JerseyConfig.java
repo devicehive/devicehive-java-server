@@ -27,7 +27,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
 import org.reflections.Reflections;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.ApplicationPath;
@@ -50,8 +49,7 @@ public class JerseyConfig extends ResourceConfig {
                 DeviceResourceImpl.class,
                 NetworkResourceImpl.class,
                 WelcomeResourceImpl.class,
-                UserResourceImpl.class,
-                JwtTokenResourceImpl.class);
+                UserResourceImpl.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 

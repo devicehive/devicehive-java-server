@@ -102,11 +102,10 @@ public class DeviceResourceImpl implements DeviceResource {
             request.setTake(take);
             request.setSkip(skip);
             request.setPrincipal(principal);
-            deviceService.list(request)
-                    .thenApply(devices -> {
-                        logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
-                        return ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
-                    }).thenAccept(asyncResponse::resume);
+            List<DeviceVO> devices = deviceService.list(request);
+            logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
+            final Response response = ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+            asyncResponse.resume(response);
         }
     }
 
@@ -114,20 +113,22 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public Response register(DeviceUpdate deviceUpdate, String deviceId) {
+    public void register(DeviceUpdate deviceUpdate, String deviceId, @Suspended final AsyncResponse asyncResponse) {
         if (deviceUpdate == null){
-            return ResponseFactory.response(
-                    BAD_REQUEST,
+            final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
             );
+            asyncResponse.resume(response);
         }
         logger.debug("Device register method requested. Device ID : {}, Device: {}", deviceId, deviceUpdate);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal);
-        logger.debug("Device register finished successfully. Device ID: {}", deviceId);
-
-        return ResponseFactory.response(Response.Status.NO_CONTENT);
+        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal).thenAccept(actionName -> {
+            logger.debug("Device register finished successfully. Device ID: {}", deviceId);
+            final Response response = ResponseFactory.response(Response.Status.NO_CONTENT);
+            asyncResponse.resume(response);
+        });
+        
     }
 
     /**
