@@ -68,7 +68,7 @@ public class HiveValidator {
             builder.append(String.format("On property %s (value: %s): %s ; %n", cv.getPropertyPath(),
                                          cv.getInvalidValue(), cv.getMessage()));
         }
-        return StringUtils.removeEnd(builder.toString(), " \n");
+        return StringUtils.removeEnd(builder.toString(), String.format("%n"));
     }
 
 }
