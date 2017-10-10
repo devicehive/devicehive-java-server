@@ -35,7 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 @Api(tags = {"ApiInfoVO"}, description = "API information", consumes = "application/json")
-@Path("/auth/info")
+@Path("/info")
 @Produces({"application/json"})
 public interface AuthApiInfoResource {
 
