@@ -83,7 +83,7 @@ export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehi
 
 ```
 
-also replace
+Replace
 
 ```xml
 <serialization>
@@ -102,7 +102,25 @@ with
 </serialization>
 ```
 
-in hazelcast.xml localted in bin folder of hazelcast.
+in hazelcast.xml localted in bin folder of hazelcast. Also replace all the map and and multimap sections of hazelcast.xml with:
+
+```
+<map name="default">
+  <eviction-policy>LRU</eviction-policy>
+</map>
+<map name="NOTIFICATIONS-MAP">
+  <time-to-live-seconds>120</time-to-live-seconds>
+</map>
+<map name="COMMANDS-MAP">
+  <time-to-live-seconds>120</time-to-live-seconds>
+</map>
+<multimap name="default">
+  <backup-count>0</backup-count>
+  <async-backup-count>1</async-backup-count>
+  <value-collection-type>SET</value-collection-type>
+</multimap>
+```
+
 
 Run hzstart.sh. At this ensure that correct value of property hazelcast.cluster.members is installed in
 
@@ -121,7 +139,7 @@ database.
 
 Running application
 ---------------------
-* To start application, you have to start the backend and the frontend. To do this, first run following command:
+* To start application, you have to start backend, frontend and auth microservices. To do this, first run following command:
 
 `java -jar ${devicehive-java-server-directory}/devicehive-backend/target/devicehive-backend-<version>-boot.jar`
  
@@ -129,13 +147,18 @@ Wait for the application to start, then run:
 
 `java -jar ${devicehive-java-server-directory}/devicehive-frontend/target/devicehive-frontend-<version>-boot.jar`
 
+and 
+
+`java -jar ${devicehive-java-server-directory}/devicehive-auth/target/devicehive-auth-<version>-boot.jar`
+
 This will start embedded undertow application server on default port 8080 and deploy DeviceHive application.
-You can visit http://localhost:8080/dh/swagger from your web browser to start learning the APIs.
+You can visit http://localhost:8080/dh/swagger from your web browser to start learning the frontend's APIs.
+Also you can visit http://localhost:8090/dh/swagger from your web browser to start learning the auth's APIs.
 
 For devicehive-frontend and devicehive-backend logging level can be changed by adding the following properties to the command above:
 
 `-Droot.log.level=value1 -Dcom.devicehive.log.level=value2`
 
 The values can be: TRACE, DEBUG, INFO, WARN, ERROR. If the properties are absent the default values will be used.
-For devicehive-frontend default values for value1 and value2 are WARN and INFO correspondingly.
+For devicehive-frontend and devicehive-auth default values for value1 and value2 are WARN and INFO correspondingly.
 For devicehive-backend the default value for both is INFO.
