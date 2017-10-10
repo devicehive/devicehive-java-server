@@ -44,7 +44,7 @@ import javax.ws.rs.core.Response;
 @Api(tags = {"Device"}, description = "Represents a device, a unit that runs microcode and communicates to this API.", consumes = "application/json")
 @Produces({"application/json"})
 public interface DeviceResource {
-    String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = "Device Id can only contain letters, digits, dashes and underscores.";
+    String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = "Device Id can only contain letters, digits and dashes.";
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
