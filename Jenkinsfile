@@ -70,7 +70,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           echo("Install dependencies with npm")
           sh '''
-            sudo npm install -g mocha mochawesome
+            sudo npm install -g mocha@3.5.3 mochawesome
             sudo npm i
           '''
 
