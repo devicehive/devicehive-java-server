@@ -19,6 +19,7 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$HC_GROUP_NAME" ] \
     || [ -z "$HC_GROUP_PASSWORD" ] \
     || [ -z "$DH_ZK_ADDRESS" ] \
+    || [ -z "$DH_AUTH_URL" ] \
     || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
 then
     echo "Some of required environment variables are not set or empty."
@@ -31,6 +32,7 @@ then
     echo "- HC_GROUP_NAME"
     echo "- HC_GROUP_PASSWORD"
     echo "- DH_ZK_ADDRESS"
+    echo "- DH_AUTH_URL"
     echo "And one of variants of Kafka bootstrap parameters:"
     echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
     echo "or"
