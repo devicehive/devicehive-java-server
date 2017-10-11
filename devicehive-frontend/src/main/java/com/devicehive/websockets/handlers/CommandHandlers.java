@@ -210,7 +210,6 @@ public class CommandHandlers {
 
         logger.debug("command/insert action for {}, Session ", deviceId, session.getId());
 
-        Set<DeviceVO> devices = new HashSet<>();
         if (deviceId == null) {
             throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
@@ -220,24 +219,21 @@ public class CommandHandlers {
             throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
         
-        devices.add(deviceVO);
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
         final UserVO user = principal.getUser();
 
         WebSocketResponse response = new WebSocketResponse();
-        for (DeviceVO device : devices) {
-            commandService.insert(deviceCommand, device, user)
-                    .thenAccept(command -> {
-                        response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
-                        clientHandler.sendMessage(request, response, session);
-                    })
-                    .exceptionally(ex -> {
-                        logger.warn("Unable to insert notification.", ex);
-                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
-                    });
-        }
+        commandService.insert(deviceCommand, deviceVO, user)
+                .thenAccept(command -> {
+                    response.addValue(COMMAND, command, COMMAND_TO_CLIENT);
+                    clientHandler.sendMessage(request, response, session);
+                })
+                .exceptionally(ex -> {
+                    logger.warn("Unable to insert notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                });
     }
 
     @HiveWebsocketAuth
