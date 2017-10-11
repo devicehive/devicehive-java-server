@@ -54,6 +54,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -190,8 +191,11 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             builder = JsonMessageBuilder
                     .createErrorResponseBuilder(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal server error");
         }
-        session.sendMessage(
-                new TextMessage(GsonFactory.createGson().toJson(builder.build())));
+        try {
+            session.sendMessage(new TextMessage(GsonFactory.createGson().toJson(builder.build())));
+        } catch (ClosedChannelException closedChannelException) {
+            logger.error("WebSocket error: Channel is closed");
+        }
     }
 
     @Autowired

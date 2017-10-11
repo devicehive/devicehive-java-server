@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.3</version>
+    <version>3.3.4</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -62,6 +62,7 @@
         <swagger.version>1.5.4</swagger.version>
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
         <javax.el.version>2.2.4</javax.el.version>
+        <javax.websocket.version>1.1</javax.websocket.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -81,7 +82,7 @@
 
         <jjwt.version>0.7.0</jjwt.version>
 
-        <skipTests>false</skipTests>
+        <skipTests>true</skipTests>
         <packaging.type>jar</packaging.type>
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
@@ -95,6 +96,8 @@
         <module>devicehive-riak-dao</module>
         <module>devicehive-shim-api</module>
         <module>devicehive-shim-kafka-impl</module>
+        <module>devicehive-proxy-api</module>
+        <module>devicehive-proxy-ws-kafka-impl</module>
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>

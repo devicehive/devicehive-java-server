@@ -43,7 +43,6 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
 
-import static com.devicehive.configuration.Constants.DEVICE_ID;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
 import static com.devicehive.model.rpc.ListDeviceRequest.createListDeviceRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -129,18 +128,17 @@ public class DeviceHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
-    public void processDeviceSave(JsonObject request, WebSocketSession session) throws HiveException {
+    public void processDeviceSave(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
-        String deviceId = device.getId().orElse(null);
 
         logger.debug("device/save process started for session {}", session.getId());
         if (deviceId == null) {
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        if (!deviceId.matches("[a-zA-Z0-9-_]+")) {
+        if (!deviceId.matches("[a-zA-Z0-9-]+")) {
             throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
-        deviceService.deviceSaveAndNotify(device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        deviceService.deviceSaveAndNotify(deviceId, device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         logger.debug("device/save process ended for session  {}", session.getId());
 
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);

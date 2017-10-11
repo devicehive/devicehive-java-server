@@ -44,7 +44,7 @@ public class AllExceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception exception) {
-        logger.error("Error: ", exception);
+        logger.error("Error: {}", exception.getMessage());
 
         Response.Status responseCode = Response.Status.INTERNAL_SERVER_ERROR;
         String message = exception.getMessage();

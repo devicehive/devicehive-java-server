@@ -70,7 +70,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           echo("Install dependencies with npm")
           sh '''
-            sudo npm install -g mocha mochawesome
+            sudo npm install -g mocha@3.5.3 mochawesome
             sudo npm i
           '''
 
@@ -84,8 +84,10 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
             jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" > config.json
           '''
 
-          echo("Run integration tests")
-          sh 'mocha -R mochawesome integration-tests'
+          timeout(time:10, unit: 'MINUTES') {
+            echo("Run integration tests")
+            sh 'mocha -R mochawesome integration-tests'
+          }
         }
       } finally {
         archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true

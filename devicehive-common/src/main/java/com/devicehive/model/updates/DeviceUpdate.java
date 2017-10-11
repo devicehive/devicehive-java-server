@@ -36,10 +36,6 @@ public class DeviceUpdate implements HiveEntity {
 
     private static final long serialVersionUID = -7498444232044147881L;
 
-    @SerializedName("id")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
-    private String id;
-
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
@@ -56,14 +52,6 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("isBlocked")
     private Boolean blocked;
-
-    public Optional<String> getId() {
-        return Optional.ofNullable(id);
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public Optional<String> getName() {
         return Optional.ofNullable(name);
@@ -97,10 +85,10 @@ public class DeviceUpdate implements HiveEntity {
         this.blocked = blocked;
     }
 
-    public DeviceVO convertTo() {
+    public DeviceVO convertTo(String deviceId) {
         DeviceVO device = new DeviceVO();
-        if (this.id != null){
-            device.setDeviceId(this.id);
+        if (deviceId != null){
+            device.setDeviceId(deviceId);
         }
         if (this.data != null){
             device.setData(this.data);
