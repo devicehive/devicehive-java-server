@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.devicehive</groupId>
+        <artifactId>devicehive-server</artifactId>
+        <version>3.4.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>devicehive-proxy-ws-kafka-impl</artifactId>
+    <packaging>jar</packaging>
+    <name>DeviceHive Proxy WebSocket Kafka Implementation</name>
+
+    <properties>
+        <project.rootdir>${project.parent.basedir}</project.rootdir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-client-api</artifactId>
+            <version>${javax.websocket.version}</version>
+        </dependency>
+    </dependencies>
+</project>

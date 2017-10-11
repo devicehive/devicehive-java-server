@@ -81,6 +81,19 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>proxy-ws-kafka</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-proxy-ws-kafka-impl</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
     <build>
         <plugins>
