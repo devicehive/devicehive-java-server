@@ -21,6 +21,7 @@ package com.devicehive.application;
  */
 
 import com.devicehive.messages.handler.DeviceCreateHandler;
+import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.*;
 import com.devicehive.messages.handler.dao.list.*;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
@@ -57,6 +58,7 @@ public class RequestHandlersMapper {
     private final ListDeviceHandler listDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
+    private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
@@ -78,7 +80,8 @@ public class RequestHandlersMapper {
                                  DeviceCreateHandler deviceCreateHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
-                                 CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler) {
+                                 CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
+                                 PluginSubscribeRequestHandler pluginSubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
         this.notificationInsertHandler = notificationInsertHandler;
@@ -96,6 +99,7 @@ public class RequestHandlersMapper {
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
+        this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
     }
 
     @PostConstruct
@@ -113,6 +117,7 @@ public class RequestHandlersMapper {
             put(Action.COMMAND_UNSUBSCRIBE_REQUEST, commandUnsubscribeRequestHandler);
             put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, commandUpdateSubscribeRequestHandler);
             put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, commandGetSubscriptionRequestHandler);
+            put(Action.PLUGIN_SUBSCRIBE_REQUEST, pluginSubscribeRequestHandler);
 
             put(Action.LIST_USER_REQUEST, listUserHandler);
 

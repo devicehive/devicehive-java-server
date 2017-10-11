@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
@@ -68,6 +69,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_T
 import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.NotificationSearchRequest.createNotificationSearchRequest;
 import static javax.servlet.http.HttpServletResponse.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class NotificationHandlers {
@@ -101,43 +103,24 @@ public class NotificationHandlers {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
-        Set<String> devices = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
-        final Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
+        Set<String> deviceIds = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
+        final Set<Long> networkIds = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
         final Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
         
         logger.debug("notification/subscribe requested for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, networks, timestamp, names, session.getId());
+                deviceIds, deviceId, networkIds, timestamp, names, session.getId());
 
-        devices = prepareActualList(devices, deviceId);
+        deviceIds = prepareActualList(deviceIds, deviceId);
 
         Filter filter = new Filter();
         filter.setNames(names);
         filter.setPrincipal(principal);
         filter.setEventName(Action.NOTIFICATION_EVENT.name());
-        List<DeviceVO> actualDevices;
-        if (!devices.isEmpty()) {
-            deviceService.getAllowedExistingDevices(devices, principal);
-            filter.setDeviceIds(devices);
-        }
-        if (networks != null) {
-            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
-                    networkService.getWithDevices(network, authentication)
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
-            if (actualNetworks.size() != networks.size()) {
-                throw new HiveException(String.format(Messages.NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
-            }
-            Set<String> networkDevices = actualNetworks.stream()
-                    .map(NetworkWithUsersAndDevicesVO::getDevices)
-                    .flatMap(Collection::stream)
-                    .map(DeviceVO::getDeviceId)
-                    .collect(Collectors.toSet());
-            devices.addAll(networkDevices);
-            filter.setNetworkIds(networks);
-        }
-        if (devices.isEmpty()) {
-            ListDeviceRequest listDeviceRequest = new ListDeviceRequest(ASC.name(), principal);
-            actualDevices = deviceService.list(listDeviceRequest);
-            devices = actualDevices.stream().map(DeviceVO::getDeviceId).collect(Collectors.toSet());
+        Set<String> availableDeviceIds = deviceService.getAvailableDeviceIds(deviceIds, networkIds);
+        filter.setDeviceIds(availableDeviceIds);
+        filter.setNetworkIds(networkIds);
+
+        if (isEmpty(deviceIds) && isEmpty(networkIds)) {
             filter.setGlobal(true);
         }
 
@@ -147,10 +130,10 @@ public class NotificationHandlers {
         };
 
         Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                .subscribe(devices, filter, timestamp, callback);
+                .subscribe(availableDeviceIds, filter, timestamp, callback);
 
         logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
-                devices, deviceId, networks, timestamp, names, session.getId());
+                deviceIds, deviceId, networkIds, timestamp, names, session.getId());
 
         ((CopyOnWriteArraySet) session
                 .getAttributes()

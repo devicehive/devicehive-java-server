@@ -29,9 +29,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.DeviceCreateRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
@@ -43,6 +41,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +52,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService extends BaseDeviceService {
@@ -185,7 +186,38 @@ public class DeviceService extends BaseDeviceService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
+    public Set<String> getAvailableDeviceIds(Set<String> deviceIds, Set<Long> networkIds) {
+        Set<String> availableDeviceIds = new HashSet<>();
+        if (!isEmpty(deviceIds)) {
+            availableDeviceIds.addAll(getAllowedExistingDeviceIds(deviceIds));
+        }
+
+        final HivePrincipal principal =(HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!isEmpty(networkIds)) {
+            
+            Set<String> availableDeviceIdsForNetworks = networkService.getDeviceIdsForNetworks(networkIds, principal);
+            availableDeviceIds.addAll(availableDeviceIdsForNetworks);
+        }
+
+        if (availableDeviceIds.isEmpty()) {
+            availableDeviceIds = findByIdWithPermissionsCheck(Collections.emptyList(), principal)
+                    .stream()
+                    .map(DeviceVO::getDeviceId)
+                    .collect(Collectors.toSet());
+        }
+
+        return availableDeviceIds;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public Set<String> getAllowedExistingDeviceIds(Set<String> deviceIds) {
+        return getAllowedExistingDevices(deviceIds).stream()
+                .map(deviceVO -> deviceVO.getDeviceId())
+                .collect(Collectors.toSet());
+    }
+    
+    private List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
         Set<String> allowedIds = devices.stream()
                 .map(deviceVO -> deviceVO.getDeviceId())
