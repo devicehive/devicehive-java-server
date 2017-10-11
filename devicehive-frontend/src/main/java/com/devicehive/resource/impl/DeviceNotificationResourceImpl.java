@@ -27,6 +27,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.converters.SetHelper;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -57,8 +58,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
+import static com.devicehive.model.converters.SetHelper.toLongSet;
+import static com.devicehive.model.converters.SetHelper.toStringSet;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -171,11 +173,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     private void poll(final long timeout,
                       final String deviceIdsCsv,
                       final String networkIdsCsv,
-                      final String namesString,
+                      final String namesCsv,
                       final String timestamp,
                       final AsyncResponse asyncResponse) throws InterruptedException {
-        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date ts = Optional.ofNullable(timestamp)
                 .map(TimestampQueryParamParser::parse)
                 .orElse(timestampService.getDate());
@@ -187,40 +187,9 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
-        Set<String> deviceIds = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
-                .map(Arrays::asList)
-                .map(list -> list.stream().collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
-
-        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-
-        if (networkIdsCsv != null) {
-            Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
-                    .map(Arrays::asList)
-                    .map(list -> list.stream()
-                            .map(n -> gson.fromJson(n, Long.class))
-                            .map(network -> networkService.getWithDevices(network, authentication))
-                            .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
-                            .flatMap(Collection::stream)
-                            .map(DeviceVO::getDeviceId)
-                            .collect(Collectors.toSet())
-                    ).orElse(Collections.emptySet());
-            availableDevices.addAll(networkDevices);
-        }
-        if (availableDevices.isEmpty()) {
-            availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
-                    .stream()
-                    .map(DeviceVO::getDeviceId)
-                    .collect(Collectors.toSet());
-
-        }
-
-        Set<String> notifications = Optional.ofNullable(StringUtils.split(namesString, ','))
-                .map(Arrays::asList)
-                .map(list -> list.stream().collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+        Set<String> deviceIds = toStringSet(deviceIdsCsv);
+        Set<Long> networkIds = toLongSet(networkIdsCsv);
+        Set<String> availableDeviceIds = deviceService.getAvailableDeviceIds(deviceIds, networkIds);
 
         BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
@@ -232,10 +201,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         };
 
         Filter filter = new Filter();
-        filter.setNames(notifications);
-        if (!availableDevices.isEmpty()) {
+        filter.setNames(toStringSet(namesCsv));
+        
+        if (!availableDeviceIds.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                    .subscribe(availableDevices, filter, ts, callback);
+                    .subscribe(availableDeviceIds, filter, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
