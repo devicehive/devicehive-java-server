@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.3.4</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -82,7 +82,7 @@
 
         <jjwt.version>0.7.0</jjwt.version>
 
-        <skipTests>false</skipTests>
+        <skipTests>true</skipTests>
         <packaging.type>jar</packaging.type>
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
