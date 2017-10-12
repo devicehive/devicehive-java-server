@@ -20,6 +20,8 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.google.gson.annotations.SerializedName;
 import com.hazelcast.core.HazelcastInstance;
@@ -166,7 +168,7 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
         portableWriter.writeUTF("notification", notification);
         portableWriter.writeUTF("deviceId", deviceId);
         portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
-        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
+        final boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
         portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
     }
 
@@ -176,10 +178,8 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
         notification = portableReader.readUTF("notification");
         deviceId = portableReader.readUTF("deviceId");
         timestamp = new Date(portableReader.readLong("timestamp"));
-        String parametersString = portableReader.readUTF("parameters");
-        if (Objects.nonNull(parametersString)) {
-            parameters = new JsonStringWrapper(parametersString);
-        }
+        final String parametersString = portableReader.readUTF("parameters");
+        parameters = JsonStringWrapper.wrapJson(parametersString, Messages.PARAMS_NOT_JSON);
     }
 
     @Override

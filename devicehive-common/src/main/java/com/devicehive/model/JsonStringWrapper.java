@@ -50,9 +50,21 @@ public class JsonStringWrapper implements HiveEntity {
         try {
             new JsonParser().parse(jsonString).getAsJsonObject();
         } catch (Exception e) {
-            throw new HiveException(Messages.PARAMS_NOT_JSON, BAD_REQUEST.getStatusCode());
+            throw new HiveException(Messages.ARGUMENT_NOT_JSON, BAD_REQUEST.getStatusCode());
         }
         this.jsonString = jsonString;
+    }
+
+    public static JsonStringWrapper wrapJson(String jsonString, String exceptionMessage) {
+        if (Objects.nonNull(jsonString)) {
+            try {
+                return new JsonStringWrapper(jsonString);
+            } catch (HiveException ex) {
+                throw new HiveException(exceptionMessage, ex.getCode());
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
