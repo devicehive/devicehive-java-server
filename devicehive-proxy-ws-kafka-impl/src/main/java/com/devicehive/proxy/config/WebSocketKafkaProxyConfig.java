@@ -28,7 +28,7 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:kafka-ws-proxy.properties")
 public class WebSocketKafkaProxyConfig {
 
-    @Value("${proxy.connect:ws://localhost:3000}")
+    @Value("${proxy.connect:localhost:3000}")
     private String proxyConnect;
 
     public String getProxyConnect() {

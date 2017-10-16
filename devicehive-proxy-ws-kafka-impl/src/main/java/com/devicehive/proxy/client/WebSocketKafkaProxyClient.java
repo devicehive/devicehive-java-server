@@ -28,7 +28,6 @@ import com.devicehive.proxy.api.payload.NotificationPayload;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -47,12 +46,6 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketKafkaProxyClient.class);
 
     private WebSocketKafkaProxyConfig webSocketKafkaProxyConfig;
-
-    @Autowired
-    public void setWebSocketKafkaProxyConfig(WebSocketKafkaProxyConfig webSocketKafkaProxyConfig) {
-        this.webSocketKafkaProxyConfig = webSocketKafkaProxyConfig;
-    }
-
     private Map<String, CompletableFuture<ProxyMessage>> futureMap;
     private Map<String, Boolean> ackReceived;
     private Session session;
@@ -131,9 +124,13 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
 
             if ("notif".equals(message.getType()) && message.getAction() == null) {
                 NotificationPayload payload = (NotificationPayload) message.getPayload();
-                notificationHandler.handle(payload.getValue());
+                notificationHandler.handle(payload.getValue(), this);
             }
             logger.debug("Message {} was received", message);
         });
+    }
+
+    public void setWebSocketKafkaProxyConfig(WebSocketKafkaProxyConfig webSocketKafkaProxyConfig) {
+        this.webSocketKafkaProxyConfig = webSocketKafkaProxyConfig;
     }
 }

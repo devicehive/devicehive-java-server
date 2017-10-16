@@ -20,6 +20,7 @@ package com.devicehive.proxy.api.payload;
  * #L%
  */
 
+import java.util.Collections;
 import java.util.List;
 
 public class TopicCreatePayload implements Payload {
@@ -28,6 +29,10 @@ public class TopicCreatePayload implements Payload {
 
     public TopicCreatePayload(List<String> topics) {
         this.topics = topics;
+    }
+
+    public TopicCreatePayload(String topic) {
+        this.topics = Collections.singletonList(topic);
     }
 
     public List<String> getTopics() {

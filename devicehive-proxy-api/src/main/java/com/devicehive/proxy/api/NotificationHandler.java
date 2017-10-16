@@ -22,5 +22,5 @@ package com.devicehive.proxy.api;
 
 public interface NotificationHandler {
 
-    void handle(String message);
+    void handle(String message, ProxyClient client);
 }

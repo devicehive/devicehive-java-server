@@ -21,11 +21,17 @@ package com.devicehive.proxy.client;
  */
 
 import com.devicehive.proxy.api.ProxyMessage;
+import com.devicehive.proxy.api.payload.Payload;
+import com.devicehive.proxy.api.payload.TopicCreatePayload;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
+import java.util.List;
 
 class GsonProxyMessageEncoder implements Encoder.Text<ProxyMessage> {
 
@@ -33,6 +39,16 @@ class GsonProxyMessageEncoder implements Encoder.Text<ProxyMessage> {
 
     @Override
     public String encode(ProxyMessage message) throws EncodeException {
+        final Payload payload = message.getPayload();
+        if (payload instanceof TopicCreatePayload) {
+            JsonObject json = new JsonObject();
+            JsonElement topicsJson = gson.toJsonTree(((TopicCreatePayload) payload).getTopics(), new TypeToken<List<String>>() {}.getType());
+            json.addProperty("id", message.getId());
+            json.addProperty("t", message.getType());
+            json.addProperty("a", message.getAction());
+            json.add("p", topicsJson);
+            return gson.toJson(json);
+        }
         return gson.toJson(message);
     }
 
