@@ -214,6 +214,7 @@ public class DeviceNotificationService {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceId(device.getDeviceId());
+        notification.setNetworkId(device.getNetworkId());
         if (notificationSubmit.getTimestamp() == null) {
             notification.setTimestamp(timestampService.getDate());
         } else {
