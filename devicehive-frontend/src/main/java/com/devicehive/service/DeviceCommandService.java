@@ -265,6 +265,7 @@ public class DeviceCommandService {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceId(device.getDeviceId());
+        command.setNetworkId(device.getNetworkId());
         command.setIsUpdated(false);
 
         if (commandWrapper.getTimestamp().isPresent()) {
