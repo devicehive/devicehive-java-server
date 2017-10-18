@@ -13,20 +13,22 @@ node('docker') {
     maven.inside {
       checkout scm
       sh 'mvn clean package -DskipTests'
-      archiveArtifacts artifacts: 'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', fingerprint: true, onlyIfSuccessful: true
+      archiveArtifacts artifacts: 'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', fingerprint: true, onlyIfSuccessful: true
 
-      stash includes:'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', name: 'jars'
+      stash includes:'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', name: 'jars'
     }
   }
 
   stage('Build and publish Docker images in CI repository') {
     echo 'Building Frontend image ...'
     unstash 'jars'
+    def auth = docker.build('devicehiveci/devicehive-auth-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth-rdbms.Dockerfile .')
     def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
     def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
     def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
+      auth.push()
       frontend.push()
       backend.push()
       hazelcast.push()
@@ -110,10 +112,12 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
       docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
         sh """
+          docker tag devicehiveci/devicehive-auth-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-auth-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
 
+          docker push registry.hub.docker.com/devicehive/devicehive-auth-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}

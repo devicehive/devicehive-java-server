@@ -116,7 +116,7 @@ public class DeviceHandlers {
 
         List<DeviceVO> toResponse;
         try {
-            toResponse = deviceService.list(listDeviceRequest).get();
+            toResponse = deviceService.list(listDeviceRequest);
         } catch (Exception e) {
             logger.error(Messages.INTERNAL_SERVER_ERROR, e);
             throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
@@ -138,9 +138,12 @@ public class DeviceHandlers {
         if (!deviceId.matches("[a-zA-Z0-9-]+")) {
             throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
-        deviceService.deviceSaveAndNotify(deviceId, device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        logger.debug("device/save process ended for session  {}", session.getId());
-
-        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        HivePrincipal hivePrincipal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        deviceService.deviceSaveAndNotify(deviceId, device, hivePrincipal).thenAccept(actionName -> {
+            logger.debug("device/save process ended for session  {}", session.getId());
+            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        });
+        
     }
 }

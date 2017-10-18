@@ -57,7 +57,9 @@ public class Constants {
     public static final String DEVICE_OFFLINE_STATUS = "Offline";
     public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
-    public static final String REQUEST_TOPIC = "request_topic";   
+    public static final String REQUEST_TOPIC = "request_topic";
+    public final static String USER_ID = "userId";
+    
     //API constants
     public static final String INFO = "info";
     public static final String CACHE_INFO = "cacheInfo";
@@ -104,6 +106,22 @@ public class Constants {
     public static final String TYPE = "type";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
 
+    public static final String ANY = "*";
+    public static final String GET_NETWORK = "GetNetwork";
+    public static final String GET_DEVICE = "GetDevice";
+    public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
+    public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
+    public static final String REGISTER_DEVICE = "RegisterDevice";
+    public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
+    public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
+    public static final String UPDATE_DEVICE_COMMAND = "UpdateDeviceCommand";
+    public static final String GET_CURRENT_USER = "GetCurrentUser";
+    public static final String UPDATE_CURRENT_USER = "UpdateCurrentUser";
+    public static final String MANAGE_USER = "ManageUser";
+    public static final String MANAGE_CONFIGURATION = "ManageConfiguration";
+    public static final String MANAGE_NETWORK = "ManageNetwork";
+    public static final String MANAGE_TOKEN = "ManageToken";
+    
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
     public static final String NOTIFICATION_TOPIC_NAME = "device_notification";
     public static final String COMMAND_TOPIC_NAME = "device_command";

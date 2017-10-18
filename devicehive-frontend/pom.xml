@@ -20,6 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>com.devicehive</groupId>
+            <artifactId>devicehive-common-auth</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.devicehive</groupId>
             <artifactId>devicehive-test-utils</artifactId>
             <version>${project.parent.version}</version>
             <scope>test</scope>
@@ -58,9 +63,8 @@
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>${jjwt.version}</version>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
         </dependency>
     </dependencies>
     <build>

@@ -25,7 +25,7 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.service.UserService;
-import com.devicehive.service.security.jwt.JwtClientService;
+import com.devicehive.service.security.jwt.BaseJwtClientService;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -38,6 +38,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import javax.ws.rs.core.HttpHeaders;
 import java.util.*;
 
+import static com.devicehive.auth.HiveAction.ANY;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
@@ -48,7 +49,7 @@ import static org.hamcrest.CoreMatchers.*;
 public class JwtTokenServiceTest extends AbstractResourceTest {
 
     @Autowired
-    private JwtClientService jwtClientService;
+    private BaseJwtClientService jwtClientService;
 
     @Autowired
     private UserService userService;
@@ -72,7 +73,7 @@ public class JwtTokenServiceTest extends AbstractResourceTest {
         // Check the given user rights
         assertNotNull(jwtTokenVO.getAccessToken());
         JwtPayload payload = jwtClientService.getPayload(jwtTokenVO.getAccessToken());
-        assertThat(payload.getActions(), hasItem("*"));
+        assertThat(payload.getActions(), hasItem(ANY.getId()));
         assertThat(payload.getNetworkIds(), hasItem("*"));
         assertThat(payload.getDeviceIds(), hasItem("*"));
     }

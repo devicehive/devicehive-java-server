@@ -192,14 +192,14 @@ public class DeviceNotificationService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void unsubscribe(Set<Long> subIds) {
+    public CompletableFuture<Set<Long>> unsubscribe(Set<Long> subIds) {
         NotificationUnsubscribeRequest unsubscribeRequest = new NotificationUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
+        CompletableFuture<Set<Long>> future = new CompletableFuture<>();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.NOTIFICATION_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(NotificationUnsubscribeResponse.class).getSubscriptionIds());
                 subIds.forEach(requestResponseMatcher::removeSubscription);
@@ -208,6 +208,7 @@ public class DeviceNotificationService {
             }
         };
         rpcClient.call(request, responseConsumer);
+        return future;
     }
 
     public DeviceNotification convertWrapperToNotification(DeviceNotificationWrapper notificationSubmit, DeviceVO device) {

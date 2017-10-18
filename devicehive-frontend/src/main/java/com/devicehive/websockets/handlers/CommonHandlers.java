@@ -29,23 +29,31 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtPayloadView;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
-import com.devicehive.service.security.jwt.JwtClientService;
-import com.devicehive.service.security.jwt.JwtTokenService;
+import com.devicehive.service.helpers.HttpRestHelper;
+import com.devicehive.service.security.jwt.BaseJwtClientService;
 import com.devicehive.service.time.TimestampService;
+import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,6 +61,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
@@ -60,32 +70,37 @@ import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Component
 public class CommonHandlers {
-
     private static final Logger logger = LoggerFactory.getLogger(CommonHandlers.class);
+    
+    @Value("${auth.base.url}")
+    private String authBaseUrl;
 
     private final WebSocketAuthenticationManager authenticationManager;
-    private final JwtClientService tokenService;
-    private final JwtTokenService jwtTokenService;
+    private final BaseJwtClientService tokenService;
     private final UserService userService;
     private final TimestampService timestampService;
     private final Gson gson;
     private final WebSocketClientHandler clientHandler;
+    private final HiveValidator hiveValidator;
+    private final HttpRestHelper httpRestHelper;
 
     @Autowired
     public CommonHandlers(WebSocketAuthenticationManager authenticationManager,
-                          JwtClientService tokenService,
-                          JwtTokenService jwtTokenService,
-                          UserService userService,
-                          TimestampService timestampService,
-                          Gson gson,
-                          WebSocketClientHandler clientHandler) {
+            BaseJwtClientService tokenService,
+            UserService userService,
+            TimestampService timestampService,
+            Gson gson,
+            WebSocketClientHandler clientHandler,
+            HiveValidator hiveValidator,
+            HttpRestHelper httpRestHelper) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
-        this.jwtTokenService = jwtTokenService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.gson = gson;
         this.clientHandler = clientHandler;
+        this.hiveValidator = hiveValidator;
+        this.httpRestHelper = httpRestHelper;
     }
 
     @HiveWebsocketAuth
@@ -107,6 +122,7 @@ public class CommonHandlers {
         authentication.setHivePrincipal(principal);
 
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, authentication);
+        session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_JWT_TOKEN, jwtToken);
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         state.setHivePrincipal(principal);
@@ -124,8 +140,11 @@ public class CommonHandlers {
         if (request.get("password") != null) {
             loginRequest.setPassword(request.get("password").getAsString());
         }
-        JwtTokenVO jwtToken = jwtTokenService.createJwtToken(loginRequest);
-
+        
+        String loginRequestStr = gson.toJson(loginRequest);
+        
+        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token", loginRequestStr, JwtTokenVO.class, null);
+        
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
         response.addValue("refreshToken", jwtToken.getRefreshToken());
@@ -135,75 +154,40 @@ public class CommonHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_TOKEN')")
     public void processTokenCreate(JsonObject request, WebSocketSession session) throws IOException {
-        JwtPayload payload = gson.fromJson(request.get(Constants.PAYLOAD), JwtPayload.class);
-
+        JsonObject payload = request.get(Constants.PAYLOAD).getAsJsonObject();
         if (payload == null) {
             logger.warn("JwtToken: payload was not found");
             throw new HiveException(Messages.PAYLOAD_NOT_FOUND, SC_BAD_REQUEST);
         }
-
-        UserVO user = userService.findById(payload.getUserId());
-        if (user == null) {
-            logger.warn(String.format("JwtToken: User with specified id %s was not found", payload.getUserId()));
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, payload.getUserId()), SC_NOT_FOUND);
-        }
-        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            logger.warn(String.format("JwtToken: User with specified id %s is not active", payload.getUserId()));
-            throw new HiveException(Messages.USER_NOT_ACTIVE, SC_NOT_FOUND);
-        }
-
-        logger.debug("JwtToken: generate access and refresh token");
-
-        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(payload)
-                .buildPayload();
-
+        hiveValidator.validate(payload);
+        
+        String jwtTokenStr = (String) session.getAttributes().get(WebSocketAuthenticationManager.SESSION_ATTR_JWT_TOKEN);
+        
+        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token/create", payload.toString(), JwtTokenVO.class, jwtTokenStr);
+        
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, true));
-        response.addValue("refreshToken", tokenService.generateJwtRefreshToken(refreshPayload, true));
+        response.addValue("accessToken", jwtToken.getAccessToken());
+        response.addValue("refreshToken", jwtToken.getRefreshToken());
         clientHandler.sendMessage(request, response, session);
     }
 
     @HiveWebsocketAuth
     @PreAuthorize("permitAll")
     public void processRefresh(JsonObject request, WebSocketSession session) throws IOException {
-        String refreshToken = null;
-        if (request.get("refreshToken") != null) {
-            refreshToken = request.get("refreshToken").getAsString();
+        if (request.get("refreshToken") == null) {
+            logger.warn("JwtToken: payload was not found");
+            throw new HiveException(Messages.PAYLOAD_NOT_FOUND, SC_BAD_REQUEST);
         }
 
-        JwtPayload payload;
+        JwtRefreshTokenVO refreshTokenVO = new JwtRefreshTokenVO();
+        refreshTokenVO.setRefreshToken(request.get("refreshToken").getAsString());
 
-        try {
-            payload = tokenService.getPayload(refreshToken);
-        } catch (Exception e) {
-            logger.error("Attempt to refresh access token has failed: {}", e.getMessage());
-            throw new BadCredentialsException(e.getMessage());
-        }
+        String refreshTokenStr = gson.toJson(refreshTokenVO);
 
-        UserVO user = userService.findById(payload.getUserId());
-        if (user == null) {
-            String msg = "JwtToken: User not found";
-            logger.warn(msg);
-            throw new BadCredentialsException(msg);
-        }
-        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            String msg = "JwtToken: User is not active";
-            logger.warn(msg);
-            throw new BadCredentialsException(msg);
-        }
-        if (!payload.getTokenType().equals(TokenType.REFRESH)) {
-            String msg = "JwtToken: refresh token is not valid";
-            logger.warn(msg);
-            throw new BadCredentialsException(msg);
-        }
-        if (payload.getExpiration().before(timestampService.getDate())) {
-            String msg = "JwtToken: refresh token has expired";
-            logger.warn(msg);
-            throw new BadCredentialsException(msg);
-        }
+        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token/refresh", refreshTokenStr, JwtTokenVO.class, null);
 
         WebSocketResponse response = new WebSocketResponse();
-        response.addValue("accessToken", tokenService.generateJwtAccessToken(payload, false));
+        response.addValue("accessToken", jwtToken.getAccessToken());
         clientHandler.sendMessage(request, response, session);
     }
 }
