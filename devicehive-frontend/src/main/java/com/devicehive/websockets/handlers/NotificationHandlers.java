@@ -26,6 +26,7 @@ import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Filter;
@@ -45,6 +46,7 @@ import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,8 +255,14 @@ public class NotificationHandlers {
             logger.error("notification/get proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-                
-        Long notificationId = gson.fromJson(request.get(NOTIFICATION_ID), Long.class);
+        Long notificationId = null;
+        try {
+            notificationId = gson.fromJson(request.get(NOTIFICATION_ID), Long.class);
+        } catch (JsonParseException ex) {
+            String errorMessage = "Notification id should be an integer value.";
+            logger.error("notification/get proceed with error: {}", errorMessage);
+            throw new IllegalParametersException(errorMessage);
+        }
         if (notificationId == null) {
             logger.error("notification/get proceed with error. Notification ID should be provided.");
             throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
@@ -269,12 +277,13 @@ public class NotificationHandlers {
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
 
+        final Long finalNotificationId = notificationId;
         notificationService.findOne(notificationId, deviceId)
                 .thenAccept(notification -> {
                     logger.debug("Device notification proceed successfully");
                     WebSocketResponse response = new WebSocketResponse();
                     if (!notification.isPresent()) {
-                        logger.error("Notification with id {} not found", notificationId);
+                        logger.error("Notification with id {} not found", finalNotificationId);
                         clientHandler.sendErrorResponse(request, SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
                     } else {
                         response.addValue(NOTIFICATION, notification.get(), NOTIFICATION_TO_CLIENT);
