@@ -83,7 +83,8 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
             jq ".server.wsUrl = \\"ws://127.0.0.1:8080/api/websocket\\"" | \\
             jq ".server.ip = \\"127.0.0.1\\"" | \\
             jq ".server.port = \\"8080\\"" | \\
-            jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" > config.json
+            jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" | \\
+            jq ".server.authRestUrl = \\"http://127.0.0.1:8090/api/rest\\"" > config.json
           '''
 
           timeout(time:10, unit: 'MINUTES') {
