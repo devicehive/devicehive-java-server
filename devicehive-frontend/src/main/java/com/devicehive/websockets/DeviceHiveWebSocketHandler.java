@@ -34,6 +34,7 @@ import com.devicehive.websockets.util.SessionMonitor;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +92,15 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException, InterruptedException {
         logger.debug("Session id {} ", session.getId());
         session = sessionMonitor.getSession(session.getId());
-        JsonObject request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
+        JsonObject request = null;
         JsonObject response = null;
         try {
+            request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             requestProcessor.process(request, session);
+        } catch (JsonSyntaxException ex) {
+            String errorMessage = "Malformed Json received.";
+            logger.error("Error executing the request: {}", errorMessage);
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, errorMessage);
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (BadCredentialsException ex) {
@@ -127,9 +133,6 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         } catch (org.hibernate.exception.ConstraintViolationException ex) {
             logger.error("Error executing the request: {}", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, ex.getMessage());
-        } catch (JsonParseException ex) {
-            logger.error("Error executing the request: {}", ex.getMessage());
-            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Invalid request parameters");
         } catch (OptimisticLockException ex) {
             logger.error("Error executing the request. Data conflict: {}", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_CONFLICT, Messages.CONFLICT_MESSAGE);
@@ -144,7 +147,11 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
         }
 
-        if (response != null) {
+        if (request == null && response != null) {
+            webSocketClientHandler.sendMessage(response, session);
+        }
+
+        if (request != null && response != null) {
             webSocketClientHandler.sendMessage(request, response, session);
         }
 
