@@ -176,7 +176,8 @@ public interface UserResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
-    @ApiOperation(value = "Update user")
+    @ApiOperation(value = "Update current user", notes = "Updates an existing user. \n" +
+            "Only administrators are allowed to update any property of any user.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
@@ -194,10 +195,8 @@ public interface UserResource {
     @Path("/current")
     @Consumes(MediaType.APPLICATION_JSON)
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_CURRENT_USER')")
-    @ApiOperation(value = "Update current user", notes = "Updates an existing user. \n" +
-            "Only administrators are allowed to update any property of any user. User-level accounts can only change their own password in case:\n" +
-            "1. They already have a password.\n" +
-            "2. They provide a valid current password in the 'oldPassword' property.")
+    @ApiOperation(value = "Update current user", notes = "Updates current user. \n" +
+            "Only administrators are allowed to update any property of any user.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
