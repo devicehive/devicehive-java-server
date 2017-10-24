@@ -20,8 +20,6 @@ package com.devicehive.base.fixture;
  * #L%
  */
 
-import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceVO;
@@ -31,25 +29,11 @@ import java.util.UUID;
 
 public class DeviceFixture {
 
-    public static NetworkVO createNetwork() {
-        UUID uuid = UUID.randomUUID();
-        NetworkVO network = new NetworkVO();
-        network.setName("network-" + uuid);
-        network.setDescription("network_description-" + uuid);
-        return network;
-    }
-
     public static DeviceUpdate createDevice(String deviceId) {
         DeviceUpdate device = new DeviceUpdate();
         device.setName("device-" + deviceId);
         device.setData(new JsonStringWrapper(String.format("{\"data\": \"device_data-%s\"}", deviceId)));
         return device;
-    }
-
-    public static DeviceUpdate createDevice(DeviceVO device) {
-        final DeviceUpdate deviceUpdate = new DeviceUpdate();
-        deviceUpdate.setName(device.getName());
-        return deviceUpdate;
     }
 
     public static DeviceVO createDeviceVO() {
@@ -58,23 +42,6 @@ public class DeviceFixture {
         device.setDeviceId(uuid.toString());
         device.setName("name-" + uuid.toString());
         return device;
-    }
-
-    public static DeviceCommand createDeviceCommand() {
-        DeviceCommand command = new DeviceCommand();
-        command.setCommand("test-command");
-        command.setParameters(new JsonStringWrapper("{'param':'testParam'}"));
-        command.setLifetime(0);
-        command.setStatus("test-status");
-        command.setResult(new JsonStringWrapper("{'jsonString': 'string'}"));
-        return command;
-    }
-
-    public static DeviceNotification createDeviceNotification() {
-        DeviceNotification notification = new DeviceNotification();
-        notification.setNotification("test-notification");
-        notification.setParameters(new JsonStringWrapper("{'param':'testParam'}"));
-        return notification;
     }
 
 }

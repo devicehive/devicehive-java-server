@@ -77,6 +77,6 @@ public abstract class AbstractSpringKafkaTest {
     @Before
     public void setUp() throws Exception {
         // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
-        TimeUnit.MILLISECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(10);
     }
 }
