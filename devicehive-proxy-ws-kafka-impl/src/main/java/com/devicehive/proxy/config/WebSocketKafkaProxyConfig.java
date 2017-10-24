@@ -31,7 +31,35 @@ public class WebSocketKafkaProxyConfig {
     @Value("${proxy.connect:localhost:3000}")
     private String proxyConnect;
 
+    @Value("${proxy.request-consumer.group:request-consumer-group}")
+    private String consumerGroup;
+
+    @Value("${proxy.worker.threads:3}")
+    private int workerThreads;
+
+    @Value("${lmax.buffer-size:1024}")
+    private int bufferSize;
+
+    @Value("${lmax.wait.strategy:blocking}")
+    private String waitStrategy;
+
     public String getProxyConnect() {
         return proxyConnect;
+    }
+
+    public String getConsumerGroup() {
+        return consumerGroup;
+    }
+
+    public int getWorkerThreads() {
+        return workerThreads;
+    }
+
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    public String getWaitStrategy() {
+        return waitStrategy;
     }
 }
