@@ -248,7 +248,7 @@ public class NotificationHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationGet(JsonObject request, WebSocketSession session) {
         try {
-            String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+            final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
             if (deviceId == null) {
                 logger.error("notification/get proceed with error. Device ID should be provided.");
                 throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -263,7 +263,7 @@ public class NotificationHandlers {
 
             logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
 
-            DeviceVO device = deviceService.findById(deviceId);
+            final DeviceVO device = deviceService.findById(deviceId);
 
             if (device == null) {
                 logger.error("notification/get proceed with error. No Device with Device ID = {} found.", deviceId);
@@ -273,7 +273,7 @@ public class NotificationHandlers {
             notificationService.findOne(notificationId, deviceId)
                     .thenAccept(notification -> {
                         logger.debug("Device notification proceed successfully");
-                        WebSocketResponse response = new WebSocketResponse();
+                        final WebSocketResponse response = new WebSocketResponse();
                         if (!notification.isPresent()) {
                             logger.error("Notification with id {} not found", notificationId);
                             clientHandler.sendErrorResponse(request, SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
@@ -283,7 +283,7 @@ public class NotificationHandlers {
                         }
                     });
         } catch (JsonParseException ex) {
-            String errorMessage = "Notification id should be an integer value.";
+            final String errorMessage = "Notification id should be an integer value.";
             logger.error("notification/get proceed with error: {}", errorMessage);
             throw new IllegalParametersException(errorMessage);
         }
