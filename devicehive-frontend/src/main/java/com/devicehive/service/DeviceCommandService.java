@@ -184,14 +184,14 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(Set<Long> subIds) {
+    public CompletableFuture<Set<Long>> sendUnsubscribeRequest(Set<Long> subIds) {
         CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
+        CompletableFuture<Set<Long>> future = new CompletableFuture<>();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionIds());
                 subIds.forEach(requestResponseMatcher::removeSubscription);
@@ -200,6 +200,7 @@ public class DeviceCommandService {
             }
         };
         rpcClient.call(request, responseConsumer);
+        return future;
     }
 
     public CompletableFuture<Pair<Long, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, Long> callback) {
@@ -265,6 +266,7 @@ public class DeviceCommandService {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceId(device.getDeviceId());
+        command.setNetworkId(device.getNetworkId());
         command.setIsUpdated(false);
 
         if (commandWrapper.getTimestamp().isPresent()) {

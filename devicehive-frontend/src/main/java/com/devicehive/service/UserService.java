@@ -27,11 +27,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.exceptions.InvalidPrincipalException;
-import com.devicehive.model.JsonStringWrapper;
-import com.devicehive.model.Network;
 import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.model.updates.UserUpdate;
@@ -51,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,8 +58,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -72,17 +65,12 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
  * This class serves all requests to database from controller.
  */
 @Component
-public class UserService {
+public class UserService extends BaseUserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
-    private final PasswordProcessor passwordService;
     private final NetworkDao networkDao;
-    private final UserDao userDao;
-    private final TimestampService timestampService;
-    private final ConfigurationService configurationService;
-    private final HiveValidator hiveValidator;
     private final RpcClient rpcClient;
 
     private NetworkService networkService;
@@ -95,12 +83,8 @@ public class UserService {
                        ConfigurationService configurationService,
                        HiveValidator hiveValidator,
                        RpcClient rpcClient) {
-        this.passwordService = passwordService;
+        super(passwordService, userDao, timestampService, configurationService, hiveValidator);
         this.networkDao = networkDao;
-        this.userDao = userDao;
-        this.timestampService = timestampService;
-        this.configurationService = configurationService;
-        this.hiveValidator = hiveValidator;
         this.rpcClient = rpcClient;
     }
 
@@ -122,20 +106,6 @@ public class UserService {
         }
         return checkPassword(userOpt.get(), password)
                 .orElseThrow(() -> new ActionNotAllowedException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
-    }
-
-    @Transactional(noRollbackFor = InvalidPrincipalException.class)
-    public UserVO getActiveUser(String login, String password) {
-        Optional<UserVO> userOpt = userDao.findByName(login);
-        if (!userOpt.isPresent()) {
-            logger.error("Can't find user with login {} and password {}", login, password);
-            throw new InvalidPrincipalException(String.format(Messages.USER_LOGIN_NOT_FOUND, login));
-        } else if (userOpt.get().getStatus() != UserStatus.ACTIVE) {
-            logger.error("User with login {} is not active", login);
-            throw new InvalidPrincipalException(Messages.USER_NOT_ACTIVE);
-        }
-        return checkPassword(userOpt.get(), password)
-                .orElseThrow(() -> new InvalidPrincipalException(String.format(Messages.INCORRECT_CREDENTIALS, login)));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -272,30 +242,6 @@ public class UserService {
         return future.thenApply(r -> ((ListUserResponse) r.getBody()).getUsers());
     }
 
-    /**
-     * Retrieves user by id (no networks fetched in this case)
-     *
-     * @param id user id
-     * @return User model without networks, or null if there is no such user
-     */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public UserVO findById(@NotNull long id) {
-        return userDao.find(id);
-    }
-
-    /**
-     * Retrieves user with networks by id, if there is no networks user hass
-     * access to networks will be represented by empty set
-     *
-     * @param id user id
-     * @return User model with networks, or null, if there is no such user
-     */
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public UserWithNetworkVO findUserWithNetworks(@NotNull long id) {
-        return userDao.getWithNetworksById(id);
-
-    }
-
     @Transactional(propagation = Propagation.REQUIRED)
     public UserVO createUser(@NotNull UserVO user, String password) {
         hiveValidator.validate(user);
@@ -364,47 +310,4 @@ public class UserService {
         return true;
     }
 
-    @Transactional
-    public UserVO refreshUserLoginData(UserVO user) {
-        hiveValidator.validate(user);
-        final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
-        return updateStatisticOnSuccessfulLogin(user, loginTimeout);
-    }
-
-    private Optional<UserVO> checkPassword(UserVO user, String password) {
-        boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
-
-        long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
-        boolean mustUpdateLoginStatistic = user.getLoginAttempts() != 0
-                || user.getLastLogin() == null
-                || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout;
-
-        if (validPassword && mustUpdateLoginStatistic) {
-            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
-            return of(user1);
-        } else if (!validPassword) {
-            user.setLoginAttempts(user.getLoginAttempts() + 1);
-            if (user.getLoginAttempts()
-                    >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
-                user.setStatus(UserStatus.LOCKED_OUT);
-                user.setLoginAttempts(0);
-            }
-            userDao.merge(user);
-            return empty();
-        }
-        return of(user);
-    }
-
-    private UserVO updateStatisticOnSuccessfulLogin(UserVO user, long loginTimeout) {
-        boolean update = false;
-        if (user.getLoginAttempts() != 0) {
-            update = true;
-            user.setLoginAttempts(0);
-        }
-        if (user.getLastLogin() == null || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout) {
-            update = true;
-            user.setLastLogin(timestampService.getDate());
-        }
-        return update ? userDao.merge(user) : user;
-    }
 }
