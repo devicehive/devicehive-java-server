@@ -247,46 +247,46 @@ public class NotificationHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationGet(JsonObject request, WebSocketSession session) {
-        String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
-        if (deviceId == null) {
-            logger.error("notification/get proceed with error. Device ID should be provided.");
-            throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
-        }
-        Long notificationId = null;
         try {
-            notificationId = gson.fromJson(request.get(NOTIFICATION_ID), Long.class);
+            String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
+            if (deviceId == null) {
+                logger.error("notification/get proceed with error. Device ID should be provided.");
+                throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
+            }
+
+            final Long notificationId = gson.fromJson(request.get(NOTIFICATION_ID), Long.class);
+
+            if (notificationId == null) {
+                logger.error("notification/get proceed with error. Notification ID should be provided.");
+                throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
+            }
+
+            logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
+
+            DeviceVO device = deviceService.findById(deviceId);
+
+            if (device == null) {
+                logger.error("notification/get proceed with error. No Device with Device ID = {} found.", deviceId);
+                throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
+            }
+
+            notificationService.findOne(notificationId, deviceId)
+                    .thenAccept(notification -> {
+                        logger.debug("Device notification proceed successfully");
+                        WebSocketResponse response = new WebSocketResponse();
+                        if (!notification.isPresent()) {
+                            logger.error("Notification with id {} not found", notificationId);
+                            clientHandler.sendErrorResponse(request, SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
+                        } else {
+                            response.addValue(NOTIFICATION, notification.get(), NOTIFICATION_TO_CLIENT);
+                            clientHandler.sendMessage(request, response, session);
+                        }
+                    });
         } catch (JsonParseException ex) {
             String errorMessage = "Notification id should be an integer value.";
             logger.error("notification/get proceed with error: {}", errorMessage);
             throw new IllegalParametersException(errorMessage);
         }
-        if (notificationId == null) {
-            logger.error("notification/get proceed with error. Notification ID should be provided.");
-            throw new HiveException(Messages.NOTIFICATION_ID_REQUIRED, SC_BAD_REQUEST);
-        }
-        
-        logger.debug("Device notification requested. deviceId {}, notification id {}", deviceId, notificationId);
-
-        DeviceVO device = deviceService.findById(deviceId);
-
-        if (device == null) {
-            logger.error("notification/get proceed with error. No Device with Device ID = {} found.", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
-        }
-
-        final Long finalNotificationId = notificationId;
-        notificationService.findOne(notificationId, deviceId)
-                .thenAccept(notification -> {
-                    logger.debug("Device notification proceed successfully");
-                    WebSocketResponse response = new WebSocketResponse();
-                    if (!notification.isPresent()) {
-                        logger.error("Notification with id {} not found", finalNotificationId);
-                        clientHandler.sendErrorResponse(request, SC_NOT_FOUND, Messages.NOTIFICATION_NOT_FOUND, session);
-                    } else {
-                        response.addValue(NOTIFICATION, notification.get(), NOTIFICATION_TO_CLIENT);
-                        clientHandler.sendMessage(request, response, session);
-                    }
-                });
     }
 
     @HiveWebsocketAuth
