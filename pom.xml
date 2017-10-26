@@ -81,7 +81,6 @@
 
         <jjwt.version>0.7.0</jjwt.version>
 
-        <skipTests>true</skipTests>
         <packaging.type>jar</packaging.type>
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
@@ -550,7 +549,7 @@
         <profile>
             <id>test-port-override</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>
