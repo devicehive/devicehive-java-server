@@ -50,7 +50,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
     private JwtSecretService jwtSecretService;
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_access_and_refresh_tokens_for_token_authorized_user() throws Exception {
         // Create payload
         Long userId = ADMIN_ID;
@@ -69,7 +68,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_refresh_token_of_unexisting_user() throws Exception {
         // Create payload
         Long userId = NON_EXISTING_USER_ID;
@@ -91,7 +89,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_refresh_token_of_inactive_user() throws Exception {
         // Create payload
         Long userId = INACTIVE_USER_ID;
@@ -113,7 +110,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_400_after_providing_invalid_refresh_token() throws Exception {
         // Create payload
         Long userId = ADMIN_ID;
@@ -136,7 +132,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void should_return_401_after_providing_expired_refresh_token() throws Exception {
         // Create payload
         Long userId = ADMIN_ID;
