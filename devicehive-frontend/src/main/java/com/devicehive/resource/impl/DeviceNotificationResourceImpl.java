@@ -32,7 +32,6 @@ import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
-import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -112,16 +111,10 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             Set<String> notificationNames = StringUtils.isNoneEmpty(notification)
                     ? Collections.singleton(notification)
                     : Collections.emptySet();
-            notificationService.find(Collections.singleton(deviceId), notificationNames, timestampSt, timestampEnd)
-                    .thenApply(notifications -> {
-                        final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort
-                                .buildDeviceNotificationComparator(sortField);
-                        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-
-                        final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort
-                                .orderAndLimit(notifications, comparator, reverse, skip, take);
-                        return ResponseFactory.response(OK, sortedDeviceNotifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT);
-                    })
+            notificationService.find(Collections.singleton(deviceId), notificationNames, timestampSt, timestampEnd,
+                    sortField, sortOrderSt, take, skip)
+                    .thenApply(notifications -> 
+                            ResponseFactory.response(OK, notifications, JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT))
                     .thenAccept(asyncResponse::resume);
         }
     }

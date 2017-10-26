@@ -28,9 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Class for handling all subscribe, unsubscribe and get subscribers tricky logic
@@ -76,7 +78,7 @@ public class SubscriberRegistry {
      * @param subscriber - subscriber
      * @param subscription - subscription to subscribe to
      */
-    void register(Subscriber subscriber, Subscription subscription) {
+    synchronized void register(Subscriber subscriber, Subscription subscription) {
         subscriberSubscriptions.put(subscriber.getId(), subscription);
         subscriptions.put(subscription, subscriber.getId());
         subscribers.put(subscriber.getId(), subscriber);
@@ -90,36 +92,29 @@ public class SubscriberRegistry {
      *
      * @param subscriber - subscriber
      */
-    void unregister(Subscriber subscriber) {
+    synchronized void unregister(Subscriber subscriber) {
         Long id = subscriber.getId();
-        Collection<Subscription> subs = subscriberSubscriptions.get(id);
-        if (subs != null) {
-            subs.forEach(s -> subscriptions.remove(s, id));
-        }
+        Optional.ofNullable(subscriberSubscriptions.remove(id))
+                .ifPresent(subs -> subs.forEach(s -> subscriptions.remove(s, id)));
         subscribers.remove(id);
-        subscriberSubscriptions.remove(id);
     }
 
-    void unregister(Subscription subscription) {
-        Collection<Long> subIds = subscriptions.get(subscription);
-        if (subIds != null) {
-            subIds.forEach(subId -> subscriberSubscriptions.remove(subId, subscription));
-        }
-        subscriptions.remove(subscription);
+    synchronized void unregister(Subscription subscription) {
+        Optional.ofNullable(subscriptions.remove(subscription)).ifPresent(subIds ->
+                subIds.forEach(subId -> subscriberSubscriptions.remove(subId, subscription))
+        );
     }
 
     /**
      * @param subscription - subscription
      * @return - list of subscribers for subscription
      */
-    Collection<Subscriber> getSubscribers(Subscription subscription) {
+    synchronized Collection<Subscriber> getSubscribers(Subscription subscription) {
         Assert.notNull(subscription);
-        Collection<Long> subIds = subscriptions.get(subscription);
-        if (subIds != null) {
-            return subIds.stream().map(subscribers::get).collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
+        
+        return Optional.ofNullable(subscriptions.get(subscription))
+                .map(subIds -> subIds.stream().map(subscribers::get).collect(Collectors.toList()))
+                .orElse(emptyList());
     }
 
     /**
@@ -132,8 +127,9 @@ public class SubscriberRegistry {
 
     Collection<Subscription> getSubscriptions(Subscriber subscriber) {
         Assert.notNull(subscriber);
-        Collection<Subscription> subs = subscriberSubscriptions.get(subscriber.getId());
-        return subs != null ? subs : Collections.emptyList();
+
+        return Optional.ofNullable(subscriberSubscriptions.get(subscriber.getId()))
+                .orElse(emptyList());
     }
 
     Collection<Subscription> getAllSubscriptions() {

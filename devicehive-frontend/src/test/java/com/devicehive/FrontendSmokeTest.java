@@ -217,22 +217,22 @@ public class FrontendSmokeTest extends AbstractResourceTest {
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> {
             Request request = invocation.getArgumentAt(0, Request.class);
-            String deviceId = request.getBody().cast(CommandSearchRequest.class).getDeviceId();
+            Set<String> foundDeviceIds = request.getBody().cast(CommandSearchRequest.class).getDeviceIds();
             CommandSearchResponse response = new CommandSearchResponse();
-            response.setCommands(Collections.singletonList(commandMap.get(deviceId)));
+            response.setCommands(foundDeviceIds.stream().map(commandMap::get).collect(Collectors.toList()));
             return Response.newBuilder()
                     .withBody(response)
                     .buildSuccess();
         });
 
-        deviceCommandService.find(idsForSearch, Collections.emptySet(), timestampSt, timestampEnd, DEFAULT_STATUS)
+        deviceCommandService.find(idsForSearch, Collections.emptySet(), timestampSt, timestampEnd, DEFAULT_STATUS, null, null, null, null)
                 .thenAccept(commands -> {
                     assertEquals(3, commands.size());
                     assertEquals(new HashSet<>(commandMap.values()), new HashSet<>(commands));
                 })
                 .get(15, TimeUnit.SECONDS);
 
-        verify(requestHandler, times(3)).handle(argument.capture());
+        verify(requestHandler, times(1)).handle(argument.capture());
     }
 
     @Test

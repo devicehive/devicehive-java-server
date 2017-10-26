@@ -116,7 +116,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
     public void shouldSendNotificationSearchAction() throws Exception {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(Long.MAX_VALUE); // nonexistent id
-        searchRequest.setDeviceId(UUID.randomUUID().toString()); // random device id
+        searchRequest.setDeviceIds(Collections.singleton(UUID.randomUUID().toString())); // random device id
 
         Request request = Request.newBuilder()
                 .withPartitionKey(searchRequest.getDeviceId())
@@ -134,7 +134,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
     public void shouldSendCommandSearchAction() throws Exception {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(Long.MAX_VALUE); // nonexistent id
-        searchRequest.setDeviceId(UUID.randomUUID().toString()); // random device id
+        searchRequest.setDeviceIds(Collections.singleton(UUID.randomUUID().toString())); // random device id
 
         Request request = Request.newBuilder()
                 .withPartitionKey(searchRequest.getDeviceId())
@@ -296,7 +296,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         assertEquals(command, body.getDeviceCommand());
 
         CommandSearchRequest csr = new CommandSearchRequest();
-        csr.setDeviceId(command.getDeviceId());
+        csr.setDeviceIds(Collections.singleton(command.getDeviceId()));
         csr.setId(command.getId());
         response = commandSearchHandler.handle(
                 Request.newBuilder()
@@ -361,7 +361,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
 
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(notifications.get(0).getId());
-        searchRequest.setDeviceId(notifications.get(0).getDeviceId());
+        searchRequest.setDeviceIds(Collections.singleton(notifications.get(0).getDeviceId()));
 
         Request request = Request.newBuilder()
                 .withPartitionKey(notifications.get(0).getDeviceId())
@@ -390,7 +390,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
                 .forEach(NotificationTestUtils::waitForResponse);
 
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
-        searchRequest.setDeviceId(notifications.get(0).getDeviceId());
+        searchRequest.setDeviceIds(Collections.singleton(notifications.get(0).getDeviceId()));
         searchRequest.setNames(Collections.singleton(notifications.get(0).getNotification()));
 
         Request request = Request.newBuilder()

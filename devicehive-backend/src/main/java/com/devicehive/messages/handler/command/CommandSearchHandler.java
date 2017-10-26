@@ -24,6 +24,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
 import com.devicehive.service.HazelcastService;
+import com.devicehive.service.helpers.CommandResponseFilterAndSort;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -34,7 +35,13 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+
+import static com.devicehive.service.helpers.CommandResponseFilterAndSort.buildDeviceCommandComparator;
+import static com.devicehive.service.helpers.CommandResponseFilterAndSort.getTotal;
+import static com.devicehive.service.helpers.CommandResponseFilterAndSort.orderAndLimit;
 
 @Component
 public class CommandSearchHandler implements RequestHandler {
@@ -72,17 +79,25 @@ public class CommandSearchHandler implements RequestHandler {
     private CommandSearchResponse searchMultipleCommands(CommandSearchRequest searchRequest) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
         final Collection<DeviceCommand> commands = hazelcastService.find(
-                searchRequest.getDeviceId(),
+                searchRequest.getDeviceIds(),
                 searchRequest.getNames(),
-                null,
-                0,
+                getTotal(searchRequest.getSkip(), searchRequest.getTake()),
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
                 searchRequest.isReturnUpdated(),
                 searchRequest.getStatus(),
                 DeviceCommand.class);
+        
+        final Comparator<DeviceCommand> comparator = buildDeviceCommandComparator(searchRequest.getSortField());
+        
+        String sortOrder = searchRequest.getSortOrder();
+        final Boolean reverse = sortOrder == null ? null : "desc".equalsIgnoreCase(sortOrder);
 
-        commandSearchResponse.setCommands(new ArrayList<>(commands));
+        final List<DeviceCommand> sortedDeviceCommands = orderAndLimit(new ArrayList<>(commands),
+                        comparator, reverse, searchRequest.getSkip(), searchRequest.getTake());
+        
+        commandSearchResponse.setCommands(new ArrayList<>(sortedDeviceCommands));
         return commandSearchResponse;
     }
+    
 }
