@@ -75,11 +75,10 @@ public abstract class AbstractSpringTest {
     public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
 
     @Rule
-    public Timeout testTimeout = new Timeout(180000, TimeUnit.MILLISECONDS); // 180k ms = 3 minutes
+    public Timeout testTimeout = new Timeout(60000, TimeUnit.MILLISECONDS); // 60k ms = 1 minute
 
     @Before
     public void setUp() throws Exception {
-        // FIXME: HACK! We must find a better solution to postpone test execution until all components (shim, kafka, etc) will be ready
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.MILLISECONDS.sleep(10);
     }
 }

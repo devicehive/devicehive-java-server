@@ -1,4 +1,4 @@
-package com.devicehive.messages.handler.command;
+package com.devicehive.base;
 
 /*
  * #%L
@@ -32,7 +32,9 @@ public class CommandTestUtils {
         command.setId(System.currentTimeMillis());
         command.setCommand("do_work");
         command.setDeviceId(UUID.randomUUID().toString());
+        command.setNetworkId(0L);
         command.setTimestamp(new Date(0));
+        command.setLastUpdated(new Date(0));
         command.setUserId(0L);
         command.setIsUpdated(false);
         command.setLifetime(0);
