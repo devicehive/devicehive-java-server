@@ -38,6 +38,7 @@ import java.util.Set;
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.NOTIFICATION;
 
 //TODO [rafa] That object to be split into two different objects. The first would contain id+deviceId, the second the rest of the fields.
 public class NotificationSearchRequest extends Body {
@@ -71,6 +72,12 @@ public class NotificationSearchRequest extends Body {
         if (CollectionUtils.isEmpty(notificationSearchRequest.getDeviceIds())) {
             Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).ifPresent(deviceId -> {
                 notificationSearchRequest.setDeviceIds(Collections.singleton(deviceId));
+            });
+        }
+
+        if (CollectionUtils.isEmpty(notificationSearchRequest.getNames())) {
+            Optional.ofNullable(request.get(NOTIFICATION)).map(JsonElement::getAsString).ifPresent(notification -> {
+                notificationSearchRequest.setNames(Collections.singleton(notification));
             });
         }
 

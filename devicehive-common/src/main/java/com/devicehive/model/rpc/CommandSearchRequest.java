@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.devicehive.configuration.Constants.COMMAND;
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 import static com.devicehive.configuration.Constants.DEVICE_ID;
@@ -70,6 +71,12 @@ public class CommandSearchRequest extends Body {
         if (CollectionUtils.isEmpty(commandSearchRequest.getDeviceIds())) {
             Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).ifPresent(deviceId -> {
                 commandSearchRequest.setDeviceIds(Collections.singleton(deviceId));    
+            });
+        }
+
+        if (CollectionUtils.isEmpty(commandSearchRequest.getNames())) {
+            Optional.ofNullable(request.get(COMMAND)).map(JsonElement::getAsString).ifPresent(command -> {
+                commandSearchRequest.setNames(Collections.singleton(command));
             });
         }
 
