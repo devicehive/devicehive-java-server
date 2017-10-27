@@ -38,8 +38,8 @@ import java.util.List;
 
 class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
 
-    private static JsonParser parser = new JsonParser();
-    private static Gson gson = new Gson();
+    private static final JsonParser parser = new JsonParser();
+    private static final Gson gson = new Gson();
 
     @Override
     public List<ProxyMessage> decode(String s) throws DecodeException {
@@ -90,14 +90,14 @@ class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
         if (object.get("p") != null) {
             switch (type) {
                 case "topic/create":
-                    decoded.withPayload(new TopicCreatePayload(gson.fromJson(object.get("p"), listType)));
+                    decoded.withPayload(new TopicCreatePayload((List<String>) gson.fromJson(object.get("p"), listType)));
                     break;
                 case "topic/list":
                     decoded.withPayload(new TopicListPayload(gson.fromJson(object.get("p"),
                             new TypeToken<List<TopicListPayload.TopicInfo>>() {}.getType())));
                     break;
                 case "topic/subscribe":
-                    decoded.withPayload(new TopicCreatePayload(gson.fromJson(object.get("p"), listType)));
+                    decoded.withPayload(new TopicCreatePayload((List<String>) gson.fromJson(object.get("p"), listType)));
                     break;
                 case "notif":
                     decoded.withPayload(new NotificationPayload(gson.fromJson(object.get("p"), String.class)));

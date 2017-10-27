@@ -39,6 +39,11 @@ public class TopicSubscribePayload implements Payload {
         this.consumerGroup = consumerGroup;
     }
 
+    public TopicSubscribePayload(String topic, String consumerGroup) {
+        this.topics = Collections.singletonList(topic);
+        this.consumerGroup = consumerGroup;
+    }
+
     public TopicSubscribePayload(List<String> topics) {
         this.topics = topics;
     }

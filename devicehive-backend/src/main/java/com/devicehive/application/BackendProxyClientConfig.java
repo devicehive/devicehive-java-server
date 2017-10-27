@@ -1,0 +1,114 @@
+package com.devicehive.application;
+
+/*
+ * #%L
+ * DeviceHive Backend Logic
+ * %%
+ * Copyright (C) 2016 - 2017 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import com.devicehive.proxy.ProxyMessageDispatcher;
+import com.devicehive.proxy.ProxyRequestHandler;
+import com.devicehive.proxy.ProxyServerEventHandler;
+import com.devicehive.proxy.api.NotificationHandler;
+import com.devicehive.proxy.api.ProxyClient;
+import com.devicehive.proxy.api.ProxyMessageBuilder;
+import com.devicehive.proxy.api.payload.TopicCreatePayload;
+import com.devicehive.proxy.api.payload.TopicSubscribePayload;
+import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
+import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
+import com.devicehive.shim.api.server.MessageDispatcher;
+import com.devicehive.shim.kafka.server.ServerEvent;
+import com.google.gson.Gson;
+import com.lmax.disruptor.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
+
+import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
+
+@Configuration
+@Profile("ws-kafka-proxy")
+@ComponentScan({"com.devicehive.proxy.config", "com.devicehive.proxy.client"})
+public class BackendProxyClientConfig {
+
+    @Autowired
+    private WebSocketKafkaProxyConfig proxyConfig;
+
+    @Bean
+    public WorkerPool<ServerEvent> workerPool(Gson gson, WebSocketKafkaProxyConfig proxyConfig, RequestHandlersMapper requestHandlersMapper) {
+        final ProxyServerEventHandler[] workHandlers = new ProxyServerEventHandler[proxyConfig.getWorkerThreads()];
+        IntStream.range(0, proxyConfig.getWorkerThreads()).forEach(
+                nbr -> workHandlers[nbr] = new ProxyServerEventHandler(gson, proxyConfig, requestHandlersMapper)
+        );
+        final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, proxyConfig.getBufferSize(), getWaitStrategy());
+        final SequenceBarrier barrier = ringBuffer.newBarrier();
+        WorkerPool<ServerEvent> workerPool = new WorkerPool<>(ringBuffer, barrier, new FatalExceptionHandler(), workHandlers);
+        ringBuffer.addGatingSequences(workerPool.getWorkerSequences());
+        return workerPool;
+    }
+
+    @Bean
+    public NotificationHandler notificationHandler(Gson gson, WorkerPool<ServerEvent> workerPool) {
+        final ExecutorService execService = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
+        RingBuffer<ServerEvent> ringBuffer = workerPool.start(execService);
+        return new ProxyRequestHandler(gson, ringBuffer);
+    }
+
+    @Bean
+    public ProxyClient proxyClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig) {
+        WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
+        client.setWebSocketKafkaProxyConfig(proxyConfig);
+        client.start();
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(REQUEST_TOPIC)));
+        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup())));
+        return client;
+    }
+
+    @Bean
+    public MessageDispatcher messageDispatcher(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
+        return new ProxyMessageDispatcher(gson, proxyConfig);
+    }
+
+    private WaitStrategy getWaitStrategy() {
+        WaitStrategy strategy;
+
+        switch (proxyConfig.getWaitStrategy()) {
+            case "blocking":
+                strategy = new BlockingWaitStrategy();
+                break;
+            case "sleeping":
+                strategy = new SleepingWaitStrategy();
+                break;
+            case "yielding":
+                strategy = new YieldingWaitStrategy();
+                break;
+            case "busyspin":
+                strategy = new BusySpinWaitStrategy();
+                break;
+            default:
+                strategy = new BlockingWaitStrategy();
+                break;
+        }
+        return strategy;
+    }
+}
