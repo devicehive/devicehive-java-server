@@ -26,6 +26,7 @@ import com.devicehive.shim.api.Body;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Modifier;
@@ -43,7 +44,9 @@ public class CommandSearchRequest extends Body {
     private Long id;
     private Set<String> deviceIds;
     private Set<String> names;
+    @SerializedName("start")
     private Date timestampStart;
+    @SerializedName("end")
     private Date timestampEnd;
     private boolean returnUpdated;
     private String status;
