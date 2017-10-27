@@ -105,9 +105,6 @@ public class GsonFactory {
                 .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.ordinal())
                 .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.ordinal())
 
-                .registerSubtype(ListCommandRequest.class, Action.LIST_COMMAND_REQUEST.ordinal())
-                .registerSubtype(ListNotificationRequest.class, Action.LIST_NOTIFICATION_REQUEST.ordinal())
-
                 .registerSubtype(DeviceCreateRequest.class, Action.DEVICE_CREATE_REQUEST.ordinal())
                 .registerSubtype(DeviceCreateResponse.class, Action.DEVICE_CREATE_RESPONSE.ordinal())
 

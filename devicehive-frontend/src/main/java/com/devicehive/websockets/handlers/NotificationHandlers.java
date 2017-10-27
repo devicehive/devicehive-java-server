@@ -31,10 +31,9 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListNotificationRequest;
+import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
-import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
@@ -67,7 +66,7 @@ import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static com.devicehive.model.enums.SortOrder.ASC;
-import static com.devicehive.model.rpc.ListNotificationRequest.createListNotificationRequest;
+import static com.devicehive.model.rpc.NotificationSearchRequest.createNotificationSearchRequest;
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Component
@@ -295,8 +294,8 @@ public class NotificationHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     public void processNotificationList(JsonObject request, WebSocketSession session) {
-        ListNotificationRequest listNotificationRequest = createListNotificationRequest(request);
-        String deviceId = listNotificationRequest.getDeviceId();
+        NotificationSearchRequest notificationSearchRequest = createNotificationSearchRequest(request);
+        String deviceId = notificationSearchRequest.getDeviceId();
         if (deviceId == null) {
             logger.error("notification/list proceed with error. Device ID should be provided.");
             throw new HiveException(Messages.DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -312,16 +311,8 @@ public class NotificationHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         
-        notificationService.find(listNotificationRequest)
-                .thenAccept(notifications -> {
-                    final Comparator<DeviceNotification> comparator = CommandResponseFilterAndSort
-                            .buildDeviceNotificationComparator(listNotificationRequest.getSortField());
-                    String sortOrderSt = listNotificationRequest.getSortOrder();
-                    final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-
-                    final List<DeviceNotification> sortedDeviceNotifications = CommandResponseFilterAndSort
-                            .orderAndLimit(notifications, comparator, reverse,
-                                    listNotificationRequest.getSkip(), listNotificationRequest.getTake());
+        notificationService.find(notificationSearchRequest)
+                .thenAccept(sortedDeviceNotifications -> {
                     response.addValue(NOTIFICATIONS, sortedDeviceNotifications, NOTIFICATION_TO_CLIENT);
                     clientHandler.sendMessage(request, response, session);
                 });

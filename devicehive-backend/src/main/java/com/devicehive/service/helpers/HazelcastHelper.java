@@ -23,13 +23,16 @@ package com.devicehive.service.helpers;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
+import com.devicehive.model.enums.SearchableField;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -38,47 +41,31 @@ import static com.devicehive.model.enums.SearchableField.*;
 @Component
 public class HazelcastHelper {
 
-    public Predicate prepareFilters(final Long id, final String deviceId) {
-        return prepareFilters(id, deviceId, null, null, null, null, null, false, null);
+    public <T extends HazelcastEntity> Predicate prepareFilters(final Long id, final String deviceId, Class<T> entityClass) {
+        return prepareFilters(id, Collections.singleton(deviceId), null, null, null, false, null, entityClass);
     }
 
-    public <T extends HazelcastEntity> Predicate prepareFilters(final String deviceId,
-                                                                final Collection<String> names,
-                                                                final Collection<String> devices,
-                                                                final Date timestampSt, final Date timestampEnd,
-                                                                final boolean returnUpdated,
-                                                                final String status, Class<T> entityClass) {
-        if (entityClass.equals(DeviceCommand.class)) {
-            return prepareFilters(null, deviceId, devices, null, names, timestampSt, timestampEnd,
-                    returnUpdated, status);
-        }
-        if (entityClass.equals(DeviceNotification.class)) {
-            return prepareFilters(null, deviceId, devices, names, null, timestampSt, timestampEnd,
-                    returnUpdated, status);
-        }
-        return null;
+    public <T extends HazelcastEntity> Predicate prepareFilters(Collection<String> deviceIds, Collection<String> names,
+            Date timestampSt, Date timestampEnd, boolean returnUpdated, String status, Class<T> entityClass) {
+        return prepareFilters(null, deviceIds, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
     }
 
-    private Predicate prepareFilters(Long id, String deviceId, Collection<String> devices, Collection<String> notifications,
-                                     Collection<String> commands, Date timestampSt, Date timestampEnd,
-                                     boolean returnUpdated, String status) {
+    private <T extends HazelcastEntity> Predicate prepareFilters(Long id, Collection<String> deviceIds,
+            Collection<String> names, Date timestampSt, Date timestampEnd, boolean returnUpdated, String status,
+            Class<T> entityClass) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
             predicates.add(Predicates.equal(ID.getField(), id));
         }
 
-        if (StringUtils.isNotEmpty(deviceId)) {
-            predicates.add(Predicates.equal(DEVICE_ID.getField(), deviceId));
+        if (deviceIds != null && !deviceIds.isEmpty()) {
+            predicates.add(Predicates.in(DEVICE_IDS.getField(), deviceIds.toArray(new String[deviceIds.size()])));
         }
 
-        if (devices != null && !devices.isEmpty()) {
-            predicates.add(Predicates.in(DEVICE_IDS.getField(), devices.toArray(new String[devices.size()])));
-        }
-
-        if (notifications != null && !notifications.isEmpty()) {
-            predicates.add(Predicates.in(NOTIFICATION.getField(), notifications.toArray(new String[notifications.size()])));
-        } else if (commands != null && !commands.isEmpty()) {
-            predicates.add(Predicates.in(COMMAND.getField(), commands.toArray(new String[commands.size()])));
+        String searchableField = entityClass.equals(DeviceCommand.class) ? COMMAND.getField() : NOTIFICATION.getField();
+        
+        if (!CollectionUtils.isEmpty(names)) {
+            predicates.add(Predicates.in(searchableField, names.toArray(new String[names.size()])));
         }
         
         if (returnUpdated) {

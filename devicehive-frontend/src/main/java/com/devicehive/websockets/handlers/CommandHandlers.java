@@ -28,10 +28,9 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.ListCommandRequest;
+import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
-import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -64,7 +63,7 @@ import static com.devicehive.configuration.Messages.DEVICE_NOT_FOUND;
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.enums.SortOrder.ASC;
-import static com.devicehive.model.rpc.ListCommandRequest.createListCommandRequest;
+import static com.devicehive.model.rpc.CommandSearchRequest.createCommandSearchRequest;
 import static com.devicehive.util.ServerResponsesFactory.createCommandMessage;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
@@ -316,7 +315,8 @@ public class CommandHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
     public void processCommandList(String deviceId, JsonObject request, WebSocketSession session) {
-        ListCommandRequest listCommandRequest = createListCommandRequest(request);
+        CommandSearchRequest commandSearchRequest = createCommandSearchRequest(request);
+        
         if (deviceId == null) {
             logger.error("command/list proceed with error. Device ID should be provided.");
             throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
@@ -332,16 +332,8 @@ public class CommandHandlers {
         
         WebSocketResponse response = new WebSocketResponse();
         
-        commandService.find(listCommandRequest)
-                .thenAccept(commands -> {
-                    final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
-                            .buildDeviceCommandComparator(listCommandRequest.getSortField());
-                    final String sortOrderSt = listCommandRequest.getSortOrder();  
-                    final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-                    
-                    final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
-                            .orderAndLimit(new ArrayList<>(commands), comparator, reverse,
-                                    listCommandRequest.getSkip(), listCommandRequest.getTake());
+        commandService.find(commandSearchRequest)
+                .thenAccept(sortedDeviceCommands -> {
                     response.addValue(COMMANDS, sortedDeviceCommands, COMMAND_LISTED);
                     clientHandler.sendMessage(request, response, session);
                 })

@@ -1,4 +1,4 @@
-package com.devicehive.resource.util;
+package com.devicehive.service.helpers;
 
 /*
  * #%L
@@ -40,7 +40,9 @@ public final class CommandResponseFilterAndSort {
         if (Boolean.FALSE.equals(reverse)) {
             Collections.reverse(deviceCommands);
         }
-        return subList(deviceCommands, skip, take);
+        
+        return subList(deviceCommands, Optional.ofNullable(skip).orElse(0),
+                Optional.ofNullable(take).orElse(deviceCommands.size()));
     }
 
     private static <T> List<T> subList(List<T> deviceCommands, Integer skip, Integer take) {
@@ -78,5 +80,12 @@ public final class CommandResponseFilterAndSort {
             };
         }
         return null;
+    }
+
+    public static Integer getTotal(Integer skip, Integer take) {
+        Integer updatedSkip = Optional.ofNullable(skip).orElse(0);
+        Integer updatedTake = Optional.ofNullable(take).orElse(0);
+
+        return updatedTake.equals(0) ? 0 : updatedSkip + updatedTake;
     }
 }

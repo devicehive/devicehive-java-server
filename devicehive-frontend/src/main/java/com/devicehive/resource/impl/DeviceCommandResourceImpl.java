@@ -31,7 +31,6 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
-import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -320,18 +319,11 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
-            commandService.find(Collections.singletonList(deviceId), searchCommands, timestampSt, timestampEnd, status)
-                    .thenApply(commands -> {
-                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
-                                .buildDeviceCommandComparator(sortField);
-                        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-
-                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
-                                .orderAndLimit(new ArrayList<>(commands),
-                                comparator, reverse, skip, take);
-                        return ResponseFactory.response(OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
-                    })
+            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+            
+            commandService.find(Collections.singletonList(deviceId), names, timestampSt, timestampEnd, status,
+                    sortField, sortOrderSt, take, skip)
+                    .thenApply(commands -> ResponseFactory.response(OK, commands, Policy.COMMAND_LISTED))
                     .thenAccept(asyncResponse::resume);
         }
     }

@@ -76,54 +76,43 @@ public class DeviceNotificationService {
     public CompletableFuture<Optional<DeviceNotification>> findOne(Long id, String deviceId) {
         NotificationSearchRequest searchRequest = new NotificationSearchRequest();
         searchRequest.setId(id);
-        searchRequest.setDeviceId(deviceId);
+        searchRequest.setDeviceIds(Collections.singleton(deviceId));
 
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(searchRequest)
+                .withPartitionKey(deviceId)
+                .build(), new ResponseConsumer(future));
+        return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
+    }
+
+    public CompletableFuture<List<DeviceNotification>> find(NotificationSearchRequest request) {
+        
+        return find(request.getDeviceIds(), request.getNames(), request.getTimestampStart(), request.getTimestampEnd(),
+                request.getSortField(), request.getSortOrder(), request.getTake(), request.getSkip());
+    }
+
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<List<DeviceNotification>> find(Set<String> deviceIds, Set<String> names, Date timestampSt,
+            Date timestampEnd, String sortField, String sortOrder, Integer take, Integer skip) {
+        NotificationSearchRequest searchRequest = new NotificationSearchRequest();
+        searchRequest.setDeviceIds(deviceIds);
+        searchRequest.setNames(names);
+        searchRequest.setTimestampStart(timestampSt);
+        searchRequest.setTimestampEnd(timestampEnd);
+        searchRequest.setSortField(sortField);
+        searchRequest.setSortOrder(sortOrder);
+        searchRequest.setTake(take);
+        searchRequest.setSkip(skip);
+        
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(searchRequest)
                 .withPartitionKey(searchRequest.getDeviceId())
                 .build(), new ResponseConsumer(future));
-        return future.thenApply(r -> ((NotificationSearchResponse) r.getBody()).getNotifications().stream().findFirst());
-    }
 
-    public CompletableFuture<List<DeviceNotification>> find(ListNotificationRequest request) {
-        String deviceId = request.getDeviceId();
-        String notification = request.getNotification();
-        Set<String> notificationNames =
-                StringUtils.isNoneEmpty(notification) ? Collections.singleton(notification) : Collections.emptySet();
-        return find(Collections.singleton(deviceId), notificationNames,
-                request.getStart(), request.getEnd());
-    }
-
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<List<DeviceNotification>> find(Set<String> deviceIds, Set<String> names,
-                                                            Date timestampSt, Date timestampEnd) {
-        List<CompletableFuture<Response>> futures = deviceIds.stream()
-                .map(deviceId -> {
-                    NotificationSearchRequest searchRequest = new NotificationSearchRequest();
-                    searchRequest.setDeviceId(deviceId);
-                    searchRequest.setNames(names);
-                    searchRequest.setTimestampStart(timestampSt);
-                    searchRequest.setTimestampEnd(timestampEnd);
-                    return searchRequest;
-                })
-                .map(searchRequest -> {
-                    CompletableFuture<Response> future = new CompletableFuture<>();
-                    rpcClient.call(Request.newBuilder()
-                            .withBody(searchRequest)
-                            .withPartitionKey(searchRequest.getDeviceId())
-                            .build(), new ResponseConsumer(future));
-                    return future;
-                })
-                .collect(Collectors.toList());
-
-        // List<CompletableFuture<Response>> => CompletableFuture<List<DeviceNotification>>
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                .thenApply(v -> futures.stream()
-                        .map(CompletableFuture::join)                                                    // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
-                        .map(r -> r.getBody().cast(NotificationSearchResponse.class).getNotifications()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceNotification>>>
-                        .flatMap(Collection::stream)                                                     // CompletableFuture<List<List<DeviceNotification>>> => CompletableFuture<List<DeviceNotification>>
-                        .collect(Collectors.toList()));
+        // CompletableFuture<Response> => CompletableFuture<List<DeviceNotification>>
+        return future.thenApply(v -> v.getBody().cast(NotificationSearchResponse.class).getNotifications());
     }
 
     public CompletableFuture<DeviceNotification> insert(final DeviceNotification notification,
