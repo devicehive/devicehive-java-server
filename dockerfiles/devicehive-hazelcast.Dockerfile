@@ -2,7 +2,7 @@ FROM hazelcast/hazelcast:3.8.3
 
 MAINTAINER devicehive
 
-ENV DH_VERSION="3.4.0"
+ENV DH_VERSION="3.4.1-SNAPSHOT"
 
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \
