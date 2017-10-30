@@ -28,11 +28,11 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ComponentScan(value = "com.devicehive", excludeFilters = {@ComponentScan.Filter(type = FilterType.REGEX, pattern = "org.springframework.transaction.*")})
-public class DeviceHiveApplication {
+public class DeviceHiveBackendApplication {
 
     public static void main(String... args) {
         ConfigurableApplicationContext context = new SpringApplicationBuilder()
-                .sources(DeviceHiveApplication.class)
+                .sources(DeviceHiveBackendApplication.class)
                 .web(false)
                 .run(args);
 

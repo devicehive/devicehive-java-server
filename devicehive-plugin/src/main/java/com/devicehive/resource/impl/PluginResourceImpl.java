@@ -43,7 +43,7 @@ import static javax.ws.rs.core.Response.Status.CREATED;
 @Service
 public class PluginResourceImpl implements PluginResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserResourceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(PluginResourceImpl.class);
 
     private final HiveValidator hiveValidator;
     private final PluginService pluginService;

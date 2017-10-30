@@ -50,13 +50,13 @@ import java.util.concurrent.Executors;
 @EnableScheduling
 @EnableCaching
 @EnableAsync(proxyTargetClass = true)
-public class DeviceHiveApplication extends SpringBootServletInitializer {
+public class DeviceHiveFrontendApplication extends SpringBootServletInitializer {
 
     public static final String MESSAGE_EXECUTOR = "DeviceHiveMessageService";
 
     public static void main(String... args) {
         ConfigurableApplicationContext context = new SpringApplicationBuilder()
-                .sources(DeviceHiveApplication.class)
+                .sources(DeviceHiveFrontendApplication.class)
                 .web(true)
                 .run(args);
 

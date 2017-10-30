@@ -51,7 +51,7 @@ public class PluginService {
     private final KafkaTopicService kafkaTopicService;
     private final RpcClient rpcClient;
     private final LongIdGenerator idGenerator;
-    private final DeviceService deviceService;
+    private final BaseDeviceService deviceService;
 
     @Autowired
     public PluginService(
@@ -60,7 +60,7 @@ public class PluginService {
             KafkaTopicService kafkaTopicService,
             RpcClient rpcClient,
             LongIdGenerator idGenerator,
-            DeviceService deviceService) {
+            BaseDeviceService deviceService) {
         this.hiveValidator = hiveValidator;
         this.pluginDao = pluginDao;
         this.kafkaTopicService = kafkaTopicService;

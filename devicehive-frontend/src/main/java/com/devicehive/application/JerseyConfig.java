@@ -49,8 +49,7 @@ public class JerseyConfig extends ResourceConfig {
                 DeviceResourceImpl.class,
                 NetworkResourceImpl.class,
                 WelcomeResourceImpl.class,
-                UserResourceImpl.class,
-                PluginResourceImpl.class);
+                UserResourceImpl.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 

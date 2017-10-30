@@ -20,10 +20,9 @@ package com.devicehive.base;
  * #L%
  */
 
-import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.application.DeviceHiveFrontendApplication;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.Timeout;
@@ -45,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {DeviceHiveApplication.class})
+@SpringBootTest(classes = {DeviceHiveFrontendApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringKafkaTest {
     public static String RESPONSE_TOPIC;
