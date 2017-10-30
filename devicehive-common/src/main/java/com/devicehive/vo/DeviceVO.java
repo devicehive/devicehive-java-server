@@ -56,6 +56,10 @@ public class DeviceVO implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Long networkId;
 
+    @SerializedName("deviceTypeId")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    private Long deviceTypeId;
+
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
@@ -99,6 +103,14 @@ public class DeviceVO implements HiveEntity {
 
     public void setNetworkId(Long networkId) {
         this.networkId = networkId;
+    }
+
+    public Long getDeviceTypeId() {
+        return deviceTypeId;
+    }
+
+    public void setDeviceTypeId(Long deviceTypeId) {
+        this.deviceTypeId = deviceTypeId;
     }
 
     public Boolean getBlocked() {

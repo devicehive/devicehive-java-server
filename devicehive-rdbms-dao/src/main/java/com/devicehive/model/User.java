@@ -94,6 +94,11 @@ public class User implements HiveEntity {
     @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
     private Set<Network> networks;
 
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
+    @JsonPolicyDef({USER_PUBLISHED})
+    @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+    private Set<DeviceType> deviceTypes;
+
     @Column(name = "last_login")
     @SerializedName("lastLogin")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
@@ -182,6 +187,14 @@ public class User implements HiveEntity {
 
     public void setNetworks(Set<Network> networks) {
         this.networks = networks;
+    }
+
+    public Set<DeviceType> getDeviceTypes() {
+        return deviceTypes;
+    }
+
+    public void setDeviceTypes(Set<DeviceType> deviceTypes) {
+        this.deviceTypes = deviceTypes;
     }
 
     public Integer getLoginAttempts() {

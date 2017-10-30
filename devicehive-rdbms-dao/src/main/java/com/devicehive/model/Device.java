@@ -89,6 +89,12 @@ public class Device implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Network network;
 
+    @SerializedName("deviceTypeId")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "device_type_id")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    private DeviceType deviceType;
+
     @Column(name = "blocked")
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
@@ -133,6 +139,14 @@ public class Device implements HiveEntity {
 
     public void setNetwork(Network network) {
         this.network = network;
+    }
+
+    public DeviceType getDeviceType() {
+        return deviceType;
+    }
+
+    public void setDeviceType(DeviceType deviceType) {
+        this.deviceType = deviceType;
     }
 
     public Boolean getBlocked() {
