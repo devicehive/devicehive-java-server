@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for specifying a method that should be secured with {@link com.devicehive.auth.websockets.WebSocketActionAuthenticationAspect}
+ * Annotation for specifying a method that should be secured with {@link WebSocketActionAuthenticationAspect}
  * Last argument of annotated method must be of type {@link org.springframework.web.socket.WebSocketSession}
  */
 @Target(ElementType.METHOD)

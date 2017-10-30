@@ -69,8 +69,8 @@ public class KafkaRpcClientServerCommunicationTest {
     @BeforeClass
     public static void setUp() throws Exception {
         RuntimeTypeAdapterFactory<Body> requestFactory = RuntimeTypeAdapterFactory.of(Body.class, "a")
-                .registerSubtype(TestRequestBody.class, Action.EMPTY.ordinal())
-                .registerSubtype(TestResponseBody.class, Action.EMPTY.ordinal());
+                .registerSubtype(TestResponseBody.class, 0)
+                .registerSubtype(TestRequestBody.class, 1);
 
         gson = new GsonBuilder()
                 .registerTypeAdapterFactory(requestFactory)

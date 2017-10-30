@@ -32,7 +32,7 @@ public class WebSocketApplication {
 
     public static void main(String[] args) {
 
-        ProxyClient client = new WebSocketKafkaProxyClient(message -> System.out.println("Received message: " + message));
+        ProxyClient client = new WebSocketKafkaProxyClient((message, proxyClient) -> System.out.println("Received message: " + message));
         client.start();
 
         CompletableFuture<ProxyMessage> healthFuture = client.push(ProxyMessageBuilder.health());

@@ -21,6 +21,9 @@ package com.devicehive.shim.kafka.client;
  */
 
 import com.devicehive.shim.api.Response;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,20 +36,20 @@ public class RequestResponseMatcher {
     private static final Logger logger = LoggerFactory.getLogger(RequestResponseMatcher.class);
 
     private final ConcurrentHashMap<String, Consumer<Response>> correlationMap = new ConcurrentHashMap<>();
-    private final Map<Long, Set<String>> subscriptionMap = new HashMap<>();
+    private final SetMultimap<Long, String> subscriptionMap = Multimaps.synchronizedSetMultimap(HashMultimap.create());
 
     //TODO [rafa] we do not really need FJP, but rather some other pool implementation. Though FJP looks good, it might be over kill for our use case.
     private final ForkJoinPool executionPool = new ForkJoinPool();
 
-    void addRequestCallback(String correlationId, Consumer<Response> callback) {
+    public void addRequestCallback(String correlationId, Consumer<Response> callback) {
         correlationMap.put(correlationId, callback);
     }
 
-    void removeRequestCallback(String correlationId) {
+    public void removeRequestCallback(String correlationId) {
         correlationMap.remove(correlationId);
     }
 
-    void offerResponse(Response response) {
+    public void offerResponse(Response response) {
         Consumer<Response> callback = correlationMap.get(response.getCorrelationId());
         if (callback != null) {
             executionPool.execute(() -> {
@@ -64,20 +67,10 @@ public class RequestResponseMatcher {
     }
 
     public void addSubscription(Long subscriptionId, String correlationId) {
-        if (subscriptionMap.containsKey(subscriptionId)) {
-            Set<String> corrIds = subscriptionMap.get(subscriptionId);
-            corrIds.add(correlationId);
-        } else {
-            Set<String> set = new HashSet<>();
-            set.add(correlationId);
-            subscriptionMap.put(subscriptionId, set);
-        }
+       subscriptionMap.put(subscriptionId, correlationId);
     }
 
     public void removeSubscription(Long subscriptionId) {
-        if (subscriptionMap.containsKey(subscriptionId)) {
-            subscriptionMap.get(subscriptionId).forEach(correlationMap::remove);
-            subscriptionMap.remove(subscriptionId);
-        }
+        subscriptionMap.removeAll(subscriptionId);
     }
 }

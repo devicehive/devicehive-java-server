@@ -23,6 +23,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
@@ -30,7 +31,6 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
-import com.devicehive.resource.util.CommandResponseFilterAndSort;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
@@ -58,7 +58,12 @@ import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import static javax.ws.rs.core.Response.Status.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.OK;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
 /**
  * {@inheritDoc}
@@ -122,7 +127,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 .orElse(timestampService.getDate());
 
         final Response response = ResponseFactory.response(
-                Response.Status.OK,
+                OK,
                 Collections.emptyList(),
                 Policy.COMMAND_LISTED);
 
@@ -165,7 +170,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
-                        Response.Status.OK,
+                        OK,
                         Collections.singleton(command),
                         Policy.COMMAND_LISTED));
             }
@@ -179,7 +184,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
-                            Response.Status.OK,
+                            OK,
                             collection,
                             Policy.COMMAND_LISTED));
                 }
@@ -219,7 +224,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (deviceId == null || commandId == null) {
             logger.warn("DeviceCommand wait request failed. BAD REQUEST: deviceId and commandId required", deviceId);
-            asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST));
+            asyncResponse.resume(ResponseFactory.response(BAD_REQUEST));
             return;
         }
 
@@ -227,45 +232,53 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (device == null) {
             logger.warn("DeviceCommand wait request failed. NOT FOUND: device {} not found", deviceId);
-            asyncResponse.resume(ResponseFactory.response(Response.Status.NOT_FOUND));
+            asyncResponse.resume(ResponseFactory.response(NOT_FOUND));
             return;
         }
 
-        Optional<DeviceCommand> command = commandService.findOne(Long.valueOf(commandId), device.getDeviceId()).join();
+        commandService.findOne(Long.valueOf(commandId), device.getDeviceId())
+                .thenAccept(command -> {
+                    if (!command.isPresent()) {
+                        logger.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
+                                commandId, deviceId);
+                        asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
+                    } else {
+                        waitForCommand(device, commandId, timeout, command.get(), asyncResponse);        
+                    }
+                });
+    }
+    
+    private void waitForCommand(DeviceVO device, final String commandId, final long timeout,
+            DeviceCommand command, final AsyncResponse asyncResponse) {
+        String deviceId = device.getDeviceId();
+        
 
-        if (!command.isPresent()) {
-            logger.warn("DeviceCommand wait request failed. NOT FOUND: No command found with id = {} for deviceId = {}",
-                    commandId, deviceId);
-            asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
-            return;
-        }
-
-        if (!command.get().getDeviceId().equals(device.getDeviceId())) {
+        if (!command.getDeviceId().equals(device.getDeviceId())) {
             logger.warn("DeviceCommand wait request failed. BAD REQUEST: Command with id = {} was not sent for device with id = {}",
                     commandId, deviceId);
-            asyncResponse.resume(ResponseFactory.response(Response.Status.BAD_REQUEST));
+            asyncResponse.resume(ResponseFactory.response(BAD_REQUEST));
             return;
         }
 
         BiConsumer<DeviceCommand, Long> callback = (com, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
                 asyncResponse.resume(ResponseFactory.response(
-                        Response.Status.OK,
+                        OK,
                         com,
-                        Policy.COMMAND_TO_DEVICE));
+                        COMMAND_TO_DEVICE));
             }
         };
 
-        if (!command.get().getIsUpdated()) {
+        if (!command.getIsUpdated()) {
             CompletableFuture<Pair<Long, DeviceCommand>> future = commandService
                     .sendSubscribeToUpdateRequest(Long.valueOf(commandId), deviceId, callback);
             future.thenAccept(pair -> {
                 final DeviceCommand deviceCommand = pair.getRight();
                 if (!asyncResponse.isDone() && deviceCommand.getIsUpdated()) {
                     asyncResponse.resume(ResponseFactory.response(
-                            Response.Status.OK,
+                            OK,
                             deviceCommand,
-                            Policy.COMMAND_TO_DEVICE));
+                            COMMAND_TO_DEVICE));
                 }
 
                 if (timeout == 0) {
@@ -280,17 +293,15 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     commandService.sendUnsubscribeRequest(Collections.singleton(future.get().getLeft()));
                 } catch (InterruptedException | ExecutionException e) {
                     if (!asyncResponse.isDone()) {
-                        asyncResponse.resume(ResponseFactory.response(Response.Status.INTERNAL_SERVER_ERROR));
+                        asyncResponse.resume(ResponseFactory.response(INTERNAL_SERVER_ERROR));
                     }
                 }
             });
         } else {
             if (!asyncResponse.isDone()) {
-                asyncResponse.resume(ResponseFactory.response(Response.Status.OK, command.get(),
-                        Policy.COMMAND_TO_DEVICE));
+                asyncResponse.resume(ResponseFactory.response(OK, command, COMMAND_TO_DEVICE));
             }
         }
-
     }
 
     @Override
@@ -308,18 +319,11 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
-            commandService.find(Collections.singletonList(deviceId), searchCommands, timestampSt, timestampEnd, status)
-                    .thenApply(commands -> {
-                        final Comparator<DeviceCommand> comparator = CommandResponseFilterAndSort
-                                .buildDeviceCommandComparator(sortField);
-                        final Boolean reverse = sortOrderSt == null ? null : "desc".equalsIgnoreCase(sortOrderSt);
-
-                        final List<DeviceCommand> sortedDeviceCommands = CommandResponseFilterAndSort
-                                .orderAndLimit(new ArrayList<>(commands),
-                                comparator, reverse, skip, take);
-                        return ResponseFactory.response(OK, sortedDeviceCommands, Policy.COMMAND_LISTED);
-                    })
+            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+            
+            commandService.find(Collections.singletonList(deviceId), names, timestampSt, timestampEnd, status,
+                    sortField, sortOrderSt, take, skip)
+                    .thenApply(commands -> ResponseFactory.response(OK, commands, Policy.COMMAND_LISTED))
                     .thenAccept(asyncResponse::resume);
         }
     }
@@ -355,7 +359,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     }
 
                     logger.debug("Device command get proceed successfully deviceId = {} commandId = {}", deviceId, commandId);
-                    return ResponseFactory.response(OK, command.get(), Policy.COMMAND_TO_DEVICE);
+                    return ResponseFactory.response(OK, command.get(), COMMAND_TO_DEVICE);
                 })
                 .thenAccept(asyncResponse::resume);
     }
@@ -377,18 +381,24 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            DeviceCommand command = commandService.insert(deviceCommand, device, authUser).join();
-            if (command != null) {
-                logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", deviceId,
-                        deviceCommand.getCommand());
-                Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, command, Policy.COMMAND_TO_CLIENT);
-                asyncResponse.resume(jaxResponse);
-            } else {
-                logger.warn("Device command insert failed for device with id = {}.", deviceId);
-                ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1L));
-                Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
-                asyncResponse.resume(jaxResponse);
-            }
+            commandService.insert(deviceCommand, device, authUser)
+                    .thenAccept(command -> {
+                        if (command != null) {
+                            logger.debug("Device command insertAll proceed successfully. deviceId = {} command = {}", deviceId,
+                                    deviceCommand.getCommand());
+                            Response jaxResponse = ResponseFactory.response(Response.Status.CREATED, command, Policy.COMMAND_TO_CLIENT);
+                            asyncResponse.resume(jaxResponse);
+                        } else {
+                            logger.warn("Device command insert failed for device with id = {}.", deviceId);
+                            ErrorResponse errorCode = new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.COMMAND_NOT_FOUND, -1L));
+                            Response jaxResponse = ResponseFactory.response(NOT_FOUND, errorCode);
+                            asyncResponse.resume(jaxResponse);
+                        }
+                    }).exceptionally(ex -> {
+                        logger.warn("Unable to insert notification.", ex);
+                        throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                    });;
+            
         }
     }
 
@@ -406,17 +416,22 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            Optional<DeviceCommand> savedCommand = commandService.findOne(commandId, deviceId).join();
-            if (!savedCommand.isPresent()) {
-                logger.warn("Device command update failed. No command with id = {} found for device with id = {}", commandId, deviceId);
-                Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
-                        String.format(Messages.COMMAND_NOT_FOUND, commandId)));
-                asyncResponse.resume(response);
-            } else {
-                logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", deviceId, commandId);
-                commandService.update(savedCommand.get(), command);
-                asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
-            }
+            commandService.findOne(commandId, deviceId)
+                .thenAccept(savedCommand -> {
+                    if (!savedCommand.isPresent()) {
+                        logger.warn("Device command update failed. No command with id = {} found for device with id = {}", commandId, deviceId);
+                        Response response = ResponseFactory.response(NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
+                                String.format(Messages.COMMAND_NOT_FOUND, commandId)));
+                        asyncResponse.resume(response);
+                    } else {
+                        logger.debug("Device command update proceed successfully deviceId = {} commandId = {}", deviceId, commandId);
+                        commandService.update(savedCommand.get(), command);
+                        asyncResponse.resume(ResponseFactory.response(Response.Status.NO_CONTENT));
+                    }
+                }).exceptionally(ex -> {
+                    logger.warn("Unable to update notification.", ex);
+                    throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+                });
         }
     }
 

@@ -38,6 +38,7 @@ import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -79,7 +80,7 @@ public class DeviceCommandService {
     public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
-        searchRequest.setDeviceId(deviceId);
+        searchRequest.setDeviceIds(Collections.singleton(deviceId));
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
@@ -88,44 +89,38 @@ public class DeviceCommandService {
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
     }
 
-    public CompletableFuture<List<DeviceCommand>> find(ListCommandRequest request) {
-        String command = request.getCommand();
-        List<String> searchCommands = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
-        return find(Collections.singletonList(request.getDeviceId()), searchCommands,
-                request.getStart(), request.getEnd(), request.getStatus());
+    public CompletableFuture<List<DeviceCommand>> find(CommandSearchRequest request) {
+        
+        return find(request.getDeviceIds(), request.getNames(), request.getTimestampStart(), request.getTimestampEnd(),
+                request.getStatus(), request.getSortField(), request.getSortOrder(), request.getTake(), request.getSkip());
     }
 
     public CompletableFuture<List<DeviceCommand>> find(Collection<String> deviceIds, Collection<String> names,
-                                                       Date timestampSt, Date timestampEnd, String status) {
-        List<CompletableFuture<Response>> futures = deviceIds.stream()
-                .map(deviceId -> {
-                    CommandSearchRequest searchRequest = new CommandSearchRequest();
-                    searchRequest.setDeviceId(deviceId);
-                    if (names != null) {
-                        searchRequest.setNames(new HashSet<>(names));
-                    }
-                    searchRequest.setTimestampStart(timestampSt);
-                    searchRequest.setTimestampEnd(timestampEnd);
-                    searchRequest.setStatus(status);
-                    return searchRequest;
-                })
-                .map(searchRequest -> {
-                    CompletableFuture<Response> future = new CompletableFuture<>();
-                    rpcClient.call(Request.newBuilder()
-                            .withBody(searchRequest)
-                            .withPartitionKey(searchRequest.getDeviceId())
-                            .build(), new ResponseConsumer(future));
-                    return future;
-                })
-                .collect(Collectors.toList());
+            Date timestampSt, Date timestampEnd, String status, String sortField, String sortOrder, Integer take,
+            Integer skip) {
+        
+        CommandSearchRequest searchRequest = new CommandSearchRequest();
+        searchRequest.setDeviceIds(Sets.newHashSet(deviceIds));
+        if (names != null) {
+            searchRequest.setNames(Sets.newHashSet(names));
+        }
+        searchRequest.setTimestampStart(timestampSt);
+        searchRequest.setTimestampEnd(timestampEnd);
+        searchRequest.setStatus(status);
+        searchRequest.setSortField(sortField);
+        searchRequest.setSortOrder(sortOrder);
+        searchRequest.setTake(take);
+        searchRequest.setSkip(skip);
 
-        // List<CompletableFuture<Response>> => CompletableFuture<List<DeviceCommand>>
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                .thenApply(v -> futures.stream()
-                        .map(CompletableFuture::join)                                  // List<CompletableFuture<Response>> => CompletableFuture<List<Response>>
-                        .map(r -> ((CommandSearchResponse) r.getBody()).getCommands()) // CompletableFuture<List<Response>> => CompletableFuture<List<List<DeviceCommand>>>
-                        .flatMap(Collection::stream)                                   // CompletableFuture<List<List<DeviceCommand>>> => CompletableFuture<List<DeviceCommand>>
-                        .collect(Collectors.toList()));
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(searchRequest)
+                .withPartitionKey(searchRequest.getDeviceId())
+                .build(), new ResponseConsumer(future));
+                    
+        
+        // CompletableFuture<Response> => CompletableFuture<List<DeviceCommand>>
+        return future.thenApply(v -> v.getBody().cast(CommandSearchResponse.class).getCommands());
     }
 
     public CompletableFuture<DeviceCommand> insert(DeviceCommandWrapper commandWrapper, DeviceVO device, UserVO user) {
@@ -184,14 +179,14 @@ public class DeviceCommandService {
         return Pair.of(subscriptionId, future);
     }
 
-    public void sendUnsubscribeRequest(Set<Long> subIds) {
+    public CompletableFuture<Set<Long>> sendUnsubscribeRequest(Set<Long> subIds) {
         CommandUnsubscribeRequest unsubscribeRequest = new CommandUnsubscribeRequest(subIds);
         Request request = Request.newBuilder()
                 .withBody(unsubscribeRequest)
                 .build();
+        CompletableFuture<Set<Long>> future = new CompletableFuture<>();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
-            CompletableFuture<Set<Long>> future = new CompletableFuture<>();
             if (resAction.equals(Action.COMMAND_UNSUBSCRIBE_RESPONSE)) {
                 future.complete(response.getBody().cast(CommandUnsubscribeResponse.class).getSubscriptionIds());
                 subIds.forEach(requestResponseMatcher::removeSubscription);
@@ -200,6 +195,7 @@ public class DeviceCommandService {
             }
         };
         rpcClient.call(request, responseConsumer);
+        return future;
     }
 
     public CompletableFuture<Pair<Long, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, Long> callback) {
@@ -265,6 +261,7 @@ public class DeviceCommandService {
         DeviceCommand command = new DeviceCommand();
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceId(device.getDeviceId());
+        command.setNetworkId(device.getNetworkId());
         command.setIsUpdated(false);
 
         if (commandWrapper.getTimestamp().isPresent()) {

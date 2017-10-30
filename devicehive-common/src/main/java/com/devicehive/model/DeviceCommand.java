@@ -74,6 +74,11 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String deviceId;
 
+    @SerializedName("networkId")
+    @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
+    private Long networkId;
+
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
             POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
@@ -150,6 +155,14 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         this.deviceId = deviceId;
     }
 
+    public Long getNetworkId() {
+        return networkId;
+    }
+
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
+    }
+
     public JsonStringWrapper getParameters() {
         return parameters;
     }
@@ -199,6 +212,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
 
         if (command != null ? !command.equals(message.command) : message.command != null) return false;
         if (deviceId != null ? !deviceId.equals(message.deviceId) : message.deviceId != null) return false;
+        if (networkId != null ? !networkId.equals(message.networkId) : message.networkId != null) return false;
         if (id != null ? !id.equals(message.id) : message.id != null) return false;
         if (isUpdated != null ? !isUpdated.equals(message.isUpdated) : message.isUpdated != null) return false;
         if (lifetime != null ? !lifetime.equals(message.lifetime) : message.lifetime != null) return false;
@@ -218,6 +232,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         result1 = 31 * result1 + (timestamp != null ? timestamp.hashCode() : 0);
         result1 = 31 * result1 + (userId != null ? userId.hashCode() : 0);
         result1 = 31 * result1 + (deviceId != null ? deviceId.hashCode() : 0);
+        result1 = 31 * result1 + (networkId != null ? networkId.hashCode() : 0);
         result1 = 31 * result1 + (parameters != null ? parameters.hashCode() : 0);
         result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
@@ -235,6 +250,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
                 ", lastUpdated=" + lastUpdated +
                 ", userId=" + userId +
                 ", deviceId='" + deviceId + '\'' +
+                ", networkId='" + networkId + '\'' +
                 ", parameters=" + parameters +
                 ", lifetime=" + lifetime +
                 ", status='" + status + '\'' +
@@ -269,6 +285,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         portableWriter.writeLong("lastUpdated", Objects.nonNull(lastUpdated) ? lastUpdated.getTime() :0);
         portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
         portableWriter.writeUTF("deviceId", deviceId);
+        portableWriter.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
         boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
         portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
         portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
@@ -286,6 +303,7 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         lastUpdated = new Date(portableReader.readLong("lastUpdated"));
         userId = portableReader.readLong("userId");
         deviceId = portableReader.readUTF("deviceId");
+        networkId = portableReader.readLong("networkId");
         String parametersString = portableReader.readUTF("parameters");
         if (Objects.nonNull(parametersString)) {
             parameters = new JsonStringWrapper(parametersString);

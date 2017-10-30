@@ -2,7 +2,7 @@ FROM openjdk:8u131-jre-alpine
 
 MAINTAINER devicehive
 
-ENV DH_VERSION="3.3.4"
+ENV DH_VERSION="3.4.0"
 
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \

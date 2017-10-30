@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.3.4</version>
+    <version>3.4.0</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -39,7 +39,7 @@
         <hsqldb.version>2.3.2</hsqldb.version>
         <postgresql.version>9.4-1201-jdbc4</postgresql.version>
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
-        <httpclient.version>4.3.5</httpclient.version>
+        <httpclient.version>4.5.3</httpclient.version>
         <zookeeper.version>3.4.6</zookeeper.version>
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
@@ -50,9 +50,8 @@
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <commons-net.version>3.3</commons-net.version>
         <commons-codec.version>1.9</commons-codec.version>
-        <guava.version>17.0</guava.version>
+        <guava.version>23.0</guava.version>
         <gson.version>2.7</gson.version>
-        <google-oauth-client.version>1.19.0</google-oauth-client.version>
         <joda-time.version>2.5</joda-time.version>
         <jquery.version>1.11.1</jquery.version>
         <kafka.version>0.10.0.1</kafka.version>
@@ -82,7 +81,6 @@
 
         <jjwt.version>0.7.0</jjwt.version>
 
-        <skipTests>true</skipTests>
         <packaging.type>jar</packaging.type>
 
         <server.log.directory>${project.build.directory}/logs</server.log.directory>
@@ -101,6 +99,8 @@
         <module>devicehive-backend</module>
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
+        <module>devicehive-auth</module>
+        <module>devicehive-common-auth</module>
     </modules>
 
     <dependencies>
@@ -347,6 +347,11 @@
                 <artifactId>disruptor</artifactId>
                 <version>${lmax-disruptor.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
@@ -544,7 +549,7 @@
         <profile>
             <id>test-port-override</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <activeByDefault>false</activeByDefault>
             </activation>
             <build>
                 <plugins>

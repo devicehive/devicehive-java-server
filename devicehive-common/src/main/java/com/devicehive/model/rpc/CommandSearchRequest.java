@@ -20,24 +20,67 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.json.adapters.TimestampAdapter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
+import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Set;
+
+import static com.devicehive.configuration.Constants.COMMAND;
+import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
+import static com.devicehive.configuration.Constants.DEVICE_ID;
 
 public class CommandSearchRequest extends Body {
 
     private Long id;
-    private String deviceId;
+    private Set<String> deviceIds;
     private Set<String> names;
+    @SerializedName("start")
     private Date timestampStart;
+    @SerializedName("end")
     private Date timestampEnd;
     private boolean returnUpdated;
     private String status;
+    private String sortField;
+    private String sortOrder;
+    private Integer take;
+    private Integer skip;
 
     public CommandSearchRequest() {
         super(Action.COMMAND_SEARCH_REQUEST);
+    }
+
+    public static CommandSearchRequest createCommandSearchRequest(JsonObject request) {
+        CommandSearchRequest commandSearchRequest = new GsonBuilder()
+                .registerTypeAdapter(Date.class, new TimestampAdapter())
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, CommandSearchRequest.class);
+        commandSearchRequest.setTake(Optional.ofNullable(commandSearchRequest.getTake()).orElse(DEFAULT_TAKE));
+        commandSearchRequest.setSkip(Optional.ofNullable(commandSearchRequest.getSkip()).orElse(DEFAULT_SKIP));
+        if (CollectionUtils.isEmpty(commandSearchRequest.getDeviceIds())) {
+            Optional.ofNullable(request.get(DEVICE_ID)).map(JsonElement::getAsString).ifPresent(deviceId -> {
+                commandSearchRequest.setDeviceIds(Collections.singleton(deviceId));    
+            });
+        }
+
+        if (CollectionUtils.isEmpty(commandSearchRequest.getNames())) {
+            Optional.ofNullable(request.get(COMMAND)).map(JsonElement::getAsString).ifPresent(command -> {
+                commandSearchRequest.setNames(Collections.singleton(command));
+            });
+        }
+
+        return commandSearchRequest;
     }
 
     public Long getId() {
@@ -48,12 +91,18 @@ public class CommandSearchRequest extends Body {
         this.id = id;
     }
 
-    public String getDeviceId() {
-        return deviceId;
+    public Set<String> getDeviceIds() {
+        return deviceIds;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public String getDeviceId() {
+        return Optional.ofNullable(deviceIds)
+                .map(ids -> ids.stream().findFirst().orElse(null))
+                .orElse(null);
+    }
+
+    public void setDeviceIds(Set<String> deviceIds) {
+        this.deviceIds = deviceIds;
     }
 
     public Set<String> getNames() {
@@ -96,4 +145,35 @@ public class CommandSearchRequest extends Body {
         this.status = status;
     }
 
+    public String getSortField() {
+        return sortField;
+    }
+
+    public void setSortField(String sortField) {
+        this.sortField = sortField;
+    }
+
+    public String getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public Integer getTake() {
+        return take;
+    }
+
+    public void setTake(Integer take) {
+        this.take = take;
+    }
+
+    public Integer getSkip() {
+        return skip;
+    }
+
+    public void setSkip(Integer skip) {
+        this.skip = skip;
+    }
 }
