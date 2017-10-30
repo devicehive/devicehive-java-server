@@ -63,7 +63,6 @@ public class DeviceService extends BaseDeviceService {
     private static final Logger logger = LoggerFactory.getLogger(BaseDeviceService.class);
 
     private final DeviceNotificationService deviceNotificationService;
-    private final NetworkService networkService;
     private final UserService userService;
     private final TimestampService timestampService;
     private final RpcClient rpcClient;
@@ -75,9 +74,8 @@ public class DeviceService extends BaseDeviceService {
                          TimestampService timestampService,
                          DeviceDao deviceDao,
                          RpcClient rpcClient) {
-        super(deviceDao);
+        super(deviceDao, networkService);
         this.deviceNotificationService = deviceNotificationService;
-        this.networkService = networkService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.rpcClient = rpcClient;
@@ -183,61 +181,6 @@ public class DeviceService extends BaseDeviceService {
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> deviceIds) {
         return deviceDao.getAllowedDeviceCount(principal, deviceIds);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Set<String> getAvailableDeviceIds(Set<String> deviceIds, Set<Long> networkIds) {
-        Set<String> availableDeviceIds = new HashSet<>();
-        if (!isEmpty(deviceIds)) {
-            availableDeviceIds.addAll(getAllowedExistingDeviceIds(deviceIds));
-        }
-
-        final HivePrincipal principal =(HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!isEmpty(networkIds)) {
-            
-            Set<String> availableDeviceIdsForNetworks = networkService.getDeviceIdsForNetworks(networkIds, principal);
-            availableDeviceIds.addAll(availableDeviceIdsForNetworks);
-        }
-
-        if (availableDeviceIds.isEmpty()) {
-            availableDeviceIds = findByIdWithPermissionsCheck(Collections.emptyList(), principal)
-                    .stream()
-                    .map(DeviceVO::getDeviceId)
-                    .collect(Collectors.toSet());
-        }
-
-        return availableDeviceIds;
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public Set<String> getAllowedExistingDeviceIds(Set<String> deviceIds) {
-        return getAllowedExistingDevices(deviceIds).stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-    }
-    
-    private List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
-        Set<String> allowedIds = devices.stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-
-        Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);
-        if (unresolvedIds.isEmpty()) {
-            return devices;
-        }
-
-        Set<String> forbiddedIds = unresolvedIds.stream()
-                .filter(deviceId -> !principal.hasAccessToDevice(deviceId))
-                .collect(Collectors.toSet());
-        if (forbiddedIds.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
-        }
-
-        throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
-
-        
     }
 
     private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, UserVO user) {

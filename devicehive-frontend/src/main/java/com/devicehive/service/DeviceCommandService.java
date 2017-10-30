@@ -39,7 +39,6 @@ import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

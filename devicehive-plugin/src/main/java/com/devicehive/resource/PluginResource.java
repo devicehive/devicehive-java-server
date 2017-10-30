@@ -38,7 +38,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Response;
 
 @Api(tags = {"Plugin"}, description = "Plugin management operations", consumes = "application/json")
 @Path("/plugin")

@@ -39,7 +39,6 @@ import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;

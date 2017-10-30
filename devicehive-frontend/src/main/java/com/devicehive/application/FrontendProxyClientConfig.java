@@ -28,11 +28,13 @@ import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.google.gson.Gson;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -50,7 +52,11 @@ public class FrontendProxyClientConfig {
 
     private static String RESPONSE_TOPIC;
 
-    static {
+    @Value("${response.topic.perfix}")
+    private String responseTopicPrefix;
+
+    @PostConstruct
+    private void init() {
         try {
             NetworkInterface ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
             String prefix = Optional.ofNullable(ni)
@@ -62,9 +68,9 @@ public class FrontendProxyClientConfig {
                         }
                     })
                     .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
-            RESPONSE_TOPIC = "response_topic_" + prefix;
+            RESPONSE_TOPIC = responseTopicPrefix + prefix;
         } catch (SocketException | UnknownHostException e) {
-            RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
+            RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID().toString();
         }
     }
 

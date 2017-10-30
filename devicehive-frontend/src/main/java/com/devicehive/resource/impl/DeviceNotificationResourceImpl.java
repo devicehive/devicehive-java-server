@@ -20,14 +20,11 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.converters.SetHelper;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
@@ -40,14 +37,12 @@ import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.container.AsyncResponse;
