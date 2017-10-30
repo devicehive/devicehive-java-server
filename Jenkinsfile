@@ -46,7 +46,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         }
 
         dir('devicehive-docker/rdbms-image'){
-          writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:development-images.yml
+          writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:ci-images.yml
           DH_TAG=${BRANCH_NAME}
           JWT_SECRET=devicehive
           """
