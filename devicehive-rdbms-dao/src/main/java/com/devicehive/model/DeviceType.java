@@ -1,14 +1,16 @@
 package com.devicehive.model;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
-import com.devicehive.vo.DeviceTypeVO;
+import com.devicehive.vo.*;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
@@ -149,6 +151,26 @@ public class DeviceType implements HiveEntity {
             vo.setName(deviceType.getName());
             vo.setDescription(deviceType.getDescription());
             vo.setEntityVersion(deviceType.getEntityVersion());
+            return vo;
+        }
+        return null;
+    }
+
+    public static DeviceTypeWithUsersAndDevicesVO convertWithDevicesAndUsers(DeviceType deviceType) {
+        if (deviceType != null) {
+            DeviceTypeVO vo1 = convertDeviceType(deviceType);
+            DeviceTypeWithUsersAndDevicesVO vo = new DeviceTypeWithUsersAndDevicesVO(vo1);
+            if (deviceType.getUsers() != null) {
+                vo.setUsers(deviceType.getUsers().stream().map(User::convertToVo).collect(Collectors.toSet()));
+            } else {
+                vo.setUsers(Collections.emptySet());
+            }
+            if (deviceType.getDevices() != null) {
+                Set<DeviceVO> deviceList = deviceType.getDevices().stream().map(Device::convertToVo).collect(Collectors.toSet());
+                vo.setDevices(deviceList);
+            } else {
+                vo.setDevices(Collections.emptySet());
+            }
             return vo;
         }
         return null;

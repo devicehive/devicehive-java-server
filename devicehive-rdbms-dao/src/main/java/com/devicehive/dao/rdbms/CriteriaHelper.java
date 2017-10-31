@@ -71,6 +71,36 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] deviceTypeListPredicates(CriteriaBuilder cb, Root<DeviceType> from, Optional<String> nameOpt, Optional<String> namePatternOpt, Optional<HivePrincipal> principalOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        nameOpt.ifPresent(name ->
+                predicates.add(cb.equal(from.get("name"), name)));
+
+        namePatternOpt.ifPresent(pattern ->
+                predicates.add(cb.like(from.get("name"), pattern)));
+
+        principalOpt.flatMap(principal -> {
+            UserVO user = principal.getUser();
+
+            return ofNullable(user);
+        }).ifPresent(user -> {
+            if (!user.isAdmin()) {
+                User usr = User.convertToEntity(user);
+                predicates.add(from.join("users").in(usr));
+            }
+        });
+
+        //FIXME - uncomment when we are ready to add Device Type to principal
+//        principalOpt.flatMap(principal -> {
+//            Set<Long> networks = principal.getNetworkIds();
+//
+//            return ofNullable(networks);
+//        }).ifPresent(networks -> predicates.add(from.<Long>get("id").in(networks)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
     /**
      * Adds ORDER BY ... ASC/DESC to query
      * Mutates provided criteria query
