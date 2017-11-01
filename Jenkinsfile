@@ -21,7 +21,7 @@ node('docker') {
   }
 
   stage('Build and publish Docker images in CI repository') {
-    echo 'Building Frontend image ...'
+    echo 'Building images ...'
     unstash 'jars'
     def auth = docker.build('devicehiveci/devicehive-auth-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth-rdbms.Dockerfile .')
     def plugin = docker.build('devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin-rdbms.Dockerfile .')
@@ -29,6 +29,7 @@ node('docker') {
     def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
     def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
+    echo 'Pushing images to CI repository ...'
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
       auth.push()
       plugin.push()
