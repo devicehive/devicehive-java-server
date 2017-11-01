@@ -132,7 +132,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 if (deployable_branches.contains(env.BRANCH_NAME)) {
   stage('Deploy build to dev server'){
     node('dev-server') {
-      dir('~/devicehive-docker/rdbms-image'){
+      dir('/home/centos/devicehive-docker/rdbms-image'){
         sh '''
           sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
           sudo docker-compose pull
