@@ -76,6 +76,7 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
+-Dproxy.connect="${DH_WS_KAFKA_PROXY}" \
 -Dreplication.factor="${DH_REPLICATION_FACTOR:-1}" \
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Drpc.client.response-consumer.threads="${DH_RPC_CLIENT_RES_CONS_THREADS:-3}" \
@@ -88,6 +89,6 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dzookeeper.connect="${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181}" \
 -Dzookeeper.connectionTimeout="${DH_ZK_CONNECTIONTIMEOUT:-8000}" \
 -Dzookeeper.sessionTimeout="${DH_ZK_SESSIONTIMEOUT:-10000}" \
-"./devicehive-frontend-${DH_VERSION}-boot.jar" &
+"./devicehive-frontend-${DH_VERSION}-boot.jar" --spring.profiles.active=ws-kafka-proxy &
 PID=$!
 wait "$PID"
