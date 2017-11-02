@@ -40,7 +40,7 @@ public class AuthApiInfoResourceImpl implements AuthApiInfoResource {
     }
 
     @Override
-    public Response getApiInfo(UriInfo uriInfo) {
-        return baseApiInfoResource.getApiInfo(uriInfo);
+    public Response getApiInfo(UriInfo uriInfo, Boolean wssEnabled) {
+        return baseApiInfoResource.getApiInfo(uriInfo, wssEnabled);
     }
 }

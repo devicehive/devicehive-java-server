@@ -58,7 +58,7 @@ public class BaseApiInfoResourceImpl implements BaseApiInfoResource {
     }
 
     @Override
-    public Response getApiInfo(UriInfo uriInfo) {
+    public Response getApiInfo(UriInfo uriInfo, Boolean wssEnabled) {
         logger.debug("ApiInfoVO requested");
         ApiInfoVO apiInfo = new ApiInfoVO();
         String version = Constants.class.getPackage().getImplementationVersion();
@@ -72,10 +72,11 @@ public class BaseApiInfoResourceImpl implements BaseApiInfoResource {
         
         // Generate websocket url based on current request url
         int port = uriInfo.getBaseUri().getPort();
+        String wsScheme = wssEnabled ? "wss" : "ws";
         if (port == -1) {
-            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + contextPath + "/websocket");
+            apiInfo.setWebSocketServerUrl(wsScheme + "://" + uriInfo.getBaseUri().getHost() + contextPath + "/websocket");
         } else {
-            apiInfo.setWebSocketServerUrl("ws://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
+            apiInfo.setWebSocketServerUrl(wsScheme + "://" + uriInfo.getBaseUri().getHost() + ":" + uriInfo.getBaseUri().getPort() + contextPath + "/websocket");
         }
         
         return ResponseFactory.response(Response.Status.OK, apiInfo, JsonPolicyDef.Policy.REST_SERVER_INFO);
