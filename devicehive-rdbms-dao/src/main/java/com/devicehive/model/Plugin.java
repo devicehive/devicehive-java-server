@@ -22,6 +22,7 @@ package com.devicehive.model;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -48,7 +49,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITT
 @Entity(name = "Plugin")
 @Table(name = "plugin")
 @NamedQueries({
-        @NamedQuery(name = "Plugin.deleteById", query = "delete from Plugin p where p.id = :id")
+        @NamedQuery(name = "Plugin.deleteById", query = "delete from Plugin p where p.id = :id"),
+        @NamedQuery(name = "Plugin.findByStatus", query = "select p from Plugin p where p.status = :status")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -98,10 +100,15 @@ public class Plugin implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String healthCheckUrl;
 
-    @SerializedName("healthCheckPeriod")
-    @Column(name = "health_check_period")
+    @Column(name = "status")
+    @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private Integer healthCheckPeriod;
+    private PluginStatus status;
+
+    @Column(name = "subscription_id")
+    @SerializedName("subscriptionId")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private Long subscriptionId;
 
     @SerializedName("parameters")
     @Embedded
@@ -151,12 +158,20 @@ public class Plugin implements HiveEntity {
         this.healthCheckUrl = healthCheckUrl;
     }
 
-    public Integer getHealthCheckPeriod() {
-        return healthCheckPeriod;
+    public PluginStatus getStatus() {
+        return status;
     }
 
-    public void setHealthCheckPeriod(Integer healthCheckPeriod) {
-        this.healthCheckPeriod = healthCheckPeriod;
+    public void setStatus(PluginStatus status) {
+        this.status = status;
+    }
+
+    public Long getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(Long subscriptionId) {
+        this.subscriptionId = subscriptionId;
     }
 
     public JsonStringWrapper getParameters() {
@@ -176,7 +191,8 @@ public class Plugin implements HiveEntity {
             vo.setDescription(entity.description);
             vo.setTopicName(entity.getTopicName());
             vo.setHealthCheckUrl(entity.getHealthCheckUrl());
-            vo.setHealthCheckPeriod(entity.getHealthCheckPeriod());
+            vo.setStatus(entity.getStatus());
+            vo.setSubscriptionId(entity.getSubscriptionId());
             vo.setParameters(entity.getParameters());
         }
         
@@ -192,7 +208,8 @@ public class Plugin implements HiveEntity {
             entity.setDescription(vo.getDescription());
             entity.setTopicName(vo.getTopicName());
             entity.setHealthCheckUrl(vo.getHealthCheckUrl());
-            entity.setHealthCheckPeriod(vo.getHealthCheckPeriod());
+            entity.setStatus(vo.getStatus());
+            entity.setSubscriptionId(vo.getSubscriptionId());
             entity.setParameters(vo.getParameters());            
         }
         

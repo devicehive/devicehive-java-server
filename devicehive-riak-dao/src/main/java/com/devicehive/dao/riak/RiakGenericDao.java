@@ -217,6 +217,7 @@ public class RiakGenericDao {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T, R> List<T> fetchMultiple(SecondaryIndexQuery.Response<R> response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<?> entries = response.getEntries();
@@ -229,6 +230,7 @@ public class RiakGenericDao {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected <T, R> T fetchOne(SecondaryIndexQuery.Response<R> response, Class<T> clazz)
             throws ExecutionException, InterruptedException {
         List<?> entries = response.getEntries();

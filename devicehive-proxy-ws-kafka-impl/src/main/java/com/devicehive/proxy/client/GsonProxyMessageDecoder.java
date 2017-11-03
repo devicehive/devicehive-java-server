@@ -70,6 +70,7 @@ class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
 
     }
 
+    @SuppressWarnings("unchecked")
     private ProxyMessage buildMessage(JsonObject object) {
         JsonElement t = object.get("t");
         JsonElement a = object.get("a");

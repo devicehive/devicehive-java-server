@@ -145,7 +145,7 @@ public class UserDaoTest {
 
         userDao.unassignNetwork(user, 64L);
 
-        Set userNetworks = userNetworkDao.findNetworksForUser(id);
+        Set<Long> userNetworks = userNetworkDao.findNetworksForUser(id);
         assertFalse(userNetworks.contains(64L));
         assertTrue(userNetworks.contains(65L));
     }

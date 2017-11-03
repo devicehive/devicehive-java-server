@@ -24,7 +24,9 @@ package com.devicehive.service;
 import com.devicehive.dao.PluginDao;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
+import com.devicehive.model.rpc.PluginUnsubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
+import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
@@ -36,11 +38,17 @@ import com.devicehive.vo.PluginVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.ws.rs.ServiceUnavailableException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+
+import static com.devicehive.model.enums.PluginStatus.ACTIVE;
+import static com.devicehive.model.enums.PluginStatus.DISABLED;
 
 @Component
 public class PluginService {
@@ -52,6 +60,7 @@ public class PluginService {
     private final RpcClient rpcClient;
     private final LongIdGenerator idGenerator;
     private final BaseDeviceService deviceService;
+    private final HttpRestHelper httpRestHelper;
 
     @Autowired
     public PluginService(
@@ -60,34 +69,34 @@ public class PluginService {
             KafkaTopicService kafkaTopicService,
             RpcClient rpcClient,
             LongIdGenerator idGenerator,
-            BaseDeviceService deviceService) {
+            BaseDeviceService deviceService,
+            HttpRestHelper httpRestHelper) {
         this.hiveValidator = hiveValidator;
         this.pluginDao = pluginDao;
         this.kafkaTopicService = kafkaTopicService;
         this.rpcClient = rpcClient;
         this.idGenerator = idGenerator;
         this.deviceService = deviceService;
+        this.httpRestHelper = httpRestHelper;
     }
 
     @Transactional
     public CompletableFuture<PluginVO> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
-        if (pluginVO.getHealthCheckPeriod() == null) {
-            pluginVO.setHealthCheckPeriod(300);
-        }
         
         //Creation of topic for plugin
         String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
         kafkaTopicService.createTopic(pluginTopic);
         pluginVO.setTopicName(pluginTopic);
-        pluginDao.persist(pluginVO);
-        
         
         //Creation of subscription for plugin
         final Long subscriptionId = idGenerator.generate();
         pollRequest.setSubscriptionId(subscriptionId);
         pollRequest.setTopicName(pluginTopic);
+
+        pluginVO.setSubscriptionId(subscriptionId);
+        pluginDao.persist(pluginVO);
         
         //Update deviceIds in Filter taking into account networkIds and permissions
         Filter filter = pollRequest.getFilter();
@@ -98,5 +107,31 @@ public class PluginService {
                 .withBody(pollRequest)
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> pluginVO);
+    }
+    
+    @Scheduled(fixedDelayString = "${health.check.period}", initialDelayString = "${health.initial.delay}")
+    @Transactional
+    public void performHealthCheck() {
+        List<PluginVO> plugins = pluginDao.findByStatus(ACTIVE);
+        plugins.forEach(pluginVO -> {
+            try {
+                httpRestHelper.get(pluginVO.getHealthCheckUrl(), null, null);
+            } catch (ServiceUnavailableException e) {
+                disablePlugin(pluginVO);   
+            }
+        });
+    }
+    
+    private CompletableFuture<PluginVO> disablePlugin(PluginVO pluginVO) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new PluginUnsubscribeRequest(pluginVO.getSubscriptionId(), pluginVO.getTopicName()))
+                .build(), new ResponseConsumer(future));
+        
+        return future.thenApply(response -> {
+            pluginVO.setStatus(DISABLED);
+            pluginDao.merge(pluginVO); 
+            return pluginVO;
+        });
     }
 }

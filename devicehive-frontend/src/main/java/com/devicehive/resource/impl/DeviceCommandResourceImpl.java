@@ -290,7 +290,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.emptyList();
             
             commandService.find(Collections.singletonList(deviceId), names, timestampSt, timestampEnd, status,
                     sortField, sortOrderSt, take, skip)

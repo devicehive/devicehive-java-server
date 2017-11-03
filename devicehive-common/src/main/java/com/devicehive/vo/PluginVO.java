@@ -24,6 +24,7 @@ package com.devicehive.vo;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.enums.PluginStatus;
 import com.google.gson.annotations.SerializedName;
 
 import javax.validation.constraints.NotNull;
@@ -34,6 +35,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_PUBLISH
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 
 public class PluginVO implements HiveEntity {
+    private static final long serialVersionUID = -4816353462582788925L;
+    
     private static final String PLUGIN_NAME_SIZE_MESSAGE = "Field cannot be empty. The length of plugin name should be from 3 " +
             "to 128 symbols.";
     private static final String PLUGIN_NAME_PATTERN_MESSAGE = "Plugin name can contain only lowercase or uppercase letters, " +
@@ -68,9 +71,13 @@ public class PluginVO implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String healthCheckUrl;
 
-    @SerializedName("healthCheckPeriod")
+    @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private Integer healthCheckPeriod;
+    private PluginStatus status;
+
+    @SerializedName("subscriptionId")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private Long subscriptionId;
 
     @SerializedName("parameters")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -116,12 +123,20 @@ public class PluginVO implements HiveEntity {
         this.healthCheckUrl = healthCheckUrl;
     }
 
-    public Integer getHealthCheckPeriod() {
-        return healthCheckPeriod;
+    public PluginStatus getStatus() {
+        return status;
     }
 
-    public void setHealthCheckPeriod(Integer healthCheckPeriod) {
-        this.healthCheckPeriod = healthCheckPeriod;
+    public void setStatus(PluginStatus status) {
+        this.status = status;
+    }
+
+    public Long getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(Long subscriptionId) {
+        this.subscriptionId = subscriptionId;
     }
 
     public JsonStringWrapper getParameters() {
