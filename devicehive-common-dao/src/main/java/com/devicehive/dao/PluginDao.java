@@ -20,11 +20,16 @@ package com.devicehive.dao;
  * #L%
  */
 
+import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
+
+import java.util.List;
 
 public interface PluginDao {
 
     PluginVO find(Long id);
+
+    List<PluginVO> findByStatus(PluginStatus status);
 
     void persist(PluginVO pluginVO);
 

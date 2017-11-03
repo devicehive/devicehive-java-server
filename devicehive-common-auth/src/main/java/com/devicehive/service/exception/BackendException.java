@@ -21,6 +21,8 @@ package com.devicehive.service.exception;
  */
 
 public class BackendException extends Exception {
+    private static final long serialVersionUID = -8016952729321715123L;
+
 
     private int errorCode;
 

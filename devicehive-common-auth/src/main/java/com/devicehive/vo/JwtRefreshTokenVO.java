@@ -26,6 +26,7 @@ import io.swagger.annotations.ApiModelProperty;
  * JWT refresh token response entity
  */
 public class JwtRefreshTokenVO extends JwtTokenVO {
+    private static final long serialVersionUID = -8138388371972886591L;
 
     @Override
     @ApiModelProperty(hidden = true)

@@ -93,6 +93,7 @@ public class NotificationHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_NOTIFICATION')")
+    @SuppressWarnings("unchecked")
     public void processNotificationSubscribe(String deviceId, JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -156,6 +157,7 @@ public class NotificationHandlers {
      */
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
+    @SuppressWarnings("unchecked")
     public void processNotificationUnsubscribe(JsonObject request,
                                                             WebSocketSession session) throws IOException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

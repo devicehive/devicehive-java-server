@@ -51,25 +51,27 @@ public class BaseJwtClientService {
     }
 
     @Cacheable("payload")
+    @SuppressWarnings("unchecked")
     public JwtPayload getPayload(String jwtToken) {
         Claims claims = Jwts.parser()
                 .setSigningKey(jwtSecretService.getJwtSecret())
                 .parseClaimsJws(jwtToken)
                 .getBody();
-        LinkedHashMap payloadMap = (LinkedHashMap) claims.get(JwtPayload.JWT_CLAIM_KEY);
-
-        Optional userId = Optional.ofNullable(payloadMap.get(JwtPayload.USER_ID));
-        Optional networkIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.NETWORK_IDS));
-        Optional actions = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.ACTIONS));
-        Optional deviceIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_IDS));
-        Optional expiration = Optional.ofNullable(payloadMap.get(JwtPayload.EXPIRATION));
-        Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(JwtPayload.TOKEN_TYPE));
+        LinkedHashMap<String, Object> payloadMap = (LinkedHashMap<String, Object>) claims.get(JwtPayload.JWT_CLAIM_KEY);
 
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        if (userId.isPresent()) builder.withUserId(Long.valueOf(userId.get().toString()));
-        if (networkIds.isPresent()) builder.withNetworkIds(new HashSet<>((ArrayList) networkIds.get()));
-        if (actions.isPresent()) builder.withActions(new HashSet<>((ArrayList) actions.get()));
-        if (deviceIds.isPresent()) builder.withDeviceIds(new HashSet<>((ArrayList) deviceIds.get()));
+
+        Optional.ofNullable(payloadMap.get(JwtPayload.USER_ID))
+                .ifPresent(userId -> builder.withUserId(Long.valueOf(userId.toString())));
+        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtPayload.NETWORK_IDS))
+                .ifPresent(networkIds -> builder.withNetworkIds(new HashSet<>(networkIds)));
+        Optional.ofNullable((ArrayList<Integer>) payloadMap.get(JwtPayload.ACTIONS))
+                .ifPresent(actions -> builder.withActions(new HashSet<>(actions)));
+        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtPayload.DEVICE_IDS))
+                .ifPresent(deviceIds -> builder.withDeviceIds(new HashSet<>(deviceIds)));
+        Optional<Long> expiration = Optional.ofNullable((Long)payloadMap.get(JwtPayload.EXPIRATION));
+        Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(JwtPayload.TOKEN_TYPE));
+
         if (!tokenType.isPresent() && !expiration.isPresent()) {
             throw new MalformedJwtException("Token type and expiration date should be provided in the token");
         } else {
@@ -78,7 +80,7 @@ public class BaseJwtClientService {
             else
                 throw new MalformedJwtException("Token type should be provided in the token");
             if (expiration.isPresent())
-                builder.withExpirationDate(new Date((Long)expiration.get()));
+                builder.withExpirationDate(new Date(expiration.get()));
             else
                 throw new MalformedJwtException("Expiration date should be provided in the token");
             return builder.buildPayload();

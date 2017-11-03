@@ -26,6 +26,7 @@ import io.swagger.annotations.ApiModelProperty;
  * JWT access token response entity
  */
 public class JwtAccessTokenVO extends JwtTokenVO {
+    private static final long serialVersionUID = -1202086382725243574L;
 
     @Override
     @ApiModelProperty(hidden = true)

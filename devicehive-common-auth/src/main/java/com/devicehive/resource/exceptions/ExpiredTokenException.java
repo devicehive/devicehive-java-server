@@ -23,6 +23,7 @@ package com.devicehive.resource.exceptions;
 import org.springframework.security.core.AuthenticationException;
 
 public class ExpiredTokenException extends AuthenticationException {
+    private static final long serialVersionUID = -7505827097648274298L;
 
     public ExpiredTokenException(String message) {
         super(message);

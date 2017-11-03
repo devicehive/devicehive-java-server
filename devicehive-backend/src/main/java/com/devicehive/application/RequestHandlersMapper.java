@@ -22,8 +22,18 @@ package com.devicehive.application;
 
 import com.devicehive.messages.handler.DeviceCreateHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
-import com.devicehive.messages.handler.command.*;
-import com.devicehive.messages.handler.dao.list.*;
+import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;
+import com.devicehive.messages.handler.command.CommandGetSubscriptionRequestHandler;
+import com.devicehive.messages.handler.command.CommandInsertHandler;
+import com.devicehive.messages.handler.command.CommandSearchHandler;
+import com.devicehive.messages.handler.command.CommandSubscribeRequestHandler;
+import com.devicehive.messages.handler.command.CommandUpdateHandler;
+import com.devicehive.messages.handler.command.CommandUpdateSubscribeRequestHandler;
+import com.devicehive.messages.handler.command.CommandsUpdateHandler;
+import com.devicehive.messages.handler.dao.list.ListDeviceHandler;
+import com.devicehive.messages.handler.dao.list.ListNetworkHandler;
+import com.devicehive.messages.handler.dao.list.ListSubscribeHandler;
+import com.devicehive.messages.handler.dao.list.ListUserHandler;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.notification.NotificationInsertHandler;
@@ -31,6 +41,7 @@ import com.devicehive.messages.handler.notification.NotificationSearchHandler;
 import com.devicehive.messages.handler.notification.NotificationUnsubscribeRequestHandler;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +70,7 @@ public class RequestHandlersMapper {
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
+    private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
@@ -81,7 +93,8 @@ public class RequestHandlersMapper {
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
-                                 PluginSubscribeRequestHandler pluginSubscribeRequestHandler) {
+                                 PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
+                                 PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
         this.notificationInsertHandler = notificationInsertHandler;
@@ -100,35 +113,32 @@ public class RequestHandlersMapper {
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
+        this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
     }
 
     @PostConstruct
     public void init() {
-        requestHandlerMap = new HashMap<Action, RequestHandler>() {{
-            put(Action.NOTIFICATION_SEARCH_REQUEST, notificationSearchHandler);
-            put(Action.NOTIFICATION_INSERT_REQUEST, notificationInsertHandler);
-            put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, notificationSubscribeRequestHandler);
-            put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, notificationUnsubscribeRequestHandler);
-            put(Action.COMMAND_INSERT_REQUEST, commandInsertHandler);
-            put(Action.COMMAND_SEARCH_REQUEST, commandSearchHandler);
-            put(Action.COMMAND_UPDATE_REQUEST, commandUpdateHandler);
-            put(Action.COMMANDS_UPDATE_REQUEST, commandsUpdateHandler);
-            put(Action.COMMAND_SUBSCRIBE_REQUEST, commandSubscribeRequestHandler);
-            put(Action.COMMAND_UNSUBSCRIBE_REQUEST, commandUnsubscribeRequestHandler);
-            put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, commandUpdateSubscribeRequestHandler);
-            put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, commandGetSubscriptionRequestHandler);
-            put(Action.PLUGIN_SUBSCRIBE_REQUEST, pluginSubscribeRequestHandler);
-
-            put(Action.LIST_USER_REQUEST, listUserHandler);
-
-            put(Action.LIST_NETWORK_REQUEST, listNetworkHandler);
-
-            put(Action.LIST_DEVICE_REQUEST, listDeviceHandler);
-
-            put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler);
-
-            put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler);
-        }};
+        requestHandlerMap = ImmutableMap.<Action, RequestHandler>builder()
+                .put(Action.NOTIFICATION_SEARCH_REQUEST, notificationSearchHandler)
+                .put(Action.NOTIFICATION_INSERT_REQUEST, notificationInsertHandler)
+                .put(Action.NOTIFICATION_SUBSCRIBE_REQUEST, notificationSubscribeRequestHandler)
+                .put(Action.NOTIFICATION_UNSUBSCRIBE_REQUEST, notificationUnsubscribeRequestHandler)
+                .put(Action.COMMAND_INSERT_REQUEST, commandInsertHandler)
+                .put(Action.COMMAND_SEARCH_REQUEST, commandSearchHandler)
+                .put(Action.COMMAND_UPDATE_REQUEST, commandUpdateHandler)
+                .put(Action.COMMANDS_UPDATE_REQUEST, commandsUpdateHandler)
+                .put(Action.COMMAND_SUBSCRIBE_REQUEST, commandSubscribeRequestHandler)
+                .put(Action.COMMAND_UNSUBSCRIBE_REQUEST, commandUnsubscribeRequestHandler)
+                .put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, commandUpdateSubscribeRequestHandler)
+                .put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, commandGetSubscriptionRequestHandler)
+                .put(Action.PLUGIN_SUBSCRIBE_REQUEST, pluginSubscribeRequestHandler)
+                .put(Action.PLUGIN_UNSUBSCRIBE_REQUEST, pluginUnsubscribeRequestHandler)
+                .put(Action.LIST_USER_REQUEST, listUserHandler)
+                .put(Action.LIST_NETWORK_REQUEST, listNetworkHandler)
+                .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
+                .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
+                .put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler)
+                .build();
     }
 
     public Map<Action, RequestHandler> requestHandlerMap() {

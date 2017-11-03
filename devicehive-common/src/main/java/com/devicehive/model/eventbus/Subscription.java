@@ -32,6 +32,7 @@ import java.util.Objects;
  * Event bus subscription object. Represents subscriptions for all types of events - notification, commands and command updates.
  */
 public class Subscription implements Portable, Serializable {
+    private static final long serialVersionUID = -5657419384704453354L;
 
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 5;

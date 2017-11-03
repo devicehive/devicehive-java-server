@@ -88,6 +88,7 @@ public class CommandHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    @SuppressWarnings("unchecked")
     public void processCommandSubscribe(String deviceId, JsonObject request, WebSocketSession session)
             throws InterruptedException {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -143,6 +144,7 @@ public class CommandHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @SuppressWarnings("unchecked")
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);

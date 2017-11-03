@@ -29,7 +29,8 @@ import java.util.Set;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class NetworkWithUsersAndDevicesVO extends NetworkVO {
-
+    private static final long serialVersionUID = -6203840673012883671L;
+    
     @ApiModelProperty(hidden = true)
     private Set<UserVO> users;
 

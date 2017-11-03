@@ -32,7 +32,8 @@ import javax.validation.constraints.Size;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceVO implements HiveEntity {
-
+    private static final long serialVersionUID = 1523137252183988289L;
+    
     @SerializedName("sid")
     @ApiModelProperty(hidden = true)
     private Long id;

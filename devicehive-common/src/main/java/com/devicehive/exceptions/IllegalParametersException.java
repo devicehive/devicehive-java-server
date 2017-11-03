@@ -21,6 +21,7 @@ package com.devicehive.exceptions;
  */
 
 public class IllegalParametersException extends RuntimeException {
+    private static final long serialVersionUID = -8707307258258265121L;
 
     public IllegalParametersException(String message) {
         super(message);

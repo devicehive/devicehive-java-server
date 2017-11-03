@@ -36,7 +36,8 @@ import java.util.Date;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class UserVO implements HiveEntity {
-
+    private static final long serialVersionUID = 959704354707557731L;
+    
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Long id;

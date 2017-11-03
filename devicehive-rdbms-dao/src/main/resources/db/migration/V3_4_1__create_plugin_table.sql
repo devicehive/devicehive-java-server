@@ -23,8 +23,9 @@ CREATE TABLE plugin (
   name                  VARCHAR(128)     NOT NULL,
   description           VARCHAR(128)     NULL,
   topic_name            VARCHAR(128)     NOT NULL,
-  health_check_url      VARCHAR(128)     NULL,
-  health_check_period   BIGINT           NULL,
+  health_check_url      VARCHAR(128)     NOT NULL,
+  status                INT              NOT NULL,
+  subscription_id       BIGSERIAL        NOT NULL,
   parameters            TEXT             NULL,
   entity_version        BIGINT           NOT NULL DEFAULT 0
 );

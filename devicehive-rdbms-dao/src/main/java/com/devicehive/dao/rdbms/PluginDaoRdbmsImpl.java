@@ -22,9 +22,14 @@ package com.devicehive.dao.rdbms;
 
 import com.devicehive.dao.PluginDao;
 import com.devicehive.model.Plugin;
+import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.devicehive.model.Plugin.convertToVo;
 import static java.util.Optional.of;
 
 @Repository
@@ -33,7 +38,19 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
     @Override
     public PluginVO find(Long id) {
         Plugin plugin = find(Plugin.class, id);
-        return Plugin.convertToVo(plugin);
+        return convertToVo(plugin);
+    }
+
+    @Override
+    public List<PluginVO> findByStatus(PluginStatus status) {
+        @SuppressWarnings("unchecked")
+        List<Plugin> plugins = createNamedQuery("Plugin.findByStatus", of(CacheConfig.get()))
+                .setParameter("status", status)
+                .getResultList();
+        
+        return plugins.stream()
+                .map(Plugin::convertToVo)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -47,7 +64,7 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
     public PluginVO merge(PluginVO existing) {
         Plugin entity = Plugin.convertToEntity(existing);
         Plugin merge = super.merge(entity);
-        return Plugin.convertToVo(merge);
+        return convertToVo(merge);
     }
 
     @Override

@@ -23,11 +23,13 @@ package com.devicehive.model.updates;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.JsonStringWrapper;
+import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
 import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
+import static com.devicehive.model.enums.PluginStatus.ACTIVE;
 
 public class PluginUpdate {
 
@@ -42,10 +44,6 @@ public class PluginUpdate {
     @SerializedName("healthCheckUrl")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String healthCheckUrl;
-
-    @SerializedName("healthCheckPeriod")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private int healthCheckPeriod;
 
     @SerializedName("parameters")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -75,14 +73,6 @@ public class PluginUpdate {
         this.healthCheckUrl = healthCheckUrl;
     }
 
-    public int getHealthCheckPeriod() {
-        return healthCheckPeriod;
-    }
-
-    public void setHealthCheckPeriod(int healthCheckPeriod) {
-        this.healthCheckPeriod = healthCheckPeriod;
-    }
-
     public JsonStringWrapper getParameters() {
         return parameters;
     }
@@ -96,7 +86,7 @@ public class PluginUpdate {
         pluginVO.setName(name);
         pluginVO.setDescription(description);
         pluginVO.setHealthCheckUrl(healthCheckUrl);
-        pluginVO.setHealthCheckPeriod(healthCheckPeriod);
+        pluginVO.setStatus(ACTIVE);
         pluginVO.setParameters(parameters);
 
         return pluginVO;
