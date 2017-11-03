@@ -73,7 +73,8 @@ public class FrontendProxyClient implements RpcClient {
         }
         request.setReplyTo(replyToTopic);
 
-        client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+        client.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
     }
 
     @Override
@@ -104,7 +105,8 @@ public class FrontendProxyClient implements RpcClient {
             requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
             logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-            client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+            client.push(ProxyMessageBuilder.notification(
+                    new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
 
             Response response = null;
             try {
