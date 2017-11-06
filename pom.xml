@@ -101,6 +101,7 @@
         <module>devicehive-test-utils</module>
         <module>devicehive-auth</module>
         <module>devicehive-common-auth</module>
+        <module>devicehive-plugin</module>
     </modules>
 
     <dependencies>
@@ -445,6 +446,7 @@
                     <missingFile>${project.basedir}/missing-license.properties</missingFile>
                     <useJavaNoReformatCommentStartTag>false</useJavaNoReformatCommentStartTag>
                     <failIfWarning>true</failIfWarning>
+                    <dryRun>true</dryRun>
                     <failOnMissingHeader>true</failOnMissingHeader>
                     <outputDirectory>${project.rootdir}/target/license</outputDirectory>
                     <thirdPartyFilename>${project.artifactId}_THIRD-PARTY.txt</thirdPartyFilename>

@@ -47,6 +47,8 @@ public @interface JsonPolicyDef {
         COMMAND_TO_DEVICE,
         COMMAND_LISTED,
         POST_COMMAND_TO_DEVICE,
+        PLUGIN_PUBLISHED,
+        PLUGIN_SUBMITTED,
         COMMAND_FROM_CLIENT,
         COMMAND_UPDATE_FROM_DEVICE,
         COMMAND_UPDATE_TO_CLIENT,

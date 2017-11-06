@@ -20,11 +20,9 @@ package com.devicehive.base;
  * #L%
  */
 
-import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.application.DeviceHiveFrontendApplication;
 import com.devicehive.resource.converters.CollectionProvider;
 import com.devicehive.resource.converters.HiveEntityProvider;
-import com.devicehive.vo.JwtRequestVO;
-import com.devicehive.vo.JwtTokenVO;
 import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
@@ -49,7 +47,7 @@ import static org.junit.Assert.assertThat;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {DeviceHiveApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(classes = {DeviceHiveFrontendApplication.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractResourceTest extends AbstractSpringKafkaTest {

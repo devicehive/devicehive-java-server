@@ -27,10 +27,6 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
-import com.devicehive.model.enums.UserStatus;
-import com.devicehive.security.jwt.JwtPayload;
-import com.devicehive.security.jwt.JwtPayloadView;
-import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.UserService;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.security.jwt.BaseJwtClientService;
@@ -39,33 +35,26 @@ import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtRequestVO;
 import com.devicehive.vo.JwtTokenVO;
-import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.HiveWebsocketSessionState;
 import com.devicehive.websockets.WebSocketAuthenticationManager;
 import com.devicehive.websockets.converters.WebSocketResponse;
-import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import javax.ws.rs.ServiceUnavailableException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 @Component
@@ -142,8 +131,13 @@ public class CommonHandlers {
         }
         
         String loginRequestStr = gson.toJson(loginRequest);
-        
-        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token", loginRequestStr, JwtTokenVO.class, null);
+
+        JwtTokenVO jwtToken = null;
+        try {
+            jwtToken = httpRestHelper.post(authBaseUrl + "/token", loginRequestStr, JwtTokenVO.class, null);
+        } catch (ServiceUnavailableException e) {
+            throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
+        }
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
@@ -163,7 +157,12 @@ public class CommonHandlers {
         
         String jwtTokenStr = (String) session.getAttributes().get(WebSocketAuthenticationManager.SESSION_ATTR_JWT_TOKEN);
         
-        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token/create", payload.toString(), JwtTokenVO.class, jwtTokenStr);
+        JwtTokenVO jwtToken = null;
+        try {
+            jwtToken = httpRestHelper.post(authBaseUrl + "/token/create", payload.toString(), JwtTokenVO.class, jwtTokenStr);
+        } catch (ServiceUnavailableException e) {
+            throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
+        }
         
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
@@ -184,7 +183,12 @@ public class CommonHandlers {
 
         String refreshTokenStr = gson.toJson(refreshTokenVO);
 
-        JwtTokenVO jwtToken = httpRestHelper.post(authBaseUrl + "/token/refresh", refreshTokenStr, JwtTokenVO.class, null);
+        JwtTokenVO jwtToken = null;
+        try {
+            jwtToken = httpRestHelper.post(authBaseUrl + "/token/refresh", refreshTokenStr, JwtTokenVO.class, null);
+        } catch (ServiceUnavailableException e) {
+            throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
+        }
 
         WebSocketResponse response = new WebSocketResponse();
         response.addValue("accessToken", jwtToken.getAccessToken());
