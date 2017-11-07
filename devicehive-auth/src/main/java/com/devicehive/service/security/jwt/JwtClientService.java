@@ -21,7 +21,9 @@ package com.devicehive.service.security.jwt;
  */
 
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.security.jwt.TokenType;
+import com.devicehive.security.util.JwtPluginTokenGenerator;
 import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.security.util.JwtTokenGenerator;
 import io.jsonwebtoken.Claims;
@@ -44,11 +46,14 @@ import java.util.Optional;
 public class JwtClientService extends BaseJwtClientService {
 
     private final JwtTokenGenerator tokenGenerator;
+    private final JwtPluginTokenGenerator pluginTokenGenerator;
     
     @Autowired
-    public JwtClientService(JwtTokenGenerator tokenGenerator, JwtSecretService jwtSecretService) {
+    public JwtClientService(JwtTokenGenerator tokenGenerator, JwtPluginTokenGenerator pluginTokenGenerator,
+            JwtSecretService jwtSecretService) {
         super(jwtSecretService);
         this.tokenGenerator = tokenGenerator;
+        this.pluginTokenGenerator = pluginTokenGenerator;
     }
 
     public String generateJwtAccessToken(JwtPayload payload, boolean useExpiration) {
@@ -57,6 +62,14 @@ public class JwtClientService extends BaseJwtClientService {
 
     public String generateJwtRefreshToken(JwtPayload payload, boolean useExpiration) {
         return tokenGenerator.generateToken(payload, TokenType.REFRESH, useExpiration);
+    }
+
+    public String generateJwtPluginAccessToken(JwtPluginPayload payload, boolean useExpiration) {
+        return pluginTokenGenerator.generateToken(payload, TokenType.ACCESS, useExpiration);
+    }
+
+    public String generateJwtPluginRefreshToken(JwtPluginPayload payload, boolean useExpiration) {
+        return pluginTokenGenerator.generateToken(payload, TokenType.REFRESH, useExpiration);
     }
 
 

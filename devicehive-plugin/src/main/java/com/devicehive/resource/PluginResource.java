@@ -33,6 +33,7 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.BeanParam;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -61,6 +62,7 @@ public interface PluginResource {
             @BeanParam PluginReqisterQuery pluginReqisterQuery,
             @ApiParam(value = "Filter body", defaultValue = "{}", required = true) 
                     PluginUpdate filterToCreate,
+            @HeaderParam("Authorization") String authorization,
             @Suspended final AsyncResponse asyncResponse);
     
 }

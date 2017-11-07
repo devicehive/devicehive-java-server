@@ -26,7 +26,7 @@ import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
 import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.service.PluginService;
+import com.devicehive.service.PluginRegisterService;
 import com.devicehive.util.HiveValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,21 +46,22 @@ public class PluginResourceImpl implements PluginResource {
     private static final Logger logger = LoggerFactory.getLogger(PluginResourceImpl.class);
 
     private final HiveValidator hiveValidator;
-    private final PluginService pluginService;
+    private final PluginRegisterService pluginRegisterService;
 
     @Autowired
-    public PluginResourceImpl(HiveValidator hiveValidator, PluginService pluginService) {
+    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService) {
         this.hiveValidator = hiveValidator;
-        this.pluginService = pluginService;
+        this.pluginRegisterService = pluginRegisterService;
     }
     
     @Override
-    public void register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate, 
+    public void register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate, String authorization,
             @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(pluginUpdate);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        pluginService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate).thenAccept(pluginVO ->
-                asyncResponse.resume(ResponseFactory.response(CREATED, pluginVO, PLUGIN_SUBMITTED))
-        );
+        pluginRegisterService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate, authorization)
+                .thenAccept(pluginVO ->
+                    asyncResponse.resume(ResponseFactory.response(CREATED, pluginVO, PLUGIN_SUBMITTED))
+                );
     }
 }

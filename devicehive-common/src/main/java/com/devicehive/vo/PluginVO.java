@@ -27,6 +27,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.PluginStatus;
 import com.google.gson.annotations.SerializedName;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -78,6 +79,11 @@ public class PluginVO implements HiveEntity {
     @SerializedName("subscriptionId")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private Long subscriptionId;
+
+    @Column(name = "user_id")
+    @SerializedName("userId")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private Long userId;
 
     @SerializedName("parameters")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -137,6 +143,14 @@ public class PluginVO implements HiveEntity {
 
     public void setSubscriptionId(Long subscriptionId) {
         this.subscriptionId = subscriptionId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public JsonStringWrapper getParameters() {

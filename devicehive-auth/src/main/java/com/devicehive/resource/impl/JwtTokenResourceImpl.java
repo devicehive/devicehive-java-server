@@ -20,6 +20,7 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
@@ -28,8 +29,10 @@ import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.JwtPayloadView;
+import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.BaseUserService;
+import com.devicehive.service.PluginService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
 import com.devicehive.service.time.TimestampService;
@@ -42,11 +45,13 @@ import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -62,18 +67,21 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     private final TimestampService timestampService;
     private final JwtTokenService jwtTokenService;
     private final HiveValidator hiveValidator;
+    private final PluginService pluginService;
 
     @Autowired
     public JwtTokenResourceImpl(JwtClientService tokenService,
                                 BaseUserService userService,
                                 TimestampService timestampService,
                                 JwtTokenService jwtTokenService,
-                                HiveValidator hiveValidator) {
+                                HiveValidator hiveValidator,
+                                PluginService pluginService) {
         this.tokenService = tokenService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.jwtTokenService = jwtTokenService;
         this.hiveValidator = hiveValidator;
+        this.pluginService = pluginService;
     }
 
     @Override
@@ -149,5 +157,43 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     public Response login(JwtRequestVO request) {
         JwtTokenVO jwtToken = jwtTokenService.createJwtToken(request);
         return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response pluginTokenRequest(JwtPluginPayload payload) {
+        hiveValidator.validate(payload);
+        JwtTokenVO responseTokenVO = new JwtTokenVO();
+
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserVO user = principal.getUser();
+        if (user == null) {
+            logger.warn(Messages.CAN_NOT_GET_CURRENT_USER);
+            return ResponseFactory.response(CONFLICT, new ErrorResponse(CONFLICT.getStatusCode(), Messages.CAN_NOT_GET_CURRENT_USER));
+        }
+
+        Long creatorId = pluginService.findByTopic(payload.getTopic()).getUserId();
+        if (!user.getId().equals(creatorId)) {
+            logger.warn(String.format(Messages.USER_NOT_PLUGIN_CREATOR, creatorId));
+            return ResponseFactory
+                    .response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
+                            String.format(Messages.USER_NOT_PLUGIN_CREATOR, creatorId)));
+        }
+        
+        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            logger.warn("JwtToken: User with specified id {} is not active", creatorId);
+            return ResponseFactory
+                    .response(FORBIDDEN, new ErrorResponse(FORBIDDEN.getStatusCode(),
+                            Messages.USER_NOT_ACTIVE));
+        }
+
+        logger.debug("JwtToken: generate access and refresh token");
+
+        JwtPluginPayload refreshPayload = JwtPluginPayload.newBuilder().withPayload(payload)
+                .buildPayload();
+
+        responseTokenVO.setAccessToken(tokenService.generateJwtPluginAccessToken(payload, true));
+        responseTokenVO.setRefreshToken(tokenService.generateJwtPluginRefreshToken(refreshPayload, true));
+
+        return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 }

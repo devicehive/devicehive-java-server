@@ -21,6 +21,7 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.security.jwt.JwtPayloadView;
+import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.vo.JwtAccessTokenVO;
 import com.devicehive.vo.JwtRefreshTokenVO;
 import com.devicehive.vo.JwtRequestVO;
@@ -69,6 +70,24 @@ public interface JwtTokenResource {
     Response tokenRequest(
             @ApiParam(name = "payload", value = "Payload", required = true)
                     JwtPayloadView payloadView);
+
+    @POST
+    @Path("/plugin/create")
+    @Consumes(APPLICATION_JSON)
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @ApiOperation(value = "JWT access and refresh token request for plugin")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 201,
+                    message = "If successful, this method returns a JWT access and refresh token in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 404, message = "If access token not found")
+    })
+    Response pluginTokenRequest(
+            @ApiParam(name = "payload", value = "Payload", required = true)
+                    JwtPluginPayload payload);
 
     @POST
     @Path("/refresh")

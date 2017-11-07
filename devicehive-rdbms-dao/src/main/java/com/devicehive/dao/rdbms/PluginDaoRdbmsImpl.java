@@ -44,13 +44,22 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
     @Override
     public List<PluginVO> findByStatus(PluginStatus status) {
         @SuppressWarnings("unchecked")
-        List<Plugin> plugins = createNamedQuery("Plugin.findByStatus", of(CacheConfig.get()))
+        List<Plugin> plugins = createNamedQuery("Plugin.findByStatus", of(CacheConfig.refresh()))
                 .setParameter("status", status)
                 .getResultList();
         
         return plugins.stream()
                 .map(Plugin::convertToVo)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public PluginVO findByTopic(String topicName) {
+        Plugin plugin = (Plugin) createNamedQuery("Plugin.findByTopic", of(CacheConfig.refresh()))
+                .setParameter("topicName", topicName)
+                .getSingleResult();
+
+        return convertToVo(plugin);
     }
 
     @Override

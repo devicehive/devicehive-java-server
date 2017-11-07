@@ -25,7 +25,6 @@ import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
-import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,10 +84,10 @@ public class PluginProxyClientConfig {
     }
 
     @Bean
-    public RpcClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public PluginProxyClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson) {
         WebSocketKafkaProxyClient proxyClient = new WebSocketKafkaProxyClient(notificationHandler);
         proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
-        RpcClient client = new PluginProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyClient, requestResponseMatcher, gson);
+        PluginProxyClient client = new PluginProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyClient, requestResponseMatcher, gson);
         client.start();
         return client;
     }

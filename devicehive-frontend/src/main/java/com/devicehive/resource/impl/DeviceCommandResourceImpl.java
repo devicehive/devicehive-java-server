@@ -35,12 +35,10 @@ import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
-import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -73,24 +71,18 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandResourceImpl.class);
 
-    private final Gson gson;
     private final DeviceCommandService commandService;
     private final DeviceService deviceService;
-    private final NetworkService networkService;
     private final TimestampService timestampService;
     private final HiveValidator hiveValidator;
 
     @Autowired
-    public DeviceCommandResourceImpl(Gson gson,
-                                     DeviceCommandService commandService,
+    public DeviceCommandResourceImpl(DeviceCommandService commandService,
                                      DeviceService deviceService,
-                                     NetworkService networkService,
                                      TimestampService timestampService,
                                      HiveValidator hiveValidator) {
-        this.gson = gson;
         this.commandService = commandService;
         this.deviceService = deviceService;
-        this.networkService = networkService;
         this.timestampService = timestampService;
         this.hiveValidator = hiveValidator;
     }

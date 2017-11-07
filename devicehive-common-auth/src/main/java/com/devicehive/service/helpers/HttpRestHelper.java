@@ -75,12 +75,10 @@ public class HttpRestHelper {
 
     public <T> T post(String url, String jsonObject, Class<T> type, String token) {
         HttpPost httpPost = new HttpPost(url);
-        httpPost.addHeader("Content-Type", MediaType.APPLICATION_JSON);
+        addHeaders(httpPost, token);
+
         if (!StringUtils.isEmpty(jsonObject)) {
             httpPost.setEntity(new StringEntity(jsonObject, Charset.forName(UTF8)));
-        }
-        if (!StringUtils.isEmpty(token)) {
-            httpPost.addHeader(AUTHORIZATION, TOKEN_PREFIX + token);
         }
         
         return httpRequest(httpPost, type, CREATED);
@@ -88,12 +86,17 @@ public class HttpRestHelper {
 
     public <T> T get(String url, Class<T> type, String token) {
         HttpGet httpGet = new HttpGet(url);
-        httpGet.addHeader("Content-Type", MediaType.APPLICATION_JSON);
-        if (!StringUtils.isEmpty(token)) {
-            httpGet.addHeader(AUTHORIZATION, TOKEN_PREFIX + token);
-        }
+        addHeaders(httpGet, token);
 
         return httpRequest(httpGet, type, OK);
+    }
+
+    private void addHeaders(HttpRequestBase httpRequest, String token) {
+        httpRequest.addHeader("Content-Type", MediaType.APPLICATION_JSON);
+        if (!StringUtils.isEmpty(token)) {
+            String authorization = token.startsWith(TOKEN_PREFIX) ? token : TOKEN_PREFIX + token;
+            httpRequest.addHeader(AUTHORIZATION, authorization);
+        }
     }
 
     private <T> T httpRequest(HttpRequestBase httpRequestBase, Class<T> type, Response.Status status) {

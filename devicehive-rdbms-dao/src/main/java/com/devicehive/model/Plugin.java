@@ -50,7 +50,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITT
 @Table(name = "plugin")
 @NamedQueries({
         @NamedQuery(name = "Plugin.deleteById", query = "delete from Plugin p where p.id = :id"),
-        @NamedQuery(name = "Plugin.findByStatus", query = "select p from Plugin p where p.status = :status")
+        @NamedQuery(name = "Plugin.findByStatus", query = "select p from Plugin p where p.status = :status"),
+        @NamedQuery(name = "Plugin.findByTopic", query = "select p from Plugin p where p.topicName = :topicName")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -109,6 +110,11 @@ public class Plugin implements HiveEntity {
     @SerializedName("subscriptionId")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private Long subscriptionId;
+
+    @Column(name = "user_id")
+    @SerializedName("userId")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private Long userId;
 
     @SerializedName("parameters")
     @Embedded
@@ -174,6 +180,14 @@ public class Plugin implements HiveEntity {
         this.subscriptionId = subscriptionId;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     public JsonStringWrapper getParameters() {
         return parameters;
     }
@@ -193,6 +207,7 @@ public class Plugin implements HiveEntity {
             vo.setHealthCheckUrl(entity.getHealthCheckUrl());
             vo.setStatus(entity.getStatus());
             vo.setSubscriptionId(entity.getSubscriptionId());
+            vo.setUserId(entity.getUserId());
             vo.setParameters(entity.getParameters());
         }
         
@@ -210,6 +225,7 @@ public class Plugin implements HiveEntity {
             entity.setHealthCheckUrl(vo.getHealthCheckUrl());
             entity.setStatus(vo.getStatus());
             entity.setSubscriptionId(vo.getSubscriptionId());
+            entity.setUserId(vo.getUserId());
             entity.setParameters(vo.getParameters());            
         }
         

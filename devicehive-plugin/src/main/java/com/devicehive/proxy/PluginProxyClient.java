@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -75,13 +76,21 @@ public class PluginProxyClient implements RpcClient {
 
         client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
     }
-
+    
+    public void createTopic(List<String> topics) {
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(topics)));
+    }
+    
+    public void subscribeToTopic(String topic) {
+        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(topic)));
+    }
+    
     @Override
     public void start() {
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(Arrays.asList(requestTopic, replyToTopic))));
-        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(replyToTopic)));
-
+        createTopic(Arrays.asList(requestTopic, replyToTopic));
+        subscribeToTopic(replyToTopic);
+        
         pingServer();
     }
 

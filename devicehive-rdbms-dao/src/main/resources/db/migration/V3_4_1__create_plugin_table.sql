@@ -26,9 +26,11 @@ CREATE TABLE plugin (
   health_check_url      VARCHAR(128)     NOT NULL,
   status                INT              NOT NULL,
   subscription_id       BIGSERIAL        NOT NULL,
+  user_id               BIGSERIAL        NOT NULL,
   parameters            TEXT             NULL,
   entity_version        BIGINT           NOT NULL DEFAULT 0
 );
 
 ALTER TABLE plugin ADD CONSTRAINT plugin_pk PRIMARY KEY (id);
 ALTER TABLE plugin ADD CONSTRAINT plugin_name_unique UNIQUE (name);
+ALTER TABLE plugin ADD CONSTRAINT plugin_topic_unique UNIQUE (topic_name);

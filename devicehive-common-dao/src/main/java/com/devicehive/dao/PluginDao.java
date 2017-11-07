@@ -30,6 +30,8 @@ public interface PluginDao {
     PluginVO find(Long id);
 
     List<PluginVO> findByStatus(PluginStatus status);
+    
+    PluginVO findByTopic(String topicName);
 
     void persist(PluginVO pluginVO);
 

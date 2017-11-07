@@ -22,116 +22,133 @@ package com.devicehive.service;
 
 
 import com.devicehive.dao.PluginDao;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.model.rpc.PluginUnsubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
+import com.devicehive.proxy.PluginProxyClient;
+import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
+import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.PluginVO;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.ws.rs.ServiceUnavailableException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import static com.devicehive.model.enums.PluginStatus.ACTIVE;
-import static com.devicehive.model.enums.PluginStatus.DISABLED;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
 @Component
-public class PluginService {
-    private static final Logger logger = LoggerFactory.getLogger(PluginService.class);
+public class PluginRegisterService {
+    private static final Logger logger = LoggerFactory.getLogger(PluginRegisterService.class);
+
+    @Value("${auth.base.url}")
+    private String authBaseUrl;
     
     private final HiveValidator hiveValidator;
-    private final PluginDao pluginDao;
-    private final KafkaTopicService kafkaTopicService;
-    private final RpcClient rpcClient;
+    private final PluginService pluginService;
+    private final PluginProxyClient rpcClient;
     private final LongIdGenerator idGenerator;
     private final BaseDeviceService deviceService;
     private final HttpRestHelper httpRestHelper;
+    private final WebSocketKafkaProxyConfig webSocketKafkaProxyConfig;
+    private final Gson gson;
 
     @Autowired
-    public PluginService(
+    public PluginRegisterService(
             HiveValidator hiveValidator,
-            PluginDao pluginDao,
-            KafkaTopicService kafkaTopicService,
-            RpcClient rpcClient,
+            PluginService pluginService,
+            PluginProxyClient rpcClient,
             LongIdGenerator idGenerator,
             BaseDeviceService deviceService,
-            HttpRestHelper httpRestHelper) {
+            HttpRestHelper httpRestHelper,
+            WebSocketKafkaProxyConfig webSocketKafkaProxyConfig,
+            Gson gson) {
         this.hiveValidator = hiveValidator;
-        this.pluginDao = pluginDao;
-        this.kafkaTopicService = kafkaTopicService;
+        this.pluginService = pluginService;
         this.rpcClient = rpcClient;
         this.idGenerator = idGenerator;
         this.deviceService = deviceService;
         this.httpRestHelper = httpRestHelper;
+        this.webSocketKafkaProxyConfig = webSocketKafkaProxyConfig;
+        this.gson = gson;
     }
 
     @Transactional
-    public CompletableFuture<PluginVO> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
+    public CompletableFuture<JsonObject> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate,
+            String authorization) {
+
+        return persistPlugin(pollRequest, pluginUpdate).thenApply(pluginVO -> {
+            JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
+            JsonObject response = new JsonObject();
+
+            response.addProperty("accessToken", jwtTokenVO.getAccessToken());
+            response.addProperty("refreshToken", jwtTokenVO.getRefreshToken());
+            response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyConnect());
+
+            return response;
+        });
+    }
+
+    @Transactional
+    public CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
-        
+        pluginVO.setUserId(pollRequest.getFilter().getPrincipal().getUser().getId());
+
         //Creation of topic for plugin
         String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
-        kafkaTopicService.createTopic(pluginTopic);
+        rpcClient.createTopic(Arrays.asList(pluginTopic));
         pluginVO.setTopicName(pluginTopic);
-        
+
         //Creation of subscription for plugin
         final Long subscriptionId = idGenerator.generate();
         pollRequest.setSubscriptionId(subscriptionId);
         pollRequest.setTopicName(pluginTopic);
 
         pluginVO.setSubscriptionId(subscriptionId);
-        pluginDao.persist(pluginVO);
-        
+        pluginService.create(pluginVO);
+
         //Update deviceIds in Filter taking into account networkIds and permissions
         Filter filter = pollRequest.getFilter();
         filter.setDeviceIds(deviceService.getAvailableDeviceIds(filter.getDeviceIds(), filter.getNetworkIds()));
-        
+
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(pollRequest)
                 .build(), new ResponseConsumer(future));
-        return future.thenApply(r -> pluginVO);
-    }
-    
-    @Scheduled(fixedDelayString = "${health.check.period}", initialDelayString = "${health.initial.delay}")
-    @Transactional
-    public void performHealthCheck() {
-        List<PluginVO> plugins = pluginDao.findByStatus(ACTIVE);
-        plugins.forEach(pluginVO -> {
-            try {
-                httpRestHelper.get(pluginVO.getHealthCheckUrl(), null, null);
-            } catch (ServiceUnavailableException e) {
-                disablePlugin(pluginVO);   
-            }
-        });
-    }
-    
-    private CompletableFuture<PluginVO> disablePlugin(PluginVO pluginVO) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
-        rpcClient.call(Request.newBuilder()
-                .withBody(new PluginUnsubscribeRequest(pluginVO.getSubscriptionId(), pluginVO.getTopicName()))
-                .build(), new ResponseConsumer(future));
         
-        return future.thenApply(response -> {
-            pluginVO.setStatus(DISABLED);
-            pluginDao.merge(pluginVO); 
-            return pluginVO;
-        });
+        return future.thenApply(response -> pluginVO);
     }
+
+    private JwtTokenVO createPluginTokens(String topicName, String authorization) {
+        JwtPluginPayload jwtPluginPayload = new JwtPluginPayload(topicName, null, null);
+        
+        JwtTokenVO jwtToken = null;
+        try {
+            jwtToken = httpRestHelper.post(authBaseUrl + "/token/plugin/create", gson.toJson(jwtPluginPayload), JwtTokenVO.class, authorization);
+        } catch (ServiceUnavailableException e) {
+            throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
+        }
+        
+        return jwtToken;
+
+    }
+
+
 }
