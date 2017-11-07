@@ -77,7 +77,10 @@ public class KafkaRpcClientConfig {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+                    .map(mac -> Base64.getEncoder().withoutPadding().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            prefix = prefix.replace("+", "")
+                    .replace("/", "")
+                    .replace("=", "");
             RESPONSE_TOPIC = responseTopicPrefix + prefix;
         } catch (SocketException | UnknownHostException e) {
             RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID().toString();
