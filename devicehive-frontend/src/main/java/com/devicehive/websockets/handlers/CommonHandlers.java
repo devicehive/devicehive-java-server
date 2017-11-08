@@ -65,9 +65,6 @@ public class CommonHandlers {
     private String authBaseUrl;
 
     private final WebSocketAuthenticationManager authenticationManager;
-    private final BaseJwtClientService tokenService;
-    private final UserService userService;
-    private final TimestampService timestampService;
     private final Gson gson;
     private final WebSocketClientHandler clientHandler;
     private final HiveValidator hiveValidator;
@@ -75,17 +72,11 @@ public class CommonHandlers {
 
     @Autowired
     public CommonHandlers(WebSocketAuthenticationManager authenticationManager,
-            BaseJwtClientService tokenService,
-            UserService userService,
-            TimestampService timestampService,
             Gson gson,
             WebSocketClientHandler clientHandler,
             HiveValidator hiveValidator,
             HttpRestHelper httpRestHelper) {
         this.authenticationManager = authenticationManager;
-        this.tokenService = tokenService;
-        this.userService = userService;
-        this.timestampService = timestampService;
         this.gson = gson;
         this.clientHandler = clientHandler;
         this.hiveValidator = hiveValidator;

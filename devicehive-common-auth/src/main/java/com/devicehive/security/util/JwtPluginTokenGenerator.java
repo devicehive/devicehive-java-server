@@ -21,6 +21,7 @@ package com.devicehive.security.util;
  */
 
 import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.time.TimestampService;
@@ -58,7 +59,7 @@ public class JwtPluginTokenGenerator {
 
     /**
      * Generates a JWT plugin token containing all needed claims. These properties are taken from the specified
-     * JwtPayload object.
+     * JwtUserPayload object.
      *
      * @param payload the payload entity with which the token will be generated
      * @return the JWT plugin token
@@ -68,14 +69,14 @@ public class JwtPluginTokenGenerator {
         Date expiration = useExpiration && payload.getExpiration() != null ? payload.getExpiration() :
                 timestampService.getDate(System.currentTimeMillis() + maxAge);
 
-        JwtPluginPayload generatedPayload = JwtPluginPayload.newBuilder()
+        JwtPluginPayload generatedPayload = (JwtPluginPayload) JwtPluginPayload.newBuilder()
                 .withPayload(payload)
                 .withExpirationDate(expiration)
                 .withTokenType(tokenType.getId())
                 .buildPayload();
         
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put(JwtPayload.JWT_CLAIM_KEY, generatedPayload);
+        jwtMap.put(JwtUserPayload.JWT_CLAIM_KEY, generatedPayload);
 
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()

@@ -21,9 +21,9 @@ package com.devicehive.service.security.jwt;
  */
 
 import com.devicehive.security.jwt.JwtPayload;
-import com.devicehive.security.jwt.TokenType;
+import com.devicehive.security.jwt.JwtPluginPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.util.JwtSecretService;
-import com.devicehive.security.util.JwtTokenGenerator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -36,6 +36,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+
+import static com.devicehive.security.jwt.JwtPayload.EXPIRATION;
+import static com.devicehive.security.jwt.JwtPayload.JWT_CLAIM_KEY;
+import static com.devicehive.security.jwt.JwtPayload.TOKEN_TYPE;
 
 /**
  * Class responsible for access and refresh JWT keys generation.
@@ -50,41 +54,61 @@ public class BaseJwtClientService {
         this.jwtSecretService = jwtSecretService;
     }
 
-    @Cacheable("payload")
+    @Cacheable("user-payload")
     @SuppressWarnings("unchecked")
-    public JwtPayload getPayload(String jwtToken) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecretService.getJwtSecret())
-                .parseClaimsJws(jwtToken)
-                .getBody();
-        LinkedHashMap<String, Object> payloadMap = (LinkedHashMap<String, Object>) claims.get(JwtPayload.JWT_CLAIM_KEY);
+    public JwtUserPayload getUserPayload(String jwtToken) {
+        LinkedHashMap<String, Object> payloadMap = getPayloadMap(jwtToken);
+        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
 
-        JwtPayload.Builder builder = new JwtPayload.Builder();
+        Optional.ofNullable(payloadMap.get(JwtUserPayload.USER_ID))
+                .ifPresent(userId -> jwtUserPayloadBuilder.withUserId(Long.valueOf(userId.toString())));
+        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtUserPayload.NETWORK_IDS))
+                .ifPresent(networkIds -> jwtUserPayloadBuilder.withNetworkIds(new HashSet<>(networkIds)));
+        Optional.ofNullable((ArrayList<Integer>) payloadMap.get(JwtUserPayload.ACTIONS))
+                .ifPresent(actions -> jwtUserPayloadBuilder.withActions(new HashSet<>(actions)));
+        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtUserPayload.DEVICE_IDS))
+                .ifPresent(deviceIds -> jwtUserPayloadBuilder.withDeviceIds(new HashSet<>(deviceIds)));
+        
+        return (JwtUserPayload) getJwtPayload(jwtUserPayloadBuilder, payloadMap);
+    }
 
-        Optional.ofNullable(payloadMap.get(JwtPayload.USER_ID))
-                .ifPresent(userId -> builder.withUserId(Long.valueOf(userId.toString())));
-        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtPayload.NETWORK_IDS))
-                .ifPresent(networkIds -> builder.withNetworkIds(new HashSet<>(networkIds)));
-        Optional.ofNullable((ArrayList<Integer>) payloadMap.get(JwtPayload.ACTIONS))
-                .ifPresent(actions -> builder.withActions(new HashSet<>(actions)));
-        Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtPayload.DEVICE_IDS))
-                .ifPresent(deviceIds -> builder.withDeviceIds(new HashSet<>(deviceIds)));
-        Optional<Long> expiration = Optional.ofNullable((Long)payloadMap.get(JwtPayload.EXPIRATION));
-        Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(JwtPayload.TOKEN_TYPE));
+    @Cacheable("plugin-payload")
+    @SuppressWarnings("unchecked")
+    public JwtPluginPayload getPluginPayload(String jwtToken) {
+        LinkedHashMap<String, Object> payloadMap = getPayloadMap(jwtToken);
+        JwtPluginPayload.JwtPluginPayloadBuilder jwtPluginPayloadBuilder = new JwtPluginPayload.JwtPluginPayloadBuilder();
 
+        Optional.ofNullable((String)payloadMap.get(JwtPluginPayload.TOPIC))
+                .ifPresent(topic -> jwtPluginPayloadBuilder.withTopic(topic));
+        
+        return (JwtPluginPayload) getJwtPayload(jwtPluginPayloadBuilder, payloadMap);
+    }
+
+    private JwtPayload getJwtPayload(JwtPayload.JwtPayloadBuilder jwtPayloadBuilder, LinkedHashMap<String, Object> payloadMap) {
+        Optional<Long> expiration = Optional.ofNullable((Long)payloadMap.get(EXPIRATION));
+        Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(TOKEN_TYPE));
+        
         if (!tokenType.isPresent() && !expiration.isPresent()) {
             throw new MalformedJwtException("Token type and expiration date should be provided in the token");
         } else {
             if (tokenType.isPresent())
-                builder.withTokenType(tokenType.get());
+                jwtPayloadBuilder.withTokenType(tokenType.get());
             else
                 throw new MalformedJwtException("Token type should be provided in the token");
             if (expiration.isPresent())
-                builder.withExpirationDate(new Date(expiration.get()));
+                jwtPayloadBuilder.withExpirationDate(new Date(expiration.get()));
             else
                 throw new MalformedJwtException("Expiration date should be provided in the token");
-            return builder.buildPayload();
+            return jwtPayloadBuilder.buildPayload();
         }
+    }
+
+    private LinkedHashMap<String, Object> getPayloadMap(String jwtToken) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecretService.getJwtSecret())
+                .parseClaimsJws(jwtToken)
+                .getBody();
+        return (LinkedHashMap<String, Object>) claims.get(JWT_CLAIM_KEY);
     }
 
 }

@@ -52,7 +52,7 @@ import static javax.ws.rs.core.Response.Status.OK;
 @Component
 public class HttpRestHelper {
     private static final String AUTHORIZATION = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
+    public static final String TOKEN_PREFIX = "Bearer ";
     
     private static final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
     private CloseableHttpClient httpClient;

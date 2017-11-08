@@ -20,38 +20,23 @@ package com.devicehive.security.jwt;
  * #L%
  */
 
-import com.devicehive.model.HiveEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
-public class JwtPluginPayload implements HiveEntity {
+public class JwtPluginPayload extends JwtPayload {
     private static final long serialVersionUID = -501922541863466048L;
 
-    private final static String TOPICS = "tpc";
-    public final static String EXPIRATION = "exp";
-    public final static String TOKEN_TYPE = "ttp";
-
-    @SerializedName(TOPICS)
-    @JsonProperty(TOPICS)
+    public final static String TOPIC = "tpc";
+    
+    @SerializedName(TOPIC)
+    @JsonProperty(TOPIC)
     private String topic;
 
-    @SerializedName(EXPIRATION)
-    @JsonProperty(EXPIRATION)
-    private Date expiration;
-
-    @SerializedName(TOKEN_TYPE)
-    @ApiModelProperty(hidden = true)
-    private Integer tokenType;
-
     public JwtPluginPayload(String topic, Date expiration, Integer tokenType) {
+        super(expiration, tokenType);
         this.topic = topic;
-        this.expiration = expiration;
-        this.tokenType = tokenType;
     }
 
     public String getTopic() {
@@ -62,50 +47,26 @@ public class JwtPluginPayload implements HiveEntity {
         this.topic = topic;
     }
 
-    public Date getExpiration() {
-        return expiration;
-    }
-    
-    public void setExpiration(Date expiration) {
-        this.expiration = expiration;
-    }
-
-    @JsonProperty(TOKEN_TYPE)
-    public Integer getTokenType() {
-        return tokenType;
-    }
-
-    public void setTokenType(Integer tokenType) {
-        this.tokenType = tokenType;
-    }
-
     public static JwtPluginPayloadBuilder newBuilder() {
         return new JwtPluginPayloadBuilder();
     }
 
-    public static class JwtPluginPayloadBuilder {
+    public static class JwtPluginPayloadBuilder extends JwtPayloadBuilder {
         private String topic;
-        private Date expiration;
-        private Integer tokenType;
-
+        
         public JwtPluginPayloadBuilder withPublicClaims(String topic) {
+            this.topic = topic;
+            return this;
+        }
+
+        public JwtPluginPayloadBuilder withTopic(String topic) {
             this.topic = topic;
             return this;
         }
 
         public JwtPluginPayloadBuilder withPayload(JwtPluginPayload payload) {
             this.topic = payload.getTopic();
-            this.expiration = payload.getExpiration();
-            return this;
-        }
-
-        public JwtPluginPayloadBuilder withTokenType(Integer tokenType) {
-            this.tokenType = tokenType;
-            return this;
-        }
-
-        public JwtPluginPayloadBuilder withExpirationDate(Date expiration) {
-            this.expiration = expiration;
+            this.withExpirationDate(payload.getExpiration());
             return this;
         }
 

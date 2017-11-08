@@ -21,7 +21,6 @@ package com.devicehive.service;
  */
 
 
-import com.devicehive.dao.PluginDao;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;

@@ -20,7 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.security.jwt.JwtPayloadView;
+import com.devicehive.security.jwt.JwtUserPayloadView;
 import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.vo.JwtAccessTokenVO;
 import com.devicehive.vo.JwtRefreshTokenVO;
@@ -36,9 +36,12 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -69,7 +72,7 @@ public interface JwtTokenResource {
     })
     Response tokenRequest(
             @ApiParam(name = "payload", value = "Payload", required = true)
-                    JwtPayloadView payloadView);
+                    JwtUserPayloadView payloadView);
 
     @POST
     @Path("/plugin/create")
@@ -105,6 +108,21 @@ public interface JwtTokenResource {
                     JwtRefreshTokenVO jwtTokenVO);
 
     @POST
+    @Path("/plugin/refresh")
+    @Consumes(APPLICATION_JSON)
+    @PreAuthorize("permitAll")
+    @ApiOperation(value = "JWT access token request with refresh token")
+    @ApiResponses({
+            @ApiResponse(code = 201,
+                    message = "If successful, this method returns a JWT access token in the response body.",
+                    response = JwtAccessTokenVO.class),
+            @ApiResponse(code = 404, message = "If access token not found")
+    })
+    Response refreshPluginTokenRequest(
+            @ApiParam(name = "refreshToken", value = "Refresh token", required = true)
+                    JwtRefreshTokenVO jwtTokenVO);
+
+    @POST
     @PreAuthorize("permitAll")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")
@@ -116,5 +134,19 @@ public interface JwtTokenResource {
     Response login(
             @ApiParam(value = "Access key request", required = true)
                     JwtRequestVO request);
+
+    @GET
+    @Path("/plugin/authenticate")
+    @PreAuthorize("permitAll")
+    @ApiOperation(value = "Plugin authentication", notes = "Authenticates a plugin and JWT Plugin payload.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "If successful, this method returns the JwtPluginPayload.",
+                    response = JwtPluginPayload.class),
+            @ApiResponse(code = 401, message = "If authentication is not allowed")
+    })
+    Response authenticatePlugin(
+            @ApiParam(name = "token", value = "Jwt Plugin Token", required = true)
+            @QueryParam("token")
+            String jwtPluginToken);
 }
 
