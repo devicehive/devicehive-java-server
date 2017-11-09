@@ -104,8 +104,7 @@ public class PluginRegisterService {
         });
     }
 
-    @Transactional
-    public CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
+    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
         pluginVO.setUserId(pollRequest.getFilter().getPrincipal().getUser().getId());
