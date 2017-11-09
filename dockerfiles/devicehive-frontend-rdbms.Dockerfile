@@ -1,4 +1,4 @@
-FROM openjdk:8u131-jre-alpine
+FROM openjdk:8u151-jre-slim
 
 MAINTAINER devicehive
 
@@ -10,7 +10,9 @@ LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.name="devicehive-frontend-rdbms" \
       org.label-schema.version="$DH_VERSION"
 
-RUN apk add --no-cache netcat-openbsd
+RUN apt-get update \
+    && apt-get install -y netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
 
 ADD devicehive-frontend/target/devicehive-frontend-${DH_VERSION}-boot.jar /opt/devicehive/
 #start script

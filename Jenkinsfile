@@ -8,7 +8,7 @@ def deployable_branches = ["development"]
 node('docker') {
   stage('Build jars') {
     echo 'Building jars ...'
-    def maven = docker.image('maven:3.5.0-jdk-8')
+    def maven = docker.image('maven:3.5.2-jdk-8')
     maven.pull()
     maven.inside {
       checkout scm
