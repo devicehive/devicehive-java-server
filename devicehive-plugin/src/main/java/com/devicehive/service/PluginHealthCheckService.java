@@ -70,7 +70,7 @@ public class PluginHealthCheckService {
             try {
                 httpRestHelper.get(pluginVO.getHealthCheckUrl(), JsonObject.class, null);
             } catch (ServiceUnavailableException e) {
-                logger.warn("Plugin Service is Unavailable. Plugin " + pluginVO.getName() + "will be disabled", e);
+                logger.warn("Plugin Service is not responding. Plugin {} will be disabled", pluginVO.getName());
                 disablePlugin(pluginVO);
             }
         });
