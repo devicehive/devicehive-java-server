@@ -42,7 +42,7 @@ public class NotificationCreatePayload implements Payload {
     public NotificationCreatePayload(String topic, String message, String partition) {
         this.topic = topic;
         this.message = message;
-        this.partition = partition;
+        this.partition = "0";
     }
 
     public String getTopic() {
