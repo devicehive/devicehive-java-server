@@ -98,7 +98,7 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
         return body.getFilter().getDeviceIds().stream()
                 .map(deviceId -> {
                     CommandSubscribeRequest commandSubscribeRequest = new CommandSubscribeRequest(body.getSubscriptionId(),
-                            deviceId, body.getFilter(), body.getTimestamp(), returnUpdated, null);
+                            deviceId, body.getFilter(), body.getTimestamp(), returnUpdated, 0);
                     
                     Request commandRequest = Request.newBuilder()
                             .withBody(commandSubscribeRequest)

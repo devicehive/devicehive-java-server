@@ -65,7 +65,11 @@ public class PluginService {
 
     @Transactional
     public PluginVO findByTopic(String topicName) {
-        return pluginDao.findByTopic(topicName);
+        try {
+            return pluginDao.findByTopic(topicName);
+        } catch (Exception e) {
+            return null;
+        }
     }
     
 }
