@@ -79,8 +79,8 @@ public class BackendProxyClientConfig {
         WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
         client.setWebSocketKafkaProxyConfig(proxyConfig);
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(REQUEST_TOPIC)));
-        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup())));
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(REQUEST_TOPIC))).join();
+        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
         return client;
     }
 

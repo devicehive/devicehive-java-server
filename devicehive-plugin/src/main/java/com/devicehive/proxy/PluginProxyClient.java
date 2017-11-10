@@ -78,11 +78,11 @@ public class PluginProxyClient implements RpcClient {
     }
     
     public void createTopic(List<String> topics) {
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(topics)));
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(topics))).join();
     }
     
     public void subscribeToTopic(String topic) {
-        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(topic)));
+        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(topic))).join();
     }
     
     @Override

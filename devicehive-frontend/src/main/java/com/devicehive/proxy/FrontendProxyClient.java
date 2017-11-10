@@ -80,7 +80,7 @@ public class FrontendProxyClient implements RpcClient {
     @Override
     public void start() {
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(Arrays.asList(requestTopic, replyToTopic))));
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(Arrays.asList(requestTopic, replyToTopic)))).join();
         client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(replyToTopic))).join();
 
         pingServer();
