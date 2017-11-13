@@ -184,11 +184,6 @@ public class DeviceDaoRiakImpl extends RiakGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
-        return getDeviceList(deviceIds, principal).size();
-    }
-
-    @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
             String sortField, boolean isSortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         BucketMapReduce.Builder builder = new BucketMapReduce.Builder()

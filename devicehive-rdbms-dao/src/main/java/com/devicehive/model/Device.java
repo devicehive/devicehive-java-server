@@ -21,6 +21,7 @@ package com.devicehive.model;
  */
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
 import com.google.gson.annotations.SerializedName;
@@ -43,6 +44,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
                   @NamedQuery(name = "Device.findById", query = "select d from Device d " +
                                                                   "left join fetch d.network " +
+                                                                  "left join fetch d.deviceType " +
                                                                   "where d.deviceId = :deviceId"),
                   @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.deviceId = :deviceId")
               })
@@ -56,7 +58,7 @@ public class Device implements HiveEntity {
     private static final long serialVersionUID = 2959997451631843298L;
 
     @Id
-    @SerializedName("sid")//overwork for  "declares multiple JSON fields" exception
+    @SerializedName("sid") // overwork for  "declares multiple JSON fields" exception
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -64,7 +66,7 @@ public class Device implements HiveEntity {
     @Column(name = "device_id")
     @NotNull(message = "id field cannot be null.")
     @Size(min = 1, max = 48, message = "Field cannot be empty. The length of guid should not be more than 48 symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private String deviceId;
 
     @SerializedName("name")
@@ -72,7 +74,7 @@ public class Device implements HiveEntity {
     @NotNull(message = "name field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of name should not be more than 128 " +
                                         "symbols.")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private String name;
 
     @SerializedName("data")
@@ -80,7 +82,7 @@ public class Device implements HiveEntity {
     @AttributeOverrides({
                             @AttributeOverride(name = "jsonString", column = @Column(name = "data"))
                         })
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private JsonStringWrapper data;
 
     @SerializedName("networkId")
@@ -98,7 +100,7 @@ public class Device implements HiveEntity {
     @Column(name = "blocked")
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private Boolean blocked;
 
     public JsonStringWrapper getData() {
@@ -177,6 +179,8 @@ public class Device implements HiveEntity {
             vo.setBlocked(dc.getBlocked());
             NetworkVO networkVO = Network.convertNetwork(dc.getNetwork());
             vo.setNetworkId(networkVO.getId());
+            DeviceTypeVO deviceTypeVO = DeviceType.convertDeviceType(dc.getDeviceType());
+            vo.setDeviceTypeId(deviceTypeVO.getId());
         }
         return vo;
     }
@@ -193,6 +197,9 @@ public class Device implements HiveEntity {
             Network network = new Network();
             network.setId(dc.getNetworkId());
             entity.setNetwork(network);
+            DeviceType deviceType = new DeviceType();
+            deviceType.setId(dc.getDeviceTypeId());
+            entity.setDeviceType(deviceType);
         }
         return entity;
     }

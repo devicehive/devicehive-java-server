@@ -190,6 +190,11 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
     }
 
     @Override
+    public void unassignDeviceType(@NotNull UserVO existingUser, @NotNull long deviceTypeId) {
+        // todo: remove riak support completely
+    }
+
+    @Override
     public List<UserVO> list(String login, String loginPattern,
             Integer role, Integer status,
             String sortField, boolean isSortOrderAsc,

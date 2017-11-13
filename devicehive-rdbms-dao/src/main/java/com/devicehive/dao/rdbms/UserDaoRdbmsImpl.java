@@ -21,6 +21,7 @@ package com.devicehive.dao.rdbms;
  */
 
 import com.devicehive.dao.UserDao;
+import com.devicehive.model.DeviceType;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
 import com.devicehive.vo.NetworkVO;
@@ -130,6 +131,20 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
                     usr.setId(existingUser.getId());
                     existingNetwork.getUsers().remove(usr);
                     merge(existingNetwork);
+                });
+    }
+
+    @Override
+    public void unassignDeviceType(@NotNull UserVO existingUser, @NotNull long deviceTypeId) {
+        createNamedQuery(DeviceType.class, "DeviceType.findWithUsers", of(CacheConfig.refresh()))
+                .setParameter("id", deviceTypeId)
+                .getResultList()
+                .stream().findFirst()
+                .ifPresent(existingDeviceType -> {
+                    User usr = new User();
+                    usr.setId(existingUser.getId());
+                    existingDeviceType.getUsers().remove(usr);
+                    merge(existingDeviceType);
                 });
     }
 

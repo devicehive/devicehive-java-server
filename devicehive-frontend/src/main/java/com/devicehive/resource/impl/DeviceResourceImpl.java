@@ -76,7 +76,8 @@ public class DeviceResourceImpl implements DeviceResource {
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
-                && !NETWORK.equalsIgnoreCase(sortField)) {
+                && !NETWORK.equalsIgnoreCase(sortField)
+                && !DEVICE_TYPE.equalsIgnoreCase(sortField)) {
             final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));

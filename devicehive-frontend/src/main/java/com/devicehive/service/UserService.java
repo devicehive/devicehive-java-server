@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
+import com.devicehive.dao.DeviceTypeDao;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
@@ -39,10 +40,7 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +69,7 @@ public class UserService extends BaseUserService {
     private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     private final NetworkDao networkDao;
+    private final DeviceTypeDao deviceTypeDao;
     private final RpcClient rpcClient;
 
     private NetworkService networkService;
@@ -78,6 +77,7 @@ public class UserService extends BaseUserService {
     @Autowired
     public UserService(PasswordProcessor passwordService,
                        NetworkDao networkDao,
+                       DeviceTypeDao deviceTypeDao,
                        UserDao userDao,
                        TimestampService timestampService,
                        ConfigurationService configurationService,
@@ -85,6 +85,7 @@ public class UserService extends BaseUserService {
                        RpcClient rpcClient) {
         super(passwordService, userDao, timestampService, configurationService, hiveValidator);
         this.networkDao = networkDao;
+        this.deviceTypeDao = deviceTypeDao;
         this.rpcClient = rpcClient;
     }
 
@@ -215,6 +216,47 @@ public class UserService extends BaseUserService {
         userDao.unassignNetwork(existingUser, networkId);
     }
 
+    /**
+     * Allows user access to given device type
+     *
+     * @param userId id of user
+     * @param deviceTypeId id of device type
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void assignDeviceType(@NotNull long userId, @NotNull long deviceTypeId) {
+        UserVO existingUser = userDao.find(userId);
+        if (existingUser == null) {
+            logger.error("Can't assign device type with id {}: user {} not found", deviceTypeId, userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        DeviceTypeWithUsersAndDevicesVO existingDeviceType = deviceTypeDao.findWithUsers(deviceTypeId).orElse(null);
+        if (Objects.isNull(existingDeviceType)) {
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
+        }
+
+        deviceTypeDao.assignToDeviceType(existingDeviceType, existingUser);
+    }
+
+    /**
+     * Revokes user access to given device type
+     *
+     * @param userId id of user
+     * @param deviceTypeId id of device type
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void unassignDeviceType(@NotNull long userId, @NotNull long deviceTypeId) {
+        UserVO existingUser = userDao.find(userId);
+        if (existingUser == null) {
+            logger.error("Can't unassign device type with id {}: user {} not found", deviceTypeId, userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        DeviceTypeVO existingDeviceType = deviceTypeDao.find(deviceTypeId);
+        if (existingDeviceType == null) {
+            logger.error("Can't unassign user with id {}: device type {} not found", userId, deviceTypeId);
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
+        }
+        userDao.unassignDeviceType(existingUser, deviceTypeId);
+    }
     public CompletableFuture<List<UserVO>> list(ListUserRequest request) {
         return list(request.getLogin(), request.getLoginPattern(), request.getRole(), request.getStatus(), request.getSortField(),
                 request.getSortOrder(), request.getTake(), request.getSkip());

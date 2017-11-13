@@ -171,6 +171,7 @@ public class DeviceService extends BaseDeviceService {
         return deviceDao.deleteById(deviceId) != 0;
     }
 
+    @Transactional
     public List<DeviceVO> list(ListDeviceRequest request) {
         
         return deviceDao.list(request.getName(), request.getNamePattern(), request.getNetworkId(),
@@ -179,16 +180,10 @@ public class DeviceService extends BaseDeviceService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
-    //TODO: need to remove it
-    public long getAllowedDevicesCount(HivePrincipal principal, List<String> deviceIds) {
-        return deviceDao.getAllowedDeviceCount(principal, deviceIds);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
         List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
         Set<String> allowedIds = devices.stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
+                .map(DeviceVO::getDeviceId)
                 .collect(Collectors.toSet());
 
         Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);

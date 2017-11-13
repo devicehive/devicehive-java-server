@@ -47,6 +47,8 @@ public interface UserDao {
 
     void unassignNetwork(@NotNull UserVO existingUser, @NotNull long networkId);
 
+    void unassignDeviceType(@NotNull UserVO existingUser, @NotNull long deviceId);
+
     List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField,
                        boolean sortOrderAsc, Integer take, Integer skip);
 }

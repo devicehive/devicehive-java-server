@@ -95,6 +95,7 @@ public class Constants {
     public static final String NETWORK_ID = "networkId";
     public static final String NETWORK_IDS = "networkIds";
     public static final String NETWORK_NAME = "networkName";
+    public static final String DEVICE_TYPE = "devicetype";
     public static final String SORT_FIELD = "sortField";
     public static final String SORT_ORDER = "sortOrder";
     public static final String TAKE = "take";
@@ -108,6 +109,7 @@ public class Constants {
 
     public static final String ANY = "*";
     public static final String GET_NETWORK = "GetNetwork";
+    public static final String GET_DEVICE_TYPE = "GetDeviceType";
     public static final String GET_DEVICE = "GetDevice";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
@@ -120,6 +122,7 @@ public class Constants {
     public static final String MANAGE_USER = "ManageUser";
     public static final String MANAGE_CONFIGURATION = "ManageConfiguration";
     public static final String MANAGE_NETWORK = "ManageNetwork";
+    public static final String MANAGE_DEVICE_TYPE = "ManageDeviceType";
     public static final String MANAGE_TOKEN = "ManageToken";
     
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";

@@ -38,11 +38,11 @@ public class DeviceUpdate implements HiveEntity {
 
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private String name;
 
     @SerializedName("data")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED})
     private JsonStringWrapper data;
 
     @SerializedName("networkId")

@@ -102,17 +102,6 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
-        final CriteriaBuilder cb = criteriaBuilder();
-        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
-        final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, deviceIds, Optional.ofNullable(principal));
-        criteria.where(predicates);
-        final TypedQuery<Device> query = createQuery(criteria);
-        return query.getResultList().size();
-    }
-
-    @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
                                 String sortField, boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {

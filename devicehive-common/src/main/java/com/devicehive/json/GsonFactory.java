@@ -102,6 +102,9 @@ public class GsonFactory {
                 .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.ordinal())
                 .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.ordinal())
 
+                .registerSubtype(ListDeviceTypeRequest.class, Action.LIST_DEVICE_TYPE_REQUEST.ordinal())
+                .registerSubtype(ListDeviceTypeResponse.class, Action.LIST_DEVICE_TYPE_RESPONSE.ordinal())
+
                 .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.ordinal())
                 .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.ordinal())
 

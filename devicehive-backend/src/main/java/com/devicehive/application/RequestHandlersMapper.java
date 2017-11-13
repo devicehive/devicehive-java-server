@@ -54,6 +54,7 @@ public class RequestHandlersMapper {
     private final CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler;
     private final ListUserHandler listUserHandler;
     private final ListNetworkHandler listNetworkHandler;
+    private final ListDeviceTypeHandler listDeviceTypeHandler;
     private final ListDeviceHandler listDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
@@ -74,6 +75,7 @@ public class RequestHandlersMapper {
                                  CommandSearchHandler commandSearchHandler,
                                  CommandsUpdateHandler commandsUpdateHandler,
                                  ListNetworkHandler listNetworkHandler,
+                                 ListDeviceTypeHandler listDeviceTypeHandler,
                                  ListSubscribeHandler listSubscribeHandler,
                                  DeviceCreateHandler deviceCreateHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
@@ -91,6 +93,7 @@ public class RequestHandlersMapper {
         this.commandSearchHandler = commandSearchHandler;
         this.commandsUpdateHandler = commandsUpdateHandler;
         this.listNetworkHandler = listNetworkHandler;
+        this.listDeviceTypeHandler = listDeviceTypeHandler;
         this.listSubscribeHandler = listSubscribeHandler;
         this.deviceCreateHandler = deviceCreateHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
@@ -117,6 +120,8 @@ public class RequestHandlersMapper {
             put(Action.LIST_USER_REQUEST, listUserHandler);
 
             put(Action.LIST_NETWORK_REQUEST, listNetworkHandler);
+
+            put(Action.LIST_DEVICE_TYPE_REQUEST, listDeviceTypeHandler);
 
             put(Action.LIST_DEVICE_REQUEST, listDeviceHandler);
 
