@@ -20,6 +20,7 @@ package com.devicehive.security.jwt;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
@@ -45,6 +46,12 @@ public class JwtPluginPayload extends JwtPayload {
 
     public void setTopic(String topic) {
         this.topic = topic;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isUserPayload() {
+        return false;
     }
 
     public static JwtPluginPayloadBuilder newBuilder() {

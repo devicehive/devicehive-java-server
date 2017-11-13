@@ -28,6 +28,7 @@ import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.security.jwt.JwtPayload;
 import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.JwtUserPayloadView;
 import com.devicehive.security.jwt.JwtPluginPayload;
@@ -133,25 +134,15 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     @Override
     public Response refreshTokenRequest(JwtRefreshTokenVO requestTokenVO) {
         hiveValidator.validate(requestTokenVO);
-        JwtTokenVO responseTokenVO = new JwtTokenVO();
-        JwtUserPayload payload;
+        JwtPayload payload;
 
         try {
-            payload = tokenService.getUserPayload(requestTokenVO.getRefreshToken());
+            payload = tokenService.getPayload(requestTokenVO.getRefreshToken());
         } catch (JwtException e) {
             logger.error(e.getMessage());
             return ResponseFactory.response(UNAUTHORIZED);
         }
 
-        UserVO user = userService.findById(payload.getUserId());
-        if (user == null) {
-            logger.warn("JwtToken: User not found");
-            return ResponseFactory.response(UNAUTHORIZED);
-        }
-        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
-            logger.warn("JwtToken: User is not active");
-            return ResponseFactory.response(UNAUTHORIZED);
-        }
         if (!payload.getTokenType().equals(TokenType.REFRESH.getId())) {
             logger.warn("JwtToken: refresh token is not valid");
             return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
@@ -163,8 +154,51 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                     Messages.EXPIRED_TOKEN));
         }
 
+        return payload.isUserPayload() ? getRefreshResponse((JwtUserPayload) payload) : 
+                getRefreshResponse((JwtPluginPayload) payload);
+    }
+
+    private Response getRefreshResponse(JwtUserPayload payload) {
+        UserVO user = userService.findById(payload.getUserId());
+        if (user == null) {
+            logger.warn("JwtToken: User not found");
+            return ResponseFactory.response(UNAUTHORIZED);
+        }
+        if (!user.getStatus().equals(UserStatus.ACTIVE)) {
+            logger.warn("JwtToken: User is not active");
+            return ResponseFactory.response(UNAUTHORIZED);
+        }
+
+
+        JwtTokenVO responseTokenVO = new JwtTokenVO();
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
         logger.debug("JwtToken: access token successfully generated with refresh token");
+        return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
+    }
+
+    private Response getRefreshResponse(JwtPluginPayload payload) {
+        String topic = payload.getTopic();
+        if (StringUtils.isEmpty(topic)) {
+            logger.warn(INVALID_TOPIC_NAME);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOPIC_NAME));
+        }
+
+        PluginVO pluginVO = pluginService.findByTopic(topic);
+        if (pluginVO == null) {
+            logger.warn(PLUGIN_NOT_FOUND);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
+        }
+        if (!pluginVO.getStatus().equals(PluginStatus.ACTIVE)) {
+            logger.warn(PLUGIN_NOT_ACTIVE);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_ACTIVE));
+        }
+
+        JwtTokenVO responseTokenVO = new JwtTokenVO();
+        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
+        logger.debug("JwtToken: plugin access token successfully generated with refresh token");
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
     }
 
@@ -278,52 +312,4 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                 .orElse(null);
     }
 
-    @Override
-    public Response refreshPluginTokenRequest(JwtRefreshTokenVO requestTokenVO) {
-        hiveValidator.validate(requestTokenVO);
-        JwtTokenVO responseTokenVO = new JwtTokenVO();
-        JwtPluginPayload payload;
-
-        try {
-            payload = tokenService.getPluginPayload(requestTokenVO.getRefreshToken());
-        } catch (JwtException e) {
-            logger.error(e.getMessage());
-            return ResponseFactory.response(UNAUTHORIZED,
-                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOKEN));
-        }
-        String topic = payload.getTopic();
-        if (StringUtils.isEmpty(topic)) {
-            logger.warn(INVALID_TOPIC_NAME);
-            return ResponseFactory.response(UNAUTHORIZED,
-                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOPIC_NAME));
-        }
-
-        PluginVO pluginVO = pluginService.findByTopic(topic);
-        if (pluginVO == null) {
-            logger.warn(PLUGIN_NOT_FOUND);
-            return ResponseFactory.response(UNAUTHORIZED,
-                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
-        }
-        if (!pluginVO.getStatus().equals(PluginStatus.ACTIVE)) {
-            logger.warn(PLUGIN_NOT_ACTIVE);
-            return ResponseFactory.response(UNAUTHORIZED,
-                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_ACTIVE));
-        }
-        if (!payload.getTokenType().equals(TokenType.REFRESH.getId())) {
-            logger.warn(INVALID_TOKEN_TYPE);
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    INVALID_TOKEN_TYPE));
-        }
-        if (payload.getExpiration().before(timestampService.getDate())) {
-            logger.warn(EXPIRED_TOKEN);
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    Messages.EXPIRED_TOKEN));
-        }
-
-        responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
-        
-        logger.debug("JwtToken: plugin access token successfully generated with refresh token");
-        
-        return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
-    }
 }

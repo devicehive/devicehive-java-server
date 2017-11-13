@@ -54,14 +54,24 @@ public class BaseJwtClientService {
         this.jwtSecretService = jwtSecretService;
     }
 
+    public JwtPayload getPayload(String jwtToken) {
+        try {
+            return getUserPayload(jwtToken);
+        } catch (IllegalArgumentException e) {
+            return getPluginPayload(jwtToken);
+        }
+    }
+
     @Cacheable("user-payload")
     @SuppressWarnings("unchecked")
     public JwtUserPayload getUserPayload(String jwtToken) {
         LinkedHashMap<String, Object> payloadMap = getPayloadMap(jwtToken);
-        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
-
-        Optional.ofNullable(payloadMap.get(JwtUserPayload.USER_ID))
-                .ifPresent(userId -> jwtUserPayloadBuilder.withUserId(Long.valueOf(userId.toString())));
+        Long userId = Optional.ofNullable(payloadMap.get(JwtUserPayload.USER_ID))
+                .map(id -> Long.valueOf(id.toString()))
+                .orElseThrow(() -> new IllegalArgumentException("Not a user payload"));
+        
+        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder()
+                .withUserId(userId);
         Optional.ofNullable((ArrayList<String>) payloadMap.get(JwtUserPayload.NETWORK_IDS))
                 .ifPresent(networkIds -> jwtUserPayloadBuilder.withNetworkIds(new HashSet<>(networkIds)));
         Optional.ofNullable((ArrayList<Integer>) payloadMap.get(JwtUserPayload.ACTIONS))
@@ -76,10 +86,11 @@ public class BaseJwtClientService {
     @SuppressWarnings("unchecked")
     public JwtPluginPayload getPluginPayload(String jwtToken) {
         LinkedHashMap<String, Object> payloadMap = getPayloadMap(jwtToken);
-        JwtPluginPayload.JwtPluginPayloadBuilder jwtPluginPayloadBuilder = new JwtPluginPayload.JwtPluginPayloadBuilder();
-
-        Optional.ofNullable((String)payloadMap.get(JwtPluginPayload.TOPIC))
-                .ifPresent(topic -> jwtPluginPayloadBuilder.withTopic(topic));
+        String topic = Optional.ofNullable((String)payloadMap.get(JwtPluginPayload.TOPIC))
+                .orElseThrow(() -> new IllegalArgumentException("Not a plugin payload"));
+        
+        JwtPluginPayload.JwtPluginPayloadBuilder jwtPluginPayloadBuilder = new JwtPluginPayload.JwtPluginPayloadBuilder()
+                .withTopic(topic);
         
         return (JwtPluginPayload) getJwtPayload(jwtPluginPayloadBuilder, payloadMap);
     }

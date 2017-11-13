@@ -27,7 +27,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
 
-public class JwtPayload implements HiveEntity {
+public abstract class JwtPayload implements HiveEntity {
     private static final long serialVersionUID = -8814080198864472032L;
 
     public final static String JWT_CLAIM_KEY = "payload";
@@ -64,11 +64,9 @@ public class JwtPayload implements HiveEntity {
         this.tokenType = tokenType;
     }
 
-    public static JwtPayloadBuilder newBuilder() {
-        return new JwtPayloadBuilder();
-    }
+    public abstract boolean isUserPayload();
 
-    public static class JwtPayloadBuilder {
+    public abstract static class JwtPayloadBuilder {
         protected Date expiration;
         protected Integer tokenType;
         
@@ -82,8 +80,6 @@ public class JwtPayload implements HiveEntity {
             return this;
         }
 
-        public JwtPayload buildPayload() {
-            return new JwtPayload(expiration, tokenType);
-        }
+        public abstract JwtPayload buildPayload();
     }
 }

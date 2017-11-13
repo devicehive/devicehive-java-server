@@ -108,21 +108,6 @@ public interface JwtTokenResource {
                     JwtRefreshTokenVO jwtTokenVO);
 
     @POST
-    @Path("/plugin/refresh")
-    @Consumes(APPLICATION_JSON)
-    @PreAuthorize("permitAll")
-    @ApiOperation(value = "JWT access token request with refresh token")
-    @ApiResponses({
-            @ApiResponse(code = 201,
-                    message = "If successful, this method returns a JWT access token in the response body.",
-                    response = JwtAccessTokenVO.class),
-            @ApiResponse(code = 404, message = "If access token not found")
-    })
-    Response refreshPluginTokenRequest(
-            @ApiParam(name = "refreshToken", value = "Refresh token", required = true)
-                    JwtRefreshTokenVO jwtTokenVO);
-
-    @POST
     @PreAuthorize("permitAll")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Login", notes = "Authenticates a user and returns a session-level JWT token.")

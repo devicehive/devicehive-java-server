@@ -20,6 +20,7 @@ package com.devicehive.security.jwt;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
@@ -112,6 +113,12 @@ public class JwtUserPayload extends JwtPayload {
 
     public void setDeviceIds(Set<String> deviceIds) {
         this.deviceIds = deviceIds;
+    }
+
+    @Override
+    @JsonIgnore
+    public boolean isUserPayload() {
+        return true;
     }
 
     public static JwtUserPayloadBuilder newBuilder() {
