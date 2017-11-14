@@ -32,7 +32,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <logback.version>1.1.3</logback.version>
         <junit.version>4.11</junit.version>
-        <mockito.version>1.9.5</mockito.version>
+        <mockito-core.version>2.12.0</mockito-core.version>
         <springboot.version>1.5.7.RELEASE</springboot.version>
         <jersey.version>2.26</jersey.version>
         <servlet-api.version>3.1.0</servlet-api.version>
@@ -101,6 +101,7 @@
         <module>devicehive-test-utils</module>
         <module>devicehive-auth</module>
         <module>devicehive-common-auth</module>
+        <module>devicehive-plugin</module>
     </modules>
 
     <dependencies>
@@ -445,6 +446,7 @@
                     <missingFile>${project.basedir}/missing-license.properties</missingFile>
                     <useJavaNoReformatCommentStartTag>false</useJavaNoReformatCommentStartTag>
                     <failIfWarning>true</failIfWarning>
+                    <dryRun>true</dryRun>
                     <failOnMissingHeader>true</failOnMissingHeader>
                     <outputDirectory>${project.rootdir}/target/license</outputDirectory>
                     <thirdPartyFilename>${project.artifactId}_THIRD-PARTY.txt</thirdPartyFilename>

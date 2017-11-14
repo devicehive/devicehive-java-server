@@ -27,6 +27,8 @@ import java.net.InetAddress;
 import java.util.Collection;
 
 public class HiveAuthentication extends PreAuthenticatedAuthenticationToken {
+    private static final long serialVersionUID = 3994727745773385047L;
+    
     private HivePrincipal hivePrincipal;
 
     public HiveAuthentication(Object aPrincipal, Collection<? extends GrantedAuthority> anAuthorities) {

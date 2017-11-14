@@ -29,7 +29,6 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.devicehive.auth.HiveAction.NONE;
 
-public class JwtPayloadView implements HiveEntity {
+public class JwtUserPayloadView implements HiveEntity {
 
     private static final long serialVersionUID = 9015868660504625526L;
 
@@ -73,7 +72,7 @@ public class JwtPayloadView implements HiveEntity {
     @SerializedName(TOKEN_TYPE)
     private TokenType tokenType;
 
-    public JwtPayloadView(Long userId, Set<String> actions, Set<String> networkIds,
+    public JwtUserPayloadView(Long userId, Set<String> actions, Set<String> networkIds,
             Set<String> deviceIds, Date expiration, TokenType tokenType) {
         this.userId = userId;
         this.actions = actions;
@@ -131,7 +130,7 @@ public class JwtPayloadView implements HiveEntity {
         this.tokenType = tokenType;
     }
 
-    public JwtPayload convertTo() {
+    public JwtUserPayload convertTo() {
         Set<Integer> actionIds = Optional.ofNullable(actions)
                 .map(value -> value.stream()
                         //Here the compatibility with old behavior is provided to ignore not valid actions
@@ -142,7 +141,7 @@ public class JwtPayloadView implements HiveEntity {
                         .collect(Collectors.toSet()))
                 .orElse(ImmutableSet.of(NONE.getId()));
         
-        return new JwtPayload(userId, actionIds, networkIds, deviceIds, expiration, null);
+        return new JwtUserPayload(userId, actionIds, networkIds, deviceIds, expiration, null);
     }
 
     public static Builder newBuilder() {
@@ -166,7 +165,7 @@ public class JwtPayloadView implements HiveEntity {
             return this;
         }
 
-        public Builder withPayload(JwtPayloadView payload) {
+        public Builder withPayload(JwtUserPayloadView payload) {
             this.userId = payload.getUserId();
             this.actions = payload.getActions();
             this.networkIds = payload.getNetworkIds();
@@ -205,8 +204,8 @@ public class JwtPayloadView implements HiveEntity {
             return this;
         }
 
-        public JwtPayloadView buildPayload() {
-            return new JwtPayloadView(userId, actions, networkIds, deviceIds, expiration, tokenType);
+        public JwtUserPayloadView buildPayload() {
+            return new JwtUserPayloadView(userId, actions, networkIds, deviceIds, expiration, tokenType);
         }
     }
 }

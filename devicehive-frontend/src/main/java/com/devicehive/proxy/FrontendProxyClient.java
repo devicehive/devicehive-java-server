@@ -73,14 +73,15 @@ public class FrontendProxyClient implements RpcClient {
         }
         request.setReplyTo(replyToTopic);
 
-        client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+        client.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
     }
 
     @Override
     public void start() {
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(Arrays.asList(requestTopic, replyToTopic))));
-        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(replyToTopic)));
+        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(Arrays.asList(requestTopic, replyToTopic)))).join();
+        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(replyToTopic))).join();
 
         pingServer();
     }
@@ -97,22 +98,23 @@ public class FrontendProxyClient implements RpcClient {
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
-            logger.info("Ping RpcServer attempt {}", i);
+            logger.info("Ping Backend Server attempt {}", i);
 
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 
             requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
             logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-            client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+            client.push(ProxyMessageBuilder.notification(
+                    new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
 
             Response response = null;
             try {
                 response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception occured while trying to ping RpcServer ", e);
+                logger.error("Exception occured while trying to ping Backend Server ", e);
             } catch (TimeoutException e) {
-                logger.warn("RpcServer didn't respond to ping request");
+                logger.warn("Backend Server didn't respond to ping request");
                 continue;
             } finally {
                 requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
@@ -125,10 +127,10 @@ public class FrontendProxyClient implements RpcClient {
             }
         }
         if (connected) {
-            logger.info("Successfully connected to RpcServer");
+            logger.info("Successfully connected to Backend Server");
         } else {
-            logger.error("Unable to reach out RpcServer in {} attempts", attempts);
-            throw new RuntimeException("RpcServer is not reachable");
+            logger.error("Unable to reach out Backend Server in {} attempts", attempts);
+            throw new RuntimeException("Backend Server is not reachable");
         }
     }
 }

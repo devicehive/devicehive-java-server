@@ -31,7 +31,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 public class ConfigurationVO implements HiveEntity {
-
+    private static final long serialVersionUID = 4259314407271953931L;
+    
     @JsonProperty
     private String name;
     @Column

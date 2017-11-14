@@ -23,49 +23,36 @@ package com.devicehive.service.helpers;
 
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.updates.UserUpdate;
 import com.google.gson.Gson;
-import io.jsonwebtoken.lang.Collections;
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.RequestLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.charset.Charset;
 
 import static com.devicehive.configuration.Constants.UTF8;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Component
 public class HttpRestHelper {
     private static final String AUTHORIZATION = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
+    public static final String TOKEN_PREFIX = "Bearer ";
     
     private static final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
     private CloseableHttpClient httpClient;
@@ -88,27 +75,44 @@ public class HttpRestHelper {
 
     public <T> T post(String url, String jsonObject, Class<T> type, String token) {
         HttpPost httpPost = new HttpPost(url);
-        httpPost.addHeader("Content-Type", MediaType.APPLICATION_JSON);
+        addHeaders(httpPost, token);
+
         if (!StringUtils.isEmpty(jsonObject)) {
             httpPost.setEntity(new StringEntity(jsonObject, Charset.forName(UTF8)));
         }
-        if (!StringUtils.isEmpty(token)) {
-            httpPost.addHeader(AUTHORIZATION, TOKEN_PREFIX + token);
-        }
         
-        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+        return httpRequest(httpPost, type, CREATED);
+    }
+
+    public <T> T get(String url, Class<T> type, String token) {
+        HttpGet httpGet = new HttpGet(url);
+        addHeaders(httpGet, token);
+
+        return httpRequest(httpGet, type, OK);
+    }
+
+    private void addHeaders(HttpRequestBase httpRequest, String token) {
+        httpRequest.addHeader("Content-Type", MediaType.APPLICATION_JSON);
+        if (!StringUtils.isEmpty(token)) {
+            String authorization = token.startsWith(TOKEN_PREFIX) ? token : TOKEN_PREFIX + token;
+            httpRequest.addHeader(AUTHORIZATION, authorization);
+        }
+    }
+
+    private <T> T httpRequest(HttpRequestBase httpRequestBase, Class<T> type, Response.Status status) {
+        try (CloseableHttpResponse response = httpClient.execute(httpRequestBase)) {
             int statusCode = response.getStatusLine().getStatusCode();
             HttpEntity entity = response.getEntity();
 
-            if (statusCode != CREATED.getStatusCode()) {
+            if (statusCode != status.getStatusCode()) {
                 ErrorResponse errorResponse = gson.fromJson(EntityUtils.toString(entity), ErrorResponse.class);
                 throw new HiveException(errorResponse.getMessage(), errorResponse.getError());
             }
-            
+
             return gson.fromJson(EntityUtils.toString(entity), type);
         } catch (IOException e) {
-            throw new HiveException("Auth service is not responding", BAD_REQUEST.getStatusCode());
+            throw new ServiceUnavailableException("Service is not responding");
         }
     }
-    
+
 }

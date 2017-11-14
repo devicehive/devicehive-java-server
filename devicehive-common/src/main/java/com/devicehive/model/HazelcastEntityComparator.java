@@ -25,13 +25,13 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 
-public class HazelcastEntityComparator implements Comparator<Map.Entry>, Serializable {
+public class HazelcastEntityComparator implements Comparator<Map.Entry<String, HazelcastEntity>>, Serializable {
     private static final long serialVersionUID = 5413354955792888308L;
 
     @Override
-    public int compare(Map.Entry o1, Map.Entry o2) {
-        final Date o1Time = ((HazelcastEntity) o1.getValue()).getTimestamp();
-        final Date o2Time = ((HazelcastEntity) o2.getValue()).getTimestamp();
+    public int compare(Map.Entry<String, HazelcastEntity> o1, Map.Entry<String, HazelcastEntity> o2) {
+        final Date o1Time = o1.getValue().getTimestamp();
+        final Date o2Time = o2.getValue().getTimestamp();
 
         return o1Time.compareTo(o2Time);
     }

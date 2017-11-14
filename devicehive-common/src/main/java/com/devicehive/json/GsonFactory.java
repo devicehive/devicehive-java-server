@@ -96,6 +96,11 @@ public class GsonFactory {
                 .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.ordinal())
                 .registerSubtype(CommandsUpdateEvent.class, Action.COMMANDS_UPDATE_EVENT.ordinal())
 
+                .registerSubtype(PluginSubscribeRequest.class, Action.PLUGIN_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(PluginSubscribeResponse.class, Action.PLUGIN_SUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(PluginUnsubscribeRequest.class, Action.PLUGIN_UNSUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(PluginUnsubscribeResponse.class, Action.PLUGIN_UNSUBSCRIBE_RESPONSE.ordinal())
+
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.ordinal())
                 .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.ordinal())
 

@@ -21,6 +21,7 @@ package com.devicehive.exceptions;
  */
 
 public class InvalidPrincipalException extends RuntimeException {
+    private static final long serialVersionUID = -5500378251126985840L;
 
     public InvalidPrincipalException(String message) {
         super(message);

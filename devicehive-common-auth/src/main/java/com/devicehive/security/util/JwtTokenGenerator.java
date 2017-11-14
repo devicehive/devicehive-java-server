@@ -20,7 +20,7 @@ package com.devicehive.security.util;
  * #L%
  */
 
-import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.time.TimestampService;
 import io.jsonwebtoken.Claims;
@@ -57,24 +57,24 @@ public class JwtTokenGenerator {
 
     /**
      * Generates a JWT token containing all needed claims. These properties are taken from the specified
-     * JwtPayload object.
+     * JwtUserPayload object.
      *
      * @param payload the payload entity with which the token will be generated
      * @return the JWT token
      */
-    public String generateToken(JwtPayload payload, TokenType tokenType, boolean useExpiration) {
+    public String generateToken(JwtUserPayload payload, TokenType tokenType, boolean useExpiration) {
         long maxAge = tokenType.equals(TokenType.ACCESS) ? accessTokenMaxAge : refreshTokenMaxAge;
         Date expiration = useExpiration && payload.getExpiration() != null ? payload.getExpiration() :
                 timestampService.getDate(System.currentTimeMillis() + maxAge);
 
-        JwtPayload generatedPayload = JwtPayload.newBuilder()
+        JwtUserPayload generatedPayload = JwtUserPayload.newBuilder()
                 .withPayload(payload)
                 .withExpirationDate(expiration)
                 .withTokenType(tokenType.getId())
                 .buildPayload();
         
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put(JwtPayload.JWT_CLAIM_KEY, generatedPayload);
+        jwtMap.put(JwtUserPayload.JWT_CLAIM_KEY, generatedPayload);
 
         Claims claims = Jwts.claims(jwtMap);
         return Jwts.builder()

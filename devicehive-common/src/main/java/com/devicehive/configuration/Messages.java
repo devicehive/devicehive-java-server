@@ -45,7 +45,9 @@ public class Messages {
     public static final String NOTIFICATION_NOT_FOUND_LOG = BidBundle.get("NOTIFICATION_NOT_FOUND_LOG");
     public static final String GRANT_NOT_FOUND = BidBundle.get("GRANT_NOT_FOUND");
     public static final String USER_NOT_FOUND = BidBundle.get("USER_NOT_FOUND");
+    public static final String INVALID_TOPIC_NAME = BidBundle.get("INVALID_TOPIC_NAME");
     public static final String USER_LOGIN_NOT_FOUND = BidBundle.get("USER_LOGIN_NOT_FOUND");
+    public static final String USER_NOT_PLUGIN_CREATOR = BidBundle.get("USER_NOT_PLUGIN_CREATOR");
     public static final String USER_NOT_ACTIVE = BidBundle.get("USER_NOT_ACTIVE");
     public static final String BAD_AUTHENTICATION_RESPONSE = BidBundle.get("BAD_AUTHENTICATION_RESPONSE");
     public static final String DEVICES_NOT_FOUND = BidBundle.get("DEVICES_NOT_FOUND");
@@ -119,7 +121,11 @@ public class Messages {
     public static final String SUBSCRIPTION_NOT_FOUND = BidBundle.get("SUBSCRIPTION_NOT_FOUND");
     public static final String DEVICE_ID_CONTAINS_INVALID_CHARACTERS = BidBundle.get("DEVICE_ID_CONTAINS_INVALID_CHARACTERS");
     public static final String INVALID_TOKEN = BidBundle.get("INVALID_TOKEN");
+    public static final String INVALID_TOKEN_TYPE = BidBundle.get("INVALID_TOKEN_TYPE");
     public static final String EXPIRED_TOKEN = BidBundle.get("EXPIRED_TOKEN");
+    public static final String EMPTY_TOKEN = BidBundle.get("EMPTY_TOKEN");
+    public static final String PLUGIN_NOT_FOUND = BidBundle.get("PLUGIN_NOT_FOUND");
+    public static final String PLUGIN_NOT_ACTIVE = BidBundle.get("PLUGIN_NOT_ACTIVE");
 
     /**
      * Bundle to extract localized strings from property files.
