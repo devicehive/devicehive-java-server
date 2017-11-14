@@ -145,13 +145,13 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         if (!payload.getTokenType().equals(TokenType.REFRESH.getId())) {
             logger.warn("JwtToken: refresh token is not valid");
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    INVALID_TOKEN));
+            return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(),
+                    INVALID_TOKEN_TYPE));
         }
         if (payload.getExpiration().before(timestampService.getDate())) {
             logger.warn("JwtToken: refresh token has expired");
-            return ResponseFactory.response(BAD_REQUEST, new ErrorResponse(BAD_REQUEST.getStatusCode(),
-                    Messages.EXPIRED_TOKEN));
+            return ResponseFactory.response(UNAUTHORIZED, new ErrorResponse(UNAUTHORIZED.getStatusCode(),
+                    EXPIRED_TOKEN));
         }
 
         return payload.isUserPayload() ? getRefreshResponse((JwtUserPayload) payload) : 

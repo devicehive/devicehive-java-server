@@ -126,7 +126,7 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         JwtTokenVO tokenVO = new JwtTokenVO();
         tokenVO.setRefreshToken(accessToken);
 
-        JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), tokenVO, BAD_REQUEST, JwtTokenVO.class);
+        JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), tokenVO, UNAUTHORIZED, JwtTokenVO.class);
         Assert.assertNull(jwtToken.getAccessToken());
     }
 
@@ -147,7 +147,7 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         payload.setExpiration(new Date(System.currentTimeMillis() - 100));
         payload.setTokenType(TokenType.REFRESH);
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put(JwtUserPayload.JWT_CLAIM_KEY, payload);
+        jwtMap.put(JwtUserPayload.JWT_CLAIM_KEY, payload.convertTo());
         Claims claims = Jwts.claims(jwtMap);
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
