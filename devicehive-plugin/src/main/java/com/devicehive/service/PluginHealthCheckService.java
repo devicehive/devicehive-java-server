@@ -21,13 +21,12 @@ package com.devicehive.service;
  */
 
 
-import com.devicehive.dao.PluginDao;
 import com.devicehive.model.rpc.PluginUnsubscribeRequest;
-import com.devicehive.proxy.PluginProxyClient;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.vo.PluginVO;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
@@ -49,13 +48,13 @@ public class PluginHealthCheckService {
     private static final Logger logger = LoggerFactory.getLogger(PluginHealthCheckService.class);
 
     private final PluginService pluginService;
-    private final PluginProxyClient rpcClient;
+    private final RpcClient rpcClient;
     private final HttpRestHelper httpRestHelper;
 
     @Autowired
     public PluginHealthCheckService(
             PluginService pluginService,
-            PluginProxyClient rpcClient,
+            RpcClient rpcClient,
             HttpRestHelper httpRestHelper) {
         this.pluginService = pluginService;
         this.rpcClient = rpcClient;

@@ -24,13 +24,14 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
-import com.devicehive.proxy.PluginProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.UserVO;
@@ -66,7 +67,9 @@ public class PluginRegisterServiceTest {
     @Mock
     private PluginService pluginService;
     @Mock
-    private PluginProxyClient rpcClient;
+    private RpcClient rpcClient;
+    @Mock
+    private KafkaTopicService kafkaTopicService;
     @Mock
     private LongIdGenerator idGenerator;
     @Mock

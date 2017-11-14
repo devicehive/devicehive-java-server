@@ -25,7 +25,6 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
-import com.devicehive.proxy.PluginProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.service.helpers.HttpRestHelper;
@@ -33,6 +32,8 @@ import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.PluginVO;
@@ -61,7 +62,8 @@ public class PluginRegisterService {
     
     private final HiveValidator hiveValidator;
     private final PluginService pluginService;
-    private final PluginProxyClient rpcClient;
+    private final RpcClient rpcClient;
+    private final KafkaTopicService kafkaTopicService;
     private final LongIdGenerator idGenerator;
     private final BaseDeviceService deviceService;
     private final HttpRestHelper httpRestHelper;
@@ -72,7 +74,8 @@ public class PluginRegisterService {
     public PluginRegisterService(
             HiveValidator hiveValidator,
             PluginService pluginService,
-            PluginProxyClient rpcClient,
+            RpcClient rpcClient,
+            KafkaTopicService kafkaTopicService,
             LongIdGenerator idGenerator,
             BaseDeviceService deviceService,
             HttpRestHelper httpRestHelper,
@@ -81,6 +84,7 @@ public class PluginRegisterService {
         this.hiveValidator = hiveValidator;
         this.pluginService = pluginService;
         this.rpcClient = rpcClient;
+        this.kafkaTopicService = kafkaTopicService;
         this.idGenerator = idGenerator;
         this.deviceService = deviceService;
         this.httpRestHelper = httpRestHelper;
@@ -111,7 +115,7 @@ public class PluginRegisterService {
 
         //Creation of topic for plugin
         String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
-        rpcClient.createTopic(Arrays.asList(pluginTopic));
+        kafkaTopicService.createTopic(pluginTopic);
         pluginVO.setTopicName(pluginTopic);
 
         //Creation of subscription for plugin

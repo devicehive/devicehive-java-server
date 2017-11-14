@@ -33,6 +33,7 @@ import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+@Profile("ws-kafka-proxy")
 public class PluginProxyClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(PluginProxyClient.class);
 
