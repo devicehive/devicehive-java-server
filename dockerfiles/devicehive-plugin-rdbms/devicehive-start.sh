@@ -89,6 +89,6 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Dzookeeper.connect="${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181}" \
 -Dzookeeper.connectionTimeout="${DH_ZK_CONNECTIONTIMEOUT:-8000}" \
 -Dzookeeper.sessionTimeout="${DH_ZK_SESSIONTIMEOUT:-10000}" \
-"./devicehive-plugin-${DH_VERSION}-boot.jar" &
+"./devicehive-plugin-${DH_VERSION}-boot.jar" --spring.profiles.active=ws-kafka-proxy &
 PID=$!
 wait "$PID"
