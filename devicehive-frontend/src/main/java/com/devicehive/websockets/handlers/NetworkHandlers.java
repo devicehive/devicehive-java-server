@@ -52,7 +52,7 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Component
 public class NetworkHandlers {
-    private static final Logger logger = LoggerFactory.getLogger(DeviceHandlers.class);
+    private static final Logger logger = LoggerFactory.getLogger(NetworkHandlers.class);
 
     private final NetworkService networkService;
     private final WebSocketClientHandler webSocketClientHandler;

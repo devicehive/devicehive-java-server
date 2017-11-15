@@ -102,6 +102,8 @@ public class Messages {
     public static final String INVALID_NETWORK_KEY = BidBundle.get("INVALID_NETWORK_KEY");
     public static final String NO_ACCESS_TO_NETWORK = BidBundle.get("NO_ACCESS_TO_NETWORK");
     public static final String NETWORK_CREATION_NOT_ALLOWED = BidBundle.get("NETWORK_CREATION_NOT_ALLOWED");
+    public static final String DEVICE_TYPE_REQUIRED = BidBundle.get("DEVICE_TYPE_REQUIRED");
+    public static final String DEVICE_TYPE_ID_REQUIRED = BidBundle.get("DEVICE_TYPE_ID_REQUIRED");
     public static final String DUPLICATE_DEVICE_TYPE = BidBundle.get("DUPLICATE_DEVICE_TYPE");
     public static final String NO_ACCESS_TO_DEVICE_TYPE = BidBundle.get("NO_ACCESS_TO_DEVICE_TYPE");
     public static final String DEVICE_TYPE_CREATION_NOT_ALLOWED = BidBundle.get("DEVICE_TYPE_CREATION_NOT_ALLOWED");
