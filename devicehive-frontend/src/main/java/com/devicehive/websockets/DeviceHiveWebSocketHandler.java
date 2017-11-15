@@ -97,7 +97,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         try {
             request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             requestProcessor.process(request, session);
-        } catch (JsonSyntaxException ex) {
+        } catch (JsonSyntaxException | IllegalStateException ex) {
             String errorMessage = "Malformed Json received.";
             logger.error("Error executing the request: {}", errorMessage);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, errorMessage);
