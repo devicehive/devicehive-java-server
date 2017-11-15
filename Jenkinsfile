@@ -121,11 +121,13 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
         """
       }
     }
