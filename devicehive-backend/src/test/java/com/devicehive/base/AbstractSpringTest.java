@@ -64,7 +64,10 @@ public abstract class AbstractSpringTest {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+                    .map(mac -> Base64.getEncoder().withoutPadding().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            prefix = prefix.replace("+", "")
+                    .replace("/", "")
+                    .replace("=", "");
             RESPONSE_TOPIC = "response_topic_" + prefix;
         } catch (SocketException | UnknownHostException e) {
             RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
