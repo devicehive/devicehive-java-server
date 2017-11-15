@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  * Actions - if present, represents the set of actions that the principal has permission to execute
  * Subnets - if present, represents the set of ips that the principal has permission to access
  * Networks - if present, represents the set of networks that the principal has permission to access
+ * Device types - if present, represents the set of the device types that the principal has permission to access
  * Devices - if present, represents the set of the devices that the principal has permission to access
  */
 public class HivePrincipal implements Principal, Portable {
@@ -49,17 +50,30 @@ public class HivePrincipal implements Principal, Portable {
     private UserVO user;
     private Set<HiveAction> actions;
     private Set<Long> networkIds;
+    private Set<Long> deviceTypeIds;
     private Set<String> deviceIds;
     private Boolean allNetworksAvailable = false;
+    private Boolean allDeviceTypesAvailable = false;
     private Boolean allDevicesAvailable = false;
 
-    public HivePrincipal(UserVO user, Set<HiveAction> actions, Set<Long> networkIds, Set<String> deviceIds, Boolean allNetworksAvailable, Boolean allDevicesAvailable) {
+    public HivePrincipal(UserVO user,
+                         Set<HiveAction> actions,
+                         Set<Long> networkIds,
+                         Set<Long> deviceTypeIds,
+                         Set<String> deviceIds,
+                         Boolean allNetworksAvailable,
+                         Boolean allDeviceTypesAvailable,
+                         Boolean allDevicesAvailable) {
         this.user = user;
         this.actions = actions;
         this.networkIds = networkIds;
+        this.deviceTypeIds = deviceTypeIds;
         this.deviceIds = deviceIds;
         if (allNetworksAvailable != null) {
             this.allNetworksAvailable = allNetworksAvailable;
+        }
+        if (allDeviceTypesAvailable != null) {
+            this.allDeviceTypesAvailable = allDeviceTypesAvailable;
         }
         if (allDevicesAvailable != null) {
             this.allDevicesAvailable = allDevicesAvailable;
@@ -102,12 +116,28 @@ public class HivePrincipal implements Principal, Portable {
         this.networkIds = networkIds;
     }
 
+    public Set<Long> getDeviceTypeIds() {
+        return deviceTypeIds;
+    }
+
+    public void setDeviceTypeIds(Set<Long> deviceTypeIds) {
+        this.deviceTypeIds = deviceTypeIds;
+    }
+
     public Boolean areAllNetworksAvailable() {
         return allNetworksAvailable;
     }
 
     public void setAllNetworksAvailable(Boolean allNetworksAvailable) {
         this.allNetworksAvailable = allNetworksAvailable;
+    }
+
+    public Boolean areAllDeviceTypesAvailable() {
+        return allDeviceTypesAvailable;
+    }
+
+    public void setAllDeviceTypesAvailable(Boolean allDeviceTypesAvailable) {
+        this.allDeviceTypesAvailable = allDeviceTypesAvailable;
     }
 
     public Set<String> getDeviceIds() {
@@ -152,6 +182,9 @@ public class HivePrincipal implements Principal, Portable {
         if (networkIds != null) {
             return networkIds.toString();
         }
+        if (deviceTypeIds != null) {
+            return deviceTypeIds.toString();
+        }
         if (deviceIds != null) {
             return deviceIds.toString();
         }
@@ -160,7 +193,7 @@ public class HivePrincipal implements Principal, Portable {
     }
 
     public boolean isAuthenticated() {
-        if (user != null || actions != null || networkIds != null || deviceIds != null) {
+        if (user != null || actions != null || networkIds != null || deviceTypeIds != null || deviceIds != null) {
             return true;
         }
         throw new InvalidPrincipalException("Unauthorized");
@@ -187,15 +220,19 @@ public class HivePrincipal implements Principal, Portable {
     public void writePortable(PortableWriter writer) throws IOException {
         // write only required fields for com.devicehive.model.eventbus.Filter
         writer.writeBoolean("allNetworksAvailable", allNetworksAvailable);
+        writer.writeBoolean("allDeviceTypesAvailable", allDeviceTypesAvailable);
         writer.writeBoolean("allDevicesAvailable", allDevicesAvailable);
         writer.writeLongArray("networkIds", networkIds != null ? networkIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
+        writer.writeLongArray("deviceTypeIds", deviceTypeIds != null ? deviceTypeIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
     }
 
     @Override
     public void readPortable(PortableReader reader) throws IOException {
         // read only required fields for com.devicehive.model.eventbus.Filter
         allNetworksAvailable = reader.readBoolean("allNetworksAvailable");
+        allNetworksAvailable = reader.readBoolean("allDeviceTypesAvailable");
         allDevicesAvailable = reader.readBoolean("allDevicesAvailable");
         networkIds = Arrays.stream(reader.readLongArray("networkIds")).boxed().collect(Collectors.toSet());
+        deviceTypeIds = Arrays.stream(reader.readLongArray("deviceTypeIds")).boxed().collect(Collectors.toSet());
     }
 }

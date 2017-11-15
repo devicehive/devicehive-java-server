@@ -44,6 +44,7 @@ public class JwtPayloadView implements HiveEntity {
     private final static String USER_ID = "userId";
     private final static String ACTIONS = "actions";
     private final static String NETWORK_IDS = "networkIds";
+    private final static String DEVICE_TYPE_IDS = "deviceTypeIds";
     private final static String DEVICE_IDS = "deviceIds";
     private final static String EXPIRATION = "expiration";
     private final static String TOKEN_TYPE = "tokenType";
@@ -61,6 +62,10 @@ public class JwtPayloadView implements HiveEntity {
     @SerializedName(NETWORK_IDS)
     private Set<String> networkIds;
 
+    @JsonProperty(DEVICE_TYPE_IDS)
+    @SerializedName(DEVICE_TYPE_IDS)
+    private Set<String> deviceTypeIds;
+
     @JsonProperty(DEVICE_IDS)
     @SerializedName(DEVICE_IDS)
     private Set<String> deviceIds;
@@ -73,11 +78,12 @@ public class JwtPayloadView implements HiveEntity {
     @SerializedName(TOKEN_TYPE)
     private TokenType tokenType;
 
-    public JwtPayloadView(Long userId, Set<String> actions, Set<String> networkIds,
+    public JwtPayloadView(Long userId, Set<String> actions, Set<String> networkIds, Set<String> deviceTypeIds,
             Set<String> deviceIds, Date expiration, TokenType tokenType) {
         this.userId = userId;
         this.actions = actions;
         this.networkIds = networkIds;
+        this.deviceTypeIds = deviceTypeIds;
         this.deviceIds = deviceIds;
         this.expiration = expiration;
         this.tokenType = tokenType;
@@ -105,6 +111,14 @@ public class JwtPayloadView implements HiveEntity {
 
     public void setNetworkIds(Set<String> networkIds) {
         this.networkIds = networkIds;
+    }
+
+    public Set<String> getDeviceTypeIds() {
+        return deviceTypeIds;
+    }
+
+    public void setDeviceTypeIds(Set<String> deviceTypeIds) {
+        this.deviceTypeIds = deviceTypeIds;
     }
 
     public Set<String> getDeviceIds() {
@@ -142,7 +156,7 @@ public class JwtPayloadView implements HiveEntity {
                         .collect(Collectors.toSet()))
                 .orElse(ImmutableSet.of(NONE.getId()));
         
-        return new JwtPayload(userId, actionIds, networkIds, deviceIds, expiration, null);
+        return new JwtPayload(userId, actionIds, networkIds, deviceTypeIds, deviceIds, expiration, null);
     }
 
     public static Builder newBuilder() {
@@ -153,15 +167,17 @@ public class JwtPayloadView implements HiveEntity {
         private Long userId;
         private Set<String> actions;
         private Set<String> networkIds;
+        private Set<String> deviceTypeIds;
         private Set<String> deviceIds;
         private Date expiration;
         private TokenType tokenType;
 
         public Builder withPublicClaims(Long userId, Set<String> actions,
-                Set<String> networkIds, Set<String> deviceIds) {
+                Set<String> networkIds, Set<String> deviceTypeIds, Set<String> deviceIds) {
             this.userId = userId;
             this.actions = actions;
             this.networkIds = networkIds;
+            this.deviceTypeIds = deviceTypeIds;
             this.deviceIds = deviceIds;
             return this;
         }
@@ -170,6 +186,7 @@ public class JwtPayloadView implements HiveEntity {
             this.userId = payload.getUserId();
             this.actions = payload.getActions();
             this.networkIds = payload.getNetworkIds();
+            this.deviceTypeIds = payload.getDeviceTypeIds();
             this.deviceIds = payload.getDeviceIds();
             this.expiration = payload.getExpiration();
             return this;
@@ -190,6 +207,11 @@ public class JwtPayloadView implements HiveEntity {
             return this;
         }
 
+        public Builder withDeviceTypeIds(Set<String> deviceTypeIds) {
+            this.deviceTypeIds = deviceTypeIds;
+            return this;
+        }
+
         public Builder withDeviceIds(Set<String> deviceIds) {
             this.deviceIds = deviceIds;
             return this;
@@ -206,7 +228,7 @@ public class JwtPayloadView implements HiveEntity {
         }
 
         public JwtPayloadView buildPayload() {
-            return new JwtPayloadView(userId, actions, networkIds, deviceIds, expiration, tokenType);
+            return new JwtPayloadView(userId, actions, networkIds, deviceTypeIds, deviceIds, expiration, tokenType);
         }
     }
 }

@@ -45,6 +45,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
         @NamedQuery(name = "User.hasAccessToNetwork", query = "select count(distinct u) from User u join u.networks n where u.id = :user and n = :network"),
         @NamedQuery(name = "User.hasAccessToDevice", query = "select count(distinct n) from Network n join n.devices d join n.users u where u.id = :user and d.deviceId = :deviceId"),
         @NamedQuery(name = "User.getWithNetworksById", query = "select u from User u left join fetch u.networks where u.id = :id"),
+        @NamedQuery(name = "User.getWithDeviceTypesById", query = "select u from User u left join fetch u.deviceTypes where u.id = :id"),
         @NamedQuery(name = "User.deleteById", query = "delete from User u where u.id = :id")
 })
 @Cacheable

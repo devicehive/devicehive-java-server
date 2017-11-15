@@ -79,8 +79,7 @@ public class DeviceTypeResourceImpl implements DeviceTypeResource {
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty())) {
-        // todo: if (!principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
+        if (!principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
             logger.warn("Unable to get list for empty device types");
             final Response response = ResponseFactory.response(OK, Collections.<DeviceTypeVO>emptyList(), DEVICE_TYPES_LISTED);
             asyncResponse.resume(response);

@@ -22,6 +22,7 @@ package com.devicehive.dao;
 
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithDeviceTypeVO;
 import com.devicehive.vo.UserWithNetworkVO;
 
 import javax.validation.constraints.NotNull;
@@ -36,6 +37,8 @@ public interface UserDao {
     long hasAccessToDevice(UserVO user, String deviceId);
 
     UserWithNetworkVO getWithNetworksById(long id);
+
+    UserWithDeviceTypeVO getWithDeviceTypeById(long id);
 
     int deleteById(long id);
 

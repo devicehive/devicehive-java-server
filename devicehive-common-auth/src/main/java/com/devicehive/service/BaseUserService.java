@@ -31,6 +31,7 @@ import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithDeviceTypeVO;
 import com.devicehive.vo.UserWithNetworkVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,7 +99,7 @@ public class BaseUserService {
     }
 
     /**
-     * Retrieves user with networks by id, if there is no networks user hass
+     * Retrieves user with networks by id, if there is no networks user has
      * access to networks will be represented by empty set
      *
      * @param id user id
@@ -107,7 +108,18 @@ public class BaseUserService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public UserWithNetworkVO findUserWithNetworks(@NotNull long id) {
         return userDao.getWithNetworksById(id);
+    }
 
+    /**
+     * Retrieves user with device types by id, if there is no device types user has
+     * access to device types will be represented by empty set
+     *
+     * @param id user id
+     * @return User model with device types, or null, if there is no such user
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public UserWithDeviceTypeVO findUserWithDeviceType(@NotNull long id) {
+        return userDao.getWithDeviceTypeById(id);
     }
 
     @Transactional

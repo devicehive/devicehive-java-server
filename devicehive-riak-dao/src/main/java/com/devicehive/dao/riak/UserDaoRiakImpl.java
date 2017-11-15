@@ -33,10 +33,7 @@ import com.devicehive.dao.riak.model.RiakUser;
 import com.devicehive.exceptions.HivePersistenceLayerException;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -131,6 +128,12 @@ public class UserDaoRiakImpl extends RiakGenericDao implements UserDao {
             userWithNetworkVO.setNetworks(networks);
         }
         return userWithNetworkVO;
+    }
+
+    @Override
+    public UserWithDeviceTypeVO getWithDeviceTypeById(long id) {
+        // todo: remove riak support completely
+        return null;
     }
 
     @Override

@@ -78,8 +78,7 @@ public class DeviceTypeService {
     public DeviceTypeWithUsersAndDevicesVO getWithDevices(@NotNull Long deviceTypeId, @NotNull HiveAuthentication hiveAuthentication) {
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
-//        todo: Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
-        Set<Long> permittedDeviceTypes = Collections.singleton(deviceTypeId);
+        Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
         Set<String> permittedDevices = principal.getDeviceIds();
 
         Optional<DeviceTypeWithUsersAndDevicesVO> result = of(principal)

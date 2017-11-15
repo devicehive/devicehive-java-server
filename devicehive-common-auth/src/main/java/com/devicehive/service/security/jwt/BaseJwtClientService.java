@@ -60,6 +60,7 @@ public class BaseJwtClientService {
 
         Optional userId = Optional.ofNullable(payloadMap.get(JwtPayload.USER_ID));
         Optional networkIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.NETWORK_IDS));
+        Optional deviceTypeIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_TYPE_IDS));
         Optional actions = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.ACTIONS));
         Optional deviceIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_IDS));
         Optional expiration = Optional.ofNullable(payloadMap.get(JwtPayload.EXPIRATION));
@@ -68,6 +69,7 @@ public class BaseJwtClientService {
         JwtPayload.Builder builder = new JwtPayload.Builder();
         if (userId.isPresent()) builder.withUserId(Long.valueOf(userId.get().toString()));
         if (networkIds.isPresent()) builder.withNetworkIds(new HashSet<>((ArrayList) networkIds.get()));
+        if (deviceTypeIds.isPresent()) builder.withDeviceTypeIds(new HashSet<>((ArrayList) deviceTypeIds.get()));
         if (actions.isPresent()) builder.withActions(new HashSet<>((ArrayList) actions.get()));
         if (deviceIds.isPresent()) builder.withDeviceIds(new HashSet<>((ArrayList) deviceIds.get()));
         if (!tokenType.isPresent() && !expiration.isPresent()) {

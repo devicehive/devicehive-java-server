@@ -24,9 +24,7 @@ import com.devicehive.dao.UserDao;
 import com.devicehive.model.DeviceType;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -91,6 +89,27 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
             }
         }
         return userWithNetworkVO;
+    }
+
+    @Override
+    public UserWithDeviceTypeVO getWithDeviceTypeById(long id) {
+        User user = createNamedQuery(User.class, "User.getWithDeviceTypesById", of(CacheConfig.get()))
+                .setParameter("id", id)
+                .getResultList()
+                .stream().findFirst().orElse(null);
+        if (user == null) {
+            return null;
+        }
+        UserVO vo = User.convertToVo(user);
+        UserWithDeviceTypeVO userWithDeviceTypeVO = UserWithDeviceTypeVO.fromUserVO(vo);
+        //TODO [rafa] change here to bulk fetch data
+        if (user.getDeviceTypes() != null) {
+            for (DeviceType deviceType : user.getDeviceTypes()) {
+                DeviceTypeVO deviceTypeVO = DeviceType.convertDeviceType(deviceType);
+                userWithDeviceTypeVO.getDeviceTypes().add(deviceTypeVO);
+            }
+        }
+        return userWithDeviceTypeVO;
     }
 
     @Override
