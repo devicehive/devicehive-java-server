@@ -26,15 +26,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.BaseUserService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -49,18 +48,8 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.devicehive.configuration.Constants.CURRENT_USER;
-import static com.devicehive.configuration.Constants.ID;
-import static com.devicehive.configuration.Constants.LOGIN;
-import static com.devicehive.configuration.Constants.NETWORK;
-import static com.devicehive.configuration.Constants.NETWORK_ID;
-import static com.devicehive.configuration.Constants.USER;
-import static com.devicehive.configuration.Constants.USERS;
-import static com.devicehive.configuration.Constants.USER_ID;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.rpc.ListUserRequest.createListUserRequest;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
@@ -315,6 +304,78 @@ public class UserHandlers {
         }
 
         userService.unassignNetwork(userId, networkId);
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_TYPE')")
+    public void processUserGetDeviceType(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        Long deviceTypeId = gson.fromJson(request.get(DEVICE_TYPE_ID), Long.class);
+        if (deviceTypeId == null) {
+            logger.error(Messages.DEVICE_TYPE_ID_REQUIRED);
+            throw new HiveException(Messages.DEVICE_TYPE_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        UserWithDeviceTypeVO existingUser = userService.findUserWithDeviceType(userId);
+        if (existingUser == null) {
+            logger.error("Can't get device type with id {}: user {} not found", deviceTypeId, userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+
+        for (DeviceTypeVO deviceType : existingUser.getDeviceTypes()) {
+            if (deviceTypeId.equals(deviceType.getId())) {
+                WebSocketResponse response = new WebSocketResponse();
+                response.addValue(DEVICE_TYPE, UserDeviceTypeResponse.fromDeviceType(deviceType), DEVICE_TYPES_LISTED);
+                clientHandler.sendMessage(request, response, session);
+                return;
+            }
+        }
+
+        clientHandler.sendErrorResponse(request, NOT_FOUND.getStatusCode(),
+                String.format(Messages.USER_DEVICE_TYPE_NOT_FOUND, deviceTypeId, userId), session);
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    public void processUserAssignDeviceType(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        Long deviceTypeId = gson.fromJson(request.get(DEVICE_TYPE_ID), Long.class);
+        if (deviceTypeId == null) {
+            logger.error(Messages.DEVICE_TYPE_ID_REQUIRED);
+            throw new HiveException(Messages.DEVICE_TYPE_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        userService.assignDeviceType(userId, deviceTypeId);
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    public void processUserUnassignDeviceType(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        Long deviceTypeId = gson.fromJson(request.get(DEVICE_TYPE_ID), Long.class);
+        if (deviceTypeId == null) {
+            logger.error(Messages.DEVICE_TYPE_ID_REQUIRED);
+            throw new HiveException(Messages.DEVICE_TYPE_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        userService.unassignDeviceType(userId, deviceTypeId);
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 

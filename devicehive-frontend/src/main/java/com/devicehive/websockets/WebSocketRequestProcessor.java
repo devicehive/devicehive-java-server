@@ -223,6 +223,15 @@ public class WebSocketRequestProcessor {
             case USER_UNASSIGN_NETWORK:
                 userHandlers.processUserUnassignNetwork(request, session);
                 break;
+            case USER_GET_DEVICE_TYPE:
+                userHandlers.processUserGetDeviceType(request, session);
+                break;
+            case USER_ASSIGN_DEVICE_TYPE:
+                userHandlers.processUserAssignDeviceType(request, session);
+                break;
+            case USER_UNASSIGN_DEVICE_TYPE:
+                userHandlers.processUserUnassignDeviceType(request, session);
+                break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
         }
@@ -283,6 +292,9 @@ public class WebSocketRequestProcessor {
         USER_GET_NETWORK("user/getNetwork"),
         USER_ASSIGN_NETWORK("user/assignNetwork"),
         USER_UNASSIGN_NETWORK("user/unassignNetwork"),
+        USER_GET_DEVICE_TYPE("user/getDeviceType"),
+        USER_ASSIGN_DEVICE_TYPE("user/assignDeviceType"),
+        USER_UNASSIGN_DEVICE_TYPE("user/unassignDeviceType"),
         EMPTY("");
 
         private String value;
