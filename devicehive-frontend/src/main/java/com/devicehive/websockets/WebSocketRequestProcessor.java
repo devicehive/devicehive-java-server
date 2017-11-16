@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.DEVICE_TYPE_ID;
 import static com.devicehive.configuration.Constants.NETWORK_ID;
 
 @Component
@@ -81,6 +82,7 @@ public class WebSocketRequestProcessor {
         WebsocketAction action = getAction(request);
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         final Long networkId = gson.fromJson(request.get(NETWORK_ID), Long.class);
+        final Long deviceTypeId = gson.fromJson(request.get(DEVICE_TYPE_ID), Long.class);
         
         switch (action) {
             case SERVER_INFO:
@@ -180,16 +182,16 @@ public class WebSocketRequestProcessor {
                 deviceTypeHandlers.processDeviceTypeList(request, session);
                 break;
             case DEVICE_TYPE_GET:
-                deviceTypeHandlers.processDeviceTypeGet(networkId, request, session);
+                deviceTypeHandlers.processDeviceTypeGet(deviceTypeId, request, session);
                 break;
             case DEVICE_TYPE_INSERT:
                 deviceTypeHandlers.processDeviceTypeInsert(request, session);
                 break;
             case DEVICE_TYPE_UPDATE:
-                deviceTypeHandlers.processDeviceTypeUpdate(networkId, request, session);
+                deviceTypeHandlers.processDeviceTypeUpdate(deviceTypeId, request, session);
                 break;
             case DEVICE_TYPE_DELETE:
-                deviceTypeHandlers.processDeviceTypeDelete(networkId, request, session);
+                deviceTypeHandlers.processDeviceTypeDelete(deviceTypeId, request, session);
                 break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);

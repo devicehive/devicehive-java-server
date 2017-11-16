@@ -97,6 +97,8 @@ public class Constants {
     public static final String NETWORK_NAME = "networkName";
     public static final String DEVICE_TYPE = "deviceType";
     public static final String DEVICE_TYPES = "deviceTypes";
+    public static final String DEVICE_TYPE_ID = "deviceTypeId";
+    public static final String DEVICE_TYPE_IDS = "deviceTypeIds";
     public static final String SORT_FIELD = "sortField";
     public static final String SORT_ORDER = "sortOrder";
     public static final String TAKE = "take";
