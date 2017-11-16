@@ -24,15 +24,14 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,6 +218,46 @@ public class UserResourceImpl implements UserResource {
     @Override
     public Response unassignNetwork(long id, long networkId) {
         userService.unassignNetwork(id, networkId);
+        return ResponseFactory.response(NO_CONTENT);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Response getDeviceType(long id, long deviceTypeId) {
+        UserWithDeviceTypeVO existingUser = userService.findUserWithDeviceType(id);
+        if (existingUser == null) {
+            logger.error("Can't get device type with id {}: user {} not found", deviceTypeId, id);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.USER_NOT_FOUND, id));
+            return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
+        }
+        for (DeviceTypeVO deviceType : existingUser.getDeviceTypes()) {
+            if (deviceType.getId() == deviceTypeId) {
+                return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceType), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
+            }
+        }
+        ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                String.format(Messages.USER_NETWORK_NOT_FOUND, deviceTypeId, id));
+        return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Response assignDeviceType(long id, long deviceTypeId) {
+        userService.assignDeviceType(id, deviceTypeId);
+        return ResponseFactory.response(NO_CONTENT);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Response unassignDeviceType(long id, long deviceTypeId) {
+        userService.unassignDeviceType(id, deviceTypeId);
         return ResponseFactory.response(NO_CONTENT);
     }
 
