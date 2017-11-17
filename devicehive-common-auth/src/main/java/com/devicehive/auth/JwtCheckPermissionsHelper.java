@@ -43,7 +43,8 @@ public class JwtCheckPermissionsHelper {
 
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
         return checkActionAllowed(action, permittedActions)
-                && checkNetworksAllowed(hivePrincipal, targetDomainObject)
+                && checkNetworksAllowed(hivePrincipal, action, targetDomainObject)
+                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject)
                 && checkDeviceIdsAllowed(hivePrincipal, targetDomainObject);
     }
 
@@ -53,10 +54,18 @@ public class JwtCheckPermissionsHelper {
         return result;
     }
 
-    private boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
+    private boolean checkNetworksAllowed(HivePrincipal principal, HiveAction action, Object targetDomainObject) {
         if (principal.areAllNetworksAvailable()) return true;
-        else if (targetDomainObject instanceof Long) {
+        else if (targetDomainObject instanceof Long && action.getValue().contains("Network")) {
             return principal.getNetworkIds() != null && principal.getNetworkIds().contains(targetDomainObject);
+        }
+        return true;
+    }
+
+    private boolean checkDeviceTypesAllowed(HivePrincipal principal, HiveAction action, Object targetDomainObject) {
+        if (principal.areAllDeviceTypesAvailable()) return true;
+        else if (targetDomainObject instanceof Long && action.getValue().contains("DeviceType")) {
+            return principal.getDeviceTypeIds() != null && principal.getDeviceTypeIds().contains(targetDomainObject);
         }
         return true;
     }
@@ -66,12 +75,16 @@ public class JwtCheckPermissionsHelper {
         if (targetDomainObject instanceof String) {
 
             Set<Long> networks = principal.getNetworkIds();
+            Set<Long> deviceTypes = principal.getDeviceTypeIds();
             Set<String> devices = principal.getDeviceIds();
 
             if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
             } else if (networks != null && principal.areAllDevicesAvailable()) {
                 return networks.stream().flatMap(n -> deviceService.list(n).stream())
+                        .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
+            } else if (deviceTypes != null && principal.areAllDevicesAvailable()) {
+                return deviceTypes.stream().flatMap(n -> deviceService.list(n).stream())
                         .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
             } else if (devices != null && principal.areAllNetworksAvailable()) {
                 return devices.contains(targetDomainObject);
