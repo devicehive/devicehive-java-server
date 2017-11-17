@@ -24,6 +24,7 @@ package com.devicehive.service.helpers;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -105,13 +106,20 @@ public class HttpRestHelper {
             HttpEntity entity = response.getEntity();
 
             if (statusCode != status.getStatusCode()) {
-                ErrorResponse errorResponse = gson.fromJson(EntityUtils.toString(entity), ErrorResponse.class);
+                ErrorResponse errorResponse = null;
+                try {
+                    errorResponse = gson.fromJson(EntityUtils.toString(entity), ErrorResponse.class);
+                } catch (Exception e) {
+                    throw new HiveException("Invalid response status");
+                }
                 throw new HiveException(errorResponse.getMessage(), errorResponse.getError());
             }
-
+            
             return gson.fromJson(EntityUtils.toString(entity), type);
+        } catch (JsonSyntaxException e) {
+            throw new ServiceUnavailableException("Service response type is wrong");
         } catch (IOException e) {
-            throw new ServiceUnavailableException("Service is not responding");
+            throw new ServiceUnavailableException("Service is not available");
         }
     }
 

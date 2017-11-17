@@ -109,7 +109,7 @@ public class PluginRegisterServiceTest {
         }).when(rpcClient).call(any(), any());
         
         //when
-        JsonObject actual = pluginRegisterService.register(pollRequest, pluginUpdate, AUTHORIZATION).join();
+        JsonObject actual = (JsonObject) pluginRegisterService.register(pollRequest, pluginUpdate, AUTHORIZATION).join().getEntity();
         
         //then
         assertEquals(actual.get(ACCESS_TOKEN).getAsString(), ACCESS_TOKEN);

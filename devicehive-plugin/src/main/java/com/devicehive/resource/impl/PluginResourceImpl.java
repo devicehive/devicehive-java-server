@@ -22,6 +22,7 @@ package com.devicehive.resource.impl;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
@@ -34,10 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 
+import static com.devicehive.configuration.Messages.HEALTH_CHECK_FAILED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CREATED;
 
 @Service
@@ -59,9 +63,15 @@ public class PluginResourceImpl implements PluginResource {
             @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(pluginUpdate);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        pluginRegisterService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate, authorization)
-                .thenAccept(pluginVO ->
-                    asyncResponse.resume(ResponseFactory.response(CREATED, pluginVO, PLUGIN_SUBMITTED))
-                );
+        try {
+            pluginRegisterService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate, authorization)
+                    .thenAccept(response ->
+                            asyncResponse.resume(response)
+                    );
+        } catch (ServiceUnavailableException e) {
+            logger.warn(HEALTH_CHECK_FAILED);
+            asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(), HEALTH_CHECK_FAILED)));
+        }
     }
 }
