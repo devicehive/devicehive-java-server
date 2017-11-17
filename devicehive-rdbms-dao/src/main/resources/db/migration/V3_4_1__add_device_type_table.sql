@@ -48,6 +48,6 @@ CREATE INDEX device_device_type_id_idx ON device(device_type_id);
 -- Default device type
 INSERT INTO device_type (name, description)
   VALUES
-  ('VirtualLed Sample Device Type', 'A DeviceHive device type for VirtualLed sample');
+  ('Default Device Type', 'Default DeviceHive device type');
 INSERT INTO user_device_type (user_id, device_type_id) VALUES (1, 1);
 UPDATE device SET device_type_id = 1 WHERE device_id = 'e50d6085-2aba-48e9-b1c3-73c673e414be';

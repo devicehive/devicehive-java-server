@@ -39,7 +39,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @NamedQueries({
         @NamedQuery(name = "DeviceType.findByName", query = "select t from DeviceType t where t.name = :name"),
         @NamedQuery(name = "DeviceType.findWithUsers", query = "select t from DeviceType t left join fetch t.users where t.id = :id"),
-        @NamedQuery(name = "DeviceType.findByUserOrderedById", query = "select t from DeviceType t left join t.users u where u.id = :id order by t.id"),
+        @NamedQuery(name = "DeviceType.findOrderedByIdWithPermission", query = "select t from DeviceType t " +
+                "where (t.id in :permittedDeviceTypes or :permittedDeviceTypes is null) order by t.id"),
         @NamedQuery(name = "DeviceType.deleteById", query = "delete from DeviceType t where t.id = :id"),
         @NamedQuery(name = "DeviceType.getWithDevices", query = "select t from DeviceType t left join fetch t.devices where t.id = :id"),
         @NamedQuery(name = "DeviceType.getDeviceTypesByIdsAndUsers", query = "select t from DeviceType t left outer join t.users u left join fetch t.devices d " +

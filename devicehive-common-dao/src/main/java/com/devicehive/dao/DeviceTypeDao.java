@@ -52,5 +52,5 @@ public interface DeviceTypeDao {
 
     Optional<DeviceTypeWithUsersAndDevicesVO> findWithUsers(@NotNull long deviceTypeId);
 
-    Optional<DeviceTypeVO> findDefaultByUser(long userId);
+    Optional<DeviceTypeVO> findDefault(Set<Long> deviceTypeIds);
 }

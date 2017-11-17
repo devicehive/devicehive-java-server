@@ -49,6 +49,10 @@ public class DeviceUpdate implements HiveEntity {
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
     private Long networkId;
 
+    @SerializedName("deviceTypeId")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    private Long deviceTypeId;
+
     @JsonPolicyDef({DEVICE_SUBMITTED, DEVICE_PUBLISHED})
     @SerializedName("isBlocked")
     private Boolean blocked;
@@ -77,6 +81,14 @@ public class DeviceUpdate implements HiveEntity {
         this.networkId = networkId;
     }
 
+    public Optional<Long> getDeviceTypeId() {
+        return Optional.ofNullable(deviceTypeId);
+    }
+
+    public void setDeviceTypeId(Long deviceTypeId) {
+        this.deviceTypeId = deviceTypeId;
+    }
+
     public Optional<Boolean> getBlocked() {
         return Optional.ofNullable(blocked);
     }
@@ -98,6 +110,9 @@ public class DeviceUpdate implements HiveEntity {
         }
         if (this.networkId != null){
             device.setNetworkId(this.networkId);
+        }
+        if (this.deviceTypeId != null){
+            device.setDeviceTypeId(this.deviceTypeId);
         }
         if (this.blocked != null){
             device.setBlocked(this.blocked);

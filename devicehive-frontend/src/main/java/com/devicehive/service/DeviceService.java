@@ -63,6 +63,7 @@ public class DeviceService extends BaseDeviceService {
 
     private final DeviceNotificationService deviceNotificationService;
     private final NetworkService networkService;
+    private final DeviceTypeService deviceTypeService;
     private final UserService userService;
     private final TimestampService timestampService;
     private final RpcClient rpcClient;
@@ -70,6 +71,7 @@ public class DeviceService extends BaseDeviceService {
     @Autowired
     public DeviceService(DeviceNotificationService deviceNotificationService,
                          NetworkService networkService,
+                         DeviceTypeService deviceTypeService,
                          UserService userService,
                          TimestampService timestampService,
                          DeviceDao deviceDao,
@@ -77,6 +79,7 @@ public class DeviceService extends BaseDeviceService {
         super(deviceDao);
         this.deviceNotificationService = deviceNotificationService;
         this.networkService = networkService;
+        this.deviceTypeService = deviceTypeService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.rpcClient = rpcClient;
@@ -92,7 +95,7 @@ public class DeviceService extends BaseDeviceService {
         }
         DeviceVO oldDevice = deviceDao.findById(deviceId);
 
-        DeviceNotification dn = deviceSaveByUser(deviceId, device, principal.getUser());
+        DeviceNotification dn = deviceSaveByUser(deviceId, device, principal);
         dn.setTimestamp(timestampService.getDate());
         deviceNotificationService.insert(dn, device.convertTo(deviceId));
 
@@ -203,7 +206,8 @@ public class DeviceService extends BaseDeviceService {
         
     }
 
-    private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, UserVO user) {
+    private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, HivePrincipal principal) {
+        UserVO user = principal.getUser();
         logger.debug("Device save executed for device: id {}, user: {}", deviceId, user.getId());
         //todo: rework when migration to VO will be done
         Long networkId = deviceUpdate.getNetworkId()
@@ -216,11 +220,20 @@ public class DeviceService extends BaseDeviceService {
                     return id;
                 })
                 .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
+        Long deviceTypeId = deviceUpdate.getDeviceTypeId()
+                .orElseGet(() -> {
+                    if (principal.areAllDeviceTypesAvailable() || (principal.getDeviceTypeIds() != null && !principal.getDeviceTypeIds().isEmpty())) {
+                        return deviceTypeService.findDefaultDeviceType(principal.getDeviceTypeIds());
+                    } else {
+                        throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_DEVICE_TYPE);
+                    }
+                });
         // TODO [requies a lot of details]!
         DeviceVO existingDevice = deviceDao.findById(deviceId);
         if (existingDevice == null) {
             DeviceVO device = deviceUpdate.convertTo(deviceId);
             device.setNetworkId(networkId);
+            device.setDeviceTypeId(deviceTypeId);
             if (device.getBlocked() == null) {
                 device.setBlocked(false);
             }
@@ -236,6 +249,9 @@ public class DeviceService extends BaseDeviceService {
 
             if (deviceUpdate.getNetworkId().isPresent()){
                 existingDevice.setNetworkId(networkId);
+            }
+            if (deviceUpdate.getDeviceTypeId().isPresent()){
+                existingDevice.setDeviceTypeId(deviceTypeId);
             }
             if (deviceUpdate.getName().isPresent()){
                 existingDevice.setName(deviceUpdate.getName().get());

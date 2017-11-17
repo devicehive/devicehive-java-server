@@ -145,9 +145,9 @@ public class DeviceTypeDaoRdbmsImpl extends RdbmsGenericDao implements DeviceTyp
     }
 
     @Override
-    public Optional<DeviceTypeVO> findDefaultByUser(long userId) {
-        return createNamedQuery(DeviceType.class, "DeviceType.findByUserOrderedById", Optional.of(CacheConfig.refresh()))
-                .setParameter("id", userId)
+    public Optional<DeviceTypeVO> findDefault(Set<Long> deviceTypeIds) {
+        return createNamedQuery(DeviceType.class, "DeviceType.findOrderedByIdWithPermission", Optional.of(CacheConfig.refresh()))
+                .setParameter("permittedDeviceTypes", deviceTypeIds)
                 .getResultList().stream()
                 .findFirst()
                 .map(DeviceType::convertDeviceType);

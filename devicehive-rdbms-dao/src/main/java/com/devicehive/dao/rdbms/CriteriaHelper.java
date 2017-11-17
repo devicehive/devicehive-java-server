@@ -91,12 +91,11 @@ public class CriteriaHelper {
             }
         });
 
-        //FIXME - uncomment when we are ready to add Device Type to principal
-//        principalOpt.flatMap(principal -> {
-//            Set<Long> networks = principal.getNetworkIds();
-//
-//            return ofNullable(networks);
-//        }).ifPresent(networks -> predicates.add(from.<Long>get("id").in(networks)));
+        principalOpt.flatMap(principal -> {
+            Set<Long> deviceTypes = principal.getDeviceTypeIds();
+
+            return ofNullable(deviceTypes);
+        }).ifPresent(deviceTypes -> predicates.add(from.<Long>get("id").in(deviceTypes)));
 
         return predicates.toArray(new Predicate[predicates.size()]);
     }

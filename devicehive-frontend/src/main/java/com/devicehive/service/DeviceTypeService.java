@@ -223,8 +223,8 @@ public class DeviceTypeService {
     }
 
     @Transactional
-    public Long findDefaultDeviceTypeByUserId(Long userId) {
-    	return deviceTypeDao.findDefaultByUser(userId)
+    public Long findDefaultDeviceType(Set<Long> deviceTypeIds) {
+    	return deviceTypeDao.findDefault(deviceTypeIds)
     			.map(DeviceTypeVO::getId)
     			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_DEVICE_TYPE));
     }
