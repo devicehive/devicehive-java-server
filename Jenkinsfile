@@ -76,7 +76,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           echo("Install dependencies with npm")
           sh '''
-            sudo npm install -g mocha@3.5.3 mochawesome
+            sudo npm install -g mocha mochawesome
             sudo npm i
           '''
 
@@ -93,7 +93,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           timeout(time:10, unit: 'MINUTES') {
             echo("Run integration tests")
-            sh 'mocha -R mochawesome integration-tests'
+            sh 'mocha --exit -R mochawesome integration-tests'
           }
         }
       } finally {
