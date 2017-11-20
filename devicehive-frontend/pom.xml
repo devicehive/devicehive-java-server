@@ -153,22 +153,6 @@
             </dependencies>
         </profile>
         <profile>
-            <id>booted-riak</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <finalName>devicehive-riak-${project.version}-boot</finalName>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.devicehive</groupId>
-                    <artifactId>devicehive-riak-dao</artifactId>
-                    <version>${project.parent.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
             <id>shim-kafka</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
