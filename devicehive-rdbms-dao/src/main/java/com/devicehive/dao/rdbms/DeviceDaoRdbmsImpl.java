@@ -82,6 +82,9 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
+        if (device.getDeviceType() != null) {
+            device.setDeviceType(reference(DeviceType.class, device.getDeviceType().getId()));
+        }
         Device merged = super.merge(device);
         return Device.convertToVo(merged);
     }
