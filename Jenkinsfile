@@ -88,7 +88,6 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
             jq ".server.ip = \\"127.0.0.1\\"" | \\
             jq ".server.port = \\"8080\\"" | \\
             jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" | \\
-            jq ".server.pluginRestUrl = \\"http://127.0.0.1:8110/api/rest\\"" | \\
             jq ".server.authRestUrl = \\"http://127.0.0.1:8090/api/rest\\"" > config.json
           '''
 
