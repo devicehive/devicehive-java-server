@@ -49,9 +49,6 @@ public interface PluginResource {
     @Path("/register")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Register Plugin", notes = "Registers plugin in DH Server")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
-    })
     @ApiResponses(value = {
             @ApiResponse(code = 200,
                     message = "Returns plugin uuid, topic name and health check period",
@@ -62,6 +59,7 @@ public interface PluginResource {
             @BeanParam PluginReqisterQuery pluginReqisterQuery,
             @ApiParam(value = "Filter body", defaultValue = "{}", required = true) 
                     PluginUpdate filterToCreate,
+            @ApiParam(name = "Authorization", value = "Authorization token", required = true)
             @HeaderParam("Authorization") String authorization,
             @Suspended final AsyncResponse asyncResponse);
     

@@ -22,16 +22,17 @@ package com.devicehive.service;
 
 
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
@@ -47,11 +48,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.ws.rs.ServiceUnavailableException;
-import java.util.Arrays;
+import javax.ws.rs.core.Response;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 @Component
 public class PluginRegisterService {
@@ -93,8 +97,15 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<JsonObject> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate,
+    public CompletableFuture<Response> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate,
             String authorization) {
+        //checks if plugin healthcheck url is available
+        try {
+            httpRestHelper.get(pluginUpdate.getHealthCheckUrl(), JsonObject.class, null);
+        } catch (Exception e) {
+            return CompletableFuture.completedFuture(ResponseFactory.response(SERVICE_UNAVAILABLE, 
+                    new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), e.getMessage())));
+        }
 
         return persistPlugin(pollRequest, pluginUpdate).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
@@ -104,7 +115,7 @@ public class PluginRegisterService {
             response.addProperty("refreshToken", jwtTokenVO.getRefreshToken());
             response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyConnect());
 
-            return response;
+            return ResponseFactory.response(CREATED, response, PLUGIN_SUBMITTED);
         });
     }
 
@@ -130,7 +141,7 @@ public class PluginRegisterService {
         Filter filter = pollRequest.getFilter();
         filter.setDeviceIds(deviceService.getAvailableDeviceIds(filter.getDeviceIds(), filter.getNetworkIds()));
 
-        CompletableFuture<Response> future = new CompletableFuture<>();
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(pollRequest)
                 .build(), new ResponseConsumer(future));
@@ -145,6 +156,7 @@ public class PluginRegisterService {
         try {
             jwtToken = httpRestHelper.post(authBaseUrl + "/token/plugin/create", gson.toJson(jwtPluginPayload), JwtTokenVO.class, authorization);
         } catch (ServiceUnavailableException e) {
+            logger.warn("Service is not available");
             throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
         }
         
