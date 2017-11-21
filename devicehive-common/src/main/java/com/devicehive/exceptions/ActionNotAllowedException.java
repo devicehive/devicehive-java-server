@@ -21,6 +21,7 @@ package com.devicehive.exceptions;
  */
 
 public class ActionNotAllowedException extends RuntimeException {
+    private static final long serialVersionUID = 4098344778590417014L;
 
     public ActionNotAllowedException(String message) {
         super(message);

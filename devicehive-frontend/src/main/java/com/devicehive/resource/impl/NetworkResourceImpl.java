@@ -99,7 +99,8 @@ public class NetworkResourceImpl implements NetworkResource {
     @Override
     public Response get(long id) {
         logger.debug("Network get requested.");
-        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        
+        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(id);
         if (existing == null) {
             logger.error("Network with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),

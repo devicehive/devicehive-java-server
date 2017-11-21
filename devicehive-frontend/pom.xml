@@ -5,7 +5,7 @@
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>3.4.0</version>
+        <version>3.4.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
@@ -61,10 +61,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -152,22 +148,6 @@
                 <dependency>
                     <groupId>com.devicehive</groupId>
                     <artifactId>devicehive-rdbms-dao</artifactId>
-                    <version>${project.parent.version}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>booted-riak</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <finalName>devicehive-riak-${project.version}-boot</finalName>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>com.devicehive</groupId>
-                    <artifactId>devicehive-riak-dao</artifactId>
                     <version>${project.parent.version}</version>
                 </dependency>
             </dependencies>

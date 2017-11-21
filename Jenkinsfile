@@ -8,27 +8,31 @@ def deployable_branches = ["development"]
 node('docker') {
   stage('Build jars') {
     echo 'Building jars ...'
-    def maven = docker.image('maven:3.5.0-jdk-8')
+    def maven = docker.image('maven:3.5.2-jdk-8')
     maven.pull()
     maven.inside {
       checkout scm
-      sh 'mvn clean package'
-      archiveArtifacts artifacts: 'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', fingerprint: true, onlyIfSuccessful: true
+      sh 'mvn clean package -DskipTests'
+      sh 'mvn test'
+      archiveArtifacts artifacts: 'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-plugin/target/devicehive-plugin-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', fingerprint: true, onlyIfSuccessful: true
 
-      stash includes:'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', name: 'jars'
+      stash includes:'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-plugin/target/devicehive-plugin-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', name: 'jars'
     }
   }
 
   stage('Build and publish Docker images in CI repository') {
-    echo 'Building Frontend image ...'
+    echo 'Building images ...'
     unstash 'jars'
     def auth = docker.build('devicehiveci/devicehive-auth-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth-rdbms.Dockerfile .')
+    def plugin = docker.build('devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin-rdbms.Dockerfile .')
     def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
     def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
     def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
+    echo 'Pushing images to CI repository ...'
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
       auth.push()
+      plugin.push()
       frontend.push()
       backend.push()
       hazelcast.push()
@@ -72,7 +76,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           echo("Install dependencies with npm")
           sh '''
-            sudo npm install -g mocha@3.5.3 mochawesome
+            sudo npm install -g mocha mochawesome
             sudo npm i
           '''
 
@@ -89,11 +93,11 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 
           timeout(time:10, unit: 'MINUTES') {
             echo("Run integration tests")
-            sh 'mocha -R mochawesome integration-tests'
+            sh 'mocha --exit -R mochawesome integration-tests'
           }
         }
       } finally {
-        archiveArtifacts artifacts: 'devicehive-tests/mochawesome-report/mochawesome.json, devicehive-tests/mochawesome-report/mochawesome.html', fingerprint: true, onlyIfSuccessful: true
+        zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         dir('devicehive-docker/rdbms-image') {
           sh '''
             sudo docker-compose kill
@@ -117,11 +121,13 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
         """
       }
     }
@@ -131,13 +137,14 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
 if (deployable_branches.contains(env.BRANCH_NAME)) {
   stage('Deploy build to dev server'){
     node('dev-server') {
-      sh '''
-        cd ~/devicehive-docker/rdbms-image
-        sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
-        sudo docker-compose pull
-        sudo docker-compose up -d
-        echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
-      '''
+      dir('/home/centos/devicehive-docker/rdbms-image'){
+        sh '''
+          sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
+          sudo docker-compose pull
+          sudo docker-compose up -d
+          echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
+        '''
+      }
     }
   }
 }

@@ -29,6 +29,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class Subscriber implements Portable, Serializable {
+    private static final long serialVersionUID = 9114135595987844152L;
 
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 6;

@@ -112,17 +112,17 @@ public class Response {
         private boolean last = true;
         private String correlationId;
 
-        public Builder withBody(T body) {
+        public Builder<T> withBody(T body) {
             this.body = body;
             return this;
         }
 
-        public Builder withCorrelationId(String correlationId) {
+        public Builder<T> withCorrelationId(String correlationId) {
             this.correlationId = correlationId;
             return this;
         }
 
-        public Builder withLast(boolean last) {
+        public Builder<T> withLast(boolean last) {
             this.last = last;
             return this;
         }

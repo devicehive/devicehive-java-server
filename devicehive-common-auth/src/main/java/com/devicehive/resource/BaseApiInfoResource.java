@@ -20,19 +20,12 @@ package com.devicehive.resource;
  * #L%
  */
 
-import com.devicehive.vo.ApiInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import org.springframework.security.access.prepost.PreAuthorize;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 public interface BaseApiInfoResource {
 
-    Response getApiInfo(@Context UriInfo uriInfo);
+    Response getApiInfo(@Context UriInfo uriInfo, Boolean wssEnabled);
 
 }

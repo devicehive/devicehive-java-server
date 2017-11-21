@@ -25,7 +25,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.HiveRoles;
 import com.devicehive.resource.exceptions.ExpiredTokenException;
 import com.devicehive.model.enums.UserStatus;
-import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.service.BaseUserService;
 import com.devicehive.service.security.jwt.BaseJwtClientService;
@@ -64,27 +64,27 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
 
         String token = (String) authentication.getPrincipal();
         try {
-            JwtPayload jwtPayload = jwtClientService.getPayload(token);
+            JwtUserPayload jwtUserPayload = jwtClientService.getUserPayload(token);
 
-            if (jwtPayload == null ||
-                    jwtPayload.getTokenType().equals(TokenType.REFRESH.getId())) {
+            if (jwtUserPayload == null ||
+                    jwtUserPayload.getTokenType().equals(TokenType.REFRESH.getId())) {
                 throw new BadCredentialsException("Unauthorized");
             }
-            if (jwtPayload.getExpiration() != null && jwtPayload.getExpiration().before(timestampService.getDate())) {
+            if (jwtUserPayload.getExpiration() != null && jwtUserPayload.getExpiration().before(timestampService.getDate())) {
                 throw new ExpiredTokenException("Token expired");
             }
             logger.debug("Jwt token authentication successful");
 
             HivePrincipal principal = new HivePrincipal();
-            if (jwtPayload.getUserId() != null) {
-                UserVO userVO = userService.findById(jwtPayload.getUserId());
+            if (jwtUserPayload.getUserId() != null) {
+                UserVO userVO = userService.findById(jwtUserPayload.getUserId());
                 if (!UserStatus.ACTIVE.equals(userVO.getStatus())) {
                     throw new BadCredentialsException("Unauthorized: user is not active");
                 }
                 principal.setUser(userVO);
             }
 
-            Set<String> networkIds = jwtPayload.getNetworkIds();
+            Set<String> networkIds = jwtUserPayload.getNetworkIds();
             if (networkIds != null) {
                 if (networkIds.contains("*")) {
                     principal.setAllNetworksAvailable(true);
@@ -93,7 +93,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceIds = jwtPayload.getDeviceIds();
+            Set<String> deviceIds = jwtUserPayload.getDeviceIds();
             if (deviceIds != null) {
                 if (deviceIds.contains("*")) {
                     principal.setAllDevicesAvailable(true);
@@ -102,7 +102,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<Integer> availableActions = jwtPayload.getActions();
+            Set<Integer> availableActions = jwtUserPayload.getActions();
             if (availableActions != null) {
                 if (availableActions.contains(ANY.getId())) {
                     principal.setActions(getAllHiveActions());

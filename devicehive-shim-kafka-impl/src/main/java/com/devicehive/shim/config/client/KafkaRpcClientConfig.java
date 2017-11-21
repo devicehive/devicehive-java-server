@@ -61,8 +61,12 @@ import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
 public class KafkaRpcClientConfig {
 
     private static String RESPONSE_TOPIC;
+    
+    @Value("${response.topic.perfix}")
+    private String responseTopicPrefix;
 
-    static {
+    @PostConstruct
+    private void initializeTopics() {
         try {
             NetworkInterface ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
             String prefix = Optional.ofNullable(ni)
@@ -73,11 +77,17 @@ public class KafkaRpcClientConfig {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
-            RESPONSE_TOPIC = "response_topic_" + prefix;
+                    .map(mac -> Base64.getEncoder().withoutPadding().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            prefix = prefix.replace("+", "")
+                    .replace("/", "")
+                    .replace("=", "");
+            RESPONSE_TOPIC = responseTopicPrefix + prefix;
         } catch (SocketException | UnknownHostException e) {
-            RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();
+            RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID().toString();
         }
+
+        kafkaTopicService.createTopic(REQUEST_TOPIC);
+        kafkaTopicService.createTopic(RESPONSE_TOPIC);
     }
 
     @Autowired
@@ -91,12 +101,6 @@ public class KafkaRpcClientConfig {
 
     @Value("${rpc.client.response-consumer.threads:3}")
     private int responseConsumerThreads;
-
-    @PostConstruct
-    private void initializeTopics() {
-        kafkaTopicService.createTopic(REQUEST_TOPIC);
-        kafkaTopicService.createTopic(RESPONSE_TOPIC);
-    }
 
     @Bean
     public RequestResponseMatcher requestResponseMatcher() {

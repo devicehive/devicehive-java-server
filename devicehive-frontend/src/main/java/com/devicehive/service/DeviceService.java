@@ -29,9 +29,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.DeviceCreateRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
@@ -43,6 +41,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,16 +52,17 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService extends BaseDeviceService {
     private static final Logger logger = LoggerFactory.getLogger(BaseDeviceService.class);
 
     private final DeviceNotificationService deviceNotificationService;
-    private final NetworkService networkService;
     private final UserService userService;
     private final TimestampService timestampService;
     private final RpcClient rpcClient;
@@ -74,9 +74,8 @@ public class DeviceService extends BaseDeviceService {
                          TimestampService timestampService,
                          DeviceDao deviceDao,
                          RpcClient rpcClient) {
-        super(deviceDao);
+        super(deviceDao, networkService);
         this.deviceNotificationService = deviceNotificationService;
-        this.networkService = networkService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.rpcClient = rpcClient;
@@ -182,30 +181,6 @@ public class DeviceService extends BaseDeviceService {
     //TODO: need to remove it
     public long getAllowedDevicesCount(HivePrincipal principal, List<String> deviceIds) {
         return deviceDao.getAllowedDeviceCount(principal, deviceIds);
-    }
-
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
-        List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
-        Set<String> allowedIds = devices.stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
-                .collect(Collectors.toSet());
-
-        Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);
-        if (unresolvedIds.isEmpty()) {
-            return devices;
-        }
-
-        Set<String> forbiddedIds = unresolvedIds.stream()
-                .filter(deviceId -> !principal.hasAccessToDevice(deviceId))
-                .collect(Collectors.toSet());
-        if (forbiddedIds.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
-        }
-
-        throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
-
-        
     }
 
     private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, UserVO user) {

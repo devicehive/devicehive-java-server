@@ -20,10 +20,9 @@ package com.devicehive.base;
  * #L%
  */
 
-import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.application.DeviceHiveFrontendApplication;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.Timeout;
@@ -45,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {DeviceHiveApplication.class})
+@SpringBootTest(classes = {DeviceHiveFrontendApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringKafkaTest {
     public static String RESPONSE_TOPIC;
@@ -62,7 +61,10 @@ public abstract class AbstractSpringKafkaTest {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+                    .map(mac -> Base64.getEncoder().withoutPadding().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            prefix = prefix.replace("+", "")
+                    .replace("/", "")
+                    .replace("=", "");
             RESPONSE_TOPIC = "response_topic_" + prefix;
         } catch (SocketException | UnknownHostException e) {
             RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();

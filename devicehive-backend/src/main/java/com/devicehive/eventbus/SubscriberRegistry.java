@@ -25,8 +25,8 @@ import com.devicehive.model.eventbus.Subscription;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.MultiMap;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -109,9 +109,7 @@ public class SubscriberRegistry {
      * @param subscription - subscription
      * @return - list of subscribers for subscription
      */
-    synchronized Collection<Subscriber> getSubscribers(Subscription subscription) {
-        Assert.notNull(subscription);
-        
+    synchronized Collection<Subscriber> getSubscribers(@NotNull Subscription subscription) {
         return Optional.ofNullable(subscriptions.get(subscription))
                 .map(subIds -> subIds.stream().map(subscribers::get).collect(Collectors.toList()))
                 .orElse(emptyList());
@@ -125,9 +123,7 @@ public class SubscriberRegistry {
         return this.subscribers.get(subscriptionId);
     }
 
-    Collection<Subscription> getSubscriptions(Subscriber subscriber) {
-        Assert.notNull(subscriber);
-
+    Collection<Subscription> getSubscriptions(@NotNull Subscriber subscriber) {
         return Optional.ofNullable(subscriberSubscriptions.get(subscriber.getId()))
                 .orElse(emptyList());
     }

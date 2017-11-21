@@ -66,6 +66,7 @@ public class SubscriptionHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and (hasPermission(null, 'GET_DEVICE_COMMAND')" +
             " or hasPermission(null, 'GET_DEVICE_NOTIFICATION'))")
+    @SuppressWarnings("unchecked")
     public void processSubscribeList(JsonObject request, WebSocketSession session) {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String type = gson.fromJson(request.get(TYPE), String.class);

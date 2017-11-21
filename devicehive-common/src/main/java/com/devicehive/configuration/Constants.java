@@ -73,7 +73,9 @@ public class Constants {
     public static final String END_TIMESTAMP = "end";
     public static final String LIMIT = "limit";
     public static final String COMMAND_ID = "commandId";
+    public static final String RETURN_COMMANDS = "returnCommands";
     public static final String RETURN_UPDATED_COMMANDS = "returnUpdatedCommands";
+    public static final String RETURN_NOTIFICATIONS = "returnNotifications";
     public static final String NOTIFICATION = "notification";
     public static final String NOTIFICATIONS = "notifications";
     public static final String NOTIFICATION_ID = "notificationId";
@@ -121,6 +123,7 @@ public class Constants {
     public static final String MANAGE_CONFIGURATION = "ManageConfiguration";
     public static final String MANAGE_NETWORK = "ManageNetwork";
     public static final String MANAGE_TOKEN = "ManageToken";
+    public static final String MANAGE_PLUGIN = "ManagePlugin";
     
     public static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
     public static final String NOTIFICATION_TOPIC_NAME = "device_notification";

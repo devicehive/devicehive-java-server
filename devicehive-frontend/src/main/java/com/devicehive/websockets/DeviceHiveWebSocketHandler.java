@@ -97,7 +97,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         try {
             request = new JsonParser().parse(message.getPayload()).getAsJsonObject();
             requestProcessor.process(request, session);
-        } catch (JsonSyntaxException ex) {
+        } catch (JsonSyntaxException | IllegalStateException ex) {
             String errorMessage = "Malformed Json received.";
             logger.error("Error executing the request: {}", errorMessage);
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_BAD_REQUEST, errorMessage);
@@ -163,6 +163,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCRIPTION_SET_NAME);

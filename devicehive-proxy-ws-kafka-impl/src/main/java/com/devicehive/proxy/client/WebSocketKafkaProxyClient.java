@@ -58,7 +58,7 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     public void start() {
         try {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            container.connectToServer(this, new URI("ws://" + webSocketKafkaProxyConfig.getProxyConnect()));
+            this.session = container.connectToServer(this, new URI("ws://" + webSocketKafkaProxyConfig.getProxyConnect()));
         } catch (Exception e) {
             logger.error("Error during establishing connection: ", e);
             throw new RuntimeException(e);
