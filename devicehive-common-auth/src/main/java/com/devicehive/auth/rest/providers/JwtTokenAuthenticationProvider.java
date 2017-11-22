@@ -102,15 +102,6 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceIds = jwtPayload.getDeviceIds();
-            if (deviceIds != null) {
-                if (deviceIds.contains("*")) {
-                    principal.setAllDevicesAvailable(true);
-                } else {
-                    principal.setDeviceIds(deviceIds);
-                }
-            }
-
             Set<Integer> availableActions = jwtPayload.getActions();
             if (availableActions != null) {
                 if (availableActions.contains(ANY.getId())) {

@@ -62,7 +62,6 @@ public class BaseJwtClientService {
         Optional networkIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.NETWORK_IDS));
         Optional deviceTypeIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_TYPE_IDS));
         Optional actions = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.ACTIONS));
-        Optional deviceIds = Optional.ofNullable((ArrayList) payloadMap.get(JwtPayload.DEVICE_IDS));
         Optional expiration = Optional.ofNullable(payloadMap.get(JwtPayload.EXPIRATION));
         Optional<Integer> tokenType = Optional.ofNullable((Integer) payloadMap.get(JwtPayload.TOKEN_TYPE));
 
@@ -71,7 +70,6 @@ public class BaseJwtClientService {
         if (networkIds.isPresent()) builder.withNetworkIds(new HashSet<>((ArrayList) networkIds.get()));
         if (deviceTypeIds.isPresent()) builder.withDeviceTypeIds(new HashSet<>((ArrayList) deviceTypeIds.get()));
         if (actions.isPresent()) builder.withActions(new HashSet<>((ArrayList) actions.get()));
-        if (deviceIds.isPresent()) builder.withDeviceIds(new HashSet<>((ArrayList) deviceIds.get()));
         if (!tokenType.isPresent() && !expiration.isPresent()) {
             throw new MalformedJwtException("Token type and expiration date should be provided in the token");
         } else {

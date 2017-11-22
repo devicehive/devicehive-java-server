@@ -91,7 +91,6 @@
         <module>devicehive-common</module>
         <module>devicehive-common-dao</module>
         <module>devicehive-rdbms-dao</module>
-        <module>devicehive-riak-dao</module>
         <module>devicehive-shim-api</module>
         <module>devicehive-shim-kafka-impl</module>
         <module>devicehive-proxy-api</module>

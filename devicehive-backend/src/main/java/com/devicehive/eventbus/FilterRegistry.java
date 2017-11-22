@@ -44,10 +44,15 @@ public class FilterRegistry {
 
     public void register(Filter filter, Long subscriptionId) {
         HivePrincipal principal = filter.getPrincipal();
-        if (filter.isGlobal() && principal.areAllDevicesAvailable()) {
+        if (filter.isGlobal()) {
             if (!principal.areAllNetworksAvailable()) {
                 filter.setGlobal(false);
                 filter.setNetworkIds(principal.getNetworkIds());
+            }
+
+            if (!principal.areAllDeviceTypesAvailable()) {
+                filter.setGlobal(false);
+                filter.setNetworkIds(principal.getDeviceTypeIds());
             }
         }
         filterSubscriptionsMap.put(filter, subscriptionId);

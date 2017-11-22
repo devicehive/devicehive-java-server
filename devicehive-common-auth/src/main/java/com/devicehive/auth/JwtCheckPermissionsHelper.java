@@ -44,10 +44,10 @@ public class JwtCheckPermissionsHelper {
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
         return checkActionAllowed(action, permittedActions)
                 && checkNetworksAllowed(hivePrincipal, action, targetDomainObject)
-                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject)
-                && checkDeviceIdsAllowed(hivePrincipal, targetDomainObject);
+                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject);
     }
 
+    // TODO - verify permission-checking logic
     private boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
         boolean result = false;
         if (permissions != null) result = permissions.contains(hiveAction);
@@ -67,31 +67,6 @@ public class JwtCheckPermissionsHelper {
         else if (targetDomainObject instanceof Long && action.getValue().contains("DeviceType")) {
             return principal.getDeviceTypeIds() != null && principal.getDeviceTypeIds().contains(targetDomainObject);
         }
-        return true;
-    }
-
-    private boolean checkDeviceIdsAllowed(HivePrincipal principal, Object targetDomainObject) {
-
-        if (targetDomainObject instanceof String) {
-
-            Set<Long> networks = principal.getNetworkIds();
-            Set<Long> deviceTypes = principal.getDeviceTypeIds();
-            Set<String> devices = principal.getDeviceIds();
-
-            if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
-                return true;
-            } else if (networks != null && principal.areAllDevicesAvailable()) {
-                return networks.stream().flatMap(n -> deviceService.list(n).stream())
-                        .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
-            } else if (deviceTypes != null && principal.areAllDevicesAvailable()) {
-                return deviceTypes.stream().flatMap(n -> deviceService.list(n).stream())
-                        .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
-            } else if (devices != null && principal.areAllNetworksAvailable()) {
-                return devices.contains(targetDomainObject);
-            } else
-                return networks != null && devices != null && devices.contains(targetDomainObject);
-        }
-
         return true;
     }
 

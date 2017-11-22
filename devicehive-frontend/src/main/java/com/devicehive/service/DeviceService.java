@@ -182,6 +182,7 @@ public class DeviceService extends BaseDeviceService {
                 request.getTake(), request.getSkip(), request.getPrincipal());
     }
 
+    // TODO - double-check, there should be no reason for two conditions anymore
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
         List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
@@ -192,13 +193,6 @@ public class DeviceService extends BaseDeviceService {
         Set<String> unresolvedIds = Sets.difference(deviceIds, allowedIds);
         if (unresolvedIds.isEmpty()) {
             return devices;
-        }
-
-        Set<String> forbiddedIds = unresolvedIds.stream()
-                .filter(deviceId -> !principal.hasAccessToDevice(deviceId))
-                .collect(Collectors.toSet());
-        if (forbiddedIds.isEmpty()) {
-            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
         }
 
         throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);

@@ -67,7 +67,7 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds, deviceIds).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtAccessToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
@@ -88,7 +88,7 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds, deviceIds).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtPayload resultPayload = jwtClientService.getPayload(token);
@@ -109,7 +109,7 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds, deviceIds).buildPayload();
+        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         // Generate key without expiration date and token type
         Map<String, Object> jwtMap = new HashMap<>();

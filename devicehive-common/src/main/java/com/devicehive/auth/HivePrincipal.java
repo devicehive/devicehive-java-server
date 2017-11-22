@@ -51,32 +51,24 @@ public class HivePrincipal implements Principal, Portable {
     private Set<HiveAction> actions;
     private Set<Long> networkIds;
     private Set<Long> deviceTypeIds;
-    private Set<String> deviceIds;
     private Boolean allNetworksAvailable = false;
     private Boolean allDeviceTypesAvailable = false;
-    private Boolean allDevicesAvailable = false;
 
     public HivePrincipal(UserVO user,
                          Set<HiveAction> actions,
                          Set<Long> networkIds,
                          Set<Long> deviceTypeIds,
-                         Set<String> deviceIds,
                          Boolean allNetworksAvailable,
-                         Boolean allDeviceTypesAvailable,
-                         Boolean allDevicesAvailable) {
+                         Boolean allDeviceTypesAvailable) {
         this.user = user;
         this.actions = actions;
         this.networkIds = networkIds;
         this.deviceTypeIds = deviceTypeIds;
-        this.deviceIds = deviceIds;
         if (allNetworksAvailable != null) {
             this.allNetworksAvailable = allNetworksAvailable;
         }
         if (allDeviceTypesAvailable != null) {
             this.allDeviceTypesAvailable = allDeviceTypesAvailable;
-        }
-        if (allDevicesAvailable != null) {
-            this.allDevicesAvailable = allDevicesAvailable;
         }
     }
 
@@ -140,35 +132,12 @@ public class HivePrincipal implements Principal, Portable {
         this.allDeviceTypesAvailable = allDeviceTypesAvailable;
     }
 
-    public Set<String> getDeviceIds() {
-        return deviceIds;
-    }
-
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
-    }
-
-    public Boolean areAllDevicesAvailable() {
-        return allDevicesAvailable;
-    }
-
-    public void setAllDevicesAvailable(Boolean allDevicesAvailable) {
-        this.allDevicesAvailable = allDevicesAvailable;
-    }
-
-    public void addDevice(String deviceId) {
-        if (deviceIds == null) {
-            deviceIds = new HashSet<>();
-        }
-        deviceIds.add(deviceId);
-    }
-
     public boolean hasAccessToNetwork(long networkId) {
         return allNetworksAvailable || networkIds.contains(networkId);
     }
 
-    public boolean hasAccessToDevice(String deviceId) {
-        return allDevicesAvailable || deviceIds.contains(deviceId);
+    public boolean hasAccessToDeviceType(long deviceTypeId) {
+        return allDeviceTypesAvailable || deviceTypeIds.contains(deviceTypeId);
     }
 
     @Override
@@ -185,15 +154,12 @@ public class HivePrincipal implements Principal, Portable {
         if (deviceTypeIds != null) {
             return deviceTypeIds.toString();
         }
-        if (deviceIds != null) {
-            return deviceIds.toString();
-        }
 
         return "anonymousPrincipal";
     }
 
     public boolean isAuthenticated() {
-        if (user != null || actions != null || networkIds != null || deviceTypeIds != null || deviceIds != null) {
+        if (user != null || actions != null || networkIds != null || deviceTypeIds != null) {
             return true;
         }
         throw new InvalidPrincipalException("Unauthorized");
@@ -221,7 +187,6 @@ public class HivePrincipal implements Principal, Portable {
         // write only required fields for com.devicehive.model.eventbus.Filter
         writer.writeBoolean("allNetworksAvailable", allNetworksAvailable);
         writer.writeBoolean("allDeviceTypesAvailable", allDeviceTypesAvailable);
-        writer.writeBoolean("allDevicesAvailable", allDevicesAvailable);
         writer.writeLongArray("networkIds", networkIds != null ? networkIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
         writer.writeLongArray("deviceTypeIds", deviceTypeIds != null ? deviceTypeIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
     }
@@ -231,7 +196,6 @@ public class HivePrincipal implements Principal, Portable {
         // read only required fields for com.devicehive.model.eventbus.Filter
         allNetworksAvailable = reader.readBoolean("allNetworksAvailable");
         allNetworksAvailable = reader.readBoolean("allDeviceTypesAvailable");
-        allDevicesAvailable = reader.readBoolean("allDevicesAvailable");
         networkIds = Arrays.stream(reader.readLongArray("networkIds")).boxed().collect(Collectors.toSet());
         deviceTypeIds = Arrays.stream(reader.readLongArray("deviceTypeIds")).boxed().collect(Collectors.toSet());
     }

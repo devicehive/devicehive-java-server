@@ -88,7 +88,7 @@ public class DeviceResourceImpl implements DeviceResource {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
-                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
+                !principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);

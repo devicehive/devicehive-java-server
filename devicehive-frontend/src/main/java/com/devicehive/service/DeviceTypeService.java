@@ -79,7 +79,7 @@ public class DeviceTypeService {
         HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
 
         Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
-        Set<String> permittedDevices = principal.getDeviceIds();
+        Set<Long> permittedNetworks = principal.getNetworkIds();
 
         Optional<DeviceTypeWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -94,9 +94,9 @@ public class DeviceTypeService {
                     Collections.singleton(deviceTypeId), permittedDeviceTypes);
             return found.stream().findFirst();
         }).map(deviceType -> {
-            if (permittedDevices != null && !permittedDevices.isEmpty()) {
+            if (permittedNetworks != null && !permittedNetworks.isEmpty()) {
                 Set<DeviceVO> allowed = deviceType.getDevices().stream()
-                        .filter(device -> permittedDevices.contains(device.getDeviceId()))
+                        .filter(device -> permittedNetworks.contains(device.getNetworkId()))
                         .collect(Collectors.toSet());
                 deviceType.setDevices(allowed);
             }

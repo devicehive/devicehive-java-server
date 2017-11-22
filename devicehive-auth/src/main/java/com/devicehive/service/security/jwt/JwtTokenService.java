@@ -72,12 +72,10 @@ public class JwtTokenService {
     public JwtTokenVO createJwtToken(@NotNull UserVO user) {
         Set<String> networkIds = new HashSet<>();
         Set<String> deviceTypeIds = new HashSet<>();
-        Set<String> deviceIds = new HashSet<>();
         Set<Integer> actions = new HashSet<>();
         if (user.isAdmin()) {
             networkIds.add("*");
             deviceTypeIds.add("*");
-            deviceIds.add("*");
             actions.add(ANY.getId());
         } else {
             UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
@@ -90,14 +88,12 @@ public class JwtTokenService {
                 networks.forEach(network -> {
                     networkIds.add(network.getId().toString());
                 });
-                deviceIds.add("*");
             }
             Set<DeviceTypeVO> deviceTypes = userWithDeviceType.getDeviceTypes();
             if (!deviceTypes.isEmpty()) {
                 deviceTypes.forEach(deviceType -> {
                     deviceTypeIds.add(deviceType.getId().toString());
                 });
-                deviceIds.add("*");
             }
             actions = getIdSet(getClientHiveActions());
         }
@@ -108,7 +104,6 @@ public class JwtTokenService {
                 .withActions(actions)
                 .withNetworkIds(networkIds)
                 .withDeviceTypeIds(deviceTypeIds)
-                .withDeviceIds(deviceIds)
                 .buildPayload();
 
         JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(accessPayload)
