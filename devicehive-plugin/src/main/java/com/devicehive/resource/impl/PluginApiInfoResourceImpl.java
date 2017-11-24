@@ -43,8 +43,8 @@ public class PluginApiInfoResourceImpl implements PluginApiInfoResource {
     }
 
     @Override
-    public Response getApiInfo(UriInfo uriInfo) {
-        return baseApiInfoResource.getApiInfo(uriInfo, false);
+    public Response getApiInfo(UriInfo uriInfo, String protocol) {
+        return baseApiInfoResource.getApiInfo(uriInfo, protocol);
     }
 }
 
