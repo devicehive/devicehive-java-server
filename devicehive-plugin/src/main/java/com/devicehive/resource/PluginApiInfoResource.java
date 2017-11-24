@@ -27,9 +27,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -48,6 +46,9 @@ public interface PluginApiInfoResource {
                     message = "Returns version of API, server timestamp and WebSocket base uri",
                     response = ApiInfoVO.class),
     })
-    Response getApiInfo(@Context UriInfo uriInfo);
+    Response getApiInfo(@Context UriInfo uriInfo,
+                        @HeaderParam("X-Forwarded-Proto")
+                        @DefaultValue("http")
+                                String protocol);
 
 }

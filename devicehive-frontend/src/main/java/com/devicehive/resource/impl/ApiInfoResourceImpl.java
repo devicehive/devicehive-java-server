@@ -66,8 +66,8 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
     }
 
     @Override
-    public Response getApiInfo(UriInfo uriInfo, Boolean wssEnabled) {
-        return baseApiInfoResource.getApiInfo(uriInfo, wssEnabled);
+    public Response getApiInfo(UriInfo uriInfo, String protocol) {
+        return baseApiInfoResource.getApiInfo(uriInfo, protocol);
     }
 
     @Override
