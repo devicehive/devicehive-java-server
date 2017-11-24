@@ -75,4 +75,15 @@ public class FilterRegistry {
         });
         return subs;
     }
+
+    public void unregisterDevice(String deviceId) {
+        filterSubscriptionsMap.keySet().stream()
+                .filter(key ->
+                        !key.isGlobal() &&
+                        key.getNetworkIds().isEmpty() &&
+                        key.getDeviceIds().size() == 1 &&
+                        key.getDeviceIds().contains(deviceId))
+                .forEach(key -> filterSubscriptionsMap.get(key).forEach(this::unregister));
+        filterSubscriptionsMap.keySet().remove(deviceId);
+    }
 }

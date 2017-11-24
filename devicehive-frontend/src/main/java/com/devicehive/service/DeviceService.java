@@ -28,6 +28,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.DeviceCreateRequest;
+import com.devicehive.model.rpc.DeviceDeleteRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.time.TimestampService;
@@ -37,11 +38,9 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,13 +49,8 @@ import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
-import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class DeviceService extends BaseDeviceService {
@@ -167,6 +161,24 @@ public class DeviceService extends BaseDeviceService {
     //TODO: only migrated to genericDAO, need to migrate Device PK to DeviceId and use directly GenericDAO#remove
     @Transactional
     public boolean deleteDevice(@NotNull String deviceId) {
+        DeviceDeleteRequest deviceDeleteRequest = new DeviceDeleteRequest(findById(deviceId));
+
+        Request request = Request.newBuilder()
+                .withBody(deviceDeleteRequest)
+                .build();
+
+        CompletableFuture<String> future = new CompletableFuture<>();
+        Consumer<Response> responseConsumer = response -> {
+            Action resAction = response.getBody().getAction();
+            if (resAction.equals(Action.DEVICE_DELETE_RESPONSE)) {
+                future.complete(response.getBody().getAction().name());
+            } else {
+                logger.warn("Unknown action received from backend {}", resAction);
+            }
+        };
+
+        rpcClient.call(request, responseConsumer);
+
         return deviceDao.deleteById(deviceId) != 0;
     }
 
