@@ -65,7 +65,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         echo("Wait for devicehive")
         timeout(time:2, unit: 'MINUTES') {
           waitUntil{
-            def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1:8080/api/rest/info"', returnStatus: true
+            def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
             return (fe_status == 0)
           }
         }
@@ -84,11 +84,11 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           sh '''
             cp config.json config.json.orig
             cat config.json.orig | \\
-            jq ".server.wsUrl = \\"ws://127.0.0.1:8080/api/websocket\\"" | \\
+            jq ".server.wsUrl = \\"ws://127.0.0.1/api/websocket\\"" | \\
             jq ".server.ip = \\"127.0.0.1\\"" | \\
-            jq ".server.port = \\"8080\\"" | \\
-            jq ".server.restUrl = \\"http://127.0.0.1:8080/api/rest\\"" | \\
-            jq ".server.authRestUrl = \\"http://127.0.0.1:8090/api/rest\\"" > config.json
+            jq ".server.port = \\"80\\"" | \\
+            jq ".server.restUrl = \\"http://127.0.0.1/api/rest\\"" | \\
+            jq ".server.authRestUrl = \\"http://127.0.0.1/auth/rest\\"" > config.json
           '''
 
           timeout(time:10, unit: 'MINUTES') {
