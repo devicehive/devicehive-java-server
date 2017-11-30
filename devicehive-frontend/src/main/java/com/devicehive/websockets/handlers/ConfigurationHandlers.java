@@ -96,6 +96,12 @@ public class ConfigurationHandlers {
             logger.error("configuration/put proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
+
+        if (!(name.length() >= 1 && name.length() <= 32)) {
+            final String errorMassage = "Name cannot be empty. The name's length should not be more than 32 symbols.";
+            logger.error("configuration/put proceed with error. " + errorMassage);
+            throw new HiveException(errorMassage, SC_BAD_REQUEST);
+        }
         
         final String value = gson.fromJson(request.get(VALUE), String.class);
         

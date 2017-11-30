@@ -25,6 +25,8 @@ import com.devicehive.vo.ConfigurationVO;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
@@ -78,6 +80,8 @@ public interface ConfigurationResource {
     Response updateProperty(
             @ApiParam(name = "name", required = true, value = "Property name")
             @PathParam("name")
+            @NotNull(message = "Name field cannot be null.")
+            @Size(min = 1, max = 32, message = "Name cannot be empty. The name's length should not be more than 32 symbols.")
                     String name,
             @ApiParam(value = "Configuration Update body", defaultValue = "{}", required = true)
                     ConfigurationUpdate configurationUpdate);

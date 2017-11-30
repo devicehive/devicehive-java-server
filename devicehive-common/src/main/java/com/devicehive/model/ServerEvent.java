@@ -1,4 +1,4 @@
-package com.devicehive.shim.kafka.server;
+package com.devicehive.model;
 
 /*
  * #%L

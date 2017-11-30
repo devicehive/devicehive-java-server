@@ -21,6 +21,7 @@ package com.devicehive.application;
  */
 
 import com.devicehive.messages.handler.DeviceCreateHandler;
+import com.devicehive.messages.handler.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandGetSubscriptionRequestHandler;
@@ -68,6 +69,7 @@ public class RequestHandlersMapper {
     private final ListDeviceHandler listDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
+    private final DeviceDeleteHandler deviceDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
 
@@ -89,6 +91,7 @@ public class RequestHandlersMapper {
                                  ListNetworkHandler listNetworkHandler,
                                  ListSubscribeHandler listSubscribeHandler,
                                  DeviceCreateHandler deviceCreateHandler,
+                                 DeviceDeleteHandler deviceDeleteHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
@@ -108,11 +111,13 @@ public class RequestHandlersMapper {
         this.listNetworkHandler = listNetworkHandler;
         this.listSubscribeHandler = listSubscribeHandler;
         this.deviceCreateHandler = deviceCreateHandler;
+        this.deviceDeleteHandler = deviceDeleteHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
+
     }
 
     @PostConstruct
@@ -137,6 +142,7 @@ public class RequestHandlersMapper {
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
                 .put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler)
+                .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
                 .build();
     }
 

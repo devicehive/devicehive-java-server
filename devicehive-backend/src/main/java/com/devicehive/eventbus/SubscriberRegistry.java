@@ -131,4 +131,13 @@ public class SubscriberRegistry {
     Collection<Subscription> getAllSubscriptions() {
         return subscriptions.keySet();
     }
+
+    synchronized void unregisterDevice(String deviceId) {
+        subscriptions.keySet().stream()
+                .filter(key -> key.getEntityId().equals(deviceId))
+                .forEach(this::unregister);
+        subscriberSubscriptions.values().stream()
+                .filter(value -> value.getEntityId().equals(deviceId))
+                .forEach(this::unregister);
+    }
 }
