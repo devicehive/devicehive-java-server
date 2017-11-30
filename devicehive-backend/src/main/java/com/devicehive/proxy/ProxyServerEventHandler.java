@@ -21,6 +21,7 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.application.RequestHandlersMapper;
+import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessage;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
@@ -31,7 +32,6 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.shim.kafka.server.ServerEvent;
 import com.google.gson.Gson;
 import com.lmax.disruptor.WorkHandler;
 import org.slf4j.Logger;

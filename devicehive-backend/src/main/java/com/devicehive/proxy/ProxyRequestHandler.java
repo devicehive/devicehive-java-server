@@ -20,10 +20,10 @@ package com.devicehive.proxy;
  * #L%
  */
 
+import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.shim.api.Request;
-import com.devicehive.shim.kafka.server.ServerEvent;
 import com.google.gson.Gson;
 import com.lmax.disruptor.RingBuffer;
 import org.slf4j.Logger;
