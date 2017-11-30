@@ -25,8 +25,6 @@ import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -84,5 +82,9 @@ public class EventBus {
                             .buildSuccess();
                     dispatcher.send(subscriber.getReplyTo(), response);
                 });
+    }
+
+    public void unsubscribeDevice(String deviceId) {
+        registry.unregisterDevice(deviceId);
     }
 }
