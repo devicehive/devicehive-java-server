@@ -64,7 +64,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         }
 
         echo("Wait for devicehive")
-        timeout(time:2, unit: 'MINUTES') {
+        timeout(time:5, unit: 'MINUTES') {
           waitUntil{
             def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
             return (fe_status == 0)
