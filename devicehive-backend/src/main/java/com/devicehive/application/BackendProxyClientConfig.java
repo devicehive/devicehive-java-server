@@ -20,6 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.ProxyMessageDispatcher;
 import com.devicehive.proxy.ProxyRequestHandler;
 import com.devicehive.proxy.ProxyServerEventHandler;
@@ -31,7 +32,6 @@ import com.devicehive.proxy.api.payload.TopicSubscribePayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.server.MessageDispatcher;
-import com.devicehive.shim.kafka.server.ServerEvent;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
 import org.springframework.beans.factory.annotation.Autowired;

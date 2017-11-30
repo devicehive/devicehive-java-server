@@ -28,5 +28,9 @@
             <artifactId>javax.websocket-client-api</artifactId>
             <version>${javax.websocket.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+        </dependency>
     </dependencies>
 </project>

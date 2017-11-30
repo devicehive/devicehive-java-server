@@ -28,7 +28,7 @@ import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.server.RequestConsumer;
-import com.devicehive.shim.kafka.server.ServerEvent;
+import com.devicehive.model.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.google.gson.Gson;
