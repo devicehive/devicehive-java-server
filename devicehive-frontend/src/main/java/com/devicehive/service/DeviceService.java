@@ -30,16 +30,18 @@ import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.DeviceCreateRequest;
 import com.devicehive.model.rpc.DeviceDeleteRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
+
+import com.devicehive.vo.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,11 +192,32 @@ public class DeviceService extends BaseDeviceService {
         return deviceDao.deleteById(deviceId) != 0;
     }
 
-    public List<DeviceVO> list(ListDeviceRequest request) {
-        
-        return deviceDao.list(request.getName(), request.getNamePattern(), request.getNetworkId(),
-                request.getNetworkName(), request.getSortField(), request.isSortOrderAsc(),
-                request.getTake(), request.getSkip(), request.getPrincipal());
+    public CompletableFuture<List<DeviceVO>> list(String name, String namePattern, Long networkId, String networkName,
+              String sortField, String sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
+
+        ListDeviceRequest listDeviceRequest = new ListDeviceRequest();
+        listDeviceRequest.setName(name);
+        listDeviceRequest.setNamePattern(namePattern);
+        listDeviceRequest.setNetworkId(networkId);
+        listDeviceRequest.setNetworkName(networkName);
+        listDeviceRequest.setSortField(sortField);
+        listDeviceRequest.setSortOrder(sortOrderAsc);
+        listDeviceRequest.setTake(take);
+        listDeviceRequest.setSkip(skip);
+        listDeviceRequest.setPrincipal(principal);
+
+        return list(listDeviceRequest);
+    }
+
+    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest listDeviceRequest) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(listDeviceRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((ListDeviceResponse) response.getBody()).getDevices());
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

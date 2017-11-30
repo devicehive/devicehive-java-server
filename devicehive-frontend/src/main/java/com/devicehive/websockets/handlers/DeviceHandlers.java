@@ -41,13 +41,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Optional;
 
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICES_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static com.devicehive.model.rpc.ListDeviceRequest.createListDeviceRequest;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
 @Component
 public class DeviceHandlers {
@@ -111,19 +113,31 @@ public class DeviceHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
     public void processDeviceList(JsonObject request, WebSocketSession session) throws HiveException {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ListDeviceRequest listDeviceRequest = createListDeviceRequest(request, principal);
-        WebSocketResponse response = new WebSocketResponse();
+        ListDeviceRequest listDeviceRequest = ListDeviceRequest.createListDeviceRequest(request, principal);
 
-        List<DeviceVO> toResponse;
-        try {
-            toResponse = deviceService.list(listDeviceRequest);
-        } catch (Exception e) {
-            logger.error(Messages.INTERNAL_SERVER_ERROR, e);
-            throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
+        String sortField = Optional.ofNullable(listDeviceRequest.getSortField()).map(String::toLowerCase).orElse(null);
+        if (sortField != null
+                && !NAME.equalsIgnoreCase(sortField)
+                && !STATUS.equalsIgnoreCase(sortField)
+                && !NETWORK.equalsIgnoreCase(sortField)) {
+            logger.error("Unable to proceed device list request. Invalid sortField.");
+            throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, BAD_REQUEST.getStatusCode());
         }
-        response.addValue(Constants.DEVICES, toResponse, DEVICE_PUBLISHED);
 
-        webSocketClientHandler.sendMessage(request, response, session);
+        WebSocketResponse response = new WebSocketResponse();
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) &&
+                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
+            logger.warn("Unable to get list for empty devices");
+            response.addValue(DEVICES, Collections.<DeviceVO>emptyList(), DEVICES_LISTED);
+            webSocketClientHandler.sendMessage(request, response, session);
+        } else {
+            deviceService.list(listDeviceRequest)
+                    .thenAccept(devices -> {
+                        logger.debug("Device list request proceed successfully");
+                        response.addValue(DEVICES, devices, DEVICES_LISTED);
+                        webSocketClientHandler.sendMessage(request, response, session);
+                    });
+        }
     }
 
     @HiveWebsocketAuth
