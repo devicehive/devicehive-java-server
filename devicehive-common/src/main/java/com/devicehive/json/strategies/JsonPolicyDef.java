@@ -43,6 +43,7 @@ public @interface JsonPolicyDef {
         ACCESS_KEY_SUBMITTED,
         DEVICE_PUBLISHED,
         DEVICE_SUBMITTED,
+        DEVICES_LISTED,
         COMMAND_TO_CLIENT,
         COMMAND_TO_DEVICE,
         COMMAND_LISTED,
