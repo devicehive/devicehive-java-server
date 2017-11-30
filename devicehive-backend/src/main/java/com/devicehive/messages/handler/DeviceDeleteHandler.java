@@ -27,7 +27,6 @@ import com.devicehive.model.rpc.DeviceDeleteResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -50,10 +49,10 @@ public class DeviceDeleteHandler implements RequestHandler {
     @Override
     public Response handle(Request request) {
         final DeviceDeleteRequest req = (DeviceDeleteRequest) request.getBody();
-        final DeviceVO device = req.getDevice();
+        final String deviceId = req.getDeviceId();
 
-        eventBus.unsubscribeDevice(device.getDeviceId());
-        filterRegistry.unregisterDevice(device.getDeviceId());
+        eventBus.unsubscribeDevice(deviceId);
+        filterRegistry.unregisterDevice(deviceId);
 
         return Response.newBuilder()
                 .withBody(new DeviceDeleteResponse())

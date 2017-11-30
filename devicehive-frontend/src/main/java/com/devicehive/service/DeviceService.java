@@ -37,7 +37,9 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -161,7 +163,13 @@ public class DeviceService extends BaseDeviceService {
     //TODO: only migrated to genericDAO, need to migrate Device PK to DeviceId and use directly GenericDAO#remove
     @Transactional
     public boolean deleteDevice(@NotNull String deviceId) {
-        DeviceDeleteRequest deviceDeleteRequest = new DeviceDeleteRequest(findById(deviceId));
+        DeviceVO deviceVO = deviceDao.findById(deviceId);
+        if (deviceVO == null) {
+            logger.error("Device with ID {} not found", deviceId);
+            return false;
+        }
+
+        DeviceDeleteRequest deviceDeleteRequest = new DeviceDeleteRequest(deviceId);
 
         Request request = Request.newBuilder()
                 .withBody(deviceDeleteRequest)

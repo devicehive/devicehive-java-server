@@ -79,11 +79,14 @@ public class FilterRegistry {
     public void unregisterDevice(String deviceId) {
         filterSubscriptionsMap.keySet().stream()
                 .filter(key ->
-                        !key.isGlobal() &&
-                        key.getNetworkIds().isEmpty() &&
-                        key.getDeviceIds().size() == 1 &&
                         key.getDeviceIds().contains(deviceId))
-                .forEach(key -> filterSubscriptionsMap.get(key).forEach(this::unregister));
-        filterSubscriptionsMap.keySet().remove(deviceId);
+                .forEach(key -> {
+                    Collection<Long> subscriptionsIds = filterSubscriptionsMap.get(key);
+                    subscriptionsIds.forEach(this::unregister);
+                    key.deleteDeviceId(deviceId);
+                    if (!(key.getDeviceIds().isEmpty() && key.getNetworkIds().isEmpty())) {
+                        subscriptionsIds.forEach(id -> register(key, id));
+                    }
+                });
     }
 }
