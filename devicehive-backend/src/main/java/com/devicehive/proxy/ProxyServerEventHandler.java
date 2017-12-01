@@ -37,9 +37,13 @@ import com.lmax.disruptor.WorkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
+@Profile("ws-kafka-proxy")
 public class ProxyServerEventHandler implements WorkHandler<ServerEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyServerEventHandler.class);
