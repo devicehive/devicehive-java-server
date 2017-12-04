@@ -25,7 +25,7 @@ import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
-import com.devicehive.shim.kafka.client.RequestResponseMatcher;
+import com.devicehive.api.RequestResponseMatcher;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

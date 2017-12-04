@@ -20,7 +20,7 @@ package com.devicehive.proxy;
  * #L%
  */
 
-import com.devicehive.application.RequestHandlersMapper;
+import com.devicehive.api.HandlersMapper;
 import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessage;
@@ -37,19 +37,23 @@ import com.lmax.disruptor.WorkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
+@Component
+@Profile("ws-kafka-proxy-backend")
 public class ProxyServerEventHandler implements WorkHandler<ServerEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyServerEventHandler.class);
 
     private final Gson gson;
     private final ProxyClient proxyClient;
-    private final RequestHandlersMapper requestHandlersMapper;
+    private final HandlersMapper requestHandlersMapper;
 
     @Autowired
-    public ProxyServerEventHandler(Gson gson, WebSocketKafkaProxyConfig proxyConfig, RequestHandlersMapper requestHandlersMapper) {
+    public ProxyServerEventHandler(Gson gson, WebSocketKafkaProxyConfig proxyConfig, HandlersMapper requestHandlersMapper) {
         this.gson = gson;
         this.requestHandlersMapper = requestHandlersMapper;
         WebSocketKafkaProxyClient webSocketKafkaProxyClient = new WebSocketKafkaProxyClient((message, client) -> {});

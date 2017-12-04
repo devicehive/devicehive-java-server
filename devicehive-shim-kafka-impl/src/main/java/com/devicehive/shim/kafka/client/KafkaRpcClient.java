@@ -20,6 +20,7 @@ package com.devicehive.shim.kafka.client;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
