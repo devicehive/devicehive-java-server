@@ -53,7 +53,6 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
           writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:ci-images.yml
           DH_TAG=${BRANCH_NAME}
           JWT_SECRET=devicehive
-          SPRING_PROFILES_ACTIVE=ws-kafka-proxy
           """
 
           echo("Start DeviceHive")
