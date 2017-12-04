@@ -1,4 +1,4 @@
-package com.devicehive.application;
+package com.devicehive.proxy.config;
 
 /*
  * #%L
@@ -46,7 +46,7 @@ import java.util.UUID;
 import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
 
 @Configuration
-@Profile("ws-kafka-proxy")
+@Profile({"ws-kafka-proxy-frontend"})
 @ComponentScan({"com.devicehive.proxy.config", "com.devicehive.proxy.client"})
 public class FrontendProxyClientConfig {
 

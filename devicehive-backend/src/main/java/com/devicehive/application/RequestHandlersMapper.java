@@ -20,6 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.api.HandlersMapper;
 import com.devicehive.messages.handler.DeviceCreateHandler;
 import com.devicehive.messages.handler.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
@@ -50,7 +51,7 @@ import javax.annotation.PostConstruct;
 import java.util.Map;
 
 @Component
-public class RequestHandlersMapper {
+public class RequestHandlersMapper implements HandlersMapper {
 
     private final NotificationSearchHandler notificationSearchHandler;
     private final NotificationInsertHandler notificationInsertHandler;
@@ -146,6 +147,7 @@ public class RequestHandlersMapper {
                 .build();
     }
 
+    @Override
     public Map<Action, RequestHandler> requestHandlerMap() {
         return requestHandlerMap;
     }

@@ -1,4 +1,4 @@
-package com.devicehive.application;
+package com.devicehive.proxy.config;
 
 /*
  * #%L
@@ -20,6 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.api.HandlersMapper;
 import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.ProxyMessageDispatcher;
 import com.devicehive.proxy.ProxyRequestHandler;
@@ -47,7 +48,7 @@ import java.util.stream.IntStream;
 import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
 
 @Configuration
-@Profile("ws-kafka-proxy")
+@Profile({"ws-kafka-proxy-backend"})
 @ComponentScan({"com.devicehive.proxy.config", "com.devicehive.proxy.client"})
 public class BackendProxyClientConfig {
 
@@ -55,7 +56,7 @@ public class BackendProxyClientConfig {
     private WebSocketKafkaProxyConfig proxyConfig;
 
     @Bean
-    public WorkerPool<ServerEvent> workerPool(Gson gson, WebSocketKafkaProxyConfig proxyConfig, RequestHandlersMapper requestHandlersMapper) {
+    public WorkerPool<ServerEvent> workerPool(Gson gson, WebSocketKafkaProxyConfig proxyConfig, HandlersMapper requestHandlersMapper) {
         final ProxyServerEventHandler[] workHandlers = new ProxyServerEventHandler[proxyConfig.getWorkerThreads()];
         IntStream.range(0, proxyConfig.getWorkerThreads()).forEach(
                 nbr -> workHandlers[nbr] = new ProxyServerEventHandler(gson, proxyConfig, requestHandlersMapper)
