@@ -27,16 +27,9 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
-import com.devicehive.model.rpc.DeviceCreateRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
-import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.shim.api.Action;
-import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
 import com.google.common.collect.Sets;
@@ -49,12 +42,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Component
@@ -66,7 +56,6 @@ public class DeviceService extends BaseDeviceService {
     private final DeviceTypeService deviceTypeService;
     private final UserService userService;
     private final TimestampService timestampService;
-    private final RpcClient rpcClient;
 
     @Autowired
     public DeviceService(DeviceNotificationService deviceNotificationService,
@@ -74,49 +63,27 @@ public class DeviceService extends BaseDeviceService {
                          DeviceTypeService deviceTypeService,
                          UserService userService,
                          TimestampService timestampService,
-                         DeviceDao deviceDao,
-                         RpcClient rpcClient) {
+                         DeviceDao deviceDao) {
         super(deviceDao);
         this.deviceNotificationService = deviceNotificationService;
         this.networkService = networkService;
         this.deviceTypeService = deviceTypeService;
         this.userService = userService;
         this.timestampService = timestampService;
-        this.rpcClient = rpcClient;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public CompletableFuture<String> deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
+    public void deviceSaveAndNotify(String deviceId, DeviceUpdate device, HivePrincipal principal) {
         logger.debug("Device: {}. Current principal: {}.", deviceId, principal == null ? null : principal.getName());
 
         boolean principalHasUserAndAuthenticated = principal != null && principal.getUser() != null && principal.isAuthenticated();
         if (!principalHasUserAndAuthenticated) {
         	throw new HiveException(Messages.UNAUTHORIZED_REASON_PHRASE, UNAUTHORIZED.getStatusCode());
         }
-        DeviceVO oldDevice = deviceDao.findById(deviceId);
 
         DeviceNotification dn = deviceSaveByUser(deviceId, device, principal);
         dn.setTimestamp(timestampService.getDate());
         deviceNotificationService.insert(dn, device.convertTo(deviceId));
-
-        DeviceCreateRequest deviceCreateRequest = new DeviceCreateRequest(findById(deviceId),
-                oldDevice != null? oldDevice.getNetworkId() : null);
-        Request request = Request.newBuilder()
-                .withBody(deviceCreateRequest)
-                .build();
-        CompletableFuture<String> future = new CompletableFuture<>();
-        Consumer<Response> responseConsumer = response -> {
-            Action resAction = response.getBody().getAction();
-            if (resAction.equals(Action.DEVICE_CREATE_RESPONSE)) {
-                future.complete(response.getBody().getAction().name());
-            } else {
-                logger.warn("Unknown action received from backend {}", resAction);
-            }
-        };
-        
-        rpcClient.call(request, responseConsumer);
-        
-        return future;
     }
 
     @Transactional

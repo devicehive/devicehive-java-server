@@ -20,7 +20,6 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.messages.handler.DeviceCreateHandler;
 import com.devicehive.messages.handler.command.*;
 import com.devicehive.messages.handler.dao.list.*;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
@@ -51,13 +50,11 @@ public class RequestHandlersMapper {
     private final CommandSubscribeRequestHandler commandSubscribeRequestHandler;
     private final CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler;
     private final CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler;
-    private final CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler;
     private final ListUserHandler listUserHandler;
     private final ListNetworkHandler listNetworkHandler;
     private final ListDeviceTypeHandler listDeviceTypeHandler;
     private final ListDeviceHandler listDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
-    private final DeviceCreateHandler deviceCreateHandler;
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
@@ -69,7 +66,6 @@ public class RequestHandlersMapper {
                                  ListUserHandler listUserHandler,
                                  ListDeviceHandler listDeviceHandler,
                                  NotificationSubscribeRequestHandler notificationSubscribeRequestHandler,
-                                 CommandGetSubscriptionRequestHandler commandGetSubscriptionRequestHandler,
                                  NotificationUnsubscribeRequestHandler notificationUnsubscribeRequestHandler,
                                  CommandInsertHandler commandInsertHandler,
                                  CommandSearchHandler commandSearchHandler,
@@ -77,7 +73,6 @@ public class RequestHandlersMapper {
                                  ListNetworkHandler listNetworkHandler,
                                  ListDeviceTypeHandler listDeviceTypeHandler,
                                  ListSubscribeHandler listSubscribeHandler,
-                                 DeviceCreateHandler deviceCreateHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler) {
@@ -87,7 +82,6 @@ public class RequestHandlersMapper {
         this.listUserHandler = listUserHandler;
         this.listDeviceHandler = listDeviceHandler;
         this.notificationSubscribeRequestHandler = notificationSubscribeRequestHandler;
-        this.commandGetSubscriptionRequestHandler = commandGetSubscriptionRequestHandler;
         this.notificationUnsubscribeRequestHandler = notificationUnsubscribeRequestHandler;
         this.commandInsertHandler = commandInsertHandler;
         this.commandSearchHandler = commandSearchHandler;
@@ -95,7 +89,6 @@ public class RequestHandlersMapper {
         this.listNetworkHandler = listNetworkHandler;
         this.listDeviceTypeHandler = listDeviceTypeHandler;
         this.listSubscribeHandler = listSubscribeHandler;
-        this.deviceCreateHandler = deviceCreateHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
@@ -115,7 +108,6 @@ public class RequestHandlersMapper {
             put(Action.COMMAND_SUBSCRIBE_REQUEST, commandSubscribeRequestHandler);
             put(Action.COMMAND_UNSUBSCRIBE_REQUEST, commandUnsubscribeRequestHandler);
             put(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST, commandUpdateSubscribeRequestHandler);
-            put(Action.COMMAND_GET_SUBSCRIPTION_REQUEST, commandGetSubscriptionRequestHandler);
 
             put(Action.LIST_USER_REQUEST, listUserHandler);
 
@@ -126,8 +118,6 @@ public class RequestHandlersMapper {
             put(Action.LIST_DEVICE_REQUEST, listDeviceHandler);
 
             put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler);
-
-            put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler);
         }};
     }
 

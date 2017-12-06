@@ -48,7 +48,7 @@ public class ListSubscribeHandler implements RequestHandler {
         final ListSubscribeRequest req = (ListSubscribeRequest) request.getBody();
         Map<Long, Filter> onResponse = new HashMap<>();
 
-        req.getSubscriptionIds().forEach(subId -> onResponse.put(subId, filterRegistry.getFilter(subId)));
+        // req.getSubscriptionIds().forEach(subId -> onResponse.put(subId, filterRegistry.getFilter(subId))); toDo: see DEV-338
 
         return Response.newBuilder()
                 .withBody(new ListSubscribeResponse(onResponse))

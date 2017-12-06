@@ -114,22 +114,20 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public void register(DeviceUpdate deviceUpdate, String deviceId, @Suspended final AsyncResponse asyncResponse) {
+    public Response register(DeviceUpdate deviceUpdate, String deviceId) {
         if (deviceUpdate == null){
-            final Response response = ResponseFactory.response(BAD_REQUEST,
+            return ResponseFactory.response(
+                    BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
             );
-            asyncResponse.resume(response);
         }
         logger.debug("Device register method requested. Device ID : {}, Device: {}", deviceId, deviceUpdate);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal).thenAccept(actionName -> {
-            logger.debug("Device register finished successfully. Device ID: {}", deviceId);
-            final Response response = ResponseFactory.response(Response.Status.NO_CONTENT);
-            asyncResponse.resume(response);
-        });
-        
+        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal);
+        logger.debug("Device register finished successfully. Device ID: {}", deviceId);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**

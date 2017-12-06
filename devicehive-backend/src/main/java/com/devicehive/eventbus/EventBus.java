@@ -20,15 +20,11 @@ package com.devicehive.eventbus;
  * #L%
  */
 
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
 
 /**
  * Central class for interaction with devicehive-backend subscription mechanism.
@@ -36,46 +32,30 @@ import java.util.Collection;
  */
 public class EventBus {
 
-    private final SubscriberRegistry registry;
+    private final FilterRegistry registry;
     private final MessageDispatcher dispatcher;
 
     /**
      * Creates new instance of EventBus
      * @param dispatcher - interface, that controls message delivery strategy
      */
-    public EventBus(MessageDispatcher dispatcher, SubscriberRegistry registry) {
+    public EventBus(MessageDispatcher dispatcher, FilterRegistry registry) {
         this.dispatcher = dispatcher;
         this.registry = registry;
     }
 
-    public void subscribe(Subscriber subscriber, Subscription subscription) {
-        registry.register(subscriber, subscription);
+    public void subscribe(Filter filter, Subscriber subscriber) {
+        registry.register(filter, subscriber);
     }
 
     public void unsubscribe(Subscriber subscriber) {
         registry.unregister(subscriber);
     }
 
-    public void unsubscribe(Subscription subscription) {
-        registry.unregister(subscription);
-    }
-
-    public Subscriber getSubscriber(Long subscriptionId) {
-        return registry.getSubscriber(subscriptionId);
-    }
-
-    public Collection<Subscription> getSubscriptions(Subscriber subscriber) {
-       return registry.getSubscriptions(subscriber);
-    }
-
-    public Collection<Subscription> getAllSubscriptions() {
-        return registry.getAllSubscriptions();
-    }
-
     public void publish(Event event) {
-        event.getApplicableSubscriptions()
+        event.getApplicableFilters()
                 .stream()
-                .flatMap(subscription -> registry.getSubscribers(subscription).stream())
+                .flatMap(filter -> registry.getSubscribers(filter).stream())
                 .forEach(subscriber -> {
                     Response response = Response.newBuilder()
                             .withBody(event)

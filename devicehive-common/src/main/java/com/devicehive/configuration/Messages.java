@@ -117,6 +117,7 @@ public class Messages {
     public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
     public static final String NO_ACCESS_TO_DEVICE = BidBundle.get("NO_ACCESS_TO_DEVICE");
+    public static final String NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS = BidBundle.get("NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS");
     public static final String NO_NETWORKS_ASSIGNED_TO_USER = BidBundle.get("NO_NETWORKS_ASSIGNED_TO_USER");
     public static final String CANT_DELETE_CURRENT_USER_KEY = BidBundle.get("CANT_DELETE_CURRENT_USER_KEY");
     public static final String CANT_DELETE_LAST_DEFAULT_ACCESS_KEY = BidBundle.get("CANT_DELETE_LAST_DEFAULT_ACCESS_KEY");

@@ -91,6 +91,21 @@ public class HazelcastService {
         return find(filters, take, entityClass);
     }
 
+    public <T extends HazelcastEntity> Collection<T> find(String deviceId,
+                                                          Collection<Long> networkIds,
+                                                          Collection<Long> deviceTypeIds,
+                                                          Collection<String> names,
+                                                          Integer take,
+                                                          Date timestampSt,
+                                                          Date timestampEnd,
+                                                          boolean returnUpdated,
+                                                          String status,
+                                                          Class<T> entityClass) {
+        final Predicate filters = hazelcastHelper.prepareFilters(deviceId, networkIds, deviceTypeIds, names,
+                timestampSt, timestampEnd, returnUpdated, status, entityClass);
+        return find(filters, take, entityClass);
+    }
+
     public <T extends HazelcastEntity> void store(final T hzEntity) {
         logger.debug("Saving entity into hazelcast. [Entity: {}]", hzEntity);
         mapsHolder.get(hzEntity.getClass()).set(hzEntity.getHazelcastKey(), hzEntity);

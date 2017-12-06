@@ -30,18 +30,18 @@ import java.util.Set;
 public class CommandSubscribeRequest extends Body {
 
     private Long subscriptionId;
-    private String device;
     private Filter filter;
+    private Set<String> names;
     private Date timestamp;
     private boolean returnUpdated;
     private Integer limit;
 
-    public CommandSubscribeRequest(Long subscriptionId, String device,
-            Filter filter, Date timestamp, boolean returnUpdated, Integer limit) {
+    public CommandSubscribeRequest(Long subscriptionId, Filter filter, Set<String> names, Date timestamp,
+                                   boolean returnUpdated, Integer limit) {
         super(Action.COMMAND_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
-        this.device = device;
         this.filter = filter;
+        this.names = names;
         this.timestamp = timestamp;
         this.returnUpdated = returnUpdated;
         this.limit = limit;
@@ -55,20 +55,20 @@ public class CommandSubscribeRequest extends Body {
         this.subscriptionId = subscriptionId;
     }
 
-    public String getDevice() {
-        return device;
-    }
-
-    public void setDevice(String device) {
-        this.device = device;
-    }
-
     public Filter getFilter() {
         return filter;
     }
 
     public void setFilter(Filter filter) {
         this.filter = filter;
+    }
+
+    public Set<String> getNames() {
+        return names;
+    }
+
+    public void setNames(Set<String> names) {
+        this.names = names;
     }
 
     public Date getTimestamp() {
@@ -108,22 +108,22 @@ public class CommandSubscribeRequest extends Body {
         }
         CommandSubscribeRequest that = (CommandSubscribeRequest) o;
         return Objects.equals(subscriptionId, that.subscriptionId)
-                && Objects.equals(device, that.device)
                 && Objects.equals(filter, that.filter)
+                && Objects.equals(names, that.names)
                 && Objects.equals(timestamp, that.timestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, device, filter, timestamp);
+        return Objects.hash(super.hashCode(), subscriptionId, filter, names, timestamp);
     }
 
     @Override
     public String toString() {
         return "CommandSubscribeRequest{"
                 + "subscriptionId='" + subscriptionId + '\''
-                + ", device='" + device + '\''
                 + ", filter=" + filter
+                + ", names=" + names
                 + ", timestamp=" + timestamp
                 + ", limit=" + limit
                 + '}';

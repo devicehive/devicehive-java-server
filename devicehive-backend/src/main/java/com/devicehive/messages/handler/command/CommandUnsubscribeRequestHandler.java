@@ -57,7 +57,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
             for (Long subId : body.getSubscriptionIds()) {
                 Subscriber subscriber = new Subscriber(subId, request.getReplyTo(), request.getCorrelationId());
                 eventBus.unsubscribe(subscriber);
-                filterRegistry.unregister(subId);
             }
 
             CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionIds());

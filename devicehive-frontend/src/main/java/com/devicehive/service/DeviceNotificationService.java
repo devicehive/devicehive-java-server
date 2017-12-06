@@ -138,14 +138,14 @@ public class DeviceNotificationService {
     }
 
     public Pair<Long, CompletableFuture<List<DeviceNotification>>> subscribe(
-            final Set<String> devices,
-            final Filter filter,
+            final Set<Filter> filters,
+            final Set<String> names,
             final Date timestamp,
             final BiConsumer<DeviceNotification, Long> callback) {
 
         final Long subscriptionId = idGenerator.generate();
-        Set<NotificationSubscribeRequest> subscribeRequests = devices.stream()
-                .map(device -> new NotificationSubscribeRequest(subscriptionId, device, filter, timestamp))
+        Set<NotificationSubscribeRequest> subscribeRequests = filters.stream()
+                .map(filter -> new NotificationSubscribeRequest(subscriptionId, filter, names, timestamp))
                 .collect(Collectors.toSet());
         Collection<CompletableFuture<Collection<DeviceNotification>>> futures = new ArrayList<>();
         for (NotificationSubscribeRequest sr : subscribeRequests) {
@@ -166,7 +166,7 @@ public class DeviceNotificationService {
             futures.add(future);
             Request request = Request.newBuilder()
                     .withBody(sr)
-                    .withPartitionKey(sr.getDevice())
+                    .withPartitionKey(sr.getFilter().getFirstKey())
                     .withSingleReply(false)
                     .build();
             rpcClient.call(request, responseConsumer);
@@ -205,6 +205,7 @@ public class DeviceNotificationService {
         notification.setId(Math.abs(new Random().nextInt()));
         notification.setDeviceId(device.getDeviceId());
         notification.setNetworkId(device.getNetworkId());
+        notification.setDeviceTypeId(device.getDeviceTypeId());
         if (notificationSubmit.getTimestamp() == null) {
             notification.setTimestamp(timestampService.getDate());
         } else {

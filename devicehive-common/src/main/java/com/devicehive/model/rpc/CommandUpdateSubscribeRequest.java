@@ -20,6 +20,7 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
@@ -28,12 +29,14 @@ public class CommandUpdateSubscribeRequest extends Body {
     private long commandId;
     private String deviceId;
     private Long subscriptionId;
+    private Filter filter;
 
-    public CommandUpdateSubscribeRequest(long commandId, String deviceId, Long subscriptionId) {
+    public CommandUpdateSubscribeRequest(long commandId, String deviceId, Long subscriptionId, Filter filter) {
         super(Action.COMMAND_UPDATE_SUBSCRIBE_REQUEST);
         this.commandId = commandId;
         this.deviceId = deviceId;
         this.subscriptionId = subscriptionId;
+        this.filter = filter;
     }
 
     public long getCommandId() {
@@ -46,5 +49,9 @@ public class CommandUpdateSubscribeRequest extends Body {
 
     public Long getSubscriptionId() {
         return subscriptionId;
+    }
+
+    public Filter getFilter() {
+        return filter;
     }
 }

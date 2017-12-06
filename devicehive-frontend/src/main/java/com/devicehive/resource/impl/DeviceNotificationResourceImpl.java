@@ -59,6 +59,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import static com.devicehive.shim.api.Action.NOTIFICATION_EVENT;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -192,19 +193,17 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
+        Set<DeviceVO> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
                 .collect(Collectors.toSet());
 
         if (networkIdsCsv != null) {
-            Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
+            Set<DeviceVO> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
                     .map(Arrays::asList)
                     .map(list -> list.stream()
                             .map(n -> gson.fromJson(n, Long.class))
                             .map(network -> networkService.getWithDevices(network, authentication))
                             .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
                             .flatMap(Collection::stream)
-                            .map(DeviceVO::getDeviceId)
                             .collect(Collectors.toSet())
                     ).orElse(Collections.emptySet());
             availableDevices.addAll(networkDevices);
@@ -212,12 +211,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
         if (availableDevices.isEmpty()) {
             availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
                     .stream()
-                    .map(DeviceVO::getDeviceId)
                     .collect(Collectors.toSet());
 
         }
 
-        Set<String> notifications = Optional.ofNullable(StringUtils.split(namesString, ','))
+        Set<String> names = Optional.ofNullable(StringUtils.split(namesString, ','))
                 .map(Arrays::asList)
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
@@ -231,11 +229,19 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
         };
 
-        Filter filter = new Filter();
-        filter.setNames(notifications);
+        Set<Filter> filters;
+        if (names != null && !names.isEmpty()) {
+            filters = availableDevices.stream().flatMap(device -> names.stream().map(name ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), NOTIFICATION_EVENT.name(), name)
+            )).collect(Collectors.toSet());
+        } else {
+            filters = availableDevices.stream().map(device ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), NOTIFICATION_EVENT.name(), null)
+            ).collect(Collectors.toSet());
+        }
         if (!availableDevices.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                    .subscribe(availableDevices, filter, ts, callback);
+                    .subscribe(filters, names, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

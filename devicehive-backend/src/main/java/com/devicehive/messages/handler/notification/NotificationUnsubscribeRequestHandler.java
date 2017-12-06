@@ -56,7 +56,6 @@ public class NotificationUnsubscribeRequestHandler implements RequestHandler {
             for (Long subId : body.getSubscriptionIds()) {
                 Subscriber subscriber = new Subscriber(subId, request.getReplyTo(), request.getCorrelationId());
                 eventBus.unsubscribe(subscriber);
-                filterRegistry.unregister(subId);
             }
 
             NotificationUnsubscribeResponse unsubscribeResponse =

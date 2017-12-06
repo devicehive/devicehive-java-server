@@ -21,11 +21,9 @@ package com.devicehive.messages.handler.notification;
  */
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.NotificationSubscribeRequest;
 import com.devicehive.model.rpc.NotificationSubscribeResponse;
 import com.devicehive.service.HazelcastService;
@@ -35,7 +33,6 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -45,17 +42,11 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
     public static final int LIMIT = 100;
 
     private EventBus eventBus;
-    private FilterRegistry filterRegistry;
     private HazelcastService hazelcastService;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
-    }
-
-    @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
     }
 
     @Autowired
@@ -69,22 +60,11 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
         validate(body);
 
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
+        Filter filter = body.getFilter();
 
-        Set<Subscription> subscriptions = new HashSet<>();
-        if (CollectionUtils.isEmpty(body.getFilter().getNames())) {
-            Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice());
-            subscriptions.add(subscription);
-        } else {
-            for (String name : body.getFilter().getNames()) {
-                Subscription subscription = new Subscription(Action.NOTIFICATION_EVENT.name(), body.getDevice(), name);
-                subscriptions.add(subscription);
-            }
-        }
+        eventBus.subscribe(filter, subscriber);
 
-        subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
-        filterRegistry.register(body.getFilter(), body.getSubscriptionId());
-
-        Collection<DeviceNotification> notifications = findNotifications(body.getDevice(), body.getFilter().getNames(), body.getTimestamp());
+        Collection<DeviceNotification> notifications = findNotifications(filter, body.getNames(), body.getTimestamp());
         NotificationSubscribeResponse subscribeResponse = new NotificationSubscribeResponse(body.getSubscriptionId(), notifications);
 
         return Response.newBuilder()
@@ -96,17 +76,17 @@ public class NotificationSubscribeRequestHandler implements RequestHandler {
 
     private void validate(NotificationSubscribeRequest request) {
         Assert.notNull(request, "Request body is null");
-        Assert.notNull(request.getDevice(), "Device id is null");
+        Assert.notNull(request.getFilter(), "Filter is null");
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 
-    private Collection<DeviceNotification> findNotifications(String device, Collection<String> names, Date timestamp) {
-        Collection<DeviceNotification> notifications = Collections.emptyList();
-        if (timestamp != null) {
-            notifications =
-                    hazelcastService.find(Collections.singleton(device), names, LIMIT, timestamp, null, false, null, DeviceNotification.class);
-        }
-        return notifications;
+    private Collection<DeviceNotification> findNotifications(Filter filter, Collection<String> names, Date timestamp) {
+        return Optional.ofNullable(timestamp)
+                .map(t -> hazelcastService.find(filter.getDeviceId(),
+                        Collections.singleton(filter.getNetworkId()),
+                        Collections.singleton(filter.getDeviceTypeId()),
+                        names, LIMIT, t, null, false, null, DeviceNotification.class))
+                .orElse(Collections.emptyList());
     }
 
 }

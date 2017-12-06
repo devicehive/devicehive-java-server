@@ -42,17 +42,23 @@ import static com.devicehive.model.enums.SearchableField.*;
 public class HazelcastHelper {
 
     public <T extends HazelcastEntity> Predicate prepareFilters(final Long id, final String deviceId, Class<T> entityClass) {
-        return prepareFilters(id, Collections.singleton(deviceId), null, null, null, false, null, entityClass);
+        return prepareFilters(id, Collections.singleton(deviceId), null, null, null, null, null, false, null, entityClass);
     }
 
     public <T extends HazelcastEntity> Predicate prepareFilters(Collection<String> deviceIds, Collection<String> names,
             Date timestampSt, Date timestampEnd, boolean returnUpdated, String status, Class<T> entityClass) {
-        return prepareFilters(null, deviceIds, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
+        return prepareFilters(null, deviceIds, null, null, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
     }
 
-    private <T extends HazelcastEntity> Predicate prepareFilters(Long id, Collection<String> deviceIds,
-            Collection<String> names, Date timestampSt, Date timestampEnd, boolean returnUpdated, String status,
-            Class<T> entityClass) {
+    public <T extends HazelcastEntity> Predicate prepareFilters(String deviceId, Collection<Long> networkIds,
+            Collection<Long> deviceTypeIds, Collection<String> names, Date timestampSt, Date timestampEnd,
+            boolean returnUpdated, String status, Class<T> entityClass) {
+        return prepareFilters(null, Collections.singleton(deviceId), networkIds, deviceTypeIds, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
+    }
+
+    private <T extends HazelcastEntity> Predicate prepareFilters(Long id, Collection<String> deviceIds, Collection<Long> networkIds,
+            Collection<Long> deviceTypeIds, Collection<String> names, Date timestampSt, Date timestampEnd,
+            boolean returnUpdated, String status, Class<T> entityClass) {
         final List<Predicate> predicates = new ArrayList<>();
         if (id != null) {
             predicates.add(Predicates.equal(ID.getField(), id));
@@ -60,6 +66,14 @@ public class HazelcastHelper {
 
         if (deviceIds != null && !deviceIds.isEmpty()) {
             predicates.add(Predicates.in(DEVICE_IDS.getField(), deviceIds.toArray(new String[deviceIds.size()])));
+        }
+
+        if (networkIds != null && !networkIds.isEmpty()) {
+            predicates.add(Predicates.in(NETWORK_IDS.getField(), networkIds.toArray(new Long[networkIds.size()])));
+        }
+
+        if (deviceTypeIds != null && !deviceTypeIds.isEmpty()) {
+            predicates.add(Predicates.in(DEVICE_TYPE_IDS.getField(), deviceTypeIds.toArray(new Long[deviceTypeIds.size()])));
         }
 
         String searchableField = entityClass.equals(DeviceCommand.class) ? COMMAND.getField() : NOTIFICATION.getField();

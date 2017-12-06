@@ -31,15 +31,15 @@ import java.util.Set;
 public class NotificationSubscribeRequest extends Body {
 
     private Long subscriptionId;
-    private String device;
     private Filter filter;
+    private Set<String> names;
     private Date timestamp;
 
-    public NotificationSubscribeRequest(Long subscriptionId, String device, Filter filter, Date timestamp) {
+    public NotificationSubscribeRequest(Long subscriptionId, Filter filter, Set<String> names, Date timestamp) {
         super(Action.NOTIFICATION_SUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
-        this.device = device;
         this.filter = filter;
+        this.names = names;
         this.timestamp = timestamp;
     }
 
@@ -51,20 +51,20 @@ public class NotificationSubscribeRequest extends Body {
         this.subscriptionId = subscriptionId;
     }
 
-    public String getDevice() {
-        return device;
-    }
-
-    public void setDevice(String device) {
-        this.device = device;
-    }
-
     public Filter getFilter() {
         return filter;
     }
 
     public void setFilter(Filter filter) {
         this.filter = filter;
+    }
+
+    public Set<String> getNames() {
+        return names;
+    }
+
+    public void setNames(Set<String> names) {
+        this.names = names;
     }
 
     public Date getTimestamp() {
@@ -82,22 +82,22 @@ public class NotificationSubscribeRequest extends Body {
         if (!super.equals(o)) return false;
         NotificationSubscribeRequest that = (NotificationSubscribeRequest) o;
         return Objects.equals(subscriptionId, that.subscriptionId) &&
-                Objects.equals(device, that.device) &&
                 Objects.equals(filter, that.filter) &&
+                Objects.equals(names, that.names) &&
                 Objects.equals(timestamp, that.timestamp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), subscriptionId, device, filter, timestamp);
+        return Objects.hash(super.hashCode(), subscriptionId, filter, names, timestamp);
     }
 
     @Override
     public String toString() {
         return "NotificationSubscribeRequest{" +
                 "subscriptionId='" + subscriptionId + '\'' +
-                ", device='" + device + '\'' +
                 ", filter=" + filter +
+                ", names=" + names +
                 ", timestamp=" + timestamp +
                 '}';
     }

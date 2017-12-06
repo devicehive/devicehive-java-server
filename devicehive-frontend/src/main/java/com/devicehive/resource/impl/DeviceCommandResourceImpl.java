@@ -59,6 +59,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -137,19 +138,17 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 .map(list -> list.stream().collect(Collectors.toSet()))
                 .orElse(Collections.emptySet());
 
-        Set<String> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
-                .map(deviceVO -> deviceVO.getDeviceId())
+        Set<DeviceVO> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
                 .collect(Collectors.toSet());
 
         if (networkIdsCsv != null) {
-            Set<String> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
+            Set<DeviceVO> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
                     .map(Arrays::asList)
                     .map(list -> list.stream()
                             .map(n -> gson.fromJson(n, Long.class))
                             .map(network -> networkService.getWithDevices(network, authentication))
                             .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
                             .flatMap(Collection::stream)
-                            .map(DeviceVO::getDeviceId)
                             .collect(Collectors.toSet())
                     ).orElse(Collections.emptySet());
             availableDevices.addAll(networkDevices);
@@ -157,7 +156,6 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
         if (availableDevices.isEmpty()) {
             availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
                     .stream()
-                    .map(DeviceVO::getDeviceId)
                     .collect(Collectors.toSet());
 
         }
@@ -176,11 +174,19 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
         };
 
-        Filter filter = new Filter();
-        filter.setNames(names);
+        Set<Filter> filters;
+        if (names != null && !names.isEmpty()) {
+            filters = availableDevices.stream().flatMap(device -> names.stream().map(name ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), COMMAND_EVENT.name(), name)
+            )).collect(Collectors.toSet());
+        } else {
+            filters = availableDevices.stream().map(device ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), COMMAND_EVENT.name(), null)
+            ).collect(Collectors.toSet());
+        }
         if (!availableDevices.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDevices, filter, ts, returnUpdated, limit, callback);
+                    .sendSubscribeRequest(filters, names, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
@@ -271,7 +277,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!command.getIsUpdated()) {
             CompletableFuture<Pair<Long, DeviceCommand>> future = commandService
-                    .sendSubscribeToUpdateRequest(Long.valueOf(commandId), deviceId, callback);
+                    .sendSubscribeToUpdateRequest(Long.valueOf(commandId), device, callback);
             future.thenAccept(pair -> {
                 final DeviceCommand deviceCommand = pair.getRight();
                 if (!asyncResponse.isDone() && deviceCommand.getIsUpdated()) {
