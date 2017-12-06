@@ -141,6 +141,7 @@ public class BaseUserService {
             if (user.getLoginAttempts()
                     >= configurationService.getInt(Constants.MAX_LOGIN_ATTEMPTS, Constants.MAX_LOGIN_ATTEMPTS_DEFAULT)) {
                 user.setStatus(UserStatus.LOCKED_OUT);
+                logger.info("User with id {} has been locked out after {} login attempts.", user.getId(), user.getLoginAttempts());
                 user.setLoginAttempts(0);
             }
             userDao.merge(user);
