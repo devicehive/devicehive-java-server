@@ -25,7 +25,7 @@ node('docker') {
     unstash 'jars'
     def auth = docker.build('devicehiveci/devicehive-auth:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth.Dockerfile .')
     def plugin = docker.build('devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin-rdbms.Dockerfile .')
-    def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
+    def frontend = docker.build('devicehiveci/devicehive-frontend:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend.Dockerfile .')
     def backend = docker.build('devicehiveci/devicehive-backend:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend.Dockerfile .')
     def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
@@ -118,13 +118,13 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
       docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
         sh """
           docker tag devicehiveci/devicehive-auth:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
-          docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-frontend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
-          docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}

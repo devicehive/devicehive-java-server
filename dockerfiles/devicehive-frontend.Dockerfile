@@ -7,7 +7,7 @@ ENV DH_VERSION="3.4.2-SNAPSHOT"
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \
       org.label-schema.vcs-url="https://github.com/devicehive/devicehive-java-server" \
-      org.label-schema.name="devicehive-frontend-rdbms" \
+      org.label-schema.name="devicehive-frontend" \
       org.label-schema.version="$DH_VERSION"
 
 RUN apt-get update \
@@ -16,7 +16,7 @@ RUN apt-get update \
 
 ADD devicehive-frontend/target/devicehive-frontend-${DH_VERSION}-boot.jar /opt/devicehive/
 #start script
-ADD dockerfiles/devicehive-frontend-rdbms/devicehive-start.sh /opt/devicehive/
+ADD dockerfiles/devicehive-frontend/devicehive-start.sh /opt/devicehive/
 
 VOLUME ["/var/log/devicehive"]
 
