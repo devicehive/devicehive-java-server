@@ -20,6 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.events.CommandEvent;
@@ -34,12 +35,10 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.UserVO;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

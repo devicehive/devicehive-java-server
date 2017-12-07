@@ -136,6 +136,10 @@ public class Filter implements Portable {
         return joiner.toString();
     }
 
+    public void deleteDeviceId(String deviceId) {
+        deviceIds.remove(deviceId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

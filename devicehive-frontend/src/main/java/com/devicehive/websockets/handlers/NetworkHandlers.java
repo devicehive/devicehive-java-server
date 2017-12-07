@@ -102,7 +102,7 @@ public class NetworkHandlers {
             throw new HiveException(Messages.NETWORK_ID_REQUIRED, BAD_REQUEST.getStatusCode());
         }
 
-        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(networkId, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        NetworkWithUsersAndDevicesVO existing = networkService.getWithDevices(networkId);
         if (existing == null) {
             logger.error(String.format(Messages.NETWORK_NOT_FOUND, networkId));
             throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());

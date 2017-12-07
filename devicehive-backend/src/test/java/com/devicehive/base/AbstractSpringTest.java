@@ -20,7 +20,7 @@ package com.devicehive.base;
  * #L%
  */
 
-import com.devicehive.application.DeviceHiveApplication;
+import com.devicehive.application.DeviceHiveBackendApplication;
 import com.devicehive.test.rule.KafkaEmbeddedRule;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-@SpringBootTest(classes = {DeviceHiveApplication.class, HazelcastConfigurationTest.class})
+@SpringBootTest(classes = {DeviceHiveBackendApplication.class, HazelcastConfigurationTest.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringTest {
 
@@ -64,7 +64,10 @@ public abstract class AbstractSpringTest {
                             throw new RuntimeException(e);
                         }
                     })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+                    .map(mac -> Base64.getEncoder().withoutPadding().encodeToString(mac)).orElse(UUID.randomUUID().toString());
+            prefix = prefix.replace("+", "")
+                    .replace("/", "")
+                    .replace("=", "");
             RESPONSE_TOPIC = "response_topic_" + prefix;
         } catch (SocketException | UnknownHostException e) {
             RESPONSE_TOPIC = "response_topic_" + UUID.randomUUID().toString();

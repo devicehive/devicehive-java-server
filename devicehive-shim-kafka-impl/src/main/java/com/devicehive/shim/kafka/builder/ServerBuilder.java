@@ -26,7 +26,7 @@ import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
 import com.devicehive.shim.kafka.server.RequestConsumer;
-import com.devicehive.shim.kafka.server.ServerEvent;
+import com.devicehive.model.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.lmax.disruptor.FatalExceptionHandler;
 import com.lmax.disruptor.WorkerPool;

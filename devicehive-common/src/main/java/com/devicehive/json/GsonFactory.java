@@ -94,6 +94,11 @@ public class GsonFactory {
                 .registerSubtype(CommandUpdateEvent.class, Action.COMMAND_UPDATE_EVENT.ordinal())
                 .registerSubtype(CommandsUpdateEvent.class, Action.COMMANDS_UPDATE_EVENT.ordinal())
 
+                .registerSubtype(PluginSubscribeRequest.class, Action.PLUGIN_SUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(PluginSubscribeResponse.class, Action.PLUGIN_SUBSCRIBE_RESPONSE.ordinal())
+                .registerSubtype(PluginUnsubscribeRequest.class, Action.PLUGIN_UNSUBSCRIBE_REQUEST.ordinal())
+                .registerSubtype(PluginUnsubscribeResponse.class, Action.PLUGIN_UNSUBSCRIBE_RESPONSE.ordinal())
+
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.ordinal())
                 .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.ordinal())
 
@@ -105,6 +110,9 @@ public class GsonFactory {
 
                 .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.ordinal())
                 .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.ordinal())
+
+                .registerSubtype(DeviceDeleteRequest.class, Action.DEVICE_DELETE_REQUEST.ordinal())
+                .registerSubtype(DeviceDeleteResponse.class, Action.DEVICE_DELETE_RESPONSE.ordinal())
 
                 .registerSubtype(ListSubscribeRequest.class, Action.LIST_SUBSCRIBE_REQUEST.ordinal())
                 .registerSubtype(ListSubscribeResponse.class, Action.LIST_SUBSCRIBE_RESPONSE.ordinal());

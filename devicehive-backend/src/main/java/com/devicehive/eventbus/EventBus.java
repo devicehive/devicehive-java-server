@@ -26,6 +26,8 @@ import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 
+import java.util.Collection;
+
 /**
  * Central class for interaction with devicehive-backend subscription mechanism.
  * Provides basic interfaces and operations for subscription, unsubscription and publishing of events.
@@ -64,5 +66,9 @@ public class EventBus {
                             .buildSuccess();
                     dispatcher.send(subscriber.getReplyTo(), response);
                 });
+    }
+
+    public void unsubscribeDevice(String deviceId) {
+        registry.unregisterDevice(deviceId);
     }
 }

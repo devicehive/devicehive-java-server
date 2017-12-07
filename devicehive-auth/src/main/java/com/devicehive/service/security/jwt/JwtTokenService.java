@@ -22,7 +22,7 @@ package com.devicehive.service.security.jwt;
 
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.service.BaseUserService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
@@ -99,14 +99,14 @@ public class JwtTokenService {
         }
 
         JwtTokenVO tokenVO = new JwtTokenVO();
-        JwtPayload accessPayload = JwtPayload.newBuilder()
+        JwtUserPayload accessPayload = JwtUserPayload.newBuilder()
                 .withUserId(user.getId())
                 .withActions(actions)
                 .withNetworkIds(networkIds)
                 .withDeviceTypeIds(deviceTypeIds)
                 .buildPayload();
 
-        JwtPayload refreshPayload = JwtPayload.newBuilder().withPayload(accessPayload)
+        JwtUserPayload refreshPayload = JwtUserPayload.newBuilder().withPayload(accessPayload)
                 .buildPayload();
 
         tokenVO.setAccessToken(tokenService.generateJwtAccessToken(accessPayload, false));

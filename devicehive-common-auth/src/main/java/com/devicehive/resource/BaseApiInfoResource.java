@@ -26,6 +26,6 @@ import javax.ws.rs.core.UriInfo;
 
 public interface BaseApiInfoResource {
 
-    Response getApiInfo(@Context UriInfo uriInfo, Boolean wssEnabled);
+    Response getApiInfo(@Context UriInfo uriInfo, String protocol);
 
 }

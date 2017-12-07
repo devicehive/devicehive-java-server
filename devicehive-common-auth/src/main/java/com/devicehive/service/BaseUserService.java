@@ -24,12 +24,15 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.PasswordProcessor;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithDeviceTypeVO;
 import com.devicehive.vo.UserWithNetworkVO;
@@ -41,10 +44,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This class serves all requests to database from controller.
@@ -56,6 +61,7 @@ public class BaseUserService {
 
     protected final PasswordProcessor passwordService;
     protected final UserDao userDao;
+    protected final NetworkDao networkDao;
     protected final TimestampService timestampService;
     protected final ConfigurationService configurationService;
     protected final HiveValidator hiveValidator;
@@ -63,11 +69,13 @@ public class BaseUserService {
     @Autowired
     public BaseUserService(PasswordProcessor passwordService,
                        UserDao userDao,
+                       NetworkDao networkDao,
                        TimestampService timestampService,
                        ConfigurationService configurationService,
                        HiveValidator hiveValidator) {
         this.passwordService = passwordService;
         this.userDao = userDao;
+        this.networkDao = networkDao;
         this.timestampService = timestampService;
         this.configurationService = configurationService;
         this.hiveValidator = hiveValidator;
@@ -165,4 +173,47 @@ public class BaseUserService {
         }
         return update ? userDao.merge(user) : user;
     }
+
+    /**
+     * Allows user access to given network
+     *
+     * @param userId id of user
+     * @param networkId id of network
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
+        UserVO existingUser = userDao.find(userId);
+        if (existingUser == null) {
+            logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId).orElse(null);
+        if (Objects.isNull(existingNetwork)) {
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+        }
+
+        networkDao.assignToNetwork(existingNetwork, existingUser);
+    }
+
+    /**
+     * Revokes user access to given network
+     *
+     * @param userId id of user
+     * @param networkId id of network
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
+        UserVO existingUser = userDao.find(userId);
+        if (existingUser == null) {
+            logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        NetworkVO existingNetwork = networkDao.find(networkId);
+        if (existingNetwork == null) {
+            logger.error("Can't unassign user with id {}: network {} not found", userId, networkId);
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
+        }
+        userDao.unassignNetwork(existingUser, networkId);
+    }
+
 }

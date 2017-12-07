@@ -21,6 +21,8 @@ package com.devicehive.exceptions;
  */
 
 public class HivePersistenceLayerException extends HiveException {
+    private static final long serialVersionUID = 2084328743134451009L;
+
     public HivePersistenceLayerException(String message, Throwable cause) {
         super(message, cause);
     }

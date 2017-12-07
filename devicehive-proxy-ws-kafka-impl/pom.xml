@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.devicehive</groupId>
         <artifactId>devicehive-server</artifactId>
-        <version>3.4.1-SNAPSHOT</version>
+        <version>3.4.2-SNAPSHOT</version>
     </parent>
     <artifactId>devicehive-proxy-ws-kafka-impl</artifactId>
     <packaging>jar</packaging>
@@ -27,6 +27,10 @@
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-client-api</artifactId>
             <version>${javax.websocket.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
         </dependency>
     </dependencies>
 </project>

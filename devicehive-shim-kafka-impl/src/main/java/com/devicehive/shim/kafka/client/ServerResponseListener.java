@@ -20,6 +20,7 @@ package com.devicehive.shim.kafka.client;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.shim.api.Response;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.Deserializer;

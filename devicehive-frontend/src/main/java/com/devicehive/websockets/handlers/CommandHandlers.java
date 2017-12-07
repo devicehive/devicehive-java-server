@@ -20,7 +20,6 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
@@ -101,6 +100,7 @@ public class CommandHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
+    @SuppressWarnings("unchecked")
     public void processCommandSubscribe(String deviceId, JsonObject request, WebSocketSession session)
             throws InterruptedException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -216,6 +216,7 @@ public class CommandHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
+    @SuppressWarnings("unchecked")
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);

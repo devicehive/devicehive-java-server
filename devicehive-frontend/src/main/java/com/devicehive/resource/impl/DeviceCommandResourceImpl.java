@@ -27,6 +27,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.json.strategies.JsonPolicyDef.Policy;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.ErrorResponse;
+import com.devicehive.model.converters.SetHelper;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
 import static com.devicehive.shim.api.Action.COMMAND_EVENT;
+import static com.devicehive.model.converters.SetHelper.toStringSet;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -325,7 +327,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             Response response = ResponseFactory.response(NOT_FOUND, errorCode);
             asyncResponse.resume(response);
         } else {
-            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.EMPTY_LIST;
+            List<String> names = StringUtils.isNoneEmpty(command) ? Collections.singletonList(command) : Collections.emptyList();
             
             commandService.find(Collections.singletonList(deviceId), names, timestampSt, timestampEnd, status,
                     sortField, sortOrderSt, take, skip)

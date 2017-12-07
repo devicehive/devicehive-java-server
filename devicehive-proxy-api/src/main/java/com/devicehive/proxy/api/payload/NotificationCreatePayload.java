@@ -30,9 +30,19 @@ public class NotificationCreatePayload implements Payload {
     @SerializedName("m")
     private String message;
 
+    @SerializedName("part")
+    private String partition;
+
     public NotificationCreatePayload(String topic, String message) {
         this.topic = topic;
         this.message = message;
+        this.partition = "0";
+    }
+
+    public NotificationCreatePayload(String topic, String message, String partition) {
+        this.topic = topic;
+        this.message = message;
+        this.partition = partition;
     }
 
     public String getTopic() {
@@ -51,11 +61,20 @@ public class NotificationCreatePayload implements Payload {
         this.message = message;
     }
 
+    public String getPartition() {
+        return partition;
+    }
+
+    public void setPartition(String partition) {
+        this.partition = partition;
+    }
+
     @Override
     public String toString() {
         return "NotificationCreatePayload{" +
                 "topic='" + topic + '\'' +
                 ", message='" + message + '\'' +
+                ", partition='" + partition + '\'' +
                 '}';
     }
 }

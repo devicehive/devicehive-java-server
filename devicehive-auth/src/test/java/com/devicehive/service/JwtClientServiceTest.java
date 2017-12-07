@@ -21,7 +21,7 @@ package com.devicehive.service;
  */
 
 import com.devicehive.base.AuthAbstractResourceTest;
-import com.devicehive.security.jwt.JwtPayload;
+import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.service.security.jwt.JwtClientService;
@@ -66,11 +66,11 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
-        JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
+        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtAccessToken(payload, true);
-        JwtPayload resultPayload = jwtClientService.getPayload(token);
+        JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.ACCESS.getId());
     }
@@ -87,11 +87,11 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
-        JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
+        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtRefreshToken(payload, true);
-        JwtPayload resultPayload = jwtClientService.getPayload(token);
+        JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
 
         assertEquals(resultPayload.getTokenType(), TokenType.REFRESH.getId());
     }
@@ -108,23 +108,23 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
-        JwtPayload.Builder builder = new JwtPayload.Builder();
-        JwtPayload payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
+        JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         // Generate key without expiration date and token type
         Map<String, Object> jwtMap = new HashMap<>();
-        jwtMap.put(JwtPayload.JWT_CLAIM_KEY, payload);
+        jwtMap.put(JwtUserPayload.JWT_CLAIM_KEY, payload);
         Claims claims = Jwts.claims(jwtMap);
         String malformedToken = Jwts.builder()
                 .setClaims(claims)
                 .signWith(SignatureAlgorithm.HS256, jwtSecretService.getJwtSecret())
                 .compact();
-        jwtClientService.getPayload(malformedToken);
+        jwtClientService.getUserPayload(malformedToken);
     }
 
     @Test(expected = SignatureException.class)
     public void should_throw_SignatureException_whet_pass_token_with_invalid_signature() throws Exception {
-        jwtClientService.getPayload(JWT_REFRESH_WITH_INVALID_SIGNATURE);
+        jwtClientService.getUserPayload(JWT_REFRESH_WITH_INVALID_SIGNATURE);
     }
     
 }

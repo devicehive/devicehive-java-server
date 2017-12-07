@@ -49,9 +49,9 @@ public interface ApiInfoResource {
                     response = ApiInfoVO.class),
     })
     Response getApiInfo(@Context UriInfo uriInfo,
-                        @HeaderParam("X-DH-wss-enabled")
-                        @DefaultValue("false")
-                                Boolean wssEnabled);
+                        @HeaderParam("X-Forwarded-Proto")
+                        @DefaultValue("http")
+                                String protocol);
     
     @GET
     @Path("/cache")

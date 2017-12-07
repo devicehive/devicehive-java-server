@@ -24,7 +24,7 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
-import com.devicehive.shim.kafka.client.RequestResponseMatcher;
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;

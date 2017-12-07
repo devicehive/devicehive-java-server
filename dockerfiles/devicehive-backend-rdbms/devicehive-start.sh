@@ -74,6 +74,7 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
+-Dproxy.connect="${DH_WS_KAFKA_PROXY:-localhost:3000}" \
 -Dreplication.factor="${DH_REPLICATION_FACTOR:-1}" \
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Drpc.server.request-consumer.threads="${DH_RPC_SERVER_REQ_CONS_THREADS:-3}" \

@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
@@ -40,6 +41,7 @@ import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +52,10 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static java.util.Optional.*;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class NetworkService {
@@ -78,9 +83,30 @@ public class NetworkService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId, @NotNull HiveAuthentication hiveAuthentication) {
-        HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
+    public Set<String> getDeviceIdsForNetworks(Set<Long> networkIds, HivePrincipal principal) {
+        Set<Long> forbiddenNetworkIds = new HashSet<>();
+        Set<String> deviceIds = networkIds.stream()
+                .map(networkId -> {
+                    NetworkWithUsersAndDevicesVO network = getWithDevices(networkId);
+                    if (network == null) forbiddenNetworkIds.add(networkId);
+                    return network;
+                })
+                .filter(Objects::nonNull)
+                .map(NetworkWithUsersAndDevicesVO::getDevices)
+                .flatMap(Collection::stream)
+                .map(DeviceVO::getDeviceId)
+                .collect(Collectors.toSet());
 
+        if (!isEmpty(forbiddenNetworkIds)) {
+            throw new HiveException(String.format(NETWORKS_NOT_FOUND, forbiddenNetworkIds), SC_FORBIDDEN);
+        }
+
+        return deviceIds;
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Long> permittedNetworks = principal.getNetworkIds();
         Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
 
@@ -92,19 +118,19 @@ public class NetworkService {
                         return empty();
                     }
                 }).flatMap(user -> {
-            Long idForFiltering = user.isAdmin() ? null : user.getId();
-            List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
-                    Collections.singleton(networkId), permittedNetworks);
-            return found.stream().findFirst();
-        }).map(network -> {
-            if (permittedDeviceTypes != null && !permittedDeviceTypes.isEmpty()) {
-                Set<DeviceVO> allowed = network.getDevices().stream()
-                        .filter(device -> permittedDeviceTypes.contains(device.getDeviceTypeId()))
-                        .collect(Collectors.toSet());
-                network.setDevices(allowed);
-            }
-            return network;
-        });
+                    Long idForFiltering = user.isAdmin() ? null : user.getId();
+                    List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
+                            Collections.singleton(networkId), permittedNetworks);
+                    return found.stream().findFirst();
+                }).map(network -> {
+                    if (permittedDeviceTypes != null && !permittedDeviceTypes.isEmpty()) {
+                        Set<DeviceVO> allowed = network.getDevices().stream()
+                                .filter(device -> permittedDeviceTypes.contains(device.getDeviceTypeId()))
+                                .collect(Collectors.toSet());
+                        network.setDevices(allowed);
+                    }
+                    return network;
+                });
 
         return result.orElse(null);
     }

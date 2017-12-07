@@ -20,6 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.Filter;
@@ -33,10 +34,8 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,23 +117,13 @@ public class DeviceNotificationService {
     public CompletableFuture<DeviceNotification> insert(final DeviceNotification notification,
                                                         final DeviceVO device) {
         hiveValidator.validate(notification);
-        List<CompletableFuture<Response>> futures = processDeviceNotification(notification, device).stream()
-                .map(n -> {
-                    CompletableFuture<Response> future = new CompletableFuture<>();
-                    rpcClient.call(Request.newBuilder()
-                            .withBody(new NotificationInsertRequest(n))
-                            .withPartitionKey(device.getDeviceId())
-                            .build(), new ResponseConsumer(future));
-                    return future;
-                })
-                .collect(Collectors.toList());
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]))
-                .thenApply(x -> futures.stream()
-                        .map(CompletableFuture::join)
-                        .map(r -> r.getBody().cast(NotificationInsertResponse.class).getDeviceNotification())
-                        .filter(n -> !SpecialNotifications.DEVICE_UPDATE.equals(n.getNotification())) // we are not going to return DEVICE_UPDATE notification
-                        .collect(Collectors.toList()).get(0)); // after filter we should get only one notification
+        CompletableFuture<Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(new NotificationInsertRequest(notification))
+                .withPartitionKey(device.getDeviceId())
+                .build(), new ResponseConsumer(future));
+        
+        return future.thenApply(r -> r.getBody().cast(NotificationInsertResponse.class).getDeviceNotification());
     }
 
     public Pair<Long, CompletableFuture<List<DeviceNotification>>> subscribe(
@@ -216,9 +205,4 @@ public class DeviceNotificationService {
         return notification;
     }
 
-    private List<DeviceNotification> processDeviceNotification(DeviceNotification notificationMessage, DeviceVO device) {
-        List<DeviceNotification> notificationsToCreate = new ArrayList<>();
-        notificationsToCreate.add(notificationMessage);
-        return notificationsToCreate;
-    }
 }
