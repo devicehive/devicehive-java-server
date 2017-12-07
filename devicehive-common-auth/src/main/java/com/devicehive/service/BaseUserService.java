@@ -125,6 +125,12 @@ public class BaseUserService {
         return updateStatisticOnSuccessfulLogin(user, loginTimeout);
     }
 
+    @Transactional
+    public UserVO refreshUserLoginData(Long userId) {
+        UserVO user = findById(userId);
+        return refreshUserLoginData(user);
+    }
+
     protected Optional<UserVO> checkPassword(UserVO user, String password) {
         boolean validPassword = passwordService.checkPassword(password, user.getPasswordSalt(), user.getPasswordHash());
 
