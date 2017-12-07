@@ -26,7 +26,7 @@ node('docker') {
     def auth = docker.build('devicehiveci/devicehive-auth:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth.Dockerfile .')
     def plugin = docker.build('devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin-rdbms.Dockerfile .')
     def frontend = docker.build('devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend-rdbms.Dockerfile .')
-    def backend = docker.build('devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend-rdbms.Dockerfile .')
+    def backend = docker.build('devicehiveci/devicehive-backend:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend.Dockerfile .')
     def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     echo 'Pushing images to CI repository ...'
@@ -119,13 +119,13 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
         sh """
           docker tag devicehiveci/devicehive-auth:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-frontend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
-          docker tag devicehiveci/devicehive-backend-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-backend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-plugin-rdbms:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend-rdbms:${IMAGE_TAG}
-          docker push registry.hub.docker.com/devicehive/devicehive-backend-rdbms:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-plugin-rdbms:${IMAGE_TAG}
         """
