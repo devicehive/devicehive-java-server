@@ -21,7 +21,6 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.base.AuthAbstractResourceTest;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.JwtUserPayloadView;
 import com.devicehive.security.jwt.TokenType;
@@ -41,7 +40,6 @@ import java.util.*;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
-import static org.junit.Assert.assertEquals;
 
 public class JwtTokenResourceTest extends AuthAbstractResourceTest {
 
@@ -81,16 +79,12 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
         // Generate refresh token
-        try {
-            String refreshToken = jwtClientService.generateJwtRefreshToken(payload.convertTo(), true);
-            JwtTokenVO tokenVO = new JwtTokenVO();
-            tokenVO.setRefreshToken(refreshToken);
+        String refreshToken = jwtClientService.generateJwtRefreshToken(payload.convertTo(), true);
+        JwtTokenVO tokenVO = new JwtTokenVO();
+        tokenVO.setRefreshToken(refreshToken);
 
-            JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), tokenVO, UNAUTHORIZED, JwtTokenVO.class);
-            Assert.assertNull(jwtToken.getAccessToken());
-        } catch (HiveException e) {
-            assertEquals("Error! Validation failed: Object is null", e.getMessage());
-        }
+        JwtTokenVO jwtToken = performRequest("/token/refresh", "POST", emptyMap(), emptyMap(), tokenVO, UNAUTHORIZED, JwtTokenVO.class);
+        Assert.assertNull(jwtToken.getAccessToken());
     }
 
     @Test

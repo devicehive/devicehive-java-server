@@ -21,7 +21,6 @@ package com.devicehive.service;
  */
 
 import com.devicehive.base.AuthAbstractResourceTest;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.security.jwt.TokenType;
 import com.devicehive.security.util.JwtSecretService;
@@ -68,14 +67,10 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
         JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        try {
-            String token = jwtClientService.generateJwtAccessToken(payload, true);
-            JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
+        String token = jwtClientService.generateJwtAccessToken(payload, true);
+        JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
 
-            assertEquals(resultPayload.getTokenType(), TokenType.ACCESS.getId());
-        } catch (HiveException e) {
-            assertEquals("Error! Validation failed: Object is null", e.getMessage());
-        }
+        assertEquals(resultPayload.getTokenType(), TokenType.ACCESS.getId());
     }
 
     @Test
@@ -91,14 +86,10 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
         JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
 
-        try {
-            String token = jwtClientService.generateJwtRefreshToken(payload, true);
-            JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
+        String token = jwtClientService.generateJwtRefreshToken(payload, true);
+        JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
 
-            assertEquals(resultPayload.getTokenType(), TokenType.REFRESH.getId());
-        } catch (HiveException e) {
-            assertEquals("Error! Validation failed: Object is null", e.getMessage());
-        }
+        assertEquals(resultPayload.getTokenType(), TokenType.REFRESH.getId());
     }
 
     @Test(expected = MalformedJwtException.class)
@@ -129,5 +120,5 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
     public void should_throw_SignatureException_whet_pass_token_with_invalid_signature() throws Exception {
         jwtClientService.getUserPayload(JWT_REFRESH_WITH_INVALID_SIGNATURE);
     }
-
+    
 }
