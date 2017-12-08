@@ -119,19 +119,18 @@ public class BaseUserService {
     }
 
     @Transactional
-    public UserVO refreshUserLoginData(UserVO user) {
-        if (user == null) {
-            return user;
-        }
+    public void refreshUserLoginData(UserVO user) {
         hiveValidator.validate(user);
         final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
-        return updateStatisticOnSuccessfulLogin(user, loginTimeout);
+        updateStatisticOnSuccessfulLogin(user, loginTimeout);
     }
 
     @Transactional
-    public UserVO refreshUserLoginData(Long userId) {
+    public void refreshUserLoginData(Long userId) {
         UserVO user = findById(userId);
-        return refreshUserLoginData(user);
+        if (user != null) {
+            refreshUserLoginData(user);
+        }
     }
 
     protected Optional<UserVO> checkPassword(UserVO user, String password) {
