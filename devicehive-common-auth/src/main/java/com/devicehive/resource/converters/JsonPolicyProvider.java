@@ -65,7 +65,7 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
     @Override
     public void writeTo(T entity, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
                         MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
-            throws IOException, WebApplicationException {
+            throws WebApplicationException {
         try {
             Gson gson = createGson(annotations);
             JsonElement jsonElement = gson.toJsonTree(entity);
@@ -79,9 +79,9 @@ public abstract class JsonPolicyProvider<T> implements MessageBodyWriter<T>, Mes
                 }
             }
         } catch (JsonIOException e) {
-            logger.debug("Experiencing issues on response parsing.");
+            logger.warn("Experiencing issues on response parsing: {}", e.getMessage());
         } catch (IOException e) {
-            logger.debug("Experiencing issues on response output.");
+            logger.warn("Experiencing issues on response output: {}", e.getMessage());
         }
     }
 
