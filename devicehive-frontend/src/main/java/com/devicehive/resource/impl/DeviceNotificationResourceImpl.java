@@ -201,7 +201,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
                     .map(Arrays::asList)
                     .map(list -> list.stream()
                             .map(n -> gson.fromJson(n, Long.class))
-                            .map(network -> networkService.getWithDevices(network, authentication))
+                            .map(networkService::getWithDevices)
                             .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
                             .flatMap(Collection::stream)
                             .collect(Collectors.toSet())

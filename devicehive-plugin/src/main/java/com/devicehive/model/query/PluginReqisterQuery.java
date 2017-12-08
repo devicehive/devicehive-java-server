@@ -24,9 +24,16 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
+import com.devicehive.service.BaseDeviceService;
+import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.devicehive.configuration.Constants.RETURN_COMMANDS;
 import static com.devicehive.configuration.Constants.RETURN_NOTIFICATIONS;
@@ -38,13 +45,17 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PluginReqisterQuery {
 
-    @ApiParam(name = "deviceIds", value = "Device ids")
-    @QueryParam("deviceIds")
-    private String deviceIds;
+    @ApiParam(name = "deviceId", value = "Device id")
+    @QueryParam("deviceId")
+    private String deviceId;
 
     @ApiParam(name = "networkIds", value = "Network ids")
     @QueryParam("networkIds")
     private String networkIds;
+
+    @ApiParam(name = "deviceTypeIds", value = "Device type ids")
+    @QueryParam("deviceTypeIds")
+    private String deviceTypeIds;
 
     @ApiParam(name = "names", value = "Command/Notification names")
     @QueryParam("names")
@@ -66,12 +77,12 @@ public class PluginReqisterQuery {
     @QueryParam(RETURN_NOTIFICATIONS)
     private boolean returnNotifications;
 
-    public String getDeviceIds() {
-        return deviceIds;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setDeviceIds(String deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getNetworkIds() {
@@ -80,6 +91,14 @@ public class PluginReqisterQuery {
 
     public void setNetworkIds(String networkIds) {
         this.networkIds = networkIds;
+    }
+
+    public String getDeviceTypeIds() {
+        return deviceTypeIds;
+    }
+
+    public void setDeviceTypeIds(String deviceTypeIds) {
+        this.deviceTypeIds = deviceTypeIds;
     }
 
     public String getNames() {
@@ -122,9 +141,10 @@ public class PluginReqisterQuery {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(HivePrincipal principal) {
+    public PluginSubscribeRequest toRequest(HivePrincipal principal, BaseDeviceService deviceService) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
-        request.setFilter(createFilter(principal));
+        request.setFilters(createFilters(principal, deviceService));
+        request.setUserId(principal.getUser().getId());
         request.setTimestamp(TimestampQueryParamParser.parse(timestamp));
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
@@ -133,16 +153,50 @@ public class PluginReqisterQuery {
         return request;
     }
     
-    private Filter createFilter(HivePrincipal principal) {
-        Filter filter = new Filter();
-        filter.setPrincipal(principal);
-        filter.setDeviceIds(toStringSet(deviceIds));
-        filter.setNetworkIds(toLongSet(networkIds));
-        filter.setNames(toStringSet(names));
-        if (isEmpty(filter.getDeviceIds()) && isEmpty(filter.getNetworkIds())) {
-            filter.setGlobal(true);
+    private Set<Filter> createFilters(HivePrincipal principal, BaseDeviceService deviceService) {
+        Set<Filter> filters;
+        if (deviceId != null) {
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+            if (names != null) {
+                filters = toStringSet(names).stream().map(name ->
+                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, null, name))
+                        .collect(Collectors.toSet());
+            } else {
+                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, null, null));
+            }
+        } else {
+            if (networkIds == null && deviceTypeIds == null) {
+                if (names != null) {
+                    filters = toStringSet(names).stream().map(name ->
+                            new Filter(null, null, null, null, name))
+                            .collect(Collectors.toSet());
+                } else {
+                    filters = Collections.singleton(new Filter());
+                }
+            } else {
+                Set<Long> networks = toLongSet(networkIds);
+                if (networks.isEmpty()) {
+                    networks = principal.getNetworkIds();
+                }
+                Set<Long> deviceTypes = toLongSet(deviceTypeIds);
+                if (deviceTypes.isEmpty()) {
+                    deviceTypes = principal.getDeviceTypeIds();
+                }
+                final Set<Long> finalDeviceTypes = deviceTypes;
+                filters = networks.stream()
+                        .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
+                            if (names != null) {
+                                return toStringSet(names).stream().map(name ->
+                                        new Filter(network, deviceType, null, null, name)
+                                );
+                            } else {
+                                return Stream.of(new Filter(network, deviceType, null, null, null));
+                            }
+                        }))
+                        .collect(Collectors.toSet());
+            }
         }
         
-        return filter;
+        return filters;
     }
 }

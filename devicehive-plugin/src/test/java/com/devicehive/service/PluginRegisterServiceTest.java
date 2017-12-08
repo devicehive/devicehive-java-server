@@ -44,6 +44,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -89,7 +91,7 @@ public class PluginRegisterServiceTest {
     public void shoultRegisterPlugin() throws Exception {
         //given
         PluginSubscribeRequest pollRequest = new PluginSubscribeRequest();
-        pollRequest.setFilter(createFilter(USER_ID));
+        pollRequest.setFilters(Collections.singleton(new Filter()));
         
         PluginUpdate pluginUpdate = new PluginUpdate();
         
@@ -117,17 +119,6 @@ public class PluginRegisterServiceTest {
         assertEquals(actual.get(PROXY_ENDPOINT).getAsString(), PROXY_ENDPOINT);
 
         verify(rpcClient, times(1)).call(any(), any());
-    }
-
-    private Filter createFilter(Long userId) {
-        Filter filter = new Filter();
-        HivePrincipal hivePrincipal = new HivePrincipal();
-        UserVO user = new UserVO();
-        user.setId(userId);
-        hivePrincipal.setUser(user);
-        filter.setPrincipal(hivePrincipal);
-        
-        return filter;
     }
     
     private JwtTokenVO createJwtTokenVO(String accessToken, String refreshToken) {

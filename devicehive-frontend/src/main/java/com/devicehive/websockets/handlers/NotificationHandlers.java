@@ -120,8 +120,8 @@ public class NotificationHandlers {
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
         if (networks != null) {
-            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
-                    networkService.getWithDevices(network, authentication)
+            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(
+                    networkService::getWithDevices
             ).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualNetworks.size() != networks.size()) {
                 throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);

@@ -20,6 +20,7 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
@@ -28,7 +29,6 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
-import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -60,7 +60,6 @@ import java.util.stream.Stream;
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.configuration.Messages.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
-import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.CommandSearchRequest.createCommandSearchRequest;
 import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 import static com.devicehive.util.ServerResponsesFactory.createCommandMessage;
@@ -117,8 +116,7 @@ public class CommandHandlers {
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
         if (networks != null) {
-            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(network ->
-                    networkService.getWithDevices(network, authentication)
+            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(networkService::getWithDevices
             ).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualNetworks.size() != networks.size()) {
                 throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);

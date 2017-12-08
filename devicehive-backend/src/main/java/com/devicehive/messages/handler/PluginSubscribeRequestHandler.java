@@ -36,6 +36,8 @@ import org.springframework.util.Assert;
 
 import java.util.*;
 
+import static com.devicehive.shim.api.Action.COMMAND_EVENT;
+import static com.devicehive.shim.api.Action.NOTIFICATION_EVENT;
 import static java.util.stream.Collectors.toList;
 
 @Component
@@ -79,10 +81,11 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
 
     private List<Response> createNotificationSubscription(PluginSubscribeRequest body) {
          
-        return body.getFilter().getDeviceIds().stream()
-                .map(deviceId -> {
+        return body.getFilters().stream()
+                .map(filter -> {
+                    filter.setEventName(NOTIFICATION_EVENT.name());
                     NotificationSubscribeRequest notificationSubscribeRequest = new NotificationSubscribeRequest(
-                            body.getSubscriptionId(), deviceId, body.getFilter(), body.getTimestamp());
+                            body.getSubscriptionId(), filter, body.getNames(), body.getTimestamp());
 
                     Request notificationRequest = Request.newBuilder()
                             .withBody(notificationSubscribeRequest)
@@ -94,24 +97,25 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
     }
 
     private List<Response> createCommandSubscription(PluginSubscribeRequest body, boolean returnUpdated) {
-         
-        return body.getFilter().getDeviceIds().stream()
-                .map(deviceId -> {
+
+        return body.getFilters().stream()
+                .map(filter -> {
+                    filter.setEventName(COMMAND_EVENT.name());
                     CommandSubscribeRequest commandSubscribeRequest = new CommandSubscribeRequest(body.getSubscriptionId(),
-                            deviceId, body.getFilter(), body.getTimestamp(), returnUpdated, 0);
-                    
+                            filter, body.getNames(), body.getTimestamp(), returnUpdated, 0);
+
                     Request commandRequest = Request.newBuilder()
                             .withBody(commandSubscribeRequest)
                             .withSingleReply(false)
                             .build();
                     commandRequest.setReplyTo(body.getTopicName());
-                    return commandSubscribeRequestHandler.handle(commandRequest);    
+                    return commandSubscribeRequestHandler.handle(commandRequest);
                 }).collect(toList());
     }
 
     private void validate(PluginSubscribeRequest request) {
         Assert.notNull(request, "Request body is null");
-        Assert.notNull(request.getFilter(), "Filter is null");
+        Assert.notNull(request.getFilters(), "Filters is null");
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 

@@ -21,7 +21,6 @@ package com.devicehive.application;
  */
 
 import com.devicehive.api.HandlersMapper;
-import com.devicehive.messages.handler.DeviceCreateHandler;
 import com.devicehive.messages.handler.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;

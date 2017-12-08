@@ -25,12 +25,15 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 import java.util.Date;
+import java.util.Set;
 
 
 public class PluginSubscribeRequest extends Body {
 
     private Long subscriptionId;
-    private Filter filter;
+    private Set<Filter> filters;
+    private Set<String> names;
+    private Long userId;
     private Date timestamp;
     private String topicName;
     private boolean returnCommands;
@@ -49,12 +52,28 @@ public class PluginSubscribeRequest extends Body {
         this.subscriptionId = subscriptionId;
     }
 
-    public Filter getFilter() {
-        return filter;
+    public Set<Filter> getFilters() {
+        return filters;
     }
 
-    public void setFilter(Filter filter) {
-        this.filter = filter;
+    public void setFilters(Set<Filter> filters) {
+        this.filters = filters;
+    }
+
+    public Set<String> getNames() {
+        return names;
+    }
+
+    public void setNames(Set<String> names) {
+        this.names = names;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Date getTimestamp() {

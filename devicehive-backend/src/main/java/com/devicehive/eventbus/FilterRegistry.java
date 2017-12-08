@@ -22,6 +22,7 @@ package com.devicehive.eventbus;
 
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
+import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
@@ -39,7 +40,7 @@ public class FilterRegistry {
      */
     private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    public void register(Filter filter, Subscriber subscriber) {
+    void register(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
             subscribers = new HashSet<>();
@@ -50,7 +51,7 @@ public class FilterRegistry {
         }
     }
 
-    public void unregister(Subscriber subscriber) {
+    void unregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> subscribers.forEach(sub -> {
             if (sub.equals(subscriber)) {
                 subscribers.remove(subscriber);
@@ -72,17 +73,8 @@ public class FilterRegistry {
         return subscribers;
     }
 
-    public void unregisterDevice(String deviceId) {
-        filterSubscriptionsMap.keySet().stream()
-                .filter(key ->
-                        key.getDeviceIds().contains(deviceId))
-                .forEach(key -> {
-                    Collection<Long> subscriptionsIds = filterSubscriptionsMap.get(key);
-                    subscriptionsIds.forEach(this::unregister);
-                    key.deleteDeviceId(deviceId);
-                    if (!(key.getDeviceIds().isEmpty() && key.getNetworkIds().isEmpty())) {
-                        subscriptionsIds.forEach(id -> register(key, id));
-                    }
-                });
+    void unregisterDevice(DeviceVO device) {
+        final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
+        subscriberTable.row(deviceFilter.getFirstKey()).clear();
     }
 }
