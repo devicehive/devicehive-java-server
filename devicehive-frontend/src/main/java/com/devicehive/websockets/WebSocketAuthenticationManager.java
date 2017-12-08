@@ -21,6 +21,9 @@ package com.devicehive.websockets;
  */
 
 import com.devicehive.auth.HiveAuthentication;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.service.BaseUserService;
+import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -42,17 +45,28 @@ public class WebSocketAuthenticationManager {
     public static final String SESSION_ATTR_JWT_TOKEN = "jwtToken";
 
     private final AuthenticationManager authenticationManager;
+    private final BaseUserService baseUserService;
 
     @Autowired
-    public WebSocketAuthenticationManager(AuthenticationManager authenticationManager) {
+    public WebSocketAuthenticationManager(AuthenticationManager authenticationManager, BaseUserService baseUserService) {
         this.authenticationManager = authenticationManager;
+        this.baseUserService = baseUserService;
     }
 
     public HiveAuthentication authenticateJWT(String token, HiveAuthentication.HiveAuthDetails details) {
         PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(token, null);
         HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
+
+        refreshUserLoginData(authentication);
+
         authentication.setDetails(details);
         return authentication;
+    }
+
+    private void refreshUserLoginData(HiveAuthentication authentication) {
+        HivePrincipal hivePrincipal = (HivePrincipal) authentication.getPrincipal();
+        UserVO user = hivePrincipal.getUser();
+        baseUserService.refreshUserLoginData(user);
     }
 
     public HiveAuthentication authenticateAnonymous(HiveAuthentication.HiveAuthDetails details) {

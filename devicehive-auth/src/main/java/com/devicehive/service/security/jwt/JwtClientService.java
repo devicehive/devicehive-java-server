@@ -26,6 +26,7 @@ import com.devicehive.security.jwt.TokenType;
 import com.devicehive.security.util.JwtPluginTokenGenerator;
 import com.devicehive.security.util.JwtSecretService;
 import com.devicehive.security.util.JwtTokenGenerator;
+import com.devicehive.service.BaseUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,20 +38,24 @@ public class JwtClientService extends BaseJwtClientService {
 
     private final JwtTokenGenerator tokenGenerator;
     private final JwtPluginTokenGenerator pluginTokenGenerator;
-    
+    private final BaseUserService baseUserService;
+
     @Autowired
     public JwtClientService(JwtTokenGenerator tokenGenerator, JwtPluginTokenGenerator pluginTokenGenerator,
-            JwtSecretService jwtSecretService) {
+                            JwtSecretService jwtSecretService, BaseUserService baseUserService) {
         super(jwtSecretService);
         this.tokenGenerator = tokenGenerator;
         this.pluginTokenGenerator = pluginTokenGenerator;
+        this.baseUserService = baseUserService;
     }
 
     public String generateJwtAccessToken(JwtUserPayload payload, boolean useExpiration) {
+        baseUserService.refreshUserLoginData(payload.getUserId());
         return tokenGenerator.generateToken(payload, TokenType.ACCESS, useExpiration);
     }
 
     public String generateJwtRefreshToken(JwtUserPayload payload, boolean useExpiration) {
+        baseUserService.refreshUserLoginData(payload.getUserId());
         return tokenGenerator.generateToken(payload, TokenType.REFRESH, useExpiration);
     }
 
