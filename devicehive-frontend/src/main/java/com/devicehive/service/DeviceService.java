@@ -29,7 +29,9 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.rpc.DeviceDeleteRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.model.updates.DeviceUpdate;
+import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
@@ -38,6 +40,7 @@ import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
 
+import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +76,7 @@ public class DeviceService extends BaseDeviceService {
                          TimestampService timestampService,
                          DeviceDao deviceDao,
                          RpcClient rpcClient) {
-        super(deviceDao);
+        super(deviceDao, networkService);
         this.deviceNotificationService = deviceNotificationService;
         this.networkService = networkService;
         this.deviceTypeService = deviceTypeService;
@@ -154,7 +157,7 @@ public class DeviceService extends BaseDeviceService {
             return false;
         }
 
-        DeviceDeleteRequest deviceDeleteRequest = new DeviceDeleteRequest(deviceId);
+        DeviceDeleteRequest deviceDeleteRequest = new DeviceDeleteRequest(deviceVO);
 
         Request request = Request.newBuilder()
                 .withBody(deviceDeleteRequest)

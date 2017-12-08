@@ -100,7 +100,7 @@
         <module>devicehive-test-utils</module>
         <module>devicehive-auth</module>
         <module>devicehive-common-auth</module>
-        <module>devicehive-plugin</module>
+        <!--<module>devicehive-plugin</module> fixme: add then fixed-->
     </modules>
 
     <dependencies>

@@ -148,7 +148,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                     .map(Arrays::asList)
                     .map(list -> list.stream()
                             .map(n -> gson.fromJson(n, Long.class))
-                            .map(network -> networkService.getWithDevices(network, authentication))
+                            .map(network -> networkService.getWithDevices(network))
                             .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
                             .flatMap(Collection::stream)
                             .collect(Collectors.toSet())

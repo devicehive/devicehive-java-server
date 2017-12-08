@@ -52,10 +52,12 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 /**
  * This class serves all requests to database from controller.
@@ -81,7 +83,7 @@ public class UserService extends BaseUserService {
                        ConfigurationService configurationService,
                        HiveValidator hiveValidator,
                        RpcClient rpcClient) {
-        super(passwordService, userDao, timestampService, configurationService, hiveValidator);
+        super(passwordService, userDao, networkDao, timestampService, configurationService, hiveValidator);
         this.networkDao = networkDao;
         this.deviceTypeDao = deviceTypeDao;
         this.rpcClient = rpcClient;

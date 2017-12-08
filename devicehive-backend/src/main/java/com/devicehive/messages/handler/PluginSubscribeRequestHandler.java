@@ -79,34 +79,36 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
 
     private List<Response> createNotificationSubscription(PluginSubscribeRequest body) {
          
-        return body.getFilter().getDeviceIds().stream()
-                .map(deviceId -> {
-                    NotificationSubscribeRequest notificationSubscribeRequest = new NotificationSubscribeRequest(
-                            body.getSubscriptionId(), deviceId, body.getFilter(), body.getTimestamp());
-
-                    Request notificationRequest = Request.newBuilder()
-                            .withBody(notificationSubscribeRequest)
-                            .withSingleReply(false)
-                            .build();
-                    notificationRequest.setReplyTo(body.getTopicName());
-                    return notificationSubscribeRequestHandler.handle(notificationRequest);
-                }).collect(toList());
+//        return body.getFilter().getDeviceIds().stream() fixme: redesign it
+//                .map(deviceId -> {
+//                    NotificationSubscribeRequest notificationSubscribeRequest = new NotificationSubscribeRequest(
+//                            body.getSubscriptionId(), deviceId, body.getFilter(), body.getTimestamp());
+//
+//                    Request notificationRequest = Request.newBuilder()
+//                            .withBody(notificationSubscribeRequest)
+//                            .withSingleReply(false)
+//                            .build();
+//                    notificationRequest.setReplyTo(body.getTopicName());
+//                    return notificationSubscribeRequestHandler.handle(notificationRequest);
+//                }).collect(toList());
+        return Collections.emptyList();
     }
 
     private List<Response> createCommandSubscription(PluginSubscribeRequest body, boolean returnUpdated) {
-         
-        return body.getFilter().getDeviceIds().stream()
-                .map(deviceId -> {
-                    CommandSubscribeRequest commandSubscribeRequest = new CommandSubscribeRequest(body.getSubscriptionId(),
-                            deviceId, body.getFilter(), body.getTimestamp(), returnUpdated, 0);
-                    
-                    Request commandRequest = Request.newBuilder()
-                            .withBody(commandSubscribeRequest)
-                            .withSingleReply(false)
-                            .build();
-                    commandRequest.setReplyTo(body.getTopicName());
-                    return commandSubscribeRequestHandler.handle(commandRequest);    
-                }).collect(toList());
+
+//        return body.getFilter().getDeviceIds().stream() fixme: redesign it
+//                .map(deviceId -> {
+//                    CommandSubscribeRequest commandSubscribeRequest = new CommandSubscribeRequest(body.getSubscriptionId(),
+//                            deviceId, body.getFilter(), body.getTimestamp(), returnUpdated, 0);
+//
+//                    Request commandRequest = Request.newBuilder()
+//                            .withBody(commandSubscribeRequest)
+//                            .withSingleReply(false)
+//                            .build();
+//                    commandRequest.setReplyTo(body.getTopicName());
+//                    return commandSubscribeRequestHandler.handle(commandRequest);
+//                }).collect(toList());
+        return Collections.emptyList();
     }
 
     private void validate(PluginSubscribeRequest request) {

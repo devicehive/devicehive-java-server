@@ -25,6 +25,7 @@ import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
+import com.devicehive.vo.DeviceVO;
 
 import java.util.Collection;
 
@@ -68,7 +69,7 @@ public class EventBus {
                 });
     }
 
-    public void unsubscribeDevice(String deviceId) {
-        registry.unregisterDevice(deviceId);
+    public void unsubscribeDevice(DeviceVO device) {
+         registry.unregisterDevice(device);
     }
 }
