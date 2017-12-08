@@ -120,6 +120,9 @@ public class BaseUserService {
 
     @Transactional
     public UserVO refreshUserLoginData(UserVO user) {
+        if (user == null) {
+            return user;
+        }
         hiveValidator.validate(user);
         final long loginTimeout = configurationService.getLong(Constants.LAST_LOGIN_TIMEOUT, Constants.LAST_LOGIN_TIMEOUT_DEFAULT);
         return updateStatisticOnSuccessfulLogin(user, loginTimeout);
