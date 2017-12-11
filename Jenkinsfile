@@ -5,8 +5,8 @@ properties([
 def publishable_branches = ["development", "master"]
 def deployable_branches = ["development"]
 
-node('docker') {
-  stage('Build jars') {
+stage('Build jars') {
+  node('docker') {
     echo 'Building jars ...'
     def maven = docker.image('maven:3.5.2-jdk-8')
     maven.pull()
@@ -19,8 +19,10 @@ node('docker') {
       stash includes:'devicehive-backend/target/devicehive-backend-*-boot.jar, devicehive-auth/target/devicehive-auth-*-boot.jar, devicehive-plugin/target/devicehive-plugin-*-boot.jar, devicehive-frontend/target/devicehive-frontend-*-boot.jar, devicehive-common/target/devicehive-common-*-shade.jar', name: 'jars'
     }
   }
+}
 
-  stage('Build and publish Docker images in CI repository') {
+stage('Build and publish Docker images in CI repository') {
+  node('docker') {
     echo 'Building images ...'
     unstash 'jars'
     def auth = docker.build('devicehiveci/devicehive-auth:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth.Dockerfile .')
@@ -110,8 +112,8 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
     }
   }
 
-  node('docker') {
-    stage('Publish image in main repository') {
+  stage('Publish image in main repository') {
+    node('docker') {
       // Builds from 'master' branch will have 'latest' tag
       def IMAGE_TAG = (env.BRANCH_NAME == 'master') ? 'latest' : env.BRANCH_NAME
 
