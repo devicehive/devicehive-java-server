@@ -101,13 +101,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
         }
       } finally {
         zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
-        dir('devicehive-docker/rdbms-image') {
-          sh '''
-            sudo docker-compose kill
-            sudo docker-compose down
-            sudo docker volume ls -qf dangling=true | xargs -r sudo docker volume rm
-          '''
-        }
+        shutdown_devicehive()
         cleanWs()
       }
     }
@@ -151,5 +145,16 @@ if (deploy_branches.contains(env.BRANCH_NAME)) {
         '''
       }
     }
+  }
+}
+
+def shutdown_devicehive() {
+  echo("Shutting down DeviceHive instance and cleaning up")
+  dir('devicehive-docker/rdbms-image') {
+    sh '''
+      sudo docker-compose kill
+      sudo docker-compose down
+      sudo docker volume ls -qf dangling=true | xargs -r sudo docker volume rm
+    '''
   }
 }
