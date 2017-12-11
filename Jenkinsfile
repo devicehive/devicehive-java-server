@@ -72,33 +72,8 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             return (fe_status == 0)
           }
         }
+        run_devicehive_tests()
 
-        dir('devicehive-tests') {
-          echo("Clone regression tests")
-          git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
-
-          echo("Install dependencies with npm")
-          sh '''
-            sudo npm install -g mocha mochawesome
-            sudo npm i
-          '''
-
-          echo("Configure tests")
-          sh '''
-            cp config.json config.json.orig
-            cat config.json.orig | \\
-            jq ".server.wsUrl = \\"ws://127.0.0.1/api/websocket\\"" | \\
-            jq ".server.ip = \\"127.0.0.1\\"" | \\
-            jq ".server.port = \\"80\\"" | \\
-            jq ".server.restUrl = \\"http://127.0.0.1/api/rest\\"" | \\
-            jq ".server.authRestUrl = \\"http://127.0.0.1/auth/rest\\"" > config.json
-          '''
-
-          timeout(time:10, unit: 'MINUTES') {
-            echo("Run integration tests")
-            sh 'mocha --exit -R mochawesome integration-tests'
-          }
-        }
       } finally {
         zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         shutdown_devicehive()
@@ -144,6 +119,35 @@ if (deploy_branches.contains(env.BRANCH_NAME)) {
           echo "$(date): Successfully deployed build #${BUILD_NUMBER} from ${BRANCH_NAME} branch" > ./jenkins-cd.timestamp
         '''
       }
+    }
+  }
+}
+
+def run_devicehive_tests() {
+  dir('devicehive-tests') {
+    echo("Clone regression tests")
+    git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
+
+    echo("Install dependencies with npm")
+    sh '''
+      sudo npm install -g mocha mochawesome
+      sudo npm i
+    '''
+
+    echo("Configure tests")
+    sh '''
+      cp config.json config.json.orig
+      cat config.json.orig | \\
+      jq ".server.wsUrl = \\"ws://127.0.0.1/api/websocket\\"" | \\
+      jq ".server.ip = \\"127.0.0.1\\"" | \\
+      jq ".server.port = \\"80\\"" | \\
+      jq ".server.restUrl = \\"http://127.0.0.1/api/rest\\"" | \\
+      jq ".server.authRestUrl = \\"http://127.0.0.1/auth/rest\\"" > config.json
+    '''
+
+    timeout(time:10, unit: 'MINUTES') {
+      echo("Run integration tests")
+      sh 'mocha --exit -R mochawesome integration-tests'
     }
   }
 }
