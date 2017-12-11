@@ -40,26 +40,26 @@ public class DeviceVO implements HiveEntity {
 
     @SerializedName("id")
     @ApiModelProperty(name = "id", dataType = "integer")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICES_LISTED})
     private String deviceId;
 
     @NotNull
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
     private String name;
 
     @SerializedName("data")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
     private JsonStringWrapper data;
 
     @SerializedName("networkId")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICES_LISTED})
     private Long networkId;
 
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
     private Boolean blocked;
 
     public Long getId() {

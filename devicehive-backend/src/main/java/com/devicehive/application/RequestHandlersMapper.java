@@ -20,7 +20,9 @@ package com.devicehive.application;
  * #L%
  */
 
+import com.devicehive.api.HandlersMapper;
 import com.devicehive.messages.handler.DeviceCreateHandler;
+import com.devicehive.messages.handler.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandGetSubscriptionRequestHandler;
@@ -46,11 +48,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class RequestHandlersMapper {
+public class RequestHandlersMapper implements HandlersMapper {
 
     private final NotificationSearchHandler notificationSearchHandler;
     private final NotificationInsertHandler notificationInsertHandler;
@@ -69,6 +70,7 @@ public class RequestHandlersMapper {
     private final ListDeviceHandler listDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
+    private final DeviceDeleteHandler deviceDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
 
@@ -90,6 +92,7 @@ public class RequestHandlersMapper {
                                  ListNetworkHandler listNetworkHandler,
                                  ListSubscribeHandler listSubscribeHandler,
                                  DeviceCreateHandler deviceCreateHandler,
+                                 DeviceDeleteHandler deviceDeleteHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
@@ -109,11 +112,13 @@ public class RequestHandlersMapper {
         this.listNetworkHandler = listNetworkHandler;
         this.listSubscribeHandler = listSubscribeHandler;
         this.deviceCreateHandler = deviceCreateHandler;
+        this.deviceDeleteHandler = deviceDeleteHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
+
     }
 
     @PostConstruct
@@ -138,9 +143,11 @@ public class RequestHandlersMapper {
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
                 .put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler)
+                .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
                 .build();
     }
 
+    @Override
     public Map<Action, RequestHandler> requestHandlerMap() {
         return requestHandlerMap;
     }

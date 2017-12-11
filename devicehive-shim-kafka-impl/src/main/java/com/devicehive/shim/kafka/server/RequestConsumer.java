@@ -20,6 +20,7 @@ package com.devicehive.shim.kafka.server;
  * #L%
  */
 
+import com.devicehive.model.ServerEvent;
 import com.devicehive.shim.api.Request;
 import com.lmax.disruptor.RingBuffer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;

@@ -172,6 +172,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
         JwtTokenVO responseTokenVO = new JwtTokenVO();
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
+        userService.refreshUserLoginData(user);
         logger.debug("JwtToken: access token successfully generated with refresh token");
         return ResponseFactory.response(CREATED, responseTokenVO, JsonPolicyDef.Policy.JWT_ACCESS_TOKEN_SUBMITTED);
     }

@@ -24,13 +24,11 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.resource.DeviceResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceService;
 import com.devicehive.vo.DeviceVO;
-import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,13 +38,11 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import java.util.Collections;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
+import static javax.ws.rs.core.Response.Status.*;
 
 /**
  * {@inheritDoc}
@@ -86,26 +82,17 @@ public class DeviceResourceImpl implements DeviceResource {
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) &&
                 !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
         } else {
-            ListDeviceRequest request = new ListDeviceRequest();
-            request.setName(name);
-            request.setNamePattern(namePattern);
-            request.setNetworkId(networkId);
-            request.setNetworkName(networkName);
-            request.setSortField(sortField);
-            request.setSortOrder(sortOrder);
-            request.setTake(take);
-            request.setSkip(skip);
-            request.setPrincipal(principal);
-            List<DeviceVO> devices = deviceService.list(request);
-            logger.debug("Device list proceed result. Result list contains {} elems", devices.size());
-            final Response response = ResponseFactory.response(Response.Status.OK, ImmutableSet.copyOf(devices), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
-            asyncResponse.resume(response);
+            deviceService.list(name, namePattern, networkId, networkName, sortField, sortOrder, take, skip, principal)
+                    .thenApply(devices -> {
+                        logger.debug("Device list request proceed successfully");
+                        return ResponseFactory.response(Response.Status.OK, devices, JsonPolicyDef.Policy.DEVICES_LISTED);
+                    }).thenAccept(asyncResponse::resume);
         }
     }
 

@@ -20,6 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.eventbus.Filter;
@@ -33,7 +34,6 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.shim.kafka.client.RequestResponseMatcher;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import org.apache.commons.lang3.tuple.Pair;

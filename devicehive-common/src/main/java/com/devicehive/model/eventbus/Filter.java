@@ -107,6 +107,10 @@ public class Filter implements Portable {
         this.eventName = eventName;
     }
 
+    public void deleteDeviceId(String deviceId) {
+        deviceIds.remove(deviceId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

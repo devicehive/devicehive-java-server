@@ -1,4 +1,4 @@
-package com.devicehive.shim.kafka.client;
+package com.devicehive.api;
 
 /*
  * #%L
@@ -27,7 +27,6 @@ import com.google.common.collect.SetMultimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
