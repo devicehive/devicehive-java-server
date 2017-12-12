@@ -144,7 +144,7 @@ if (deployable_branches.contains(env.BRANCH_NAME)) {
           sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
           sudo docker-compose pull
           sudo docker-compose up -d
-          echo "$(date): Deployed build from ${BRANCH_NAME} to dev server" > ./jenkins-cd.timestamp
+          echo "$(date): Successfully deployed build #${BUILD_NUMBER} from ${BRANCH_NAME} branch" > ./jenkins-cd.timestamp
         '''
       }
     }
