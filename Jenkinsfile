@@ -25,7 +25,7 @@ stage('Build and publish Docker images in CI repository') {
   node('docker') {
     echo 'Building images ...'
     unstash 'jars'
-    def auth = docker.build('devicehiveci/devicehive-auth:${BRANCH_NAME}', '-f dockerfiles/devicehive-auth.Dockerfile .')
+    def auth = docker.build('devicehiveci/devicehive-auth:${BRANCH_NAME}', '--pull -f dockerfiles/devicehive-auth.Dockerfile .')
     def plugin = docker.build('devicehiveci/devicehive-plugin:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin.Dockerfile .')
     def frontend = docker.build('devicehiveci/devicehive-frontend:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend.Dockerfile .')
     def backend = docker.build('devicehiveci/devicehive-backend:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend.Dockerfile .')
