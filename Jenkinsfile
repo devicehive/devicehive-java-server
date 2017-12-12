@@ -2,8 +2,9 @@ properties([
   buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
 ])
 
-def publishable_branches = ["development", "master"]
-def deployable_branches = ["development"]
+def test_branches = ["development", "master"]
+def publish_branches = ["development", "master"]
+def deploy_branches = ["development"]
 
 stage('Build jars') {
   node('docker') {
@@ -42,7 +43,7 @@ stage('Build and publish Docker images in CI repository') {
   }
 }
 
-if (publishable_branches.contains(env.BRANCH_NAME)) {
+if (test_branches.contains(env.BRANCH_NAME)) {
   stage('Run regression tests'){
     node('tests-runner'){
       try {
@@ -111,7 +112,9 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
       }
     }
   }
+}
 
+if (publish_branches.contains(env.BRANCH_NAME)) {
   stage('Publish image in main repository') {
     node('docker') {
       // Builds from 'master' branch will have 'latest' tag
@@ -136,7 +139,7 @@ if (publishable_branches.contains(env.BRANCH_NAME)) {
   }
 }
 
-if (deployable_branches.contains(env.BRANCH_NAME)) {
+if (deploy_branches.contains(env.BRANCH_NAME)) {
   stage('Deploy build to dev server'){
     node('dev-server') {
       dir('/home/centos/devicehive-docker/rdbms-image'){
