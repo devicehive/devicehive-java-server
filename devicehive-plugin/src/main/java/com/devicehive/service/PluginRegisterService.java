@@ -114,6 +114,7 @@ public class PluginRegisterService {
             response.addProperty("accessToken", jwtTokenVO.getAccessToken());
             response.addProperty("refreshToken", jwtTokenVO.getRefreshToken());
             response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyConnect());
+            response.addProperty("topicName", pluginVO.getTopicName());
 
             return ResponseFactory.response(CREATED, response, PLUGIN_SUBMITTED);
         });
