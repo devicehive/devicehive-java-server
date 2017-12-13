@@ -54,11 +54,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
           JWT_SECRET=devicehive
           """
 
-          echo("Start DeviceHive")
-          sh '''
-            sudo docker-compose pull
-            sudo docker-compose up -d
-          '''
+          start_devicehive()
         }
         wait_for_devicehive_is_up()
         run_devicehive_tests()
@@ -118,6 +114,13 @@ def clone_devicehive_docker(){
   }
 }
 
+def start_devicehive() {
+  echo("Start DeviceHive")
+  sh '''
+    sudo docker-compose pull
+    sudo docker-compose up -d
+  '''
+}
 
 def wait_for_devicehive_is_up() {
   echo("Wait for devicehive")
