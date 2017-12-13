@@ -47,11 +47,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
   stage('Run regression tests'){
     node('tests-runner'){
       try {
-        dir('devicehive-docker'){
-          echo("Clone Docker Compose files")
-          git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
-        }
-
+        clone_devicehive_docker()
         dir('devicehive-docker/rdbms-image'){
           writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:ci-images.yml
           DH_TAG=${BRANCH_NAME}
@@ -114,6 +110,14 @@ if (deploy_branches.contains(env.BRANCH_NAME)) {
     }
   }
 }
+
+def clone_devicehive_docker(){
+  dir('devicehive-docker'){
+    echo("Clone Docker Compose files")
+    git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
+  }
+}
+
 
 def wait_for_devicehive_is_up() {
   echo("Wait for devicehive")
