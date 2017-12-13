@@ -64,16 +64,8 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             sudo docker-compose up -d
           '''
         }
-
-        echo("Wait for devicehive")
-        timeout(time:5, unit: 'MINUTES') {
-          waitUntil{
-            def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
-            return (fe_status == 0)
-          }
-        }
+        wait_for_devicehive_is_up()
         run_devicehive_tests()
-
       } finally {
         zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         shutdown_devicehive()
@@ -119,6 +111,16 @@ if (deploy_branches.contains(env.BRANCH_NAME)) {
           echo "$(date): Successfully deployed build #${BUILD_NUMBER} from ${BRANCH_NAME} branch" > ./jenkins-cd.timestamp
         '''
       }
+    }
+  }
+}
+
+def wait_for_devicehive_is_up() {
+  echo("Wait for devicehive")
+  timeout(time:5, unit: 'MINUTES') {
+    waitUntil{
+      def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
+      return (fe_status == 0)
     }
   }
 }
