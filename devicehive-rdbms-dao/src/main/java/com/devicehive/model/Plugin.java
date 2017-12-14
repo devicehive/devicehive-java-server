@@ -96,11 +96,6 @@ public class Plugin implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String topicName;
 
-    @Column(name = "health_check_url")
-    @SerializedName("healthCheckUrl")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private String healthCheckUrl;
-
     @Column(name = "status")
     @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -156,14 +151,6 @@ public class Plugin implements HiveEntity {
         this.topicName = topicName;
     }
 
-    public String getHealthCheckUrl() {
-        return healthCheckUrl;
-    }
-
-    public void setHealthCheckUrl(String healthCheckUrl) {
-        this.healthCheckUrl = healthCheckUrl;
-    }
-
     public PluginStatus getStatus() {
         return status;
     }
@@ -204,7 +191,6 @@ public class Plugin implements HiveEntity {
             vo.setName(entity.getName());
             vo.setDescription(entity.description);
             vo.setTopicName(entity.getTopicName());
-            vo.setHealthCheckUrl(entity.getHealthCheckUrl());
             vo.setStatus(entity.getStatus());
             vo.setSubscriptionId(entity.getSubscriptionId());
             vo.setUserId(entity.getUserId());
@@ -222,7 +208,6 @@ public class Plugin implements HiveEntity {
             entity.setName(vo.getName());
             entity.setDescription(vo.getDescription());
             entity.setTopicName(vo.getTopicName());
-            entity.setHealthCheckUrl(vo.getHealthCheckUrl());
             entity.setStatus(vo.getStatus());
             entity.setSubscriptionId(vo.getSubscriptionId());
             entity.setUserId(vo.getUserId());

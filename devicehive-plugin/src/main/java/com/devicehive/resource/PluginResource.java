@@ -53,7 +53,6 @@ public interface PluginResource {
             @ApiResponse(code = 200,
                     message = "Returns plugin uuid, topic name and health check period",
                     response = PluginVO.class),
-            @ApiResponse(code = 400, message = "healthCheckUrl doesn't respond")
     })
     void register(
             @BeanParam PluginReqisterQuery pluginReqisterQuery,
