@@ -24,7 +24,6 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
-import java.util.Date;
 import java.util.Set;
 
 
@@ -34,7 +33,6 @@ public class PluginSubscribeRequest extends Body {
     private Set<Filter> filters;
     private Set<String> names;
     private Long userId;
-    private Date timestamp;
     private String topicName;
     private boolean returnCommands;
     private boolean returnUpdatedCommands;
@@ -74,14 +72,6 @@ public class PluginSubscribeRequest extends Body {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
     }
 
     public String getTopicName() {
