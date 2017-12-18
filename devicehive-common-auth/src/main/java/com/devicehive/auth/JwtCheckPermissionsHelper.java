@@ -21,6 +21,7 @@ package com.devicehive.auth;
  */
 
 import com.devicehive.service.BaseDeviceService;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,8 @@ public class JwtCheckPermissionsHelper {
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
         return checkActionAllowed(action, permittedActions)
                 && checkNetworksAllowed(hivePrincipal, action, targetDomainObject)
-                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject);
+                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject)
+                && checkDeviceIdsAllowed(hivePrincipal, targetDomainObject);
     }
 
     // TODO - verify permission-checking logic
@@ -70,4 +72,33 @@ public class JwtCheckPermissionsHelper {
         return true;
     }
 
+    private boolean checkDeviceIdsAllowed(HivePrincipal principal, Object targetDomainObject) {
+
+        if (targetDomainObject instanceof String) {
+            if (principal.areAllDeviceTypesAvailable() && principal.areAllNetworksAvailable()) {
+                return true;
+            }
+
+            Set<Long> networks = principal.getNetworkIds();
+            Set<Long> deviceTypes = principal.getDeviceTypeIds();
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck((String) targetDomainObject, principal);
+
+            if (device == null) {
+                return false;
+            }
+            if (principal.areAllNetworksAvailable() && deviceTypes != null) {
+                return deviceTypes.contains(device.getDeviceTypeId());
+            }
+            if (principal.areAllDeviceTypesAvailable() && networks != null) {
+                return networks.contains(device.getNetworkId());
+            }
+            if (networks != null && deviceTypes != null) {
+                return networks.contains(device.getNetworkId()) && deviceTypes.contains(device.getDeviceTypeId());
+            }
+
+            return false;
+        }
+
+        return true;
+    }
 }

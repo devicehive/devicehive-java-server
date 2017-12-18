@@ -27,6 +27,7 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.rpc.DeviceDeleteRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
@@ -55,6 +56,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Component
@@ -219,9 +221,11 @@ public class DeviceService extends BaseDeviceService {
             return devices;
         }
 
-        throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
-
-
+        if (UserRole.ADMIN.equals(principal.getUser().getRole())) {
+            throw new HiveException(String.format(Messages.DEVICES_NOT_FOUND, unresolvedIds), SC_NOT_FOUND);
+        } else {
+            throw new HiveException(Messages.ACCESS_DENIED, SC_FORBIDDEN);
+        }
     }
 
     private DeviceNotification deviceSaveByUser(String deviceId, DeviceUpdate deviceUpdate, HivePrincipal principal) {

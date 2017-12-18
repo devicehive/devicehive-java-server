@@ -54,7 +54,7 @@ public class FilterRegistry {
     void unregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> subscribers.forEach(sub -> {
             if (sub.equals(subscriber)) {
-                subscribers.remove(subscriber);
+                subscribers.remove(sub);
             }
         }));
     }
