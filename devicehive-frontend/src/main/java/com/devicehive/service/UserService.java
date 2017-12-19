@@ -28,6 +28,9 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.CountUserRequest;
+import com.devicehive.model.rpc.CountUserResponse;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.rpc.ListUserResponse;
 import com.devicehive.model.updates.UserUpdate;
@@ -193,6 +196,18 @@ public class UserService extends BaseUserService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListUserResponse) r.getBody()).getUsers());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String login, String loginPattern, Integer role, Integer status) {
+        CountUserRequest countUserRequest = new CountUserRequest(login, loginPattern, role, status);
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countUserRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((CountUserResponse) response.getBody()).getEntityCountResponse());
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
