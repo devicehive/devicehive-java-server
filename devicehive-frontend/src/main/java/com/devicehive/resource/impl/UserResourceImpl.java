@@ -19,6 +19,7 @@ package com.devicehive.resource.impl;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -29,6 +30,7 @@ import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.DeviceTypeService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
@@ -53,11 +55,13 @@ public class UserResourceImpl implements UserResource {
     private static final Logger logger = LoggerFactory.getLogger(UserResourceImpl.class);
 
     private final UserService userService;
+    private final DeviceTypeService deviceTypeService;
     private final HiveValidator hiveValidator;
 
     @Autowired
-    public UserResourceImpl(UserService userService, HiveValidator hiveValidator) {
+    public UserResourceImpl(UserService userService, DeviceTypeService deviceTypeService, HiveValidator hiveValidator) {
         this.userService = userService;
+        this.deviceTypeService = deviceTypeService;
         this.hiveValidator = hiveValidator;
     }
 
@@ -233,6 +237,12 @@ public class UserResourceImpl implements UserResource {
                     String.format(Messages.USER_NOT_FOUND, id));
             return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
+
+        if (existingUser.getAllDeviceTypesAvailable()) {
+            DeviceTypeVO deviceTypeVO = deviceTypeService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+            return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceTypeVO), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
+        }
+
         for (DeviceTypeVO deviceType : existingUser.getDeviceTypes()) {
             if (deviceType.getId() == deviceTypeId) {
                 return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceType), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
@@ -258,6 +268,18 @@ public class UserResourceImpl implements UserResource {
     @Override
     public Response unassignDeviceType(long id, long deviceTypeId) {
         userService.unassignDeviceType(id, deviceTypeId);
+        return ResponseFactory.response(NO_CONTENT);
+    }
+
+    @Override
+    public Response allowAllDeviceTypes(long id) {
+        userService.allowAllDeviceTypes(id);
+        return ResponseFactory.response(NO_CONTENT);
+    }
+
+    @Override
+    public Response disallowAllDeviceTypes(long id) {
+        userService.disallowAllDeviceTypes(id);
         return ResponseFactory.response(NO_CONTENT);
     }
 

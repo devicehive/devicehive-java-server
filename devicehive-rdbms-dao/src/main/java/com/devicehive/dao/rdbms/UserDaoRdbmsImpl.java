@@ -33,6 +33,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -165,6 +166,27 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
                     existingDeviceType.getUsers().remove(usr);
                     merge(existingDeviceType);
                 });
+    }
+
+    @Override
+    public UserVO allowAllDeviceTypes(UserWithDeviceTypeVO existingUser) {
+        User entity = User.convertToEntity(existingUser);
+        entity.setAllDeviceTypesAvailable(true);
+        //TODO - add single named query to avoid cycling through all device types
+        for (DeviceType dt: entity.getDeviceTypes()) {
+            unassignDeviceType(existingUser, dt.getId());
+        }
+        entity.setDeviceTypes(Collections.EMPTY_SET);
+        User merge = super.merge(entity);
+        return User.convertToVo(merge);
+    }
+
+    @Override
+    public UserVO disallowAllDeviceTypes(UserVO existingUser) {
+        User entity = User.convertToEntity(existingUser);
+        entity.setAllDeviceTypesAvailable(false);
+        User merge = super.merge(entity);
+        return User.convertToVo(merge);
     }
 
     @Override

@@ -349,11 +349,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
+        user1.setAllDeviceTypesAvailable(false);
         user1 = userService.createUser(user1, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -409,11 +411,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
+        user1.setAllDeviceTypesAvailable(false);
         user1 = userService.createUser(user1, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -470,6 +474,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();

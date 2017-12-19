@@ -56,6 +56,7 @@ public class UserWithDeviceTypeVO extends UserVO {
             vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
+            vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
         }
 
         return vo;

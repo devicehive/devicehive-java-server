@@ -52,6 +52,10 @@ public interface UserDao {
 
     void unassignDeviceType(@NotNull UserVO existingUser, @NotNull long deviceId);
 
+    UserVO allowAllDeviceTypes(@NotNull UserWithDeviceTypeVO existingUser);
+
+    UserVO disallowAllDeviceTypes(@NotNull UserVO existingUser);
+
     List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField,
                        boolean sortOrderAsc, Integer take, Integer skip);
 }

@@ -401,4 +401,52 @@ public interface UserResource {
             @ApiParam(name = "deviceTypeId", value = "Device type identifier.", required = true)
             @PathParam("deviceTypeId")
                     long deviceTypeId);
+
+    /**
+     * Adds user permission for all device types.
+     * Request body must be empty. Returns Empty body.
+     *
+     * @param id            user id
+     */
+    @PUT
+    @Path("/{id}/devicetype/all")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    @ApiOperation(value = "Assign all device types", notes = "Gives user permission to access all device types")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user or device type not found")
+    })
+    Response allowAllDeviceTypes(
+            @ApiParam(name = "id", value = "User identifier.", required = true)
+            @PathParam("id")
+                    long id);
+
+    /**
+     * Removes user permissions to access all device types.
+     *
+     * @param id            user id
+     * @return Empty body. Status 204 in case of success, 404 otherwise
+     */
+    @DELETE
+    @Path("/{id}/devicetype")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    @ApiOperation(value = "Unassign all device types", notes = "Removes user permission to access all device types.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "If successful, this method returns an empty response body."),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user or device type not found.")
+    })
+    Response disallowAllDeviceTypes(
+            @ApiParam(name = "id", value = "User identifier.", required = true)
+            @PathParam("id")
+                    long id);
 }

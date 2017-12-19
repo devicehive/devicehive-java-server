@@ -24,7 +24,9 @@ package com.devicehive.model;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
+import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.UserVO;
+import com.devicehive.vo.UserWithDeviceTypeVO;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -34,6 +36,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -118,6 +121,11 @@ public class User implements HiveEntity {
     @SerializedName("introReviewed")
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Boolean introReviewed;
+
+    @Column(name = "all_device_types_available")
+    @SerializedName("allDeviceTypesAvailable")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean allDeviceTypesAvailable;
 
     /**
      * @return true, if user is admin
@@ -222,6 +230,14 @@ public class User implements HiveEntity {
         this.introReviewed = introReviewed;
     }
 
+    public Boolean getAllDeviceTypesAvailable() {
+        return allDeviceTypesAvailable;
+    }
+
+    public void setAllDeviceTypesAvailable(Boolean allDeviceTypesAvailable) {
+        this.allDeviceTypesAvailable = allDeviceTypesAvailable;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -259,6 +275,7 @@ public class User implements HiveEntity {
             vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
+            vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
         }
         return vo;
     }
@@ -278,6 +295,33 @@ public class User implements HiveEntity {
             vo.setRole(dc.getRole());
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
+            vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+        }
+        return vo;
+    }
+
+    public static User convertToEntity(UserWithDeviceTypeVO dc) {
+        User vo = null;
+        if (dc != null) {
+            vo = new User();
+            vo.setData(dc.getData());
+            vo.setId(dc.getId());
+            vo.setLastLogin(dc.getLastLogin());
+            vo.setLogin(dc.getLogin());
+            vo.setLoginAttempts(dc.getLoginAttempts());
+            vo.setPasswordHash(dc.getPasswordHash());
+            vo.setPasswordSalt(dc.getPasswordSalt());
+            vo.setRole(dc.getRole());
+            vo.setStatus(dc.getStatus());
+            vo.setIntroReviewed(dc.getIntroReviewed());
+            vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+
+            vo.setDeviceTypes(new HashSet<>());
+
+            for (DeviceTypeVO deviceTypeVO : dc.getDeviceTypes()) {
+                DeviceType deviceType = DeviceType.convert(deviceTypeVO);
+                vo.getDeviceTypes().add(deviceType);
+            }
         }
         return vo;
     }

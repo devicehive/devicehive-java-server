@@ -111,6 +111,7 @@ public class Messages {
     public static final String DUPLICATE_DEVICE_TYPE = BidBundle.get("DUPLICATE_DEVICE_TYPE");
     public static final String NO_ACCESS_TO_DEVICE_TYPE = BidBundle.get("NO_ACCESS_TO_DEVICE_TYPE");
     public static final String DEVICE_TYPE_CREATION_NOT_ALLOWED = BidBundle.get("DEVICE_TYPE_CREATION_NOT_ALLOWED");
+    public static final String DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED = BidBundle.get("DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED");
     public static final String PARAMS_NOT_JSON = BidBundle.get("PARAMS_NOT_JSON");
     public static final String NO_NOTIFICATION_PARAMS = BidBundle.get("NO_NOTIFICATION_PARAMS");
     public static final String UNKNOWN_ACTION_REQUESTED_WS = BidBundle.get("UNKNOWN_ACTION_REQUESTED_WS");

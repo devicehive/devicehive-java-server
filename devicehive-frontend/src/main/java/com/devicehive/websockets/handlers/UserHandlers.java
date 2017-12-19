@@ -379,6 +379,32 @@ public class UserHandlers {
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    public void processUserAllowAllDeviceTypes(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        userService.allowAllDeviceTypes(userId);
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    public void processUserDisallowAllDeviceTypes(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        userService.disallowAllDeviceTypes(userId);
+        clientHandler.sendMessage(request, new WebSocketResponse(), session);
+    }
+
     private UserVO findCurrentUserFromAuthContext() {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return principal.getUser();

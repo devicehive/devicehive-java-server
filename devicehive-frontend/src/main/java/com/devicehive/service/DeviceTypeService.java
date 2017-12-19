@@ -89,19 +89,22 @@ public class DeviceTypeService {
                         return empty();
                     }
                 }).flatMap(user -> {
-            Long idForFiltering = user.isAdmin() ? null : user.getId();
-            List<DeviceTypeWithUsersAndDevicesVO> found = deviceTypeDao.getDeviceTypesByIdsAndUsers(idForFiltering,
-                    Collections.singleton(deviceTypeId), permittedDeviceTypes);
-            return found.stream().findFirst();
-        }).map(deviceType -> {
-            if (permittedNetworks != null && !permittedNetworks.isEmpty()) {
-                Set<DeviceVO> allowed = deviceType.getDevices().stream()
-                        .filter(device -> permittedNetworks.contains(device.getNetworkId()))
-                        .collect(Collectors.toSet());
-                deviceType.setDevices(allowed);
-            }
-            return deviceType;
-        });
+                    Long idForFiltering = user.isAdmin() ? null : user.getId();
+                    if (user.getAllDeviceTypesAvailable()) {
+                        idForFiltering = null;
+                    }
+                    List<DeviceTypeWithUsersAndDevicesVO> found = deviceTypeDao.getDeviceTypesByIdsAndUsers(idForFiltering,
+                            Collections.singleton(deviceTypeId), permittedDeviceTypes);
+                    return found.stream().findFirst();
+                }).map(deviceType -> {
+                    if (permittedNetworks != null && !permittedNetworks.isEmpty()) {
+                        Set<DeviceVO> allowed = deviceType.getDevices().stream()
+                                .filter(device -> permittedNetworks.contains(device.getNetworkId()))
+                                .collect(Collectors.toSet());
+                        deviceType.setDevices(allowed);
+                    }
+                    return deviceType;
+                });
 
         return result.orElse(null);
     }
@@ -138,10 +141,10 @@ public class DeviceTypeService {
         if (existing == null) {
             throw new NoSuchElementException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId));
         }
-        if (deviceTypeUpdate.getName().isPresent()){
+        if (deviceTypeUpdate.getName().isPresent()) {
             existing.setName(deviceTypeUpdate.getName().get());
         }
-        if (deviceTypeUpdate.getDescription().isPresent()){
+        if (deviceTypeUpdate.getDescription().isPresent()) {
             existing.setDescription(deviceTypeUpdate.getDescription().get());
         }
         hiveValidator.validate(existing);
@@ -150,12 +153,12 @@ public class DeviceTypeService {
     }
 
     public CompletableFuture<List<DeviceTypeVO>> list(String name,
-            String namePattern,
-            String sortField,
-            String sortOrder,
-            Integer take,
-            Integer skip,
-            HivePrincipal principal) {
+                                                      String namePattern,
+                                                      String sortField,
+                                                      String sortOrder,
+                                                      Integer take,
+                                                      Integer skip,
+                                                      HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListDeviceTypeRequest request = new ListDeviceTypeRequest();
@@ -214,7 +217,6 @@ public class DeviceTypeService {
                 DeviceTypeWithUsersAndDevicesVO newDeviceType = new DeviceTypeWithUsersAndDevicesVO(deviceType);
                 deviceTypeDao.persist(newDeviceType);
                 deviceType.setId(newDeviceType.getId());
-                userService.assignDeviceType(user.getId(), deviceType.getId()); // Assign created device type to user
             } else {
                 throw new ActionNotAllowedException(Messages.DEVICE_TYPE_CREATION_NOT_ALLOWED);
             }
@@ -224,9 +226,9 @@ public class DeviceTypeService {
 
     @Transactional
     public Long findDefaultDeviceType(Set<Long> deviceTypeIds) {
-    	return deviceTypeDao.findDefault(deviceTypeIds)
-    			.map(DeviceTypeVO::getId)
-    			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_DEVICE_TYPE));
+        return deviceTypeDao.findDefault(deviceTypeIds)
+                .map(DeviceTypeVO::getId)
+                .orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_DEVICE_TYPE));
     }
 
     @Transactional
@@ -238,9 +240,9 @@ public class DeviceTypeService {
     }
 
     public boolean isDeviceTypeExists(Long deviceTypeId) {
-    	return ofNullable(deviceTypeId)
-        	.map(id -> deviceTypeDao.find(id) != null)
-        	.orElse(false);
+        return ofNullable(deviceTypeId)
+                .map(id -> deviceTypeDao.find(id) != null)
+                .orElse(false);
     }
 
     private Optional<DeviceTypeVO> findDeviceTypeByIdOrName(DeviceTypeVO deviceType) {

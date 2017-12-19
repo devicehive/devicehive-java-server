@@ -229,6 +229,9 @@ public class UserService extends BaseUserService {
             logger.error("Can't assign device type with id {}: user {} not found", deviceTypeId, userId);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
+        if (existingUser.getAllDeviceTypesAvailable()) {
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED, userId), FORBIDDEN.getStatusCode());
+        }
         DeviceTypeWithUsersAndDevicesVO existingDeviceType = deviceTypeDao.findWithUsers(deviceTypeId).orElse(null);
         if (Objects.isNull(existingDeviceType)) {
             throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
@@ -250,6 +253,9 @@ public class UserService extends BaseUserService {
             logger.error("Can't unassign device type with id {}: user {} not found", deviceTypeId, userId);
             throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
         }
+        if (existingUser.getAllDeviceTypesAvailable()) {
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED, userId), FORBIDDEN.getStatusCode());
+        }
         DeviceTypeVO existingDeviceType = deviceTypeDao.find(deviceTypeId);
         if (existingDeviceType == null) {
             logger.error("Can't unassign user with id {}: device type {} not found", userId, deviceTypeId);
@@ -257,6 +263,27 @@ public class UserService extends BaseUserService {
         }
         userDao.unassignDeviceType(existingUser, deviceTypeId);
     }
+
+    @Transactional
+    public UserVO allowAllDeviceTypes(@NotNull long userId) {
+        UserWithDeviceTypeVO existingUser = userDao.getWithDeviceTypeById(userId);
+        if (existingUser == null) {
+            logger.error("Can't allow all device types: user {} not found", userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        return userDao.allowAllDeviceTypes(existingUser);
+    }
+
+    @Transactional
+    public UserVO disallowAllDeviceTypes(@NotNull long userId) {
+        UserVO existingUser = userDao.find(userId);
+        if (existingUser == null) {
+            logger.error("Can't disallow all device types: user {} not found", userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+        return userDao.disallowAllDeviceTypes(existingUser);
+    }
+
     public CompletableFuture<List<UserVO>> list(ListUserRequest request) {
         return list(request.getLogin(), request.getLoginPattern(), request.getRole(), request.getStatus(), request.getSortField(),
                 request.getSortOrder(), request.getTake(), request.getSkip());
@@ -307,6 +334,10 @@ public class UserService extends BaseUserService {
         user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
         if (user.getIntroReviewed() == null) {
             user.setIntroReviewed(false);
+        }
+
+        if (user.getAllDeviceTypesAvailable() == null) {
+            user.setAllDeviceTypesAvailable(true);
         }
         userDao.persist(user);
         return user;
