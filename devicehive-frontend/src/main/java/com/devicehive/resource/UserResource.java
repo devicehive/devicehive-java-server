@@ -22,6 +22,7 @@ package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.response.UserDeviceTypeResponse;
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.vo.UserVO;
@@ -93,6 +94,43 @@ public interface UserResource {
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
             Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
+
+    /**
+     * @param login        user login ignored, when loginPattern is specified
+     * @param loginPattern login pattern (LIKE %VALUE%) user login will be ignored, if not null
+     * @param role         User's role ADMIN - 0, CLIENT - 1
+     * @param status       ACTIVE - 0 (normal state, user can logon) , LOCKED_OUT - 1 (locked for multiple login
+     *                     failures), DISABLED - 2 , DELETED - 3;
+     * @return Count of Users
+     */
+    @GET
+    @Path("/count")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
+    @ApiOperation(value = "Count users", notes = "Gets count of users.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns the count of users, matching the filters.", response = EntityCountResponse.class, responseContainer = "Count"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    void count(
+            @ApiParam(name = "login", value = "Filter by user login.")
+            @QueryParam("login")
+                    String login,
+            @ApiParam(name = "loginPattern", value = "Filter by user login pattern.")
+            @QueryParam("loginPattern")
+                    String loginPattern,
+            @ApiParam(name = "role", value = "Filter by user role. 0 is Administrator, 1 is Client.")
+            @QueryParam("role")
+                    Integer role,
+            @ApiParam(name = "status", value = "Filter by user status. 0 is Active, 1 is Locked Out, 2 is Disabled.")
+            @QueryParam("status")
+                    Integer status,
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "ID,Login")
             @Suspended final AsyncResponse asyncResponse);
 
     /**

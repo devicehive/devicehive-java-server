@@ -26,6 +26,7 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserDeviceTypeResponse;
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
@@ -89,6 +90,23 @@ public class UserResourceImpl implements UserResource {
                         return ResponseFactory.response(OK, users, JsonPolicyDef.Policy.USERS_LISTED);
                     }).thenAccept(asyncResponse::resume);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void count(String login, String loginPattern, Integer role, Integer status,
+                          @Suspended final AsyncResponse asyncResponse) {
+
+        userService.list(login, loginPattern, role, status, null, null, null, null)
+                .thenApply(users -> {
+                    final long userCount = users.size();
+                    logger.debug("User count request proceed successfully");
+
+                    final EntityCountResponse entityCountResponse = new EntityCountResponse(userCount);
+                    return ResponseFactory.response(OK, entityCountResponse, JsonPolicyDef.Policy.ENTITIES_COUNTED);
+                }).thenAccept(asyncResponse::resume);
     }
 
     /**
