@@ -24,14 +24,14 @@ import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
 import com.google.gson.annotations.SerializedName;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.ENTITIES_COUNTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class EntityCountResponse implements HiveEntity {
 
     private static final long serialVersionUID = 5041089226691783525L;
 
     @SerializedName("count")
-    @JsonPolicyDef({ENTITIES_COUNTED})
+    @JsonPolicyDef({USERS_LISTED, DEVICES_LISTED, NETWORKS_LISTED})
     private long count;
 
     public EntityCountResponse(long count) {

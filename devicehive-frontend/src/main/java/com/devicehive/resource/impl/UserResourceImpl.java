@@ -105,7 +105,7 @@ public class UserResourceImpl implements UserResource {
                     logger.debug("User count request proceed successfully");
 
                     final EntityCountResponse entityCountResponse = new EntityCountResponse(userCount);
-                    return ResponseFactory.response(OK, entityCountResponse, JsonPolicyDef.Policy.ENTITIES_COUNTED);
+                    return ResponseFactory.response(OK, entityCountResponse, JsonPolicyDef.Policy.USERS_LISTED);
                 }).thenAccept(asyncResponse::resume);
     }
 

@@ -28,9 +28,8 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.rpc.DeviceDeleteRequest;
-import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceResponse;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.service.time.TimestampService;
@@ -208,7 +207,18 @@ public class DeviceService extends BaseDeviceService {
         return future.thenApply(response -> ((ListDeviceResponse) response.getBody()).getDevices());
     }
 
-    // TODO - double-check, there should be no reason for two conditions anymore
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal) {
+        CountDeviceRequest countDeviceRequest = new CountDeviceRequest(name, namePattern, networkId, networkName, principal);
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countDeviceRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((CountDeviceResponse) response.getBody()).getEntityCountResponse());
+    }
+
     @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> getAllowedExistingDevices(Set<String> deviceIds, HivePrincipal principal) {
         List<DeviceVO> devices = findByIdWithPermissionsCheck(deviceIds, principal);
