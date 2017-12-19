@@ -32,6 +32,7 @@ import com.devicehive.messages.handler.command.CommandSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandUpdateHandler;
 import com.devicehive.messages.handler.command.CommandUpdateSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandsUpdateHandler;
+import com.devicehive.messages.handler.dao.count.CountDeviceHandler;
 import com.devicehive.messages.handler.dao.list.ListDeviceHandler;
 import com.devicehive.messages.handler.dao.list.ListNetworkHandler;
 import com.devicehive.messages.handler.dao.list.ListSubscribeHandler;
@@ -68,6 +69,7 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final ListUserHandler listUserHandler;
     private final ListNetworkHandler listNetworkHandler;
     private final ListDeviceHandler listDeviceHandler;
+    private final CountDeviceHandler countDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceCreateHandler deviceCreateHandler;
     private final DeviceDeleteHandler deviceDeleteHandler;
@@ -96,7 +98,7 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
-                                 PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
+                                 CountDeviceHandler countDeviceHandler, PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
                                  PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
@@ -116,6 +118,7 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
+        this.countDeviceHandler = countDeviceHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
 
@@ -141,6 +144,7 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.LIST_USER_REQUEST, listUserHandler)
                 .put(Action.LIST_NETWORK_REQUEST, listNetworkHandler)
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
+                .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
                 .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
                 .put(Action.DEVICE_CREATE_REQUEST, deviceCreateHandler)
                 .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)

@@ -63,7 +63,6 @@ public @interface JsonPolicyDef {
         NETWORK_PUBLISHED,
         NETWORKS_LISTED,
         NETWORK_SUBMITTED,
-        SUBSCRIPTIONS_LISTED,
-        ENTITIES_COUNTED
+        SUBSCRIPTIONS_LISTED
     }
 }

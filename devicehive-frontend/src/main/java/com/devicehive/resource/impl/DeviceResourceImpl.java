@@ -96,6 +96,18 @@ public class DeviceResourceImpl implements DeviceResource {
         }
     }
 
+    @Override
+    public void count(String name, String namePattern, Long networkId, String networkName, AsyncResponse asyncResponse) {
+        logger.debug("Device count requested");
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        deviceService.count(name, namePattern, networkId, networkName, principal)
+                .thenApply(count -> {
+                    logger.debug("Device count request proceed successfully");
+                    return ResponseFactory.response(OK, count, JsonPolicyDef.Policy.DEVICES_LISTED);
+                }).thenAccept(asyncResponse::resume);
+    }
+
     /**
      * {@inheritDoc}
      */
