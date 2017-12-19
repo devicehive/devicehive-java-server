@@ -21,7 +21,6 @@ package com.devicehive.model.query;
  */
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.service.BaseDeviceService;
@@ -40,7 +39,6 @@ import static com.devicehive.configuration.Constants.RETURN_NOTIFICATIONS;
 import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
 import static com.devicehive.model.converters.SetHelper.toLongSet;
 import static com.devicehive.model.converters.SetHelper.toStringSet;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 
 public class PluginReqisterQuery {
@@ -60,10 +58,6 @@ public class PluginReqisterQuery {
     @ApiParam(name = "names", value = "Command/Notification names")
     @QueryParam("names")
     private String names;
-
-    @ApiParam(name = "timestamp", value = "Timestamp to start from")
-    @QueryParam("timestamp")
-    private String timestamp;
 
     @ApiParam(name = RETURN_COMMANDS, value = "Checks if commands should be returned", defaultValue = "true")
     @QueryParam(RETURN_COMMANDS)
@@ -109,14 +103,6 @@ public class PluginReqisterQuery {
         this.names = names;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public boolean isReturnCommands() {
         return returnCommands;
     }
@@ -145,7 +131,6 @@ public class PluginReqisterQuery {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
         request.setFilters(createFilters(principal, deviceService));
         request.setUserId(principal.getUser().getId());
-        request.setTimestamp(TimestampQueryParamParser.parse(timestamp));
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
         request.setReturnNotifications(returnNotifications);

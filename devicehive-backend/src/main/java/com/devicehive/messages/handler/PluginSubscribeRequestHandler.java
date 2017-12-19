@@ -85,7 +85,7 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
                 .map(filter -> {
                     filter.setEventName(NOTIFICATION_EVENT.name());
                     NotificationSubscribeRequest notificationSubscribeRequest = new NotificationSubscribeRequest(
-                            body.getSubscriptionId(), filter, body.getNames(), body.getTimestamp());
+                            body.getSubscriptionId(), filter, body.getNames(), null);
 
                     Request notificationRequest = Request.newBuilder()
                             .withBody(notificationSubscribeRequest)
@@ -102,7 +102,7 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
                 .map(filter -> {
                     filter.setEventName(COMMAND_EVENT.name());
                     CommandSubscribeRequest commandSubscribeRequest = new CommandSubscribeRequest(body.getSubscriptionId(),
-                            filter, body.getNames(), body.getTimestamp(), returnUpdated, 0);
+                            filter, body.getNames(), null, returnUpdated, 0);
 
                     Request commandRequest = Request.newBuilder()
                             .withBody(commandSubscribeRequest)
