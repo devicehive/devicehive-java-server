@@ -58,8 +58,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         networkIds.add("string");
         Set<String> deviceTypeIds = new HashSet<>();
         deviceTypeIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
@@ -78,8 +76,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         networkIds.add("string");
         Set<String> deviceTypeIds = new HashSet<>();
         deviceTypeIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
         // Generate refresh token
@@ -101,8 +97,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         networkIds.add("string");
         Set<String> deviceTypeIds = new HashSet<>();
         deviceTypeIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
@@ -124,8 +118,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         networkIds.add("string");
         Set<String> deviceTypeIds = new HashSet<>();
         deviceTypeIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
@@ -148,8 +140,6 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         networkIds.add("string");
         Set<String> deviceTypeIds = new HashSet<>();
         deviceTypeIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
         JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 

@@ -96,13 +96,6 @@ public class PluginRegisterService {
     @Transactional
     public CompletableFuture<Response> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate,
             String authorization) {
-        //checks if plugin healthcheck url is available
-        try {
-            httpRestHelper.get(pluginUpdate.getHealthCheckUrl(), JsonObject.class, null);
-        } catch (Exception e) {
-            return CompletableFuture.completedFuture(ResponseFactory.response(SERVICE_UNAVAILABLE, 
-                    new ErrorResponse(SERVICE_UNAVAILABLE.getStatusCode(), e.getMessage())));
-        }
 
         return persistPlugin(pollRequest, pluginUpdate).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
