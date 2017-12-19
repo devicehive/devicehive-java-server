@@ -98,14 +98,12 @@ public class UserResourceImpl implements UserResource {
     @Override
     public void count(String login, String loginPattern, Integer role, Integer status,
                           @Suspended final AsyncResponse asyncResponse) {
+        logger.debug("User count requested");
 
-        userService.list(login, loginPattern, role, status, null, null, null, null)
-                .thenApply(users -> {
-                    final long userCount = users.size();
+        userService.count(login, loginPattern, role, status)
+                .thenApply(count -> {
                     logger.debug("User count request proceed successfully");
-
-                    final EntityCountResponse entityCountResponse = new EntityCountResponse(userCount);
-                    return ResponseFactory.response(OK, entityCountResponse, JsonPolicyDef.Policy.USERS_LISTED);
+                    return ResponseFactory.response(OK, count, JsonPolicyDef.Policy.USERS_LISTED);
                 }).thenAccept(asyncResponse::resume);
     }
 

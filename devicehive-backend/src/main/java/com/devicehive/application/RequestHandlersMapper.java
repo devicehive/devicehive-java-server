@@ -25,7 +25,7 @@ import com.devicehive.messages.handler.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.command.*;
-import com.devicehive.messages.handler.dao.count.CountDeviceHandler;
+import com.devicehive.messages.handler.dao.count.*;
 import com.devicehive.messages.handler.dao.list.*;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandUnsubscribeRequestHandler;
@@ -56,6 +56,7 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler;
     private final CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler;
     private final ListUserHandler listUserHandler;
+    private final CountUserHandler countUserHandler;
     private final ListNetworkHandler listNetworkHandler;
     private final ListDeviceTypeHandler listDeviceTypeHandler;
     private final ListDeviceHandler listDeviceHandler;
@@ -86,7 +87,7 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
-                                 CountDeviceHandler countDeviceHandler, PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
+                                 CountUserHandler countUserHandler, CountDeviceHandler countDeviceHandler, PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
                                  PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
@@ -105,6 +106,7 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
+        this.countUserHandler = countUserHandler;
         this.countDeviceHandler = countDeviceHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
@@ -128,6 +130,7 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.PLUGIN_SUBSCRIBE_REQUEST, pluginSubscribeRequestHandler)
                 .put(Action.PLUGIN_UNSUBSCRIBE_REQUEST, pluginUnsubscribeRequestHandler)
                 .put(Action.LIST_USER_REQUEST, listUserHandler)
+                .put(Action.COUNT_USER_REQUEST, countUserHandler)
                 .put(Action.LIST_NETWORK_REQUEST, listNetworkHandler)
                 .put(Action.LIST_DEVICE_TYPE_REQUEST, listDeviceTypeHandler)
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
