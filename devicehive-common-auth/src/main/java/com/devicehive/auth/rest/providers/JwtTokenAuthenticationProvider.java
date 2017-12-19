@@ -83,6 +83,9 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                     throw new BadCredentialsException("Unauthorized: user is not active");
                 }
                 principal.setUser(userVO);
+                if (!userVO.getAllDeviceTypesAvailable()) {
+                    principal.setAllDeviceTypesAvailable(false);
+                }
             }
 
             Set<String> networkIds = jwtUserPayload.getNetworkIds();

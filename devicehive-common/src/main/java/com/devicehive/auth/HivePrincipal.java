@@ -52,7 +52,7 @@ public class HivePrincipal implements Principal, Portable {
     private Set<Long> networkIds;
     private Set<Long> deviceTypeIds;
     private Boolean allNetworksAvailable = false;
-    private Boolean allDeviceTypesAvailable = false;
+    private Boolean allDeviceTypesAvailable = true;
 
     public HivePrincipal(UserVO user,
                          Set<HiveAction> actions,
