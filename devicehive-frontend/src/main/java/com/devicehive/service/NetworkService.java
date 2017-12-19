@@ -26,6 +26,9 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.CountNetworkRequest;
+import com.devicehive.model.rpc.CountNetworkResponse;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.NetworkUpdate;
@@ -205,6 +208,18 @@ public class NetworkService {
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListNetworkResponse) r.getBody()).getNetworks());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {
+        CountNetworkRequest countNetworkRequest = new CountNetworkRequest(name, namePattern, principal);
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countNetworkRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((CountNetworkResponse) response.getBody()).getEntityCountResponse());
     }
 
     @Transactional
