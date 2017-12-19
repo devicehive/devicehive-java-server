@@ -20,6 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -95,6 +96,33 @@ public interface NetworkResource {
             Integer skip,
             @Suspended final AsyncResponse asyncResponse
     );
+
+    /**
+     * @param name        exact network's name, ignored, when  namePattern is not null
+     * @param namePattern name pattern
+     * @return Count of Networks
+     */
+    @GET
+    @Path("/count")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
+    @ApiOperation(value = "Count networks", notes = "Gets count of networks.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns the count of networks, matching the filters.", response = EntityCountResponse.class, responseContainer = "Count"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    void count(
+            @ApiParam(name = "name", value = "Filter by network name.")
+            @QueryParam("name")
+                    String name,
+            @ApiParam(name = "namePattern", value = "Filter by network name pattern. In pattern wildcards '%' and '_' can be used.")
+            @QueryParam("namePattern")
+                    String namePattern,
+            @Suspended final AsyncResponse asyncResponse);
 
     /**
      * Generates  JSON similar to this:

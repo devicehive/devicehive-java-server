@@ -20,7 +20,6 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
@@ -91,6 +90,18 @@ public class NetworkResourceImpl implements NetworkResource {
                         return ResponseFactory.response(OK, networks, NETWORKS_LISTED);
                     }).thenAccept(asyncResponse::resume);
         }
+    }
+
+    @Override
+    public void count(String name, String namePattern, AsyncResponse asyncResponse) {
+        logger.debug("Network count requested");
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        networkService.count(name, namePattern, principal)
+                .thenApply(count -> {
+                    logger.debug("Network count request proceed successfully");
+                    return ResponseFactory.response(OK, count, JsonPolicyDef.Policy.NETWORKS_LISTED);
+                }).thenApply(asyncResponse::resume);
     }
 
     /**
