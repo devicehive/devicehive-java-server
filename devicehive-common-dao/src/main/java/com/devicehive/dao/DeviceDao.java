@@ -46,4 +46,6 @@ public interface DeviceDao {
     List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
                          String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal);
 
+    long count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal);
+
 }
