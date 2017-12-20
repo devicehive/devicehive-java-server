@@ -433,7 +433,7 @@ public interface UserResource {
      * @return Empty body. Status 204 in case of success, 404 otherwise
      */
     @DELETE
-    @Path("/{id}/devicetype")
+    @Path("/{id}/devicetype/all")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
     @ApiOperation(value = "Unassign all device types", notes = "Removes user permission to access all device types.")
     @ApiImplicitParams({
