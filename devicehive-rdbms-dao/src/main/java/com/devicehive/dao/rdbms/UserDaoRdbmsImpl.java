@@ -209,6 +209,20 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
         return query.getResultList().stream().map(User::convertToVo).collect(Collectors.toList());
     }
 
+    @Override
+    public long count(String login, String loginPattern, Integer role, Integer status) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<User> criteria = cb.createQuery(User.class);
+        final Root<User> from = criteria.from(User.class);
+
+        final Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from,
+                ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
+
+        criteria.where(predicates);
+        final TypedQuery<User> query = createQuery(criteria);
+        return query.getResultList().size();
+    }
+
     private Optional<UserVO> optionalUserConvertToVo(Optional<User> login) {
         if (login.isPresent()) {
             return Optional.ofNullable(User.convertToVo(login.get()));

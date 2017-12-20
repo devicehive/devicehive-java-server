@@ -27,12 +27,8 @@ import com.devicehive.model.rpc.CountNetworkResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.NetworkVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class CountNetworkHandler implements RequestHandler {
@@ -49,10 +45,9 @@ public class CountNetworkHandler implements RequestHandler {
 
         final CountNetworkRequest req = (CountNetworkRequest) request.getBody();
 
-        final List<NetworkVO> networks = networkDao.list(req.getName(), req.getNamePattern(),
-                null, true, null, null, Optional.of(req.getPrincipal()));
+        final long count = networkDao.count(req.getName(), req.getNamePattern(), req.getPrincipal());
 
-        final EntityCountResponse entityCountResponse = new EntityCountResponse(networks.size());
+        final EntityCountResponse entityCountResponse = new EntityCountResponse(count);
 
         return Response.newBuilder()
                 .withBody(new CountNetworkResponse(entityCountResponse))

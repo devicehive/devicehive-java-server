@@ -132,6 +132,20 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     }
 
     @Override
+    public long count(String name, String namePattern, HivePrincipal principal) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Network> criteria = cb.createQuery(Network.class);
+        final Root<Network> from = criteria.from(Network.class);
+
+        final Predicate[] nameAndPrincipalPredicates = CriteriaHelper.networkListPredicates(cb, from,
+                ofNullable(name), ofNullable(namePattern), ofNullable(principal));
+        criteria.where(nameAndPrincipalPredicates);
+
+        final TypedQuery<Network> query = createQuery(criteria);
+        return query.getResultList().size();
+    }
+
+    @Override
     public Optional<NetworkVO> findFirstByName(String name) {
         return findByName(name).stream().findFirst();
     }

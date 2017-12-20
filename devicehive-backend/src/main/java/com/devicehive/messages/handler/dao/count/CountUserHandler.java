@@ -27,11 +27,8 @@ import com.devicehive.model.rpc.CountUserResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
-import com.devicehive.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class CountUserHandler implements RequestHandler {
@@ -48,10 +45,9 @@ public class CountUserHandler implements RequestHandler {
 
         final CountUserRequest req = (CountUserRequest) request.getBody();
 
-        final List<UserVO> users = userDao.list(req.getLogin(), req.getLoginPattern(),
-                req.getRole(), req.getStatus(), null, true, null, null);
+        final long count = userDao.count(req.getLogin(), req.getLoginPattern(), req.getRole(), req.getStatus());
 
-        final EntityCountResponse entityCountResponse = new EntityCountResponse(users.size());
+        final EntityCountResponse entityCountResponse = new EntityCountResponse(count);
 
         return Response.newBuilder()
                 .withBody(new CountUserResponse(entityCountResponse))
