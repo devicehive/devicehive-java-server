@@ -26,6 +26,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.rpc.CountDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
@@ -138,6 +139,21 @@ public class DeviceHandlers {
                         webSocketClientHandler.sendMessage(request, response, session);
                     });
         }
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
+    public void processDeviceCount(JsonObject request, WebSocketSession session) throws HiveException {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CountDeviceRequest countDeviceRequest = CountDeviceRequest.createCountDeviceRequest(request, principal);
+
+        WebSocketResponse response = new WebSocketResponse();
+        deviceService.count(countDeviceRequest)
+                .thenAccept(count -> {
+                    logger.debug("Device count request proceed successfully");
+                    response.addValue(DEVICES, count, DEVICES_LISTED);
+                    webSocketClientHandler.sendMessage(request, response, session);
+                });
     }
 
     @HiveWebsocketAuth
