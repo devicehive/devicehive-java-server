@@ -110,6 +110,8 @@ public class Constants {
     public static final String DEVICE = "device";
     public static final String DEVICES = "devices";
     public static final String TYPE = "type";
+    public static final String DESCRIPTION = "description";
+    public static final String PARAMETERS = "parameters";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
 
     public static final String ANY = "*";

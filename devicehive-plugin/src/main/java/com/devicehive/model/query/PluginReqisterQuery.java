@@ -26,6 +26,8 @@ import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.service.BaseDeviceService;
 import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.ApiParam;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.QueryParam;
 
@@ -43,7 +45,11 @@ import static com.devicehive.model.converters.SetHelper.toStringSet;
 
 public class PluginReqisterQuery {
 
-    @ApiParam(name = "deviceId", value = "Device id")
+    private static final Logger logger = LoggerFactory.getLogger(PluginReqisterQuery.class);
+
+    public static final String NO_ENTITIES_REQUESTED = "none";
+
+    @ApiParam(name = "deviceId", value = "Device device_id")
     @QueryParam("deviceId")
     private String deviceId;
 
@@ -137,11 +143,59 @@ public class PluginReqisterQuery {
         
         return request;
     }
+
+    // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
+    // TODO - change to embedded entity for better code readability
+    public String constructFilterString() {
+        StringBuilder sb = new StringBuilder();
+        if (returnCommands && returnUpdatedCommands && returnNotifications) {
+            sb.append("*");
+        } else if (returnCommands) {
+            sb.append("command");
+        } else if (returnUpdatedCommands) {
+            sb.append("command_update");
+        } else {
+            sb.append("notification");
+        }
+        sb.append("/");
+
+        if (networkIds != null) {
+            sb.append(networkIds);
+        } else {
+            sb.append(NO_ENTITIES_REQUESTED);
+        }
+        sb.append("/");
+
+        if (deviceTypeIds != null) {
+            sb.append(deviceTypeIds);
+        } else {
+            sb.append(NO_ENTITIES_REQUESTED);
+        }
+        sb.append("/");
+
+        if (deviceId != null) {
+            sb.append(deviceId);
+        } else {
+            sb.append(NO_ENTITIES_REQUESTED);
+        }
+        sb.append("/");
+
+        if (names != null) {
+            sb.append(names);
+        } else {
+            sb.append(NO_ENTITIES_REQUESTED);
+        }
+
+        return sb.toString();
+    }
     
     private Set<Filter> createFilters(HivePrincipal principal, BaseDeviceService deviceService) {
         Set<Filter> filters;
         if (deviceId != null) {
             DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
+            if (device == null) {
+                logger.error("Could not find device with id={}", deviceId);
+            }
             if (names != null) {
                 filters = toStringSet(names).stream().map(name ->
                         new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, null, name))

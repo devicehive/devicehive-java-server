@@ -21,6 +21,7 @@ package com.devicehive.resource;
  */
 
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.vo.PluginVO;
 import io.swagger.annotations.Api;
@@ -32,11 +33,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 
@@ -55,11 +52,29 @@ public interface PluginResource {
                     response = PluginVO.class),
     })
     void register(
-            @BeanParam PluginReqisterQuery pluginReqisterQuery,
+            @BeanParam
+                    PluginReqisterQuery pluginReqisterQuery,
             @ApiParam(value = "Filter body", defaultValue = "{}", required = true) 
                     PluginUpdate filterToCreate,
             @ApiParam(name = "Authorization", value = "Authorization token", required = true)
-            @HeaderParam("Authorization") String authorization,
+            @HeaderParam("Authorization")
+                    String authorization,
             @Suspended final AsyncResponse asyncResponse);
-    
+
+    @PUT
+    @Path("/update")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @ApiOperation(value = "Update Plugin", notes = "Updates plugin in DH Server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,
+                    message = "Returns plugin uuid, topic name and health check period",
+                    response = PluginVO.class),
+    })
+    void update(
+            @BeanParam
+                    PluginUpdateQuery updateQuery,
+            @ApiParam(name = "Authorization", value = "Authorization token", required = true)
+            @HeaderParam("Authorization")
+                    String authorization,
+            @Suspended final AsyncResponse asyncResponse);
 }

@@ -21,9 +21,11 @@ package com.devicehive.service;
  */
 
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.eventbus.Filter;
+import com.devicehive.model.enums.PluginStatus;
+import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
@@ -44,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,7 +58,6 @@ import java.util.concurrent.CompletableFuture;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 @Component
 public class PluginRegisterService {
@@ -66,6 +68,7 @@ public class PluginRegisterService {
     
     private final HiveValidator hiveValidator;
     private final PluginService pluginService;
+    private final BaseDeviceService deviceService;
     private final RpcClient rpcClient;
     private final KafkaTopicService kafkaTopicService;
     private final LongIdGenerator idGenerator;
@@ -77,7 +80,7 @@ public class PluginRegisterService {
     public PluginRegisterService(
             HiveValidator hiveValidator,
             PluginService pluginService,
-            RpcClient rpcClient,
+            BaseDeviceService deviceService, RpcClient rpcClient,
             KafkaTopicService kafkaTopicService,
             LongIdGenerator idGenerator,
             HttpRestHelper httpRestHelper,
@@ -85,6 +88,7 @@ public class PluginRegisterService {
             Gson gson) {
         this.hiveValidator = hiveValidator;
         this.pluginService = pluginService;
+        this.deviceService = deviceService;
         this.rpcClient = rpcClient;
         this.kafkaTopicService = kafkaTopicService;
         this.idGenerator = idGenerator;
@@ -94,10 +98,13 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> register(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate,
-            String authorization) {
+    public CompletableFuture<Response> register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
+                                                String authorization) {
 
-        return persistPlugin(pollRequest, pluginUpdate).thenApply(pluginVO -> {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(principal, deviceService);
+
+        return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString()).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
             JsonObject response = new JsonObject();
 
@@ -109,10 +116,17 @@ public class PluginRegisterService {
         });
     }
 
-    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
+//    @Transactional
+//    public CompletableFuture<Response> update(PluginUpdateQuery pluginUpdateQuery, String authorization) {
+//
+//    }
+
+    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
         pluginVO.setUserId(pollRequest.getUserId());
+        pluginVO.setFilter(filterString);
+        pluginVO.setStatus(PluginStatus.CREATED);
 
         //Creation of topic for plugin
         String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
