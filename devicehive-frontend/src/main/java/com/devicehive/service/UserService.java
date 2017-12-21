@@ -200,6 +200,11 @@ public class UserService extends BaseUserService {
 
     public CompletableFuture<EntityCountResponse> count(String login, String loginPattern, Integer role, Integer status) {
         CountUserRequest countUserRequest = new CountUserRequest(login, loginPattern, role, status);
+
+        return count(countUserRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountUserRequest countUserRequest) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request

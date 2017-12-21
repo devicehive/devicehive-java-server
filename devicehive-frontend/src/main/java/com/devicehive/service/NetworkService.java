@@ -211,6 +211,11 @@ public class NetworkService {
 
     public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {
         CountNetworkRequest countNetworkRequest = new CountNetworkRequest(name, namePattern, principal);
+
+        return count(countNetworkRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountNetworkRequest countNetworkRequest) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request

@@ -220,6 +220,11 @@ public class DeviceService extends BaseDeviceService {
 
     public CompletableFuture<EntityCountResponse> count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal) {
         CountDeviceRequest countDeviceRequest = new CountDeviceRequest(name, namePattern, networkId, networkName, principal);
+
+        return count(countDeviceRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountDeviceRequest countDeviceRequest) {
         CompletableFuture<Response> future = new CompletableFuture<>();
 
         rpcClient.call(Request

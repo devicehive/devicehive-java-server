@@ -23,6 +23,10 @@ package com.devicehive.model.rpc;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import java.lang.reflect.Modifier;
 
 public class CountNetworkRequest extends Body {
 
@@ -39,6 +43,17 @@ public class CountNetworkRequest extends Body {
         this.name = name;
         this.namePattern = namePattern;
         this.principal = principal;
+    }
+
+    public static CountNetworkRequest createCountNetworkRequest(JsonObject request, HivePrincipal principal) {
+        final CountNetworkRequest countNetworkRequest = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, CountNetworkRequest.class);
+
+        countNetworkRequest.setPrincipal(principal);
+
+        return countNetworkRequest;
     }
 
     public String getName() {

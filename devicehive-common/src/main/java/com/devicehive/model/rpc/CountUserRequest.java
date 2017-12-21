@@ -22,6 +22,10 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
+import java.lang.reflect.Modifier;
 
 public class CountUserRequest extends Body {
 
@@ -40,6 +44,15 @@ public class CountUserRequest extends Body {
         this.loginPattern = loginPattern;
         this.role = role;
         this.status = status;
+    }
+
+    public static CountUserRequest createCountUserRequest(JsonObject request) {
+        final CountUserRequest countUserRequest = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.PROTECTED)
+                .create()
+                .fromJson(request, CountUserRequest.class);
+
+        return countUserRequest;
     }
 
     public String getLogin() {
