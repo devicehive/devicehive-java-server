@@ -69,7 +69,7 @@ public abstract class JwtPayload implements HiveEntity {
     public abstract static class JwtPayloadBuilder {
         protected Date expiration;
         protected Integer tokenType;
-        
+
         public JwtPayloadBuilder withTokenType(Integer tokenType) {
             this.tokenType = tokenType;
             return this;

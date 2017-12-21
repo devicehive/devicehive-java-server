@@ -48,6 +48,7 @@ public class JerseyConfig extends ResourceConfig {
                 DeviceNotificationResourceImpl.class,
                 DeviceResourceImpl.class,
                 NetworkResourceImpl.class,
+                DeviceTypeResourceImpl.class,
                 WelcomeResourceImpl.class,
                 UserResourceImpl.class);
 

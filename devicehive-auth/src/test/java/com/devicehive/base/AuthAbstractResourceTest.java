@@ -65,7 +65,7 @@ public abstract class AuthAbstractResourceTest {
     public static final String INVALID_PASSWORD = "12345";
     public static final String ADMIN_LOGIN = "test_admin";
     public static final String ADMIN_PASS = "admin_pass";
-    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5NDExOTQwMDAwLCJ0IjoxfX0.h74Nn2pSbaN1PxrrF8KfohXeGoGpJ4au4YBpHXyvVsA";
+    public static final String ADMIN_JWT = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImR0IjpbIioiXSwiZSI6MTU1OTM0NzIwMDAwMCwidCI6MX19.0i1MaUBtgfDPG4_cvSjEVO11FZy7o_L_6uRCR5NR3v4";
 
     @LocalServerPort
     protected Integer port;

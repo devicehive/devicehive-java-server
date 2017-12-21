@@ -125,8 +125,8 @@ public class DeviceHandlers {
         }
 
         WebSocketResponse response = new WebSocketResponse();
-        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) &&
-                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
+                !principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             response.addValue(DEVICES, Collections.<DeviceVO>emptyList(), DEVICES_LISTED);
             webSocketClientHandler.sendMessage(request, response, session);
@@ -152,12 +152,9 @@ public class DeviceHandlers {
         if (!deviceId.matches("[a-zA-Z0-9-]+")) {
             throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
-        HivePrincipal hivePrincipal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceId, device, hivePrincipal).thenAccept(actionName -> {
-            logger.debug("device/save process ended for session  {}", session.getId());
-            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
-        });
-        
+        deviceService.deviceSaveAndNotify(deviceId, device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        logger.debug("device/save process ended for session  {}", session.getId());
+
+        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }

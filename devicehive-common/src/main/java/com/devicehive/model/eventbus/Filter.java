@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED;
@@ -39,64 +40,55 @@ public class Filter implements Portable {
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 4;
 
-    private HivePrincipal principal;
+    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
+    private Long networkId;
 
     @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
-    private boolean global = false;
+    private Long deviceTypeId;
 
     @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
-    private Set<Long> networkIds;
-
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
-    private Set<String> deviceIds;
+    private String deviceId;
 
     @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private String eventName;
 
     @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
-    private Set<String> names;
+    private String name;
 
     public Filter() {
+
     }
 
-    public HivePrincipal getPrincipal() {
-        return principal;
+    public Filter(Long networkId, Long deviceTypeId, String deviceId, String eventName, String name) {
+        this.networkId = networkId;
+        this.deviceTypeId = deviceTypeId;
+        this.deviceId = deviceId;
+        this.eventName = eventName;
+        this.name = name;
     }
 
-    public void setPrincipal(HivePrincipal principal) {
-        this.principal = principal;
+    public Long getNetworkId() {
+        return networkId;
     }
 
-    public boolean isGlobal() {
-        return global;
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
     }
 
-    public void setGlobal(boolean global) {
-        this.global = global;
+    public Long getDeviceTypeId() {
+        return deviceTypeId;
     }
 
-    public Set<Long> getNetworkIds() {
-        return networkIds;
+    public void setDeviceTypeId(Long deviceTypeId) {
+        this.deviceTypeId = deviceTypeId;
     }
 
-    public void setNetworkIds(Set<Long> networkIds) {
-        this.networkIds = networkIds;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public Set<String> getDeviceIds() {
-        return deviceIds;
-    }
-
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
-    }
-
-    public Set<String> getNames() {
-        return names;
-    }
-
-    public void setNames(Set<String> names) {
-        this.names = names;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getEventName() {
@@ -107,8 +99,41 @@ public class Filter implements Portable {
         this.eventName = eventName;
     }
 
-    public void deleteDeviceId(String deviceId) {
-        deviceIds.remove(deviceId);
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getFirstKey() {
+        StringJoiner joiner = new StringJoiner(",");
+
+        joiner.add(networkId != null ? networkId.toString() : "*")
+                .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
+                .add(deviceId != null ? deviceId : "*");
+
+        return joiner.toString();
+    }
+
+    public String getDeviceIgnoredFirstKey() {
+        StringJoiner joiner = new StringJoiner(",");
+
+        joiner.add(networkId != null ? networkId.toString() : "*")
+                .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
+                .add("*");
+
+        return joiner.toString();
+    }
+
+    public String getSecondKey() {
+        StringJoiner joiner = new StringJoiner(",");
+
+        joiner.add(eventName != null ? eventName : "*")
+                .add(name != null ? name : "*");
+
+        return joiner.toString();
     }
 
     @Override
@@ -116,28 +141,26 @@ public class Filter implements Portable {
         if (this == o) return true;
         if (!(o instanceof Filter)) return false;
         Filter that = (Filter) o;
-        return Objects.equals(principal, that.principal) &&
-                Objects.equals(global, that.global) &&
-                Objects.equals(networkIds, that.networkIds) &&
-                Objects.equals(deviceIds, that.deviceIds) &&
+        return Objects.equals(networkId, that.networkId) &&
+                Objects.equals(deviceTypeId, that.deviceTypeId) &&
+                Objects.equals(deviceId, that.deviceId) &&
                 Objects.equals(eventName, that.eventName) &&
-                Objects.equals(names, that.names);
+                Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(principal, global, networkIds, deviceIds, eventName, names);
+        return Objects.hash(networkId, deviceTypeId, deviceId, eventName, name);
     }
 
     @Override
     public String toString() {
         return "Filter{" +
-                "principal=" + principal +
-                ", global=" + global +
-                ", networkIds=" + networkIds +
-                ", deviceIds=" + deviceIds +
+                "networkId=" + networkId +
+                ", deviceTypeId=" + deviceTypeId +
+                ", deviceId=" + deviceId +
                 ", eventName=" + eventName +
-                ", names=" + names +
+                ", name=" + name +
                 '}';
     }
 
@@ -153,21 +176,19 @@ public class Filter implements Portable {
 
     @Override
     public void writePortable(PortableWriter writer) throws IOException {
-        writer.writePortable("principal", principal != null ? principal : new HivePrincipal());
-        writer.writeBoolean("global", global);
-        writer.writeLongArray("networkIds", networkIds != null ? networkIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
-        writer.writeUTFArray("deviceIds", deviceIds != null ? deviceIds.toArray(new String[deviceIds.size()]) : new String[0]);
+        writer.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
+        writer.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
+        writer.writeUTF("deviceId", deviceId);
         writer.writeUTF("eventName", eventName);
-        writer.writeUTFArray("names", names != null ? names.toArray(new String[names.size()]) : new String[0]);
+        writer.writeUTF("name", name);
     }
 
     @Override
     public void readPortable(PortableReader reader) throws IOException {
-        principal = reader.readPortable("principal");
-        global = reader.readBoolean("global");
-        networkIds = Arrays.stream(reader.readLongArray("networkIds")).boxed().collect(Collectors.toSet());
-        deviceIds = Arrays.stream(reader.readUTFArray("deviceIds")).collect(Collectors.toSet());
+        networkId = reader.readLong("networkId");
+        deviceTypeId = reader.readLong("deviceTypeId");
+        deviceId = reader.readUTF("deviceId");
         eventName = reader.readUTF("eventName");
-        names = Arrays.stream(reader.readUTFArray("names")).collect(Collectors.toSet());
+        name = reader.readUTF("name");
     }
 }

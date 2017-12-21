@@ -71,6 +71,35 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] deviceTypeListPredicates(CriteriaBuilder cb, Root<DeviceType> from, Optional<String> nameOpt, Optional<String> namePatternOpt, Optional<HivePrincipal> principalOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        nameOpt.ifPresent(name ->
+                predicates.add(cb.equal(from.get("name"), name)));
+
+        namePatternOpt.ifPresent(pattern ->
+                predicates.add(cb.like(from.get("name"), pattern)));
+
+        principalOpt.flatMap(principal -> {
+            UserVO user = principal.getUser();
+
+            return ofNullable(user);
+        }).ifPresent(user -> {
+            if (!user.isAdmin()) {
+                User usr = User.convertToEntity(user);
+                predicates.add(from.join("users").in(usr));
+            }
+        });
+
+        principalOpt.flatMap(principal -> {
+            Set<Long> deviceTypes = principal.getDeviceTypeIds();
+
+            return ofNullable(deviceTypes);
+        }).ifPresent(deviceTypes -> predicates.add(from.<Long>get("id").in(deviceTypes)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
     /**
      * Adds ORDER BY ... ASC/DESC to query
      * Mutates provided criteria query
@@ -139,6 +168,7 @@ public class CriteriaHelper {
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();
         final Join<Device, Network> networkJoin = (Join) from.fetch("network", JoinType.LEFT);
+        final Join<Device, DeviceType> deviceTypeJoin = (Join) from.fetch("deviceType", JoinType.LEFT);
         principal.ifPresent(p -> {
             UserVO user = p.getUser();
 
@@ -153,8 +183,8 @@ public class CriteriaHelper {
                 predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
             }
 
-            if (p.getDeviceIds() != null) {
-                predicates.add(from.<String>get("deviceId").in(p.getDeviceIds()));
+            if (p.getDeviceTypeIds() != null) {
+                predicates.add(deviceTypeJoin.<Long>get("id").in(p.getDeviceTypeIds()));
             }
         });
 

@@ -93,6 +93,9 @@ public class FrontendSmokeTest extends AbstractResourceTest {
     private NetworkService networkService;
 
     @Autowired
+    private DeviceTypeService deviceTypeService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -346,11 +349,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
+        user1.setAllDeviceTypesAvailable(false);
         user1 = userService.createUser(user1, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -366,6 +371,20 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         assertThat(created1.getId(), notNullValue());
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetworkId(network1.getId());
+
+        final DeviceTypeVO deviceType = new DeviceTypeVO();
+        deviceType.setName("" + randomUUID());
+        DeviceTypeVO createdType = deviceTypeService.create(deviceType);
+        assertThat(createdType.getId(), notNullValue());
+        userService.assignDeviceType(user.getId(), deviceType.getId());
+        deviceUpdate.setDeviceTypeId(deviceType.getId());
+
+        final DeviceTypeVO deviceType1 = new DeviceTypeVO();
+        deviceType1.setName("" + randomUUID());
+        DeviceTypeVO createdType1 = deviceTypeService.create(deviceType1);
+        assertThat(createdType1.getId(), notNullValue());
+        userService.assignDeviceType(user1.getId(), deviceType1.getId());
+        deviceUpdate1.setDeviceTypeId(deviceType1.getId());
 
         final HivePrincipal principal = new HivePrincipal(user);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
@@ -392,11 +411,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.CLIENT);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         UserVO user1 = new UserVO();
         user1.setLogin(RandomStringUtils.randomAlphabetic(10));
         user1.setRole(UserRole.CLIENT);
+        user1.setAllDeviceTypesAvailable(false);
         user1 = userService.createUser(user1, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -413,14 +434,27 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         userService.assignNetwork(user1.getId(), network1.getId());
         deviceUpdate1.setNetworkId(network1.getId());
 
+        final DeviceTypeVO deviceType = new DeviceTypeVO();
+        deviceType.setName("" + randomUUID());
+        DeviceTypeVO createdType = deviceTypeService.create(deviceType);
+        assertThat(createdType.getId(), notNullValue());
+        userService.assignDeviceType(user.getId(), deviceType.getId());
+        deviceUpdate.setDeviceTypeId(deviceType.getId());
+
+        final DeviceTypeVO deviceType1 = new DeviceTypeVO();
+        deviceType1.setName("" + randomUUID());
+        DeviceTypeVO createdType1 = deviceTypeService.create(deviceType1);
+        assertThat(createdType1.getId(), notNullValue());
+        userService.assignDeviceType(user1.getId(), deviceType1.getId());
+        deviceUpdate1.setDeviceTypeId(deviceType1.getId());
+
         deviceService.deviceSave(device.getDeviceId(), deviceUpdate);
         deviceService.deviceSave(device1.getDeviceId(), deviceUpdate1);
 
-        Set<String> allowedDeviceIds = new HashSet<>();
-        allowedDeviceIds.add(device.getDeviceId());
-
         HivePrincipal principal = new HivePrincipal();
-        principal.setDeviceIds(allowedDeviceIds);
+        Set<Long> allowedDeviceTypes = new HashSet<>();
+        allowedDeviceTypes.add(deviceType.getId());
+        principal.setDeviceTypeIds(allowedDeviceTypes);
         final HiveAuthentication authentication = new HiveAuthentication(principal);
         authentication.setDetails(new HiveAuthentication.HiveAuthDetails(InetAddress.getByName("localhost"), "origin", "bearer"));
 
@@ -440,6 +474,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setRole(UserRole.ADMIN);
+        user.setAllDeviceTypesAvailable(false);
         user = userService.createUser(user, VALID_PASSWORD);
 
         final NetworkVO network = new NetworkVO();
@@ -448,6 +483,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         assertThat(created.getId(), notNullValue());
         userService.assignNetwork(user.getId(), network.getId());
         deviceUpdate.setNetworkId(network.getId());
+
+        final DeviceTypeVO deviceType = new DeviceTypeVO();
+        deviceType.setName("" + randomUUID());
+        DeviceTypeVO createdType = deviceTypeService.create(deviceType);
+        assertThat(createdType.getId(), notNullValue());
+        userService.assignDeviceType(user.getId(), deviceType.getId());
+        deviceUpdate.setDeviceTypeId(deviceType.getId());
 
         deviceService.deviceSave(device.getDeviceId(), deviceUpdate);
 
@@ -470,8 +512,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         final NetworkVO network = new NetworkVO();
         network.setName("" + randomUUID());
         NetworkVO created = networkService.create(network);
-
         deviceUpdate.setNetworkId(created.getId());
+
+        final DeviceTypeVO deviceType = new DeviceTypeVO();
+        deviceType.setName("" + randomUUID());
+        DeviceTypeVO createdType = deviceTypeService.create(deviceType);
+        deviceUpdate.setDeviceTypeId(createdType.getId());
+
         deviceService.deviceSave(device.getDeviceId(), deviceUpdate);
         DeviceVO existingDevice = deviceService.findByIdWithPermissionsCheck(device.getDeviceId(), null);
         assertNotNull(existingDevice);

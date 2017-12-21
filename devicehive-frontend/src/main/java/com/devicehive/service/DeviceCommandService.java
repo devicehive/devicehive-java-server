@@ -51,6 +51,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.devicehive.shim.api.Action.COMMAND_UPDATE_EVENT;
+
 @Service
 public class DeviceCommandService {
 
@@ -135,16 +137,16 @@ public class DeviceCommandService {
     }
 
     public Pair<Long, CompletableFuture<List<DeviceCommand>>> sendSubscribeRequest(
-            final Set<String> devices,
-            final Filter filter,
+            final Set<Filter> filters,
+            final Set<String> names,
             final Date timestamp,
             final boolean returnUpdated,
             final Integer limit,
             final BiConsumer<DeviceCommand, Long> callback) throws InterruptedException {
 
         final Long subscriptionId = idGenerator.generate();
-        Collection<CompletableFuture<Collection<DeviceCommand>>> futures = devices.stream()
-                .map(device -> new CommandSubscribeRequest(subscriptionId, device, filter, timestamp, returnUpdated, limit))
+        Collection<CompletableFuture<Collection<DeviceCommand>>> futures = filters.stream()
+                .map(filter -> new CommandSubscribeRequest(subscriptionId, filter, names, timestamp, returnUpdated, limit))
                 .map(subscribeRequest -> {
                     CompletableFuture<Collection<DeviceCommand>> future = new CompletableFuture<>();
                     Consumer<Response> responseConsumer = response -> {
@@ -162,7 +164,7 @@ public class DeviceCommandService {
                     };
                     Request request = Request.newBuilder()
                             .withBody(subscribeRequest)
-                            .withPartitionKey(subscribeRequest.getDevice())
+                            .withPartitionKey(subscribeRequest.getFilter().getFirstKey())
                             .withSingleReply(false)
                             .build();
                     rpcClient.call(request, responseConsumer);
@@ -197,21 +199,22 @@ public class DeviceCommandService {
         return future;
     }
 
-    public CompletableFuture<Pair<Long, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final String deviceId, BiConsumer<DeviceCommand, Long> callback) {
+    public CompletableFuture<Pair<Long, DeviceCommand>> sendSubscribeToUpdateRequest(final long commandId, final DeviceVO device, BiConsumer<DeviceCommand, Long> callback) {
         CompletableFuture<Pair<Long, DeviceCommand>> future = new CompletableFuture<>();
         final Long subscriptionId = idGenerator.generate();
         Consumer<Response> responseConsumer = response -> {
             Action resAction = response.getBody().getAction();
             if (resAction.equals(Action.COMMAND_UPDATE_SUBSCRIBE_RESPONSE)) {
                 future.complete(Pair.of(response.getBody().cast(CommandUpdateSubscribeResponse.class).getSubscriptionId(), response.getBody().cast(CommandUpdateSubscribeResponse.class).getDeviceCommand()));
-            } else if (resAction.equals(Action.COMMAND_UPDATE_EVENT)) {
+            } else if (resAction.equals(COMMAND_UPDATE_EVENT)) {
                 callback.accept(response.getBody().cast(CommandUpdateEvent.class).getDeviceCommand(), subscriptionId);
             } else {
                 logger.warn("Unknown action received from backend {}", resAction);
             }
         };
+        Filter filter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), Long.toString(commandId), COMMAND_UPDATE_EVENT.name(), null);
         rpcClient.call(Request.newBuilder()
-                .withBody(new CommandUpdateSubscribeRequest(commandId, deviceId, subscriptionId))
+                .withBody(new CommandUpdateSubscribeRequest(commandId, device.getDeviceId(), subscriptionId, filter))
                 .build(), responseConsumer);
         return future;
     }
@@ -261,6 +264,7 @@ public class DeviceCommandService {
         command.setId(Math.abs(new Random().nextInt()));
         command.setDeviceId(device.getDeviceId());
         command.setNetworkId(device.getNetworkId());
+        command.setDeviceTypeId(device.getDeviceTypeId());
         command.setIsUpdated(false);
 
         if (commandWrapper.getTimestamp().isPresent()) {

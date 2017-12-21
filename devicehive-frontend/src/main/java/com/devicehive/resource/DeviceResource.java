@@ -86,7 +86,7 @@ public interface DeviceResource {
             @ApiParam(name = "networkName", value = "Filter by associated network name.")
             @QueryParam("networkName")
             String networkName,
-            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Network")
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Name,Network,Status,Devicetype")
             @QueryParam("sortField")
             String sortField,
             @ApiParam(name = "sortOrder", value = "Result list sort order. The sortField should be specified.", allowableValues = "ASC,DESC")
@@ -126,15 +126,14 @@ public interface DeviceResource {
             @ApiResponse(code = 401, message = "If request is not authorized"),
             @ApiResponse(code = 403, message = "If principal doesn't have permissions")
     })
-    void register(
+    Response register(
             @ApiParam(value = "Device body", required = true, defaultValue = "{}")
             @JsonPolicyApply(JsonPolicyDef.Policy.DEVICE_SUBMITTED)
             DeviceUpdate deviceUpdate,
             @ApiParam(name = "id", value = "Device unique identifier.", required = true)
             @PathParam("id")
             @Pattern(regexp = "[a-zA-Z0-9-]+", message = DEVICE_ID_CONTAINS_INVALID_CHARACTERS)
-            String deviceId,
-            @Suspended final AsyncResponse asyncResponse);
+            String deviceId);
 
     /**
      * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/get">DeviceHive RESTful API:

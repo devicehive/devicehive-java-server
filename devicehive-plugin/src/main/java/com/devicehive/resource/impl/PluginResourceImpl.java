@@ -27,6 +27,7 @@ import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseDeviceService;
 import com.devicehive.service.PluginRegisterService;
 import com.devicehive.util.HiveValidator;
 import org.slf4j.Logger;
@@ -51,11 +52,13 @@ public class PluginResourceImpl implements PluginResource {
 
     private final HiveValidator hiveValidator;
     private final PluginRegisterService pluginRegisterService;
+    private final BaseDeviceService deviceService;
 
     @Autowired
-    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService) {
+    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService, BaseDeviceService deviceService) {
         this.hiveValidator = hiveValidator;
         this.pluginRegisterService = pluginRegisterService;
+        this.deviceService = deviceService;
     }
     
     @Override
@@ -64,7 +67,7 @@ public class PluginResourceImpl implements PluginResource {
         hiveValidator.validate(pluginUpdate);
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
-            pluginRegisterService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate, authorization)
+            pluginRegisterService.register(pluginReqisterQuery.toRequest(principal, deviceService), pluginUpdate, authorization)
                     .thenAccept(response ->
                             asyncResponse.resume(response)
                     );

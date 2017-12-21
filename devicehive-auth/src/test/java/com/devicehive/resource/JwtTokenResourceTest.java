@@ -56,10 +56,10 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
-        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         JwtTokenVO jwtTokenVO = performRequest("/token/create", "POST", emptyMap(), singletonMap(HttpHeaders.AUTHORIZATION, tokenAuthHeader(ADMIN_JWT)), payload, CREATED, JwtTokenVO.class);
         Assert.assertNotNull(jwtTokenVO.getAccessToken());
@@ -74,10 +74,10 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
-        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
         // Generate refresh token
         String refreshToken = jwtClientService.generateJwtRefreshToken(payload.convertTo(), true);
         JwtTokenVO tokenVO = new JwtTokenVO();
@@ -95,10 +95,10 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
-        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         JwtTokenVO token = new JwtTokenVO();
         String refreshToken = jwtClientService.generateJwtRefreshToken(payload.convertTo(), true);
@@ -116,10 +116,10 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
-        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         // Generate token with access type instead of refresh
         String accessToken = jwtClientService.generateJwtAccessToken(payload.convertTo(), true);
@@ -138,10 +138,10 @@ public class JwtTokenResourceTest extends AuthAbstractResourceTest {
         actions.add("string");
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
-        Set<String> deviceIds = new HashSet<>();
-        deviceIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         JwtUserPayloadView.Builder builder = new JwtUserPayloadView.Builder();
-        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayloadView payload = builder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         // Generate expired refresh token
         payload.setExpiration(new Date(System.currentTimeMillis() - 100));

@@ -23,8 +23,6 @@ package com.devicehive.messages.handler.command;
 import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
-import com.devicehive.shim.api.Action;
 import com.devicehive.model.rpc.CommandUpdateSubscribeRequest;
 import com.devicehive.model.rpc.CommandUpdateSubscribeResponse;
 import com.devicehive.service.HazelcastService;
@@ -55,9 +53,8 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
         final CommandUpdateSubscribeRequest body = request.getBody().cast(CommandUpdateSubscribeRequest.class);
 
         final Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
-        final Subscription subscription = new Subscription(Action.COMMAND_UPDATE_EVENT.name(), Long.toString(body.getCommandId()));
 
-        eventBus.subscribe(subscriber, subscription);
+        eventBus.subscribe(body.getFilter(), subscriber);
 
         final DeviceCommand deviceCommand = hazelcastService
                 .find(body.getCommandId(), body.getDeviceId(), DeviceCommand.class)

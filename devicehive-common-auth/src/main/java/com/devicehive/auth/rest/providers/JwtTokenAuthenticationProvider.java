@@ -76,12 +76,16 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
             logger.debug("Jwt token authentication successful");
 
             HivePrincipal principal = new HivePrincipal();
+            UserVO userVO = null;
             if (jwtUserPayload.getUserId() != null) {
-                UserVO userVO = userService.findById(jwtUserPayload.getUserId());
+                userVO = userService.findById(jwtUserPayload.getUserId());
                 if (!UserStatus.ACTIVE.equals(userVO.getStatus())) {
                     throw new BadCredentialsException("Unauthorized: user is not active");
                 }
                 principal.setUser(userVO);
+                if (!userVO.getAllDeviceTypesAvailable()) {
+                    principal.setAllDeviceTypesAvailable(false);
+                }
             }
 
             Set<String> networkIds = jwtUserPayload.getNetworkIds();
@@ -93,12 +97,14 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
-            Set<String> deviceIds = jwtUserPayload.getDeviceIds();
-            if (deviceIds != null) {
-                if (deviceIds.contains("*")) {
-                    principal.setAllDevicesAvailable(true);
+            Set<String> deviceTypeIds = jwtUserPayload.getDeviceTypeIds();
+            if (deviceTypeIds != null) {
+                if (deviceTypeIds.contains("*")) {
+                    principal.setAllDeviceTypesAvailable(true);
+                } else if (userVO != null && userVO.getAllDeviceTypesAvailable()) {
+                    principal.setAllDeviceTypesAvailable(true);
                 } else {
-                    principal.setDeviceIds(deviceIds);
+                    principal.setDeviceTypeIds(deviceTypeIds.stream().map(Long::valueOf).collect(Collectors.toSet()));
                 }
             }
 

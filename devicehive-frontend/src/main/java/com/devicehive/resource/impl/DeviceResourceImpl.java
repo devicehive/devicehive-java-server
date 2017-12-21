@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
+import java.util.*;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
@@ -72,7 +72,8 @@ public class DeviceResourceImpl implements DeviceResource {
         if (sortField != null
                 && !NAME.equalsIgnoreCase(sortField)
                 && !STATUS.equalsIgnoreCase(sortField)
-                && !NETWORK.equalsIgnoreCase(sortField)) {
+                && !NETWORK.equalsIgnoreCase(sortField)
+                && !DEVICE_TYPE.equalsIgnoreCase(sortField)) {
             final Response response = ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),
                             Messages.INVALID_REQUEST_PARAMETERS));
@@ -82,8 +83,8 @@ public class DeviceResourceImpl implements DeviceResource {
         }
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) &&
-                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
+                !principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             final Response response = ResponseFactory.response(Response.Status.OK, Collections.<DeviceVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
             asyncResponse.resume(response);
@@ -100,22 +101,20 @@ public class DeviceResourceImpl implements DeviceResource {
      * {@inheritDoc}
      */
     @Override
-    public void register(DeviceUpdate deviceUpdate, String deviceId, @Suspended final AsyncResponse asyncResponse) {
+    public Response register(DeviceUpdate deviceUpdate, String deviceId) {
         if (deviceUpdate == null){
-            final Response response = ResponseFactory.response(BAD_REQUEST,
+            return ResponseFactory.response(
+                    BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(),"Error! Validation failed: \nObject is null")
             );
-            asyncResponse.resume(response);
         }
         logger.debug("Device register method requested. Device ID : {}, Device: {}", deviceId, deviceUpdate);
 
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal).thenAccept(actionName -> {
-            logger.debug("Device register finished successfully. Device ID: {}", deviceId);
-            final Response response = ResponseFactory.response(Response.Status.NO_CONTENT);
-            asyncResponse.resume(response);
-        });
-        
+        deviceService.deviceSaveAndNotify(deviceId, deviceUpdate, principal);
+        logger.debug("Device register finished successfully. Device ID: {}", deviceId);
+
+        return ResponseFactory.response(Response.Status.NO_CONTENT);
     }
 
     /**

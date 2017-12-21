@@ -33,33 +33,37 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 
 public class DeviceVO implements HiveEntity {
     private static final long serialVersionUID = 1523137252183988289L;
-    
+
     @SerializedName("sid")
     @ApiModelProperty(hidden = true)
     private Long id;
 
     @SerializedName("id")
     @ApiModelProperty(name = "id", dataType = "integer")
-    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICES_LISTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED, DEVICES_LISTED})
     private String deviceId;
 
     @NotNull
     @Size(min = 1, max = 128, message = "Field name cannot be empty. The length of name should not be more than 128 symbols.")
     @SerializedName("name")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED, DEVICES_LISTED})
     private String name;
 
     @SerializedName("data")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED, DEVICES_LISTED})
     private JsonStringWrapper data;
 
     @SerializedName("networkId")
     @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICES_LISTED})
     private Long networkId;
 
+    @SerializedName("deviceTypeId")
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, DEVICES_LISTED})
+    private Long deviceTypeId;
+
     @SerializedName("isBlocked")
     @ApiModelProperty(name="isBlocked")
-    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICES_LISTED})
+    @JsonPolicyDef({DEVICE_PUBLISHED, DEVICE_SUBMITTED, NETWORK_PUBLISHED, DEVICE_TYPE_PUBLISHED, DEVICES_LISTED})
     private Boolean blocked;
 
     public Long getId() {
@@ -100,6 +104,14 @@ public class DeviceVO implements HiveEntity {
 
     public void setNetworkId(Long networkId) {
         this.networkId = networkId;
+    }
+
+    public Long getDeviceTypeId() {
+        return deviceTypeId;
+    }
+
+    public void setDeviceTypeId(Long deviceTypeId) {
+        this.deviceTypeId = deviceTypeId;
     }
 
     public Boolean getBlocked() {

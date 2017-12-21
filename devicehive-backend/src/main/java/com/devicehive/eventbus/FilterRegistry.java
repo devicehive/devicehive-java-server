@@ -20,12 +20,11 @@ package com.devicehive.eventbus;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.MultiMap;
-import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.devicehive.model.eventbus.Subscriber;
+import com.devicehive.vo.DeviceVO;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 import java.util.*;
 
@@ -34,59 +33,48 @@ import java.util.*;
  */
 public class FilterRegistry {
 
-    private MultiMap<Filter, Long> filterSubscriptionsMap;
-    private final String FILTER_SUBSCRIPTION_MAP = "FILTER-SUBSCRIPTION-MAP";
+    /**
+     * Table for holding subscription request id (i.e. subscriber) for particular filter.
+     * First key is comma-separated string combination of networkId, deviceTypeId and deviceId,
+     * second key is comma-separated string combination of eventName and name.
+     */
+    private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    @Autowired
-    public void getHazelcastMaps(HazelcastInstance hazelcastClient) {
-        filterSubscriptionsMap = hazelcastClient.getMultiMap(FILTER_SUBSCRIPTION_MAP);
-    }
-
-    public void register(Filter filter, Long subscriptionId) {
-        HivePrincipal principal = filter.getPrincipal();
-        if (filter.isGlobal() && principal.areAllDevicesAvailable()) {
-            if (!principal.areAllNetworksAvailable()) {
-                filter.setGlobal(false);
-                filter.setNetworkIds(principal.getNetworkIds());
-            }
+    void register(Filter filter, Subscriber subscriber) {
+        Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
+        if (subscribers == null) {
+            subscribers = new HashSet<>();
+            subscribers.add(subscriber);
+            subscriberTable.put(filter.getFirstKey(), filter.getSecondKey(), subscribers);
+        } else {
+            subscribers.add(subscriber);
         }
-        filterSubscriptionsMap.put(filter, subscriptionId);
     }
 
-    public void unregister(Long subscriptionId) {
-        filterSubscriptionsMap.keySet().forEach(filter -> filterSubscriptionsMap.remove(filter, subscriptionId));
-    }
-
-    public Filter getFilter(Long subscriptionId) {
-        for (Map.Entry<Filter, Long> entry : filterSubscriptionsMap.entrySet()) {
-            if (entry.getValue().equals(subscriptionId)) {
-                return entry.getKey();
+    void unregister(Subscriber subscriber) {
+        subscriberTable.values().forEach(subscribers -> subscribers.forEach(sub -> {
+            if (sub.equals(subscriber)) {
+                subscribers.remove(sub);
             }
+        }));
+    }
+
+    Collection<Subscriber> getSubscribers(Filter filter) {
+        Set<Subscriber> subscribers = Optional.ofNullable(subscriberTable.get("*,*,*", filter.getSecondKey()))
+                .orElse(new HashSet<>());
+        Set<Subscriber> filterSubscribers = subscriberTable.get(filter.getDeviceIgnoredFirstKey(), filter.getSecondKey());
+        if (filterSubscribers != null) {
+            subscribers.addAll(filterSubscribers);
         }
-        return null;
+        Set<Subscriber> deviceFilterSubscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
+        if (deviceFilterSubscribers != null) {
+            subscribers.addAll(deviceFilterSubscribers);
+        }
+        return subscribers;
     }
 
-    public Set<Pair<Long, Filter>> getSubscriptions(Long networkId) {
-        Set<Pair<Long, Filter>> subs = new HashSet<>();
-        filterSubscriptionsMap.keySet().forEach( filter -> {
-            if (filter.isGlobal() || (filter.getNetworkIds() != null && filter.getNetworkIds().contains(networkId))) {
-                filterSubscriptionsMap.get(filter).forEach(subId -> subs.add(Pair.of(subId, filter)));
-            }
-        });
-        return subs;
-    }
-
-    public void unregisterDevice(String deviceId) {
-        filterSubscriptionsMap.keySet().stream()
-                .filter(key ->
-                        key.getDeviceIds().contains(deviceId))
-                .forEach(key -> {
-                    Collection<Long> subscriptionsIds = filterSubscriptionsMap.get(key);
-                    subscriptionsIds.forEach(this::unregister);
-                    key.deleteDeviceId(deviceId);
-                    if (!(key.getDeviceIds().isEmpty() && key.getNetworkIds().isEmpty())) {
-                        subscriptionsIds.forEach(id -> register(key, id));
-                    }
-                });
+    void unregisterDevice(DeviceVO device) {
+        final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
+        subscriberTable.row(deviceFilter.getFirstKey()).clear();
     }
 }

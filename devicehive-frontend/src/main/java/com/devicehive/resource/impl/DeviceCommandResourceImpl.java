@@ -35,10 +35,13 @@ import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.NetworkService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -54,8 +57,10 @@ import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 import static com.devicehive.model.converters.SetHelper.toStringSet;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -71,18 +76,24 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceCommandResourceImpl.class);
 
+    private final Gson gson;
     private final DeviceCommandService commandService;
     private final DeviceService deviceService;
+    private final NetworkService networkService;
     private final TimestampService timestampService;
     private final HiveValidator hiveValidator;
 
     @Autowired
-    public DeviceCommandResourceImpl(DeviceCommandService commandService,
+    public DeviceCommandResourceImpl(Gson gson,
+                                     DeviceCommandService commandService,
                                      DeviceService deviceService,
+                                     NetworkService networkService,
                                      TimestampService timestampService,
                                      HiveValidator hiveValidator) {
+        this.gson = gson;
         this.commandService = commandService;
         this.deviceService = deviceService;
+        this.networkService = networkService;
         this.timestampService = timestampService;
         this.hiveValidator = hiveValidator;
     }
@@ -124,10 +135,37 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
                 Policy.COMMAND_LISTED);
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
-        
-        Set<String> deviceIds = toStringSet(deviceIdsCsv);
-        Set<Long> networkIds = SetHelper.toLongSet(networkIdsCsv);
-        Set<String> availableDeviceIds = deviceService.getAvailableDeviceIds(deviceIds, networkIds);
+        Set<String> deviceIds = Optional.ofNullable(StringUtils.split(deviceIdsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
+
+        Set<DeviceVO> availableDevices = deviceService.getAllowedExistingDevices(deviceIds, principal).stream()
+                .collect(Collectors.toSet());
+
+        if (networkIdsCsv != null) {
+            Set<DeviceVO> networkDevices = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
+                    .map(Arrays::asList)
+                    .map(list -> list.stream()
+                            .map(n -> gson.fromJson(n, Long.class))
+                            .map(network -> networkService.getWithDevices(network))
+                            .filter(Objects::nonNull).map(NetworkWithUsersAndDevicesVO::getDevices)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toSet())
+                    ).orElse(Collections.emptySet());
+            availableDevices.addAll(networkDevices);
+        }
+        if (availableDevices.isEmpty()) {
+            availableDevices = deviceService.findByIdWithPermissionsCheck(Collections.emptyList(), principal)
+                    .stream()
+                    .collect(Collectors.toSet());
+
+        }
+
+        Set<String> names = Optional.ofNullable(StringUtils.split(namesCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(Collections.emptySet());
 
         BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
@@ -138,12 +176,19 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
         };
 
-        Filter filter = new Filter();
-        filter.setNames(toStringSet(namesCsv));
-        
-        if (!availableDeviceIds.isEmpty()) {
+        Set<Filter> filters;
+        if (names != null && !names.isEmpty()) {
+            filters = availableDevices.stream().flatMap(device -> names.stream().map(name ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), COMMAND_EVENT.name(), name)
+            )).collect(Collectors.toSet());
+        } else {
+            filters = availableDevices.stream().map(device ->
+                    new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), COMMAND_EVENT.name(), null)
+            ).collect(Collectors.toSet());
+        }
+        if (!availableDevices.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService
-                    .sendSubscribeRequest(availableDeviceIds, filter, ts, returnUpdated, limit, callback);
+                    .sendSubscribeRequest(filters, names, ts, returnUpdated, limit, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(
@@ -234,7 +279,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
 
         if (!command.getIsUpdated()) {
             CompletableFuture<Pair<Long, DeviceCommand>> future = commandService
-                    .sendSubscribeToUpdateRequest(Long.valueOf(commandId), deviceId, callback);
+                    .sendSubscribeToUpdateRequest(Long.valueOf(commandId), device, callback);
             future.thenAccept(pair -> {
                 final DeviceCommand deviceCommand = pair.getRight();
                 if (!asyncResponse.isDone() && deviceCommand.getIsUpdated()) {

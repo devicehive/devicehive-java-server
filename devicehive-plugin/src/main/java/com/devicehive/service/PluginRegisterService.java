@@ -69,7 +69,6 @@ public class PluginRegisterService {
     private final RpcClient rpcClient;
     private final KafkaTopicService kafkaTopicService;
     private final LongIdGenerator idGenerator;
-    private final BaseDeviceService deviceService;
     private final HttpRestHelper httpRestHelper;
     private final WebSocketKafkaProxyConfig webSocketKafkaProxyConfig;
     private final Gson gson;
@@ -81,7 +80,6 @@ public class PluginRegisterService {
             RpcClient rpcClient,
             KafkaTopicService kafkaTopicService,
             LongIdGenerator idGenerator,
-            BaseDeviceService deviceService,
             HttpRestHelper httpRestHelper,
             WebSocketKafkaProxyConfig webSocketKafkaProxyConfig,
             Gson gson) {
@@ -90,7 +88,6 @@ public class PluginRegisterService {
         this.rpcClient = rpcClient;
         this.kafkaTopicService = kafkaTopicService;
         this.idGenerator = idGenerator;
-        this.deviceService = deviceService;
         this.httpRestHelper = httpRestHelper;
         this.webSocketKafkaProxyConfig = webSocketKafkaProxyConfig;
         this.gson = gson;
@@ -115,7 +112,7 @@ public class PluginRegisterService {
     private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
-        pluginVO.setUserId(pollRequest.getFilter().getPrincipal().getUser().getId());
+        pluginVO.setUserId(pollRequest.getUserId());
 
         //Creation of topic for plugin
         String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
@@ -129,10 +126,6 @@ public class PluginRegisterService {
 
         pluginVO.setSubscriptionId(subscriptionId);
         pluginService.create(pluginVO);
-
-        //Update deviceIds in Filter taking into account networkIds and permissions
-        Filter filter = pollRequest.getFilter();
-        filter.setDeviceIds(deviceService.getAvailableDeviceIds(filter.getDeviceIds(), filter.getNetworkIds()));
 
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()

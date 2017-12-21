@@ -19,6 +19,7 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
@@ -95,11 +96,11 @@ public class NetworkService {
                 .flatMap(Collection::stream)
                 .map(DeviceVO::getDeviceId)
                 .collect(Collectors.toSet());
-        
+
         if (!isEmpty(forbiddenNetworkIds)) {
             throw new HiveException(String.format(NETWORKS_NOT_FOUND, forbiddenNetworkIds), SC_FORBIDDEN);
         }
-        
+
         return deviceIds;
     }
 
@@ -107,7 +108,7 @@ public class NetworkService {
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Long> permittedNetworks = principal.getNetworkIds();
-        Set<String> permittedDevices = principal.getDeviceIds();
+        Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -122,9 +123,9 @@ public class NetworkService {
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
                 }).map(network -> {
-                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
+                    if (permittedDeviceTypes != null && !permittedDeviceTypes.isEmpty()) {
                         Set<DeviceVO> allowed = network.getDevices().stream()
-                                .filter(device -> permittedDevices.contains(device.getDeviceId()))
+                                .filter(device -> permittedDeviceTypes.contains(device.getDeviceTypeId()))
                                 .collect(Collectors.toSet());
                         network.setDevices(allowed);
                     }

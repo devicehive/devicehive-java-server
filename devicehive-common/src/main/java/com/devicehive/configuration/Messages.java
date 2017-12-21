@@ -40,6 +40,8 @@ public class Messages {
     public static final String CONFIGURATION_NAME_REQUIRED = BidBundle.get("CONFIGURATION_NAME_REQUIRED");
     public static final String DEVICE_NOT_FOUND = BidBundle.get("DEVICE_NOT_FOUND");
     public static final String NETWORK_NOT_FOUND = BidBundle.get("NETWORK_NOT_FOUND");
+    public static final String DEVICE_TYPES_NOT_FOUND = BidBundle.get("DEVICE_TYPES_NOT_FOUND");
+    public static final String DEVICE_TYPE_NOT_FOUND = BidBundle.get("DEVICE_TYPE_NOT_FOUND");
     public static final String NETWORKS_NOT_FOUND = BidBundle.get("NETWORKS_NOT_FOUND");
     public static final String COMMAND_NOT_FOUND = BidBundle.get("COMMAND_NOT_FOUND");
     public static final String NOTIFICATION_NOT_FOUND = BidBundle.get("NOTIFICATION_NOT_FOUND");
@@ -63,6 +65,7 @@ public class Messages {
     public static final String INVALID_GRANT_TYPE = BidBundle.get("INVALID_GRANT_TYPE");
     public static final String CAN_NOT_GET_CURRENT_USER = BidBundle.get("CAN_NOT_GET_CURRENT_USER");
     public static final String USER_NETWORK_NOT_FOUND = BidBundle.get("USER_NETWORK_NOT_FOUND");
+    public static final String USER_DEVICE_TYPE_NOT_FOUND = BidBundle.get("USER_DEVICE_TYPE_NOT_FOUND");
     public static final String LABEL_IS_REQUIRED = BidBundle.get("LABEL_IS_REQUIRED");
     public static final String ACTIONS_ARE_REQUIRED = BidBundle.get("ACTIONS_ARE_REQUIRED");
     public static final String UNKNOWN_ACTION = BidBundle.get("UNKNOWN_ACTION");
@@ -103,6 +106,12 @@ public class Messages {
     public static final String INVALID_NETWORK_KEY = BidBundle.get("INVALID_NETWORK_KEY");
     public static final String NO_ACCESS_TO_NETWORK = BidBundle.get("NO_ACCESS_TO_NETWORK");
     public static final String NETWORK_CREATION_NOT_ALLOWED = BidBundle.get("NETWORK_CREATION_NOT_ALLOWED");
+    public static final String DEVICE_TYPE_REQUIRED = BidBundle.get("DEVICE_TYPE_REQUIRED");
+    public static final String DEVICE_TYPE_ID_REQUIRED = BidBundle.get("DEVICE_TYPE_ID_REQUIRED");
+    public static final String DUPLICATE_DEVICE_TYPE = BidBundle.get("DUPLICATE_DEVICE_TYPE");
+    public static final String NO_ACCESS_TO_DEVICE_TYPE = BidBundle.get("NO_ACCESS_TO_DEVICE_TYPE");
+    public static final String DEVICE_TYPE_CREATION_NOT_ALLOWED = BidBundle.get("DEVICE_TYPE_CREATION_NOT_ALLOWED");
+    public static final String DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED = BidBundle.get("DEVICE_TYPE_ASSIGNMENT_NOT_ALLOWED");
     public static final String PARAMS_NOT_JSON = BidBundle.get("PARAMS_NOT_JSON");
     public static final String NO_NOTIFICATION_PARAMS = BidBundle.get("NO_NOTIFICATION_PARAMS");
     public static final String UNKNOWN_ACTION_REQUESTED_WS = BidBundle.get("UNKNOWN_ACTION_REQUESTED_WS");
@@ -112,6 +121,7 @@ public class Messages {
     public static final String PING_ERROR = BidBundle.get("PING_ERROR");
     public static final String SHUTDOWN = BidBundle.get("SHUTDOWN");
     public static final String NO_ACCESS_TO_DEVICE = BidBundle.get("NO_ACCESS_TO_DEVICE");
+    public static final String NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS = BidBundle.get("NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS");
     public static final String NO_NETWORKS_ASSIGNED_TO_USER = BidBundle.get("NO_NETWORKS_ASSIGNED_TO_USER");
     public static final String CANT_DELETE_CURRENT_USER_KEY = BidBundle.get("CANT_DELETE_CURRENT_USER_KEY");
     public static final String CANT_DELETE_LAST_DEFAULT_ACCESS_KEY = BidBundle.get("CANT_DELETE_LAST_DEFAULT_ACCESS_KEY");

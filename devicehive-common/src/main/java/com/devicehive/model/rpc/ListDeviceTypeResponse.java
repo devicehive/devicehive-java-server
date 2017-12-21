@@ -4,7 +4,7 @@ package com.devicehive.model.rpc;
  * #%L
  * DeviceHive Common Module
  * %%
- * Copyright (C) 2016 - 2017 DataArt
+ * Copyright (C) 2016 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,20 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.devicehive.vo.DeviceTypeVO;
 
-public class DeviceCreateResponse extends Body {
+import java.util.List;
 
-    public DeviceCreateResponse() {
-        super(Action.DEVICE_CREATE_RESPONSE);
+public class ListDeviceTypeResponse extends Body {
+
+    private List<DeviceTypeVO> deviceTypes;
+
+    public ListDeviceTypeResponse(List<DeviceTypeVO> networks) {
+        super(Action.LIST_DEVICE_TYPE_RESPONSE);
+        this.deviceTypes = networks;
+    }
+
+    public List<DeviceTypeVO> getDeviceTypes() {
+        return deviceTypes;
     }
 }

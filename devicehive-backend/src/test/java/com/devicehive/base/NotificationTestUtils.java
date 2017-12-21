@@ -34,13 +34,26 @@ import java.util.concurrent.TimeUnit;
 
 public class NotificationTestUtils {
 
-    public static DeviceNotification generateNotification(long id, long networkId, String deviceId) {
+    public static DeviceNotification generateNotification(long id, long networkId, long deviceTypeId, String deviceId) {
         DeviceNotification notification = new DeviceNotification();
         notification.setId(id);
         notification.setTimestamp(Date.from(Instant.now()));
         notification.setNetworkId(networkId);
+        notification.setDeviceTypeId(deviceTypeId);
         notification.setDeviceId(deviceId);
         notification.setNotification("SOME TEST DATA_" + id);
+        notification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
+        return notification;
+    }
+
+    public static DeviceNotification generateNotification(long id, String deviceId) {
+        DeviceNotification notification = new DeviceNotification();
+        notification.setId(id);
+        notification.setTimestamp(Date.from(Instant.now()));
+        notification.setNetworkId(0L);
+        notification.setDeviceTypeId(0L);
+        notification.setDeviceId(deviceId);
+        notification.setNotification("SOME TEST DATA");
         notification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
         return notification;
     }
