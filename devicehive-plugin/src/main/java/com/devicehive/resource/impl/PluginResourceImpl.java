@@ -66,8 +66,7 @@ public class PluginResourceImpl implements PluginResource {
         hiveValidator.validate(pluginUpdate);
         try {
             pluginRegisterService.register(pluginReqisterQuery, pluginUpdate, authorization)
-                    .thenAccept(response ->
-                            asyncResponse.resume(response)
+                    .thenAccept(asyncResponse::resume
                     );
         } catch (ServiceUnavailableException e) {
             logger.warn(HEALTH_CHECK_FAILED);
@@ -78,6 +77,7 @@ public class PluginResourceImpl implements PluginResource {
 
     @Override
     public void update(PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
-
+        pluginRegisterService.update(updateQuery, authorization)
+                .thenAccept(asyncResponse::resume);
     }
 }

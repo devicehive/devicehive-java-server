@@ -1,5 +1,25 @@
 package com.devicehive.model.query;
 
+/*
+ * #%L
+ * DeviceHive Frontend Logic
+ * %%
+ * Copyright (C) 2016 - 2017 DataArt
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.PluginStatus;
 import io.swagger.annotations.ApiParam;
@@ -8,37 +28,9 @@ import javax.ws.rs.QueryParam;
 
 import static com.devicehive.configuration.Constants.*;
 
-public class PluginUpdateQuery {
+public class PluginUpdateQuery extends PluginReqisterQuery {
 
-    @ApiParam(name = "deviceId", value = "Device device_id")
-    @QueryParam("deviceId")
-    private String deviceId;
-
-    @ApiParam(name = "networkIds", value = "Network ids")
-    @QueryParam("networkIds")
-    private String networkIds;
-
-    @ApiParam(name = "deviceTypeIds", value = "Device type ids")
-    @QueryParam("deviceTypeIds")
-    private String deviceTypeIds;
-
-    @ApiParam(name = "names", value = "Command/Notification names")
-    @QueryParam("names")
-    private String names;
-
-    @ApiParam(name = RETURN_COMMANDS, value = "Checks if commands should be returned", defaultValue = "true")
-    @QueryParam(RETURN_COMMANDS)
-    private boolean returnCommands;
-
-    @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
-    @QueryParam(RETURN_UPDATED_COMMANDS)
-    private boolean returnUpdatedCommands;
-
-    @ApiParam(name = RETURN_NOTIFICATIONS, value = "Checks if commands should be returned", defaultValue = "false")
-    @QueryParam(RETURN_NOTIFICATIONS)
-    private boolean returnNotifications;
-
-    @ApiParam(name = STATUS, value = "Plugin status. Created, active or disabled", defaultValue = "active")
+    @ApiParam(name = STATUS, value = "Plugin status - active or disabled", defaultValue = "active")
     @QueryParam(STATUS)
     private PluginStatus status;
 
@@ -54,61 +46,9 @@ public class PluginUpdateQuery {
     @QueryParam(PARAMETERS)
     private JsonStringWrapper parameters;
 
-    public String getDeviceId() {
-        return deviceId;
-    }
-
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
-    }
-
-    public String getNetworkIds() {
-        return networkIds;
-    }
-
-    public void setNetworkIds(String networkIds) {
-        this.networkIds = networkIds;
-    }
-
-    public String getDeviceTypeIds() {
-        return deviceTypeIds;
-    }
-
-    public void setDeviceTypeIds(String deviceTypeIds) {
-        this.deviceTypeIds = deviceTypeIds;
-    }
-
-    public String getNames() {
-        return names;
-    }
-
-    public void setNames(String names) {
-        this.names = names;
-    }
-
-    public boolean isReturnCommands() {
-        return returnCommands;
-    }
-
-    public void setReturnCommands(boolean returnCommands) {
-        this.returnCommands = returnCommands;
-    }
-
-    public boolean isReturnUpdatedCommands() {
-        return returnUpdatedCommands;
-    }
-
-    public void setReturnUpdatedCommands(boolean returnUpdatedCommands) {
-        this.returnUpdatedCommands = returnUpdatedCommands;
-    }
-
-    public boolean isReturnNotifications() {
-        return returnNotifications;
-    }
-
-    public void setReturnNotifications(boolean returnNotifications) {
-        this.returnNotifications = returnNotifications;
-    }
+    @ApiParam(name = "topicName", value = "Name of topic that was created for the plugin", required = true)
+    @QueryParam("topicName")
+    private String topicName;
 
     public PluginStatus getStatus() {
         return status;
@@ -141,4 +81,13 @@ public class PluginUpdateQuery {
     public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
     }
+
+    public String getTopicName() {
+        return topicName;
+    }
+
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
+    }
+
 }

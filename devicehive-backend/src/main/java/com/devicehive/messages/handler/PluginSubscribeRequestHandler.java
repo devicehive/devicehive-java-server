@@ -23,10 +23,7 @@ package com.devicehive.messages.handler;
 import com.devicehive.messages.handler.command.CommandSubscribeRequestHandler;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.CommandSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.model.rpc.PluginSubscribeResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -45,6 +42,7 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
 
     private CommandSubscribeRequestHandler commandSubscribeRequestHandler;
     private NotificationSubscribeRequestHandler notificationSubscribeRequestHandler;
+    private PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
 
     @Autowired
     public void setCommandSubscribeRequestHandler(CommandSubscribeRequestHandler commandSubscribeRequestHandler) {
@@ -56,10 +54,22 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
         this.notificationSubscribeRequestHandler = notificationSubscribeRequestHandler;
     }
 
+    @Autowired
+    public void setPluginUnsubscribeRequestHandler(PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
+        this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
+    }
+
     @Override
     public Response handle(Request request) {
         PluginSubscribeRequest body = (PluginSubscribeRequest) request.getBody();
         validate(body);
+
+        PluginUnsubscribeRequest pluginUnsubscribeRequest = new PluginUnsubscribeRequest(body.getSubscriptionId(), body.getTopicName());
+        Request unsubscribeRequest = Request.newBuilder()
+                .withBody(pluginUnsubscribeRequest)
+                .withSingleReply(false)
+                .build();
+        pluginUnsubscribeRequestHandler.handle(unsubscribeRequest);
         
         if (body.isReturnCommands()) {
             createCommandSubscription(body, false);
