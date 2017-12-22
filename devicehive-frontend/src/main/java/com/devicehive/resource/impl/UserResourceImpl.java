@@ -239,8 +239,10 @@ public class UserResourceImpl implements UserResource {
         }
 
         if (existingUser.getAllDeviceTypesAvailable()) {
-            DeviceTypeVO deviceTypeVO = deviceTypeService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
-            return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceTypeVO), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
+            DeviceTypeVO deviceTypeVO = deviceTypeService.getWithDevices(deviceTypeId, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+            if (deviceTypeVO != null) {
+                return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceTypeVO), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
+            }
         }
 
         for (DeviceTypeVO deviceType : existingUser.getDeviceTypes()) {
@@ -249,7 +251,7 @@ public class UserResourceImpl implements UserResource {
             }
         }
         ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
-                String.format(Messages.USER_NETWORK_NOT_FOUND, deviceTypeId, id));
+                String.format(Messages.USER_DEVICE_TYPE_NOT_FOUND, deviceTypeId, id));
         return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
     }
 
