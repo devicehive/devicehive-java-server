@@ -132,10 +132,10 @@ public class PluginReqisterQuery {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(HivePrincipal principal, FilterService filterService) {
+    public PluginSubscribeRequest toRequest(Long userId, FilterService filterService) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
         request.setFilters(filterService.createFilters(this));
-        request.setUserId(principal.getUser().getId());
+        request.setUserId(userId);
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
         request.setReturnNotifications(returnNotifications);

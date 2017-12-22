@@ -106,11 +106,9 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
+    public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
-
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(principal, filterService);
+        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(userId, filterService);
 
         return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString()).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
@@ -121,8 +119,8 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> update(PluginUpdateQuery pluginUpdateQuery, String authorization) {
-        return updatePlugin(pluginUpdateQuery).thenApply(pluginVO -> {
+    public CompletableFuture<Response> update(Long userId, PluginUpdateQuery pluginUpdateQuery, String authorization) {
+        return updatePlugin(userId, pluginUpdateQuery).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
             JsonObject response = createTokenResponse(pluginVO.getTopicName(), jwtTokenVO);
 
@@ -176,7 +174,7 @@ public class PluginRegisterService {
         return future.thenApply(response -> pluginVO);
     }
 
-    private CompletableFuture<PluginVO> updatePlugin(PluginUpdateQuery pluginUpdateQuery) {
+    private CompletableFuture<PluginVO> updatePlugin(Long userId, PluginUpdateQuery pluginUpdateQuery) {
         if (pluginUpdateQuery.getStatus().equals(PluginStatus.CREATED)) {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
         }
@@ -236,12 +234,11 @@ public class PluginRegisterService {
 
         pluginService.update(existingPlugin);
 
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
 
         Body request;
         if (existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
-            request = pluginUpdateQuery.toRequest(principal, filterService);
+            request = pluginUpdateQuery.toRequest(userId, filterService);
         } else {
             request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
         }

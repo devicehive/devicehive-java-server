@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.eventbus.Filter;
+import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
@@ -59,7 +60,7 @@ public class PluginRegisterServiceTest {
     private static final String ACCESS_TOKEN = "accessToken";
     private static final String REFRESH_TOKEN = "refreshToken";
     private static final String PROXY_ENDPOINT = "proxyEndpoint";
-    private static final String AUTHORIZATION = "authorization";
+    private static final String AUTHORIZATION = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5NDExOTQwMDAwLCJ0IjoxfX0.h74Nn2pSbaN1PxrrF8KfohXeGoGpJ4au4YBpHXyvVsA";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -68,6 +69,8 @@ public class PluginRegisterServiceTest {
     private HiveValidator hiveValidator;
     @Mock
     private PluginService pluginService;
+    @Mock
+    private FilterService filterService;
     @Mock
     private RpcClient rpcClient;
     @Mock
@@ -88,38 +91,38 @@ public class PluginRegisterServiceTest {
     
     
     @Test
-    public void shoultRegisterPlugin() throws Exception {
-        // TODO - fix with new method api
-//        //given
-//        PluginSubscribeRequest pollRequest = new PluginSubscribeRequest();
-//        pollRequest.setFilters(Collections.singleton(new Filter()));
-//
-//        PluginUpdate pluginUpdate = new PluginUpdate();
-//
-//        given(idGenerator.generate()).willReturn(SUBSCRIPTION_ID);
-//        given(webSocketKafkaProxyConfig.getProxyConnect()).willReturn(PROXY_ENDPOINT);
-//        given(httpRestHelper.post(any(), any(), any(), any())).willReturn(createJwtTokenVO(ACCESS_TOKEN, REFRESH_TOKEN));
-//
-//        doAnswer(invocation -> {
-//            Object[] args = invocation.getArguments();
-//            Request request = (Request)args[0];
-//            ResponseConsumer responseConsumer = (ResponseConsumer)args[1];
-//            responseConsumer.accept(Response.newBuilder()
-//                    .withBody(request.getBody())
-//                    .buildSuccess());
-//
-//            return null;
-//        }).when(rpcClient).call(any(), any());
-//
-//        //when
-//        JsonObject actual = (JsonObject) pluginRegisterService.register(pollRequest, pluginUpdate, AUTHORIZATION).join().getEntity();
-//
-//        //then
-//        assertEquals(actual.get(ACCESS_TOKEN).getAsString(), ACCESS_TOKEN);
-//        assertEquals(actual.get(REFRESH_TOKEN).getAsString(), REFRESH_TOKEN);
-//        assertEquals(actual.get(PROXY_ENDPOINT).getAsString(), PROXY_ENDPOINT);
-//
-//        verify(rpcClient, times(1)).call(any(), any());
+    public void shouldRegisterPlugin() throws Exception {
+        PluginReqisterQuery pluginReqisterQuery = new PluginReqisterQuery();
+        pluginReqisterQuery.setReturnCommands(true);
+        pluginReqisterQuery.setReturnUpdatedCommands(true);
+        pluginReqisterQuery.setReturnNotifications(true);
+
+        PluginUpdate pluginUpdate = new PluginUpdate();
+
+        given(idGenerator.generate()).willReturn(SUBSCRIPTION_ID);
+        given(webSocketKafkaProxyConfig.getProxyConnect()).willReturn(PROXY_ENDPOINT);
+        given(httpRestHelper.post(any(), any(), any(), any())).willReturn(createJwtTokenVO(ACCESS_TOKEN, REFRESH_TOKEN));
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            Request request = (Request)args[0];
+            ResponseConsumer responseConsumer = (ResponseConsumer)args[1];
+            responseConsumer.accept(Response.newBuilder()
+                    .withBody(request.getBody())
+                    .buildSuccess());
+
+            return null;
+        }).when(rpcClient).call(any(), any());
+
+        //when
+        JsonObject actual = (JsonObject) pluginRegisterService.register(1L, pluginReqisterQuery, pluginUpdate, AUTHORIZATION).join().getEntity();
+
+        //then
+        assertEquals(actual.get(ACCESS_TOKEN).getAsString(), ACCESS_TOKEN);
+        assertEquals(actual.get(REFRESH_TOKEN).getAsString(), REFRESH_TOKEN);
+        assertEquals(actual.get(PROXY_ENDPOINT).getAsString(), PROXY_ENDPOINT);
+
+        verify(rpcClient, times(1)).call(any(), any());
     }
     
     private JwtTokenVO createJwtTokenVO(String accessToken, String refreshToken) {

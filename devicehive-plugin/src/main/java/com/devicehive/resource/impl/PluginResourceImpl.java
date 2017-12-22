@@ -65,7 +65,8 @@ public class PluginResourceImpl implements PluginResource {
             @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(pluginUpdate);
         try {
-            pluginRegisterService.register(pluginReqisterQuery, pluginUpdate, authorization)
+            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            pluginRegisterService.register(principal.getUser().getId(), pluginReqisterQuery, pluginUpdate, authorization)
                     .thenAccept(asyncResponse::resume
                     );
         } catch (ServiceUnavailableException e) {
@@ -77,7 +78,8 @@ public class PluginResourceImpl implements PluginResource {
 
     @Override
     public void update(PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
-        pluginRegisterService.update(updateQuery, authorization)
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.update(principal.getUser().getId(), updateQuery, authorization)
                 .thenAccept(asyncResponse::resume);
     }
 
