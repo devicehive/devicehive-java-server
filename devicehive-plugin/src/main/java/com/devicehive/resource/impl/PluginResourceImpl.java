@@ -80,4 +80,10 @@ public class PluginResourceImpl implements PluginResource {
         pluginRegisterService.update(updateQuery, authorization)
                 .thenAccept(asyncResponse::resume);
     }
+
+    @Override
+    public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
+        pluginRegisterService.delete(topicName, authorization)
+                .thenAccept(asyncResponse::resume);
+    }
 }

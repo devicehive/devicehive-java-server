@@ -62,6 +62,7 @@ import java.util.concurrent.CompletableFuture;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.CREATED;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import static javax.ws.rs.core.Response.Status.OK;
 
 @Component
@@ -127,6 +128,52 @@ public class PluginRegisterService {
 
             return ResponseFactory.response(OK, response, PLUGIN_SUBMITTED);
         });
+    }
+
+    @Transactional
+    public CompletableFuture<Response> delete(String topicName, String authorization) {
+        PluginVO existingPlugin = pluginService.findByTopic(topicName);
+        if (existingPlugin == null) {
+            throw new NotFoundException("Plugin with topic name " + topicName + " was not found");
+        }
+
+        pluginService.delete(existingPlugin.getId());
+
+        PluginUnsubscribeRequest request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(request)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
+    }
+
+    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString) {
+        hiveValidator.validate(pluginUpdate);
+        PluginVO pluginVO = pluginUpdate.convertTo();
+        pluginVO.setUserId(pollRequest.getUserId());
+        pluginVO.setFilter(filterString);
+        pluginVO.setStatus(PluginStatus.CREATED);
+
+        //Creation of topic for plugin
+        String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
+        kafkaTopicService.createTopic(pluginTopic);
+        pluginVO.setTopicName(pluginTopic);
+
+        //Creation of subscription for plugin
+        final Long subscriptionId = idGenerator.generate();
+        pollRequest.setSubscriptionId(subscriptionId);
+        pollRequest.setTopicName(pluginTopic);
+
+        pluginVO.setSubscriptionId(subscriptionId);
+        pluginService.create(pluginVO);
+
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+        rpcClient.call(Request.newBuilder()
+                .withBody(pollRequest)
+                .build(), new ResponseConsumer(future));
+        
+        return future.thenApply(response -> pluginVO);
     }
 
     private CompletableFuture<PluginVO> updatePlugin(PluginUpdateQuery pluginUpdateQuery) {
@@ -204,34 +251,6 @@ public class PluginRegisterService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(response -> existingPlugin);
-    }
-
-    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString) {
-        hiveValidator.validate(pluginUpdate);
-        PluginVO pluginVO = pluginUpdate.convertTo();
-        pluginVO.setUserId(pollRequest.getUserId());
-        pluginVO.setFilter(filterString);
-        pluginVO.setStatus(PluginStatus.CREATED);
-
-        //Creation of topic for plugin
-        String pluginTopic = "plugin_topic_" + UUID.randomUUID().toString();
-        kafkaTopicService.createTopic(pluginTopic);
-        pluginVO.setTopicName(pluginTopic);
-
-        //Creation of subscription for plugin
-        final Long subscriptionId = idGenerator.generate();
-        pollRequest.setSubscriptionId(subscriptionId);
-        pollRequest.setTopicName(pluginTopic);
-
-        pluginVO.setSubscriptionId(subscriptionId);
-        pluginService.create(pluginVO);
-
-        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
-        rpcClient.call(Request.newBuilder()
-                .withBody(pollRequest)
-                .build(), new ResponseConsumer(future));
-        
-        return future.thenApply(response -> pluginVO);
     }
 
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {

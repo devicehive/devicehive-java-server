@@ -71,5 +71,11 @@ public class PluginService {
             return null;
         }
     }
-    
+
+    @Transactional
+    public boolean delete(long id) {
+        int result = pluginDao.deleteById(id);
+        return result > 0;
+    }
+
 }

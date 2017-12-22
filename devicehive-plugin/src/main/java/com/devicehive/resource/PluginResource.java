@@ -43,7 +43,6 @@ import javax.ws.rs.container.Suspended;
 public interface PluginResource {
 
     @POST
-    @Path("/register")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Register Plugin", notes = "Registers plugin in DH Server")
     @ApiResponses(value = {
@@ -62,7 +61,6 @@ public interface PluginResource {
             @Suspended final AsyncResponse asyncResponse);
 
     @PUT
-    @Path("/update")
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Update Plugin", notes = "Updates plugin in DH Server")
     @ApiResponses(value = {
@@ -73,6 +71,22 @@ public interface PluginResource {
     void update(
             @BeanParam
                     PluginUpdateQuery updateQuery,
+            @ApiParam(name = "Authorization", value = "Authorization token", required = true)
+            @HeaderParam("Authorization")
+                    String authorization,
+            @Suspended final AsyncResponse asyncResponse);
+
+    @DELETE
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @ApiOperation(value = "Delete Plugin", notes = "Deletes plugin in DH Server")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200,
+                    message = "Returns success",
+                    response = PluginVO.class),
+    })
+    void delete(
+            @QueryParam("topicName")
+                    String topicName,
             @ApiParam(name = "Authorization", value = "Authorization token", required = true)
             @HeaderParam("Authorization")
                     String authorization,
