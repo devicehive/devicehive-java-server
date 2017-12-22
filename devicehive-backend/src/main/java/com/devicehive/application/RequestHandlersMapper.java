@@ -58,11 +58,8 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final ListUserHandler listUserHandler;
     private final CountUserHandler countUserHandler;
     private final ListNetworkHandler listNetworkHandler;
-<<<<<<< HEAD
     private final ListDeviceTypeHandler listDeviceTypeHandler;
-=======
     private final CountNetworkHandler countNetworkHandler;
->>>>>>> Feature: Frontend: Implement /network/count api endpoint;
     private final ListDeviceHandler listDeviceHandler;
     private final CountDeviceHandler countDeviceHandler;
     private final ListSubscribeHandler listSubscribeHandler;
@@ -137,11 +134,8 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.LIST_USER_REQUEST, listUserHandler)
                 .put(Action.COUNT_USER_REQUEST, countUserHandler)
                 .put(Action.LIST_NETWORK_REQUEST, listNetworkHandler)
-<<<<<<< HEAD
                 .put(Action.LIST_DEVICE_TYPE_REQUEST, listDeviceTypeHandler)
-=======
                 .put(Action.COUNT_NETWORK_REQUEST, countNetworkHandler)
->>>>>>> Feature: Frontend: Implement /network/count api endpoint;
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
                 .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
