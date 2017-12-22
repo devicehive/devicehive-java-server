@@ -22,6 +22,8 @@ package com.devicehive.model;
 
 public class FilterEntity {
 
+    public static final String ALL_ENTITIES = "*";
+
     private String deviceId;
 
     private String networkIds;
@@ -53,9 +55,16 @@ public class FilterEntity {
         }
 
         networkIds = filters[1];
+        if (networkIds.equals(ALL_ENTITIES)) networkIds = null;
+
         deviceTypeIds = filters[2];
+        if (deviceTypeIds.equals(ALL_ENTITIES)) deviceTypeIds = null;
+
         deviceId = filters[3];
+        if (deviceId.equals(ALL_ENTITIES)) deviceId = null;
+
         names = filters[4];
+        if (names.equals(ALL_ENTITIES)) names = null;
     }
 
     public String getDeviceId() {

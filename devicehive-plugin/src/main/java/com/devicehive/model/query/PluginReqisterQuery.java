@@ -20,33 +20,17 @@ package com.devicehive.model.query;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.service.BaseDeviceService;
 import com.devicehive.service.FilterService;
-import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.ApiParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.QueryParam;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.devicehive.configuration.Constants.RETURN_COMMANDS;
-import static com.devicehive.configuration.Constants.RETURN_NOTIFICATIONS;
-import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
-import static com.devicehive.model.converters.SetHelper.toLongSet;
-import static com.devicehive.model.converters.SetHelper.toStringSet;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.model.FilterEntity.ALL_ENTITIES;
 
 
 public class PluginReqisterQuery {
-
-    public static final String ALL_ENTITIES = "*";
 
     @ApiParam(name = "deviceId", value = "Device device_id")
     @QueryParam("deviceId")

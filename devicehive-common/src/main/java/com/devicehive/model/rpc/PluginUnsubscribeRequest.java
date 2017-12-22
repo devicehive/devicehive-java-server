@@ -24,23 +24,14 @@ import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
 
-public class PluginUnsubscribeRequest extends Body {
+public class PluginUnsubscribeRequest extends BasePluginRequest {
 
-    private Long subscriptionId;
     private String topicName;
     
     public PluginUnsubscribeRequest(Long subscriptionId, String topicName) {
         super(Action.PLUGIN_UNSUBSCRIBE_REQUEST);
         this.subscriptionId = subscriptionId;
         this.topicName = topicName;
-    }
-
-    public Long getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
     }
 
     public String getTopicName() {

@@ -27,6 +27,7 @@ import com.devicehive.model.FilterEntity;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
+import com.devicehive.model.rpc.BasePluginRequest;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.rpc.PluginUnsubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
@@ -175,7 +176,7 @@ public class PluginRegisterService {
     }
 
     private CompletableFuture<PluginVO> updatePlugin(Long userId, PluginUpdateQuery pluginUpdateQuery) {
-        if (pluginUpdateQuery.getStatus().equals(PluginStatus.CREATED)) {
+        if (pluginUpdateQuery.getStatus()!= null && pluginUpdateQuery.getStatus().equals(PluginStatus.CREATED)) {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
         }
 
@@ -236,9 +237,10 @@ public class PluginRegisterService {
 
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
 
-        Body request;
+        BasePluginRequest request;
         if (existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
             request = pluginUpdateQuery.toRequest(userId, filterService);
+            request.setSubscriptionId(existingPlugin.getSubscriptionId());
         } else {
             request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
         }

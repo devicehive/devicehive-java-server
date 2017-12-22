@@ -42,8 +42,6 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
 
     private CommandSubscribeRequestHandler commandSubscribeRequestHandler;
     private NotificationSubscribeRequestHandler notificationSubscribeRequestHandler;
-    private PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
-
     @Autowired
     public void setCommandSubscribeRequestHandler(CommandSubscribeRequestHandler commandSubscribeRequestHandler) {
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
@@ -54,22 +52,10 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
         this.notificationSubscribeRequestHandler = notificationSubscribeRequestHandler;
     }
 
-    @Autowired
-    public void setPluginUnsubscribeRequestHandler(PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
-        this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
-    }
-
     @Override
     public Response handle(Request request) {
         PluginSubscribeRequest body = (PluginSubscribeRequest) request.getBody();
         validate(body);
-
-        PluginUnsubscribeRequest pluginUnsubscribeRequest = new PluginUnsubscribeRequest(body.getSubscriptionId(), body.getTopicName());
-        Request unsubscribeRequest = Request.newBuilder()
-                .withBody(pluginUnsubscribeRequest)
-                .withSingleReply(false)
-                .build();
-        pluginUnsubscribeRequestHandler.handle(unsubscribeRequest);
         
         if (body.isReturnCommands()) {
             createCommandSubscription(body, false);
@@ -81,7 +67,6 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
             createNotificationSubscription(body);
         }
 
-        
         return Response.newBuilder()
                 .withBody(new PluginSubscribeResponse(body.getSubscriptionId()))
                 .withLast(false)
