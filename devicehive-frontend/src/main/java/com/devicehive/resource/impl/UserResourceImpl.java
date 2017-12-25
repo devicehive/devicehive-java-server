@@ -27,6 +27,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
+import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.UserResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -43,10 +44,12 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.Objects;
 
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.LOGIN;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPES_LISTED;
 import static javax.ws.rs.core.Response.Status.*;
 
 @Service
@@ -253,6 +256,32 @@ public class UserResourceImpl implements UserResource {
         ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
                 String.format(Messages.USER_DEVICE_TYPE_NOT_FOUND, deviceTypeId, id));
         return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void getDeviceTypes(long id, @Suspended final AsyncResponse asyncResponse) {
+        UserWithDeviceTypeVO existingUser = userService.findUserWithDeviceType(id);
+        if (existingUser == null) {
+            logger.error("Can't get device types for user with id {}: user not found", id);
+            ErrorResponse errorResponseEntity = new ErrorResponse(NOT_FOUND.getStatusCode(),
+                    String.format(Messages.USER_NOT_FOUND, id));
+            asyncResponse.resume(ResponseFactory.response(NOT_FOUND, errorResponseEntity));
+        } else {
+            if (existingUser.getAllDeviceTypesAvailable()) {
+                deviceTypeService.listAll().thenApply(deviceTypeVOS -> {
+                    logger.debug("User list request proceed successfully");
+                    return ResponseFactory.response(OK, deviceTypeVOS, JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
+                }).thenAccept(asyncResponse::resume);
+            } else if (!existingUser.getAllDeviceTypesAvailable() && (existingUser.getDeviceTypes() == null || existingUser.getDeviceTypes().isEmpty())) {
+                logger.warn("Unable to get list for empty device types");
+                asyncResponse.resume(ResponseFactory.response(OK, Collections.<DeviceTypeVO>emptyList(), DEVICE_TYPES_LISTED));
+            } else {
+                asyncResponse.resume(ResponseFactory.response(OK, existingUser.getDeviceTypes(), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED));
+            }
+        }
     }
 
     /**
