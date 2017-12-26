@@ -46,8 +46,8 @@ public class ListDeviceTypeHandler implements RequestHandler {
     public Response handle(Request request) {
         final ListDeviceTypeRequest req = (ListDeviceTypeRequest) request.getBody();
 
-        final List<DeviceTypeVO> deviceTypes = deviceTypeDao.list(req.getName(), req.getNamePattern(),
-                req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
+        final List<DeviceTypeVO> deviceTypes = req.isGetAll() ? deviceTypeDao.listAll() : deviceTypeDao.list(req.getName(),
+                req.getNamePattern(), req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
 
         return Response.newBuilder()
                 .withBody(new ListDeviceTypeResponse(deviceTypes))

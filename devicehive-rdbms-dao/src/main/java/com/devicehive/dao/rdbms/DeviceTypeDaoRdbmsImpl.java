@@ -132,6 +132,14 @@ public class DeviceTypeDaoRdbmsImpl extends RdbmsGenericDao implements DeviceTyp
     }
 
     @Override
+    public List<DeviceTypeVO> listAll() {
+        return createNamedQuery(DeviceType.class, "DeviceType.findAll", of(CacheConfig.refresh()))
+                .getResultList().stream()
+                .map(DeviceType::convertDeviceType).collect(Collectors.toList());
+    }
+
+
+    @Override
     public Optional<DeviceTypeVO> findFirstByName(String name) {
         return findByName(name).stream().findFirst();
     }

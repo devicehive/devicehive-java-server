@@ -152,6 +152,13 @@ public class DeviceTypeService {
         return deviceTypeDao.merge(existing);
     }
 
+    public CompletableFuture<List<DeviceTypeVO>> listAll() {
+        final ListDeviceTypeRequest request = new ListDeviceTypeRequest();
+        request.setGetAll(true);
+
+        return list(request);
+    }
+
     public CompletableFuture<List<DeviceTypeVO>> list(String name,
                                                       String namePattern,
                                                       String sortField,

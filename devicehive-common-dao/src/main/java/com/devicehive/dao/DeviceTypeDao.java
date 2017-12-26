@@ -48,6 +48,8 @@ public interface DeviceTypeDao {
     List<DeviceTypeVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                          Integer skip, Optional<HivePrincipal> principal);
 
+    List<DeviceTypeVO> listAll();
+
     Optional<DeviceTypeVO> findFirstByName(String name);
 
     Optional<DeviceTypeWithUsersAndDevicesVO> findWithUsers(@NotNull long deviceTypeId);
