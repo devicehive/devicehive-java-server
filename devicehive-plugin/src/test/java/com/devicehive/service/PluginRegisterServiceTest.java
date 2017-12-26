@@ -60,7 +60,7 @@ public class PluginRegisterServiceTest {
     private static final String ACCESS_TOKEN = "accessToken";
     private static final String REFRESH_TOKEN = "refreshToken";
     private static final String PROXY_ENDPOINT = "proxyEndpoint";
-    private static final String AUTHORIZATION = "eyJhbGciOiJIUzI1NiJ9.eyJwYXlsb2FkIjp7InUiOjEsImEiOlswXSwibiI6WyIqIl0sImQiOlsiKiJdLCJlIjoxNTU5NDExOTQwMDAwLCJ0IjoxfX0.h74Nn2pSbaN1PxrrF8KfohXeGoGpJ4au4YBpHXyvVsA";
+    private static final String AUTHORIZATION = "auth";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
