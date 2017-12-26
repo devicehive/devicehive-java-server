@@ -238,6 +238,9 @@ public class WebSocketRequestProcessor {
             case USER_GET_DEVICE_TYPE:
                 userHandlers.processUserGetDeviceType(request, session);
                 break;
+            case USER_GET_DEVICE_TYPES:
+                userHandlers.processUserGetDeviceTypes(request, session);
+                break;
             case USER_ASSIGN_DEVICE_TYPE:
                 userHandlers.processUserAssignDeviceType(request, session);
                 break;
@@ -315,6 +318,7 @@ public class WebSocketRequestProcessor {
         USER_ASSIGN_NETWORK("user/assignNetwork"),
         USER_UNASSIGN_NETWORK("user/unassignNetwork"),
         USER_GET_DEVICE_TYPE("user/getDeviceType"),
+        USER_GET_DEVICE_TYPES("user/getDeviceTypes"),
         USER_ASSIGN_DEVICE_TYPE("user/assignDeviceType"),
         USER_UNASSIGN_DEVICE_TYPE("user/unassignDeviceType"),
         USER_ALLOW_ALL_DEVICE_TYPES("user/allowAllDeviceTypes"),

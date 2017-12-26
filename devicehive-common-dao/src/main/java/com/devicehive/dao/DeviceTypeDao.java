@@ -50,6 +50,8 @@ public interface DeviceTypeDao {
 
     long count(String name, String namePattern, Optional<HivePrincipal> principal);
 
+    List<DeviceTypeVO> listAll();
+
     Optional<DeviceTypeVO> findFirstByName(String name);
 
     Optional<DeviceTypeWithUsersAndDevicesVO> findWithUsers(@NotNull long deviceTypeId);

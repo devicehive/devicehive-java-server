@@ -34,7 +34,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Response;
 
-@Api(tags = {"Device Type"}, value = "Represents a device type, an isolated area where devices reside.", consumes="application/json")
+@Api(tags = {"DeviceType"}, value = "Represents a device type, an isolated area where devices reside.", consumes="application/json")
 @Path("/devicetype")
 public interface DeviceTypeResource {
 

@@ -385,6 +385,32 @@ public interface UserResource {
                     long deviceTypeId);
 
     /**
+     * Method returns the collection of available Device Types in case of success (status 200): <code> [{ "id": 5, "name":
+     * "device type name", "description": "short description of device type" }] </code>  and empty list in case, there is no available
+     * device type, or user, or user doesn't have access
+     *
+     * @param id            user id
+     */
+    @GET
+    @Path("/{id}/devicetype")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    @ApiOperation(value = "Get user's device types", notes = "Gets information about user's devicetypes association.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns a list of DeviceTypes resource in the response body.", response = UserDeviceTypeResponse.class),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
+            @ApiResponse(code = 404, message = "If user not found")
+    })
+    void getDeviceTypes(
+            @ApiParam(name = "id", value = "User identifier.", required = true)
+            @PathParam("id")
+                    long id,
+            @Suspended final AsyncResponse asyncResponse);
+
+    /**
      * Adds user permission on device type.
      * Request body must be empty. Returns Empty body.
      *

@@ -24,14 +24,18 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.rpc.CountUserRequest;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.updates.UserUpdate;
+import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.BaseUserService;
+import com.devicehive.service.DeviceTypeService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.*;
@@ -46,16 +50,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.rpc.ListUserRequest.createListUserRequest;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.OK;
 
 @Component
 public class UserHandlers {
@@ -63,16 +67,19 @@ public class UserHandlers {
     private static final Logger logger = LoggerFactory.getLogger(UserHandlers.class);
 
     private final UserService userService;
+    private final DeviceTypeService deviceTypeService;
     private final HiveValidator hiveValidator;
     private final WebSocketClientHandler clientHandler;
     private final Gson gson;
 
     @Autowired
     public UserHandlers(UserService userService,
+                        DeviceTypeService deviceTypeService,
                         HiveValidator hiveValidator,
                         WebSocketClientHandler clientHandler,
                         Gson gson) {
         this.userService = userService;
+        this.deviceTypeService = deviceTypeService;
         this.hiveValidator = hiveValidator;
         this.clientHandler = clientHandler;
         this.gson = gson;
@@ -354,6 +361,39 @@ public class UserHandlers {
 
         clientHandler.sendErrorResponse(request, NOT_FOUND.getStatusCode(),
                 String.format(Messages.USER_DEVICE_TYPE_NOT_FOUND, deviceTypeId, userId), session);
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_DEVICE_TYPE')")
+    public void processUserGetDeviceTypes(JsonObject request, WebSocketSession session) {
+        Long userId = gson.fromJson(request.get(USER_ID), Long.class);
+        if (userId == null) {
+            logger.error(Messages.USER_ID_REQUIRED);
+            throw new HiveException(Messages.USER_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
+
+        final UserWithDeviceTypeVO existingUser = userService.findUserWithDeviceType(userId);
+        if (existingUser == null) {
+            logger.error("Can't get device types for user with id {}: user not found", userId);
+            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
+        }
+
+        final WebSocketResponse response = new WebSocketResponse();
+        if (existingUser.getAllDeviceTypesAvailable()) {
+            deviceTypeService.listAll().thenAccept(dt -> {
+                logger.debug("Device types list request proceed successfully");
+                response.addValue(DEVICE_TYPES, dt, DEVICE_TYPES_LISTED);
+                clientHandler.sendMessage(request, response, session);
+            });
+        } else {
+            if (!existingUser.getAllDeviceTypesAvailable() && (existingUser.getDeviceTypes() == null || existingUser.getDeviceTypes().isEmpty())) {
+                logger.warn("Unable to get list for empty device types");
+                response.addValue(DEVICE_TYPES, Collections.emptyList(), DEVICE_TYPES_LISTED);
+            } else {
+                response.addValue(DEVICE_TYPES, existingUser.getDeviceTypes(), DEVICE_TYPES_LISTED);
+            }
+            clientHandler.sendMessage(request, response, session);
+        }
     }
 
     @HiveWebsocketAuth

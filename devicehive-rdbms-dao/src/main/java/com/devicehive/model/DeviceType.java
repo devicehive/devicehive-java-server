@@ -37,6 +37,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 @Entity
 @Table(name = "device_type")
 @NamedQueries({
+        @NamedQuery(name = "DeviceType.findAll", query = "select t from DeviceType t"),
         @NamedQuery(name = "DeviceType.findByName", query = "select t from DeviceType t where t.name = :name"),
         @NamedQuery(name = "DeviceType.findWithUsers", query = "select t from DeviceType t left join fetch t.users where t.id = :id"),
         @NamedQuery(name = "DeviceType.findOrderedByIdWithPermission", query = "select t from DeviceType t " +
