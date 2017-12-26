@@ -68,6 +68,10 @@ public class PluginVO implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String topicName;
 
+    @SerializedName("filter")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private String filter;
+
     @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private PluginStatus status;
@@ -115,6 +119,14 @@ public class PluginVO implements HiveEntity {
 
     public void setTopicName(String topicName) {
         this.topicName = topicName;
+    }
+
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
     public PluginStatus getStatus() {

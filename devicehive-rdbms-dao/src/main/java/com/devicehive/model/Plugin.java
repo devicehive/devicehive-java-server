@@ -96,6 +96,13 @@ public class Plugin implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String topicName;
 
+    // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
+    // TODO - change to embedded entity for better code readability
+    @Column(name = "filter")
+    @SerializedName("filter")
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    private String filter;
+
     @Column(name = "status")
     @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -151,6 +158,14 @@ public class Plugin implements HiveEntity {
         this.topicName = topicName;
     }
 
+    public String getFilter() {
+        return filter;
+    }
+
+    public void setFilter(String filter) {
+        this.filter = filter;
+    }
+
     public PluginStatus getStatus() {
         return status;
     }
@@ -189,8 +204,9 @@ public class Plugin implements HiveEntity {
             vo = new PluginVO();
             vo.setId(entity.getId());
             vo.setName(entity.getName());
-            vo.setDescription(entity.description);
+            vo.setDescription(entity.getDescription());
             vo.setTopicName(entity.getTopicName());
+            vo.setFilter(entity.getFilter());
             vo.setStatus(entity.getStatus());
             vo.setSubscriptionId(entity.getSubscriptionId());
             vo.setUserId(entity.getUserId());
@@ -208,6 +224,7 @@ public class Plugin implements HiveEntity {
             entity.setName(vo.getName());
             entity.setDescription(vo.getDescription());
             entity.setTopicName(vo.getTopicName());
+            entity.setFilter(vo.getFilter());
             entity.setStatus(vo.getStatus());
             entity.setSubscriptionId(vo.getSubscriptionId());
             entity.setUserId(vo.getUserId());

@@ -23,10 +23,7 @@ package com.devicehive.messages.handler;
 import com.devicehive.messages.handler.command.CommandSubscribeRequestHandler;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.CommandSubscribeRequest;
-import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.model.rpc.PluginSubscribeResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -45,7 +42,6 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
 
     private CommandSubscribeRequestHandler commandSubscribeRequestHandler;
     private NotificationSubscribeRequestHandler notificationSubscribeRequestHandler;
-
     @Autowired
     public void setCommandSubscribeRequestHandler(CommandSubscribeRequestHandler commandSubscribeRequestHandler) {
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
@@ -71,7 +67,6 @@ public class PluginSubscribeRequestHandler implements RequestHandler {
             createNotificationSubscription(body);
         }
 
-        
         return Response.newBuilder()
                 .withBody(new PluginSubscribeResponse(body.getSubscriptionId()))
                 .withLast(false)
