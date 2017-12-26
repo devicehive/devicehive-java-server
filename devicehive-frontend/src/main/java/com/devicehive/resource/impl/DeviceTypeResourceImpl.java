@@ -92,6 +92,18 @@ public class DeviceTypeResourceImpl implements DeviceTypeResource {
         }
     }
 
+    @Override
+    public void count(String name, String namePattern, AsyncResponse asyncResponse) {
+        logger.debug("Device type count requested");
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        deviceTypeService.count(name, namePattern, principal)
+                .thenApply(count -> {
+                    logger.debug("Device type count request proceed successfully.");
+                    return ResponseFactory.response(OK, count, DEVICE_TYPES_LISTED);
+                }).thenAccept(asyncResponse::resume);
+    }
+
     /**
      * {@inheritDoc}
      */

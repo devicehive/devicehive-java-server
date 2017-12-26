@@ -20,6 +20,7 @@ package com.devicehive.resource;
  * #L%
  */
 
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.updates.DeviceTypeUpdate;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;
@@ -93,6 +94,50 @@ public interface DeviceTypeResource {
             @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
             @QueryParam("skip")
                     Integer skip,
+            @Suspended final AsyncResponse asyncResponse
+    );
+
+    /**
+     * Produces following output:
+     * <pre>
+     * [
+     *  {
+     *    "description":"Device Type Description",
+     *    "id":1,
+     *    "name":"Device Type Name"
+     *   },
+     *   {
+     *    "description":"Device Type Description",
+     *    "id":2,
+     *    "name":"Device Type Name"
+     *   }
+     * ]
+     * </pre>
+     *
+     * @param name        exact device type's name, ignored, when  namePattern is not null
+     * @param namePattern name pattern
+     */
+    @GET
+    @Path("/count")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_TYPE')")
+    @ApiOperation(value = "Count device types", notes = "Gets count of device types the client has access to.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns the count of DeviceType resources in the response body.",
+                    response = EntityCountResponse.class, responseContainer = "Count"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    void count(
+            @ApiParam(name = "name", value = "Filter by device type name.")
+            @QueryParam("name")
+                    String name,
+            @ApiParam(name = "namePattern", value = "Filter by device type name pattern. In pattern wildcards '%' and '_' can be used.")
+            @QueryParam("namePattern")
+                    String namePattern,
             @Suspended final AsyncResponse asyncResponse
     );
 

@@ -187,6 +187,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_TYPE_LIST:
                 deviceTypeHandlers.processDeviceTypeList(request, session);
                 break;
+            case DEVICE_TYPE_COUNT:
+                deviceTypeHandlers.processDeviceTypeCount(request, session);
+                break;
             case DEVICE_TYPE_GET:
                 deviceTypeHandlers.processDeviceTypeGet(deviceTypeId, request, session);
                 break;
@@ -295,6 +298,7 @@ public class WebSocketRequestProcessor {
         NETWORK_DELETE("network/delete"),
         NETWORK_UPDATE("network/update"),
         DEVICE_TYPE_LIST("devicetype/list"),
+        DEVICE_TYPE_COUNT("devicetype/count"),
         DEVICE_TYPE_INSERT("devicetype/insert"),
         DEVICE_TYPE_GET("devicetype/get"),
         DEVICE_TYPE_DELETE("devicetype/delete"),
