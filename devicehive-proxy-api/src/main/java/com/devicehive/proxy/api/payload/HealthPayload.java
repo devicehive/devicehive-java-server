@@ -20,26 +20,68 @@ package com.devicehive.proxy.api.payload;
  * #L%
  */
 
+import com.google.gson.annotations.SerializedName;
+
 public class HealthPayload implements Payload {
 
-    private String status;
+    @SerializedName("prx")
+    private String proxyStatus;
 
-    public HealthPayload(String status) {
-        this.status = status;
+    @SerializedName("mb")
+    private String messageBufferStatus;
+
+    @SerializedName("mbfp")
+    private Double messageBufferFillPercentage;
+
+    @SerializedName("comm")
+    private String messageBrokerStatus;
+
+    public HealthPayload(String proxyStatus, String messageBufferStatus, Double messageBufferFillPercentage, String messageBrokerStatus) {
+        this.proxyStatus = proxyStatus;
+        this.messageBufferStatus = messageBufferStatus;
+        this.messageBufferFillPercentage = messageBufferFillPercentage;
+        this.messageBrokerStatus = messageBrokerStatus;
     }
 
-    public String getStatus() {
-        return status;
+    public String getProxyStatus() {
+        return proxyStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setProxyStatus(String proxyStatus) {
+        this.proxyStatus = proxyStatus;
+    }
+
+    public String getMessageBufferStatus() {
+        return messageBufferStatus;
+    }
+
+    public void setMessageBufferStatus(String messageBufferStatus) {
+        this.messageBufferStatus = messageBufferStatus;
+    }
+
+    public Double getMessageBufferFillPercentage() {
+        return messageBufferFillPercentage;
+    }
+
+    public void setMessageBufferFillPercentage(Double messageBufferFillPercentage) {
+        this.messageBufferFillPercentage = messageBufferFillPercentage;
+    }
+
+    public String getMessageBrokerStatus() {
+        return messageBrokerStatus;
+    }
+
+    public void setMessageBrokerStatus(String messageBrokerStatus) {
+        this.messageBrokerStatus = messageBrokerStatus;
     }
 
     @Override
     public String toString() {
         return "HealthPayload{" +
-                "status='" + status + '\'' +
+                "proxyStatus='" + proxyStatus + '\'' +
+                ", messageBufferStatus='" + messageBufferStatus + '\'' +
+                ", messageBufferFillPercentage=" + messageBufferFillPercentage +
+                ", messageBrokerStatus='" + messageBrokerStatus + '\'' +
                 '}';
     }
 }

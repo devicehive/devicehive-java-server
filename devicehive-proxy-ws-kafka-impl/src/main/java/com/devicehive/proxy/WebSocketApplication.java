@@ -23,7 +23,7 @@ package com.devicehive.proxy;
 import com.devicehive.proxy.api.ProxyMessage;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.ProxyClient;
-import com.devicehive.proxy.api.payload.TopicSubscribePayload;
+import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,7 +38,7 @@ public class WebSocketApplication {
         CompletableFuture<ProxyMessage> healthFuture = client.push(ProxyMessageBuilder.health());
         System.out.println("Topic health: " + healthFuture.join());
 
-        CompletableFuture<ProxyMessage> subscribeFuture = client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload("kafka-ws-topic")));
+        CompletableFuture<ProxyMessage> subscribeFuture = client.push(ProxyMessageBuilder.subscribe(new TopicsPayload("kafka-ws-topic")));
         System.out.println("Topic subscribe: " + subscribeFuture.join());
 
         try {

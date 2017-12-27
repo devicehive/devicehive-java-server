@@ -20,14 +20,12 @@ package com.devicehive.proxy.api;
  * #L%
  */
 
-import com.devicehive.proxy.api.ProxyMessage;
-import com.devicehive.proxy.api.payload.TopicCreatePayload;
+import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
-import com.devicehive.proxy.api.payload.TopicSubscribePayload;
 
 public class ProxyMessageBuilder {
 
-    public static ProxyMessage create(TopicCreatePayload payload) {
+    public static ProxyMessage create(TopicsPayload payload) {
         return ProxyMessage.newBuilder()
                 .withType("topic")
                 .withAction("create")
@@ -42,7 +40,7 @@ public class ProxyMessageBuilder {
                 .build();
     }
 
-    public static ProxyMessage subscribe(TopicSubscribePayload payload) {
+    public static ProxyMessage subscribe(TopicsPayload payload) {
         return ProxyMessage.newBuilder()
                 .withType("topic")
                 .withAction("subscribe")
