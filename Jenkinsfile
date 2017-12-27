@@ -50,53 +50,58 @@ stage('Build and publish Docker images in CI repository') {
 }
 
 if (test_branches.contains(env.BRANCH_NAME)) {
-  stage('Run regression tests with rpc'){
-    node('tests-runner'){
-      try {
-        clone_devicehive_docker()
-        dir('devicehive-docker/rdbms-image'){
-          writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-          COMPOSE_FILE=docker-compose.yml:ci-images.yml
-          DH_TAG=${BRANCH_NAME}
-          JWT_SECRET=devicehive
-          """
+  stage('Run integration tests'){
+    parallel rpc: {
+      stage('Run regression tests with rpc'){
+        node('tests-runner'){
+          try {
+            clone_devicehive_docker()
+            dir('devicehive-docker/rdbms-image'){
+              writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+              COMPOSE_FILE=docker-compose.yml:ci-images.yml
+              DH_TAG=${BRANCH_NAME}
+              JWT_SECRET=devicehive
+              """
 
-          start_devicehive()
-        }
-        wait_for_devicehive_is_up()
-        run_devicehive_tests()
-      } finally {
-        archive_container_logs('rpc')
-        zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
-        shutdown_devicehive()
-        cleanWs()
-      }
-    }
-  }
-
-  if (test_wsproxy) {
-    stage('Run regression tests with ws-proxy'){
-      node('tests-runner'){
-        try {
-          clone_devicehive_docker()
-          dir('devicehive-docker/rdbms-image'){
-            writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-            COMPOSE_FILE=docker-compose.yml:ci-images.yml
-            DH_TAG=${BRANCH_NAME}
-            JWT_SECRET=devicehive
-            DH_FE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-frontend
-            DH_BE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-backend
-            """
-
-            start_devicehive()
+              start_devicehive()
+            }
+            wait_for_devicehive_is_up()
+            run_devicehive_tests()
+          } finally {
+            archive_container_logs('rpc')
+            zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+            shutdown_devicehive()
+            cleanWs()
           }
-          wait_for_devicehive_is_up()
-          run_devicehive_tests()
-        } finally {
-          archive_container_logs('ws-proxy')
-          zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
-          shutdown_devicehive()
-          cleanWs()
+        }
+      }
+    },
+    wsproxy: {
+      if (test_wsproxy) {
+        stage('Run regression tests with ws-proxy'){
+          node('tests-runner'){
+            try {
+              clone_devicehive_docker()
+              dir('devicehive-docker/rdbms-image'){
+                writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+                COMPOSE_FILE=docker-compose.yml:ci-images.yml
+                DH_TAG=${BRANCH_NAME}
+                JWT_SECRET=devicehive
+                DH_FE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-frontend
+                DH_BE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-backend
+                """
+
+                start_devicehive()
+              }
+              wait_for_devicehive_is_up()
+              run_devicehive_tests()
+            } finally {
+              archive_container_logs('ws-proxy')
+              zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+              shutdown_devicehive()
+              cleanWs()
+            }
+          }
         }
       }
     }
