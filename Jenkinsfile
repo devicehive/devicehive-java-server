@@ -68,7 +68,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
     }
   }
 
-  stage('Run regression tests with ws-kafka-proxy'){
+  stage('Run regression tests with ws-proxy'){
     node('tests-runner'){
       try {
         clone_devicehive_docker()
@@ -199,11 +199,11 @@ def archive_container_logs(flavour) {
     sudo docker logs ci_dh_proxy_1 > ${logsdir}/proxy.log 2>&1
     sudo docker logs ci_hazelcast_1 > ${logsdir}/hazelcast.log 2>&1
     sudo docker logs ci_kafka_1 > ${logsdir}/kafka.log 2>&1
-    sudo docker logs ci_kafkaproxy_1 > ${logsdir}/kafkaproxy.log 2>&1
+    sudo docker logs ci_wsproxy_1 > ${logsdir}/wsproxy.log 2>&1
     sudo docker logs ci_postgres_1 > ${logsdir}/postgres.log 2>&1
     sudo docker logs ci_zookeeper_1 > ${logsdir}/zookeeper.log 2>&1
   """
-  def logs = "${logsdir}/auth.log, ${logsdir}/backend.log, ${logsdir}/frontend.log, ${logsdir}/proxy.log, ${logsdir}/hazelcast.log, ${logsdir}/kafka.log, ${logsdir}/kafkaproxy.log, ${logsdir}/postgres.log, ${logsdir}/zookeeper.log"
+  def logs = "${logsdir}/auth.log, ${logsdir}/backend.log, ${logsdir}/frontend.log, ${logsdir}/proxy.log, ${logsdir}/hazelcast.log, ${logsdir}/kafka.log, ${logsdir}/wsproxy.log, ${logsdir}/postgres.log, ${logsdir}/zookeeper.log"
   archiveArtifacts artifacts: logs, fingerprint: true
 }
 
