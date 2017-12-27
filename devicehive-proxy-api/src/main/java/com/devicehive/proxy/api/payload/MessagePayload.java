@@ -20,26 +20,29 @@ package com.devicehive.proxy.api.payload;
  * #L%
  */
 
-public class NotificationPayload implements Payload {
+import com.google.gson.annotations.SerializedName;
 
-    private String value;
+public class MessagePayload implements Payload {
 
-    public NotificationPayload(String value) {
-        this.value = value;
+    @SerializedName("m")
+    protected String message;
+
+    public MessagePayload(String message) {
+        this.message = message;
     }
 
-    public String getValue() {
-        return value;
+    public String getMessage() {
+        return message;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     @Override
     public String toString() {
-        return "NotificationPayload{" +
-                "value='" + value + '\'' +
+        return "Payload{" +
+                "message='" + message + '\'' +
                 '}';
     }
 }

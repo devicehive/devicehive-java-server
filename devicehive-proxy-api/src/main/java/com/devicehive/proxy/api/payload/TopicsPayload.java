@@ -20,18 +20,21 @@ package com.devicehive.proxy.api.payload;
  * #L%
  */
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.Collections;
 import java.util.List;
 
-public class TopicCreatePayload implements Payload {
+public class TopicsPayload implements Payload {
 
+    @SerializedName("t")
     private List<String> topics;
 
-    public TopicCreatePayload(List<String> topics) {
+    public TopicsPayload(List<String> topics) {
         this.topics = topics;
     }
 
-    public TopicCreatePayload(String topic) {
+    public TopicsPayload(String topic) {
         this.topics = Collections.singletonList(topic);
     }
 
@@ -45,7 +48,7 @@ public class TopicCreatePayload implements Payload {
 
     @Override
     public String toString() {
-        return "TopicCreatePayload{" +
+        return "TopicsPayload{" +
                 "topics=" + topics +
                 '}';
     }
