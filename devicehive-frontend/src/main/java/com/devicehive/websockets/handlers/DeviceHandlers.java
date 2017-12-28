@@ -151,7 +151,7 @@ public class DeviceHandlers {
         deviceService.count(countDeviceRequest)
                 .thenAccept(count -> {
                     logger.debug("Device count request proceed successfully");
-                    response.addValue(DEVICES, count, DEVICES_LISTED);
+                    response.addValue(COUNT, count.getCount(), null);
                     webSocketClientHandler.sendMessage(request, response, session);
                 });
     }

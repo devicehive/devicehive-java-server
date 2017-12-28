@@ -103,7 +103,7 @@ public class DeviceTypeHandlers {
         deviceTypeService.count(countDeviceTypeRequest)
                 .thenAccept(count -> {
                     logger.debug("Device type count request proceed successfully.");
-                    response.addValue(DEVICE_TYPES, count, DEVICE_TYPES_LISTED);
+                    response.addValue(COUNT, count.getCount(), null);
                     webSocketClientHandler.sendMessage(request, response, session);
                 });
     }

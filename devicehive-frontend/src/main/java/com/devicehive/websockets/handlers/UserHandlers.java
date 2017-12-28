@@ -113,7 +113,7 @@ public class UserHandlers {
         userService.count(countUserRequest)
                 .thenAccept(count -> {
                     logger.debug("User count request proceed successfully");
-                    response.addValue(USERS, count, USERS_LISTED);
+                    response.addValue(COUNT, count.getCount(), null);
                     clientHandler.sendMessage(request, response, session);
                 });
     }

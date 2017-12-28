@@ -103,7 +103,7 @@ public class NetworkHandlers {
         networkService.count(countNetworkRequest)
                 .thenAccept(count -> {
                     logger.debug("Network count request proceed successfully.");
-                    response.addValue(NETWORKS, count, NETWORKS_LISTED);
+                    response.addValue(COUNT, count.getCount(), null);
                     webSocketClientHandler.sendMessage(request, response, session);
                 });
     }
