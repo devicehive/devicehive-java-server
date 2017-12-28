@@ -49,7 +49,8 @@ if (test_branches.contains(env.BRANCH_NAME)) {
       try {
         clone_devicehive_docker()
         dir('devicehive-docker/rdbms-image'){
-          writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:ci-images.yml
+          writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+          COMPOSE_FILE=docker-compose.yml:ci-images.yml
           DH_TAG=${BRANCH_NAME}
           JWT_SECRET=devicehive
           """
@@ -59,6 +60,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
         wait_for_devicehive_is_up()
         run_devicehive_tests()
       } finally {
+        archive_container_logs('rpc')
         zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         shutdown_devicehive()
         cleanWs()
@@ -66,12 +68,13 @@ if (test_branches.contains(env.BRANCH_NAME)) {
     }
   }
 
-  stage('Run regression tests with ws-kafka-proxy'){
+  stage('Run regression tests with ws-proxy'){
     node('tests-runner'){
       try {
         clone_devicehive_docker()
         dir('devicehive-docker/rdbms-image'){
-          writeFile file: '.env', text: """COMPOSE_FILE=docker-compose.yml:ci-images.yml
+          writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+          COMPOSE_FILE=docker-compose.yml:ci-images.yml
           DH_TAG=${BRANCH_NAME}
           JWT_SECRET=devicehive
           DH_FE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-frontend
@@ -83,6 +86,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
         wait_for_devicehive_is_up()
         run_devicehive_tests()
       } finally {
+        archive_container_logs('ws-proxy')
         zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
         shutdown_devicehive()
         cleanWs()
@@ -183,6 +187,24 @@ def run_devicehive_tests() {
       sh 'mocha --exit -R mochawesome integration-tests'
     }
   }
+}
+
+def archive_container_logs(flavour) {
+  def logsdir = "${flavour}-container-logs"
+  sh """
+    mkdir ${logsdir}
+    sudo docker logs ci_dh_auth_1 > ${logsdir}/auth.log 2>&1
+    sudo docker logs ci_dh_backend_1 > ${logsdir}/backend.log 2>&1
+    sudo docker logs ci_dh_frontend_1 > ${logsdir}/frontend.log 2>&1
+    sudo docker logs ci_dh_proxy_1 > ${logsdir}/proxy.log 2>&1
+    sudo docker logs ci_hazelcast_1 > ${logsdir}/hazelcast.log 2>&1
+    sudo docker logs ci_kafka_1 > ${logsdir}/kafka.log 2>&1
+    sudo docker logs ci_wsproxy_1 > ${logsdir}/wsproxy.log 2>&1
+    sudo docker logs ci_postgres_1 > ${logsdir}/postgres.log 2>&1
+    sudo docker logs ci_zookeeper_1 > ${logsdir}/zookeeper.log 2>&1
+  """
+  def logs = "${logsdir}/auth.log, ${logsdir}/backend.log, ${logsdir}/frontend.log, ${logsdir}/proxy.log, ${logsdir}/hazelcast.log, ${logsdir}/kafka.log, ${logsdir}/wsproxy.log, ${logsdir}/postgres.log, ${logsdir}/zookeeper.log"
+  archiveArtifacts artifacts: logs, fingerprint: true
 }
 
 def shutdown_devicehive() {

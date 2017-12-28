@@ -27,9 +27,8 @@ import com.devicehive.shim.api.Body;
 import java.util.Set;
 
 
-public class PluginSubscribeRequest extends Body {
+public class PluginSubscribeRequest extends BasePluginRequest {
 
-    private Long subscriptionId;
     private Set<Filter> filters;
     private Set<String> names;
     private Long userId;
@@ -40,14 +39,6 @@ public class PluginSubscribeRequest extends Body {
     
     public PluginSubscribeRequest() {
         super(Action.PLUGIN_SUBSCRIBE_REQUEST);
-    }
-
-    public Long getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
     }
 
     public Set<Filter> getFilters() {

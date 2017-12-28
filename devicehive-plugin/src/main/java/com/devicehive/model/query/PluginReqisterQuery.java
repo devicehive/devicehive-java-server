@@ -20,30 +20,19 @@ package com.devicehive.model.query;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.service.BaseDeviceService;
-import com.devicehive.vo.DeviceVO;
+import com.devicehive.service.FilterService;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.devicehive.configuration.Constants.RETURN_COMMANDS;
-import static com.devicehive.configuration.Constants.RETURN_NOTIFICATIONS;
-import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
-import static com.devicehive.model.converters.SetHelper.toLongSet;
-import static com.devicehive.model.converters.SetHelper.toStringSet;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.model.FilterEntity.ALL_ENTITIES;
 
 
 public class PluginReqisterQuery {
 
-    @ApiParam(name = "deviceId", value = "Device id")
+    @ApiParam(name = "deviceId", value = "Device device_id")
     @QueryParam("deviceId")
     private String deviceId;
 
@@ -61,15 +50,15 @@ public class PluginReqisterQuery {
 
     @ApiParam(name = RETURN_COMMANDS, value = "Checks if commands should be returned", defaultValue = "true")
     @QueryParam(RETURN_COMMANDS)
-    private boolean returnCommands;
+    private Boolean returnCommands;
 
     @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
     @QueryParam(RETURN_UPDATED_COMMANDS)
-    private boolean returnUpdatedCommands;
+    private Boolean returnUpdatedCommands;
 
     @ApiParam(name = RETURN_NOTIFICATIONS, value = "Checks if commands should be returned", defaultValue = "false")
     @QueryParam(RETURN_NOTIFICATIONS)
-    private boolean returnNotifications;
+    private Boolean returnNotifications;
 
     public String getDeviceId() {
         return deviceId;
@@ -103,85 +92,85 @@ public class PluginReqisterQuery {
         this.names = names;
     }
 
-    public boolean isReturnCommands() {
+    public Boolean isReturnCommands() {
         return returnCommands;
     }
 
-    public void setReturnCommands(boolean returnCommands) {
+    public void setReturnCommands(Boolean returnCommands) {
         this.returnCommands = returnCommands;
     }
 
-    public boolean isReturnUpdatedCommands() {
+    public Boolean isReturnUpdatedCommands() {
         return returnUpdatedCommands;
     }
 
-    public void setReturnUpdatedCommands(boolean returnUpdatedCommands) {
+    public void setReturnUpdatedCommands(Boolean returnUpdatedCommands) {
         this.returnUpdatedCommands = returnUpdatedCommands;
     }
 
-    public boolean isReturnNotifications() {
+    public Boolean isReturnNotifications() {
         return returnNotifications;
     }
 
-    public void setReturnNotifications(boolean returnNotifications) {
+    public void setReturnNotifications(Boolean returnNotifications) {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(HivePrincipal principal, BaseDeviceService deviceService) {
+    public PluginSubscribeRequest toRequest(Long userId, FilterService filterService) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
-        request.setFilters(createFilters(principal, deviceService));
-        request.setUserId(principal.getUser().getId());
+        request.setFilters(filterService.createFilters(this));
+        request.setUserId(userId);
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
         request.setReturnNotifications(returnNotifications);
         
         return request;
     }
-    
-    private Set<Filter> createFilters(HivePrincipal principal, BaseDeviceService deviceService) {
-        Set<Filter> filters;
-        if (deviceId != null) {
-            DeviceVO device = deviceService.findByIdWithPermissionsCheck(deviceId, principal);
-            if (names != null) {
-                filters = toStringSet(names).stream().map(name ->
-                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, null, name))
-                        .collect(Collectors.toSet());
-            } else {
-                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, null, null));
-            }
+
+    // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
+    // TODO - change to embedded entity for better code readability
+    public String constructFilterString() {
+        StringBuilder sb = new StringBuilder();
+        if (returnCommands && returnUpdatedCommands && returnNotifications) {
+            sb.append(ALL_ENTITIES);
+        } else if (returnCommands) {
+            sb.append("command");
+        } else if (returnUpdatedCommands) {
+            sb.append("command_update");
         } else {
-            if (networkIds == null && deviceTypeIds == null) {
-                if (names != null) {
-                    filters = toStringSet(names).stream().map(name ->
-                            new Filter(null, null, null, null, name))
-                            .collect(Collectors.toSet());
-                } else {
-                    filters = Collections.singleton(new Filter());
-                }
-            } else {
-                Set<Long> networks = toLongSet(networkIds);
-                if (networks.isEmpty()) {
-                    networks = principal.getNetworkIds();
-                }
-                Set<Long> deviceTypes = toLongSet(deviceTypeIds);
-                if (deviceTypes.isEmpty()) {
-                    deviceTypes = principal.getDeviceTypeIds();
-                }
-                final Set<Long> finalDeviceTypes = deviceTypes;
-                filters = networks.stream()
-                        .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                            if (names != null) {
-                                return toStringSet(names).stream().map(name ->
-                                        new Filter(network, deviceType, null, null, name)
-                                );
-                            } else {
-                                return Stream.of(new Filter(network, deviceType, null, null, null));
-                            }
-                        }))
-                        .collect(Collectors.toSet());
-            }
+            sb.append("notification");
         }
-        
-        return filters;
+        sb.append("/");
+
+        if (networkIds != null) {
+            sb.append(networkIds);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (deviceTypeIds != null) {
+            sb.append(deviceTypeIds);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (deviceId != null) {
+            sb.append(deviceId);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (names != null) {
+            sb.append(names);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+
+        return sb.toString();
     }
+    
+
 }

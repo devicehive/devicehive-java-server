@@ -52,11 +52,16 @@ public class FilterRegistry {
     }
 
     void unregister(Subscriber subscriber) {
-        subscriberTable.values().forEach(subscribers -> subscribers.forEach(sub -> {
-            if (sub.equals(subscriber)) {
-                subscribers.remove(sub);
+        subscriberTable.values().forEach(subscribers -> {
+            Iterator iterator = subscribers.iterator();
+
+            while (iterator.hasNext()) {
+                Object element = iterator.next();
+                if (element.equals(subscriber)) {
+                    iterator.remove();
+                }
             }
-        }));
+        });
     }
 
     Collection<Subscriber> getSubscribers(Filter filter) {

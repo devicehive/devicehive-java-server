@@ -245,11 +245,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                 return ResponseFactory.response(UNAUTHORIZED, 
                         new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
             }
-            if (!PluginStatus.ACTIVE.equals(pluginVO.getStatus())) {
-                logger.warn(PLUGIN_NOT_ACTIVE);
-                return ResponseFactory.response(UNAUTHORIZED,
-                        new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_ACTIVE));
-            }
         }
         
         return ResponseFactory.response(OK, jwtPluginPayload);

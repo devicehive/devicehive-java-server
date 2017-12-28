@@ -28,10 +28,8 @@ import com.devicehive.proxy.ProxyServerEventHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
-import com.devicehive.proxy.api.payload.TopicCreatePayload;
-import com.devicehive.proxy.api.payload.TopicSubscribePayload;
+import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
-import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
@@ -80,8 +78,8 @@ public class BackendProxyClientConfig {
         WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
         client.setWebSocketKafkaProxyConfig(proxyConfig);
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicCreatePayload(REQUEST_TOPIC))).join();
-        client.push(ProxyMessageBuilder.subscribe(new TopicSubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
+        client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
+        client.push(ProxyMessageBuilder.subscribe(new TopicsPayload(REQUEST_TOPIC))).join();
         return client;
     }
 

@@ -24,6 +24,7 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -52,29 +53,39 @@ public class PluginResourceImpl implements PluginResource {
 
     private final HiveValidator hiveValidator;
     private final PluginRegisterService pluginRegisterService;
-    private final BaseDeviceService deviceService;
 
     @Autowired
-    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService, BaseDeviceService deviceService) {
+    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService) {
         this.hiveValidator = hiveValidator;
         this.pluginRegisterService = pluginRegisterService;
-        this.deviceService = deviceService;
     }
     
     @Override
     public void register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate, String authorization,
             @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(pluginUpdate);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
-            pluginRegisterService.register(pluginReqisterQuery.toRequest(principal, deviceService), pluginUpdate, authorization)
-                    .thenAccept(response ->
-                            asyncResponse.resume(response)
+            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            pluginRegisterService.register(principal.getUser().getId(), pluginReqisterQuery, pluginUpdate, authorization)
+                    .thenAccept(asyncResponse::resume
                     );
         } catch (ServiceUnavailableException e) {
             logger.warn(HEALTH_CHECK_FAILED);
             asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), HEALTH_CHECK_FAILED)));
         }
+    }
+
+    @Override
+    public void update(PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.update(principal.getUser().getId(), updateQuery, authorization)
+                .thenAccept(asyncResponse::resume);
+    }
+
+    @Override
+    public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
+        pluginRegisterService.delete(topicName, authorization)
+                .thenAccept(asyncResponse::resume);
     }
 }
