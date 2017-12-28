@@ -78,13 +78,15 @@ public class PluginResourceImpl implements PluginResource {
 
     @Override
     public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
-        pluginRegisterService.update(topicName, updateQuery, authorization)
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.update(principal.getPlugin(), updateQuery, authorization)
                 .thenAccept(asyncResponse::resume);
     }
 
     @Override
     public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
-        pluginRegisterService.delete(topicName, authorization)
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.delete(principal.getPlugin(), authorization)
                 .thenAccept(asyncResponse::resume);
     }
 }

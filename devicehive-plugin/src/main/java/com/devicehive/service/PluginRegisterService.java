@@ -122,19 +122,14 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> update(String topicName, PluginUpdateQuery pluginUpdateQuery, String authorization) {
-        return updatePlugin(topicName, pluginUpdateQuery).thenApply(plugin ->
+    public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery, String authorization) {
+        return updatePlugin(existingPlugin, pluginUpdateQuery).thenApply(plugin ->
             ResponseFactory.response(NO_CONTENT)
         );
     }
 
     @Transactional
-    public CompletableFuture<Response> delete(String topicName, String authorization) {
-        PluginVO existingPlugin = pluginService.findByTopic(topicName);
-        if (existingPlugin == null) {
-            throw new NotFoundException("Plugin with topic name " + topicName + " was not found");
-        }
-
+    public CompletableFuture<Response> delete(PluginVO existingPlugin, String authorization) {
         pluginService.delete(existingPlugin.getId());
 
         PluginUnsubscribeRequest request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
@@ -174,14 +169,9 @@ public class PluginRegisterService {
         return future.thenApply(response -> pluginVO);
     }
 
-    private CompletableFuture<PluginVO> updatePlugin(String topicName, PluginUpdateQuery pluginUpdateQuery) {
+    private CompletableFuture<PluginVO> updatePlugin(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
         if (pluginUpdateQuery.getStatus()!= null && pluginUpdateQuery.getStatus().equals(PluginStatus.CREATED)) {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
-        }
-
-        PluginVO existingPlugin = pluginService.findByTopic(topicName);
-        if (existingPlugin == null) {
-            throw new NotFoundException("Plugin with topic name " + topicName + " was not found");
         }
 
         if (pluginUpdateQuery.getName() != null) {

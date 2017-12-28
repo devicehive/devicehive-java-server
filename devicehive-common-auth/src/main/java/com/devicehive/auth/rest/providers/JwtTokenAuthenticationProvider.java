@@ -135,7 +135,7 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                     if (existingPlugin == null) {
                         throw new NotFoundException("Plugin with topic name " + topic + " was not found");
                     }
-                    principal.setPluginTopic(topic);
+                    principal.setPlugin(existingPlugin);
                 }
             }
 
