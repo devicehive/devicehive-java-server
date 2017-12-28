@@ -61,7 +61,7 @@ public interface PluginResource {
             @Suspended final AsyncResponse asyncResponse);
 
     @PUT
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#topicName, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Update Plugin", notes = "Updates plugin in DH Server")
     @ApiResponses(value = {
             @ApiResponse(code = 200,
@@ -69,6 +69,9 @@ public interface PluginResource {
                     response = PluginVO.class),
     })
     void update(
+            @ApiParam(name = "topicName", value = "Name of topic that was created for the plugin", required = true)
+            @QueryParam("topicName")
+                    String topicName,
             @BeanParam
                     PluginUpdateQuery updateQuery,
             @ApiParam(name = "Authorization", value = "Authorization token", required = true)
@@ -77,7 +80,7 @@ public interface PluginResource {
             @Suspended final AsyncResponse asyncResponse);
 
     @DELETE
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @PreAuthorize("isAuthenticated() and hasPermission(#topicName, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Delete Plugin", notes = "Deletes plugin in DH Server")
     @ApiResponses(value = {
             @ApiResponse(code = 200,

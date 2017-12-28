@@ -75,12 +75,17 @@ public class JwtCheckPermissionsHelper {
     private boolean checkDeviceIdsAllowed(HivePrincipal principal, Object targetDomainObject) {
 
         if (targetDomainObject instanceof String) {
+            final String pluginTopic = principal.getPluginTopic();
+            if (pluginTopic != null) {
+                return pluginTopic.equals(targetDomainObject);
+            }
+
             if (principal.areAllDeviceTypesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
             }
 
-            Set<Long> networks = principal.getNetworkIds();
-            Set<Long> deviceTypes = principal.getDeviceTypeIds();
+            final Set<Long> networks = principal.getNetworkIds();
+            final Set<Long> deviceTypes = principal.getDeviceTypeIds();
             DeviceVO device = deviceService.findByIdWithPermissionsCheck((String) targetDomainObject, principal);
 
             if (device == null) {
@@ -99,6 +104,14 @@ public class JwtCheckPermissionsHelper {
             return false;
         }
 
+        return true;
+    }
+
+    private boolean checkPluginTopicsAllowed(HivePrincipal principal, Object targetDomainObject) {
+        final String pluginTopic = principal.getPluginTopic();
+        if (targetDomainObject instanceof String && pluginTopic != null) {
+            return pluginTopic.equals((String) targetDomainObject);
+        }
         return true;
     }
 }

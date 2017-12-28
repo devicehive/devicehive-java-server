@@ -51,6 +51,7 @@ public class HivePrincipal implements Principal, Portable {
     private Set<HiveAction> actions;
     private Set<Long> networkIds;
     private Set<Long> deviceTypeIds;
+    private String pluginTopic;
     private Boolean allNetworksAvailable = false;
     private Boolean allDeviceTypesAvailable = true;
 
@@ -58,12 +59,14 @@ public class HivePrincipal implements Principal, Portable {
                          Set<HiveAction> actions,
                          Set<Long> networkIds,
                          Set<Long> deviceTypeIds,
+                         String pluginTopic,
                          Boolean allNetworksAvailable,
                          Boolean allDeviceTypesAvailable) {
         this.user = user;
         this.actions = actions;
         this.networkIds = networkIds;
         this.deviceTypeIds = deviceTypeIds;
+        this.pluginTopic = pluginTopic;
         if (allNetworksAvailable != null) {
             this.allNetworksAvailable = allNetworksAvailable;
         }
@@ -114,6 +117,14 @@ public class HivePrincipal implements Principal, Portable {
 
     public void setDeviceTypeIds(Set<Long> deviceTypeIds) {
         this.deviceTypeIds = deviceTypeIds;
+    }
+
+    public String getPluginTopic() {
+        return pluginTopic;
+    }
+
+    public void setPluginTopic(String pluginTopic) {
+        this.pluginTopic = pluginTopic;
     }
 
     public Boolean areAllNetworksAvailable() {

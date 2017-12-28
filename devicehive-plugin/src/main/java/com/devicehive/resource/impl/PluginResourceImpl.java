@@ -77,9 +77,8 @@ public class PluginResourceImpl implements PluginResource {
     }
 
     @Override
-    public void update(PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        pluginRegisterService.update(principal.getUser().getId(), updateQuery, authorization)
+    public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
+        pluginRegisterService.update(topicName, updateQuery, authorization)
                 .thenAccept(asyncResponse::resume);
     }
 

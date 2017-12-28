@@ -46,10 +46,6 @@ public class PluginUpdateQuery extends PluginReqisterQuery {
     @QueryParam(PARAMETERS)
     private JsonStringWrapper parameters;
 
-    @ApiParam(name = "topicName", value = "Name of topic that was created for the plugin", required = true)
-    @QueryParam("topicName")
-    private String topicName;
-
     public PluginStatus getStatus() {
         return status;
     }
@@ -80,14 +76,6 @@ public class PluginUpdateQuery extends PluginReqisterQuery {
 
     public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
-    }
-
-    public String getTopicName() {
-        return topicName;
-    }
-
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
     }
 
 }

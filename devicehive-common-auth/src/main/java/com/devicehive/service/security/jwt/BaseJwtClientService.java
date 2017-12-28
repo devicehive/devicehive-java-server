@@ -55,11 +55,12 @@ public class BaseJwtClientService {
     }
 
     public JwtPayload getPayload(String jwtToken) {
-        try {
+        final LinkedHashMap<String, Object> payloadMap = getPayloadMap(jwtToken);
+        if (Optional.ofNullable(payloadMap.get(JwtUserPayload.USER_ID)).isPresent()) {
             return getUserPayload(jwtToken);
-        } catch (IllegalArgumentException e) {
+        } else if (Optional.ofNullable(payloadMap.get(JwtPluginPayload.TOPIC)).isPresent()) {
             return getPluginPayload(jwtToken);
-        }
+        } else throw new IllegalArgumentException("Unknown JWT payload format");
     }
 
     @Cacheable("user-payload")
@@ -91,6 +92,9 @@ public class BaseJwtClientService {
 
         JwtPluginPayload.JwtPluginPayloadBuilder jwtPluginPayloadBuilder = new JwtPluginPayload.JwtPluginPayloadBuilder()
                 .withTopic(topic);
+
+        Optional.ofNullable((ArrayList<Integer>) payloadMap.get(JwtUserPayload.ACTIONS))
+                .ifPresent(actions -> jwtPluginPayloadBuilder.withActions(new HashSet<>(actions)));
 
         return (JwtPluginPayload) getJwtPayload(jwtPluginPayloadBuilder, payloadMap);
     }

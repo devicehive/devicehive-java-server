@@ -51,7 +51,6 @@ public class JwtUserPayload extends JwtPayload {
     private static final long serialVersionUID = -6904689203121394308L;
 
     public final static String USER_ID = "u";
-    public final static String ACTIONS = "a";
     public final static String NETWORK_IDS = "n";
     public final static String DEVICE_TYPE_IDS = "dt";
     
@@ -61,10 +60,6 @@ public class JwtUserPayload extends JwtPayload {
     @SerializedName(USER_ID)
     @JsonProperty(USER_ID)
     private Long userId;
-
-    @SerializedName(ACTIONS)
-    @JsonProperty(ACTIONS)
-    private Set<Integer> actions;
 
     @SerializedName(NETWORK_IDS)
     @JsonProperty(NETWORK_IDS)
@@ -76,9 +71,8 @@ public class JwtUserPayload extends JwtPayload {
 
     public JwtUserPayload(Long userId, Set<Integer> actions, Set<String> networkIds,
                        Set<String> deviceTypeIds, Date expiration, Integer tokenType) {
-        super(expiration, tokenType);
+        super(actions, expiration, tokenType);
         this.userId = userId;
-        this.actions = actions;
         this.networkIds = networkIds;
         this.deviceTypeIds = deviceTypeIds;
     }
@@ -89,14 +83,6 @@ public class JwtUserPayload extends JwtPayload {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public Set<Integer> getActions() {
-        return actions;
-    }
-
-    public void setActions(Set<Integer> actions) {
-        this.actions = actions;
     }
 
     public Set<String> getNetworkIds() {
@@ -127,7 +113,6 @@ public class JwtUserPayload extends JwtPayload {
 
     public static class JwtUserPayloadBuilder extends JwtPayloadBuilder {
         private Long userId;
-        private Set<Integer> actions;
         private Set<String> networkIds;
         private Set<String> deviceTypeIds;
         
