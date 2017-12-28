@@ -22,6 +22,7 @@ package com.devicehive.auth;
 
 import com.devicehive.service.BaseDeviceService;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.PluginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,12 +76,17 @@ public class JwtCheckPermissionsHelper {
     private boolean checkDeviceIdsAllowed(HivePrincipal principal, Object targetDomainObject) {
 
         if (targetDomainObject instanceof String) {
+            final PluginVO plugin = principal.getPlugin();
+            if (plugin != null && plugin.getTopicName() != null) {
+                return plugin.getTopicName().equals(targetDomainObject);
+            }
+
             if (principal.areAllDeviceTypesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
             }
 
-            Set<Long> networks = principal.getNetworkIds();
-            Set<Long> deviceTypes = principal.getDeviceTypeIds();
+            final Set<Long> networks = principal.getNetworkIds();
+            final Set<Long> deviceTypes = principal.getDeviceTypeIds();
             DeviceVO device = deviceService.findByIdWithPermissionsCheck((String) targetDomainObject, principal);
 
             if (device == null) {

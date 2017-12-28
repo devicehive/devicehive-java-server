@@ -21,6 +21,7 @@ package com.devicehive.auth;
  */
 
 import com.devicehive.exceptions.InvalidPrincipalException;
+import com.devicehive.vo.PluginVO;
 import com.devicehive.vo.UserVO;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableReader;
@@ -51,6 +52,7 @@ public class HivePrincipal implements Principal, Portable {
     private Set<HiveAction> actions;
     private Set<Long> networkIds;
     private Set<Long> deviceTypeIds;
+    private PluginVO plugin;
     private Boolean allNetworksAvailable = false;
     private Boolean allDeviceTypesAvailable = true;
 
@@ -58,12 +60,14 @@ public class HivePrincipal implements Principal, Portable {
                          Set<HiveAction> actions,
                          Set<Long> networkIds,
                          Set<Long> deviceTypeIds,
+                         PluginVO plugin,
                          Boolean allNetworksAvailable,
                          Boolean allDeviceTypesAvailable) {
         this.user = user;
         this.actions = actions;
         this.networkIds = networkIds;
         this.deviceTypeIds = deviceTypeIds;
+        this.plugin = plugin;
         if (allNetworksAvailable != null) {
             this.allNetworksAvailable = allNetworksAvailable;
         }
@@ -114,6 +118,14 @@ public class HivePrincipal implements Principal, Portable {
 
     public void setDeviceTypeIds(Set<Long> deviceTypeIds) {
         this.deviceTypeIds = deviceTypeIds;
+    }
+
+    public PluginVO getPlugin() {
+        return plugin;
+    }
+
+    public void setPlugin(PluginVO plugin) {
+        this.plugin = plugin;
     }
 
     public Boolean areAllNetworksAvailable() {

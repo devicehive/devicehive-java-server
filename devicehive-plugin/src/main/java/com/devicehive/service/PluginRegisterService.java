@@ -57,9 +57,11 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import static com.devicehive.auth.HiveAction.MANAGE_PLUGIN;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.CREATED;
@@ -109,9 +111,9 @@ public class PluginRegisterService {
     @Transactional
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
-        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(userId, filterService);
+        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(filterService);
 
-        return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString()).thenApply(pluginVO -> {
+        return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString(), userId).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
             JsonObject response = createTokenResponse(pluginVO.getTopicName(), jwtTokenVO);
 
@@ -120,22 +122,14 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> update(Long userId, PluginUpdateQuery pluginUpdateQuery, String authorization) {
-        return updatePlugin(userId, pluginUpdateQuery).thenApply(pluginVO -> {
-            JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
-            JsonObject response = createTokenResponse(pluginVO.getTopicName(), jwtTokenVO);
-
-            return ResponseFactory.response(OK, response, PLUGIN_SUBMITTED);
-        });
+    public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery, String authorization) {
+        return updatePlugin(existingPlugin, pluginUpdateQuery).thenApply(plugin ->
+            ResponseFactory.response(NO_CONTENT)
+        );
     }
 
     @Transactional
-    public CompletableFuture<Response> delete(String topicName, String authorization) {
-        PluginVO existingPlugin = pluginService.findByTopic(topicName);
-        if (existingPlugin == null) {
-            throw new NotFoundException("Plugin with topic name " + topicName + " was not found");
-        }
-
+    public CompletableFuture<Response> delete(PluginVO existingPlugin, String authorization) {
         pluginService.delete(existingPlugin.getId());
 
         PluginUnsubscribeRequest request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
@@ -147,10 +141,10 @@ public class PluginRegisterService {
         return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
     }
 
-    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString) {
+    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString, Long userId) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
-        pluginVO.setUserId(pollRequest.getUserId());
+        pluginVO.setUserId(userId);
         pluginVO.setFilter(filterString);
         pluginVO.setStatus(PluginStatus.CREATED);
 
@@ -175,14 +169,9 @@ public class PluginRegisterService {
         return future.thenApply(response -> pluginVO);
     }
 
-    private CompletableFuture<PluginVO> updatePlugin(Long userId, PluginUpdateQuery pluginUpdateQuery) {
+    private CompletableFuture<PluginVO> updatePlugin(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
         if (pluginUpdateQuery.getStatus()!= null && pluginUpdateQuery.getStatus().equals(PluginStatus.CREATED)) {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
-        }
-
-        PluginVO existingPlugin = pluginService.findByTopic(pluginUpdateQuery.getTopicName());
-        if (existingPlugin == null) {
-            throw new NotFoundException("Plugin with topic name " + pluginUpdateQuery.getTopicName() + " was not found");
         }
 
         if (pluginUpdateQuery.getName() != null) {
@@ -239,7 +228,7 @@ public class PluginRegisterService {
 
         BasePluginRequest request;
         if (existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
-            request = pluginUpdateQuery.toRequest(userId, filterService);
+            request = pluginUpdateQuery.toRequest(filterService);
             request.setSubscriptionId(existingPlugin.getSubscriptionId());
         } else {
             request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
@@ -253,7 +242,7 @@ public class PluginRegisterService {
     }
 
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {
-        JwtPluginPayload jwtPluginPayload = new JwtPluginPayload(topicName, null, null);
+        JwtPluginPayload jwtPluginPayload = new JwtPluginPayload(Collections.singleton(MANAGE_PLUGIN.getId()), topicName, null, null);
         
         JwtTokenVO jwtToken = null;
         try {

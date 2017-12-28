@@ -31,7 +31,6 @@ public class PluginSubscribeRequest extends BasePluginRequest {
 
     private Set<Filter> filters;
     private Set<String> names;
-    private Long userId;
     private String topicName;
     private boolean returnCommands;
     private boolean returnUpdatedCommands;
@@ -55,14 +54,6 @@ public class PluginSubscribeRequest extends BasePluginRequest {
 
     public void setNames(Set<String> names) {
         this.names = names;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 
     public String getTopicName() {

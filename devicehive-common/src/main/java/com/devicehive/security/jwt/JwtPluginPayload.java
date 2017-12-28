@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
+import java.util.Set;
 
 public class JwtPluginPayload extends JwtPayload {
     private static final long serialVersionUID = -501922541863466048L;
@@ -35,8 +36,8 @@ public class JwtPluginPayload extends JwtPayload {
     @JsonProperty(TOPIC)
     private String topic;
 
-    public JwtPluginPayload(String topic, Date expiration, Integer tokenType) {
-        super(expiration, tokenType);
+    public JwtPluginPayload(Set<Integer> actions, String topic, Date expiration, Integer tokenType) {
+        super(actions, expiration, tokenType);
         this.topic = topic;
     }
 
@@ -72,13 +73,14 @@ public class JwtPluginPayload extends JwtPayload {
         }
 
         public JwtPluginPayloadBuilder withPayload(JwtPluginPayload payload) {
+            this.actions = payload.getActions();
             this.topic = payload.getTopic();
             this.withExpirationDate(payload.getExpiration());
             return this;
         }
 
         public JwtPluginPayload buildPayload() {
-            return new JwtPluginPayload(topic, expiration, tokenType);
+            return new JwtPluginPayload(actions, topic, expiration, tokenType);
         }
     }
 }

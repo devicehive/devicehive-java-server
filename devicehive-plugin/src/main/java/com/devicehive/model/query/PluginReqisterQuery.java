@@ -116,10 +116,9 @@ public class PluginReqisterQuery {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(Long userId, FilterService filterService) {
+    public PluginSubscribeRequest toRequest(FilterService filterService) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
         request.setFilters(filterService.createFilters(this));
-        request.setUserId(userId);
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
         request.setReturnNotifications(returnNotifications);
