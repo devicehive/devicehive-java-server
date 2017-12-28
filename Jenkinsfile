@@ -52,7 +52,7 @@ stage('Build and publish Docker images in CI repository') {
 if (test_branches.contains(env.BRANCH_NAME)) {
   stage('Run integration tests'){
     parallel rpc: {
-      stage('Run regression tests with rpc'){
+      stage('Run integration tests with rpc'){
         node('tests-runner'){
           try {
             clone_devicehive_docker()
@@ -78,7 +78,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
     },
     wsproxy: {
       if (test_wsproxy) {
-        stage('Run regression tests with ws-proxy'){
+        stage('Run integration tests with ws-proxy'){
           node('tests-runner'){
             try {
               clone_devicehive_docker()
@@ -175,7 +175,7 @@ def wait_for_devicehive_is_up() {
 
 def run_devicehive_tests() {
   dir('devicehive-tests') {
-    echo("Clone regression tests")
+    echo("Clone integration tests")
     git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
 
     echo("Install dependencies with npm")
