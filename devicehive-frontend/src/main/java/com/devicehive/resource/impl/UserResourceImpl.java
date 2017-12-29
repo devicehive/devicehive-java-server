@@ -98,8 +98,7 @@ public class UserResourceImpl implements UserResource {
      * {@inheritDoc}
      */
     @Override
-    public void count(String login, String loginPattern, Integer role, Integer status,
-                          @Suspended final AsyncResponse asyncResponse) {
+    public void count(String login, String loginPattern, Integer role, Integer status, AsyncResponse asyncResponse) {
         logger.debug("User count requested");
 
         userService.count(login, loginPattern, role, status)

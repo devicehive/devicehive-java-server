@@ -104,7 +104,7 @@ public interface DeviceResource {
             @Suspended final AsyncResponse asyncResponse);
 
     /**
-     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/list"> DeviceHive RESTful API:
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/count"> DeviceHive RESTful API:
      * Device: list</a>
      *
      * @param name               Device name.

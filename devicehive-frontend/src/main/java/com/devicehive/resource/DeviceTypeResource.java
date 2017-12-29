@@ -98,23 +98,14 @@ public interface DeviceTypeResource {
     );
 
     /**
-     * Produces following output:
+     * Generates JSON similar to this:
      * <pre>
-     * [
-     *  {
-     *    "description":"Device Type Description",
-     *    "id":1,
-     *    "name":"Device Type Name"
-     *   },
-     *   {
-     *    "description":"Device Type Description",
-     *    "id":2,
-     *    "name":"Device Type Name"
-     *   }
-     * ]
+     *     {
+     *         "count":1
+     *     }
      * </pre>
      *
-     * @param name        exact device type's name, ignored, when  namePattern is not null
+     * @param name        exact device type's name, ignored, when namePattern is not null
      * @param namePattern name pattern
      */
     @GET

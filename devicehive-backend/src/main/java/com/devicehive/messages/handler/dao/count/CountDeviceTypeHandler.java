@@ -42,6 +42,7 @@ public class CountDeviceTypeHandler implements RequestHandler {
 
     @Override
     public Response handle(Request request) {
+
         final CountDeviceTypeRequest req = (CountDeviceTypeRequest) request.getBody();
 
         final long count = deviceTypeDao.count(req.getName(), req.getNamePattern(), req.getPrincipal());

@@ -191,9 +191,7 @@ public class DeviceTypeService {
         return future.thenApply(r -> ((ListDeviceTypeResponse) r.getBody()).getDeviceTypes());
     }
 
-    public CompletableFuture<EntityCountResponse> count(String name,
-                                                        String namePattern,
-                                                        HivePrincipal principal) {
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
         CountDeviceTypeRequest countDeviceTypeRequest = new CountDeviceTypeRequest(name, namePattern, principalOpt);
 

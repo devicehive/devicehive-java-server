@@ -89,7 +89,11 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
-                                 CountUserHandler countUserHandler, CountDeviceTypeHandler countDeviceTypeHandler, CountNetworkHandler countNetworkHandler, CountDeviceHandler countDeviceHandler, PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
+                                 CountUserHandler countUserHandler,
+                                 CountDeviceTypeHandler countDeviceTypeHandler,
+                                 CountNetworkHandler countNetworkHandler,
+                                 CountDeviceHandler countDeviceHandler,
+                                 PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
                                  PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
