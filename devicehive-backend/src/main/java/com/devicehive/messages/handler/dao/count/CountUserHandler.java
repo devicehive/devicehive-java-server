@@ -21,9 +21,8 @@ package com.devicehive.messages.handler.dao.count;
  */
 
 import com.devicehive.dao.UserDao;
-import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.CountResponse;
 import com.devicehive.model.rpc.CountUserRequest;
-import com.devicehive.model.rpc.CountUserResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -47,10 +46,10 @@ public class CountUserHandler implements RequestHandler {
 
         final long count = userDao.count(req.getLogin(), req.getLoginPattern(), req.getRole(), req.getStatus());
 
-        final EntityCountResponse entityCountResponse = new EntityCountResponse(count);
+        final CountResponse countResponse = new CountResponse(count);
 
         return Response.newBuilder()
-                .withBody(new CountUserResponse(entityCountResponse))
+                .withBody(countResponse)
                 .buildSuccess();
     }
 }

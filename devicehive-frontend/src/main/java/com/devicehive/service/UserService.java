@@ -30,10 +30,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.EntityCountResponse;
-import com.devicehive.model.rpc.CountUserRequest;
-import com.devicehive.model.rpc.CountUserResponse;
-import com.devicehive.model.rpc.ListUserRequest;
-import com.devicehive.model.rpc.ListUserResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.PasswordProcessor;
@@ -328,7 +325,7 @@ public class UserService extends BaseUserService {
                 .withBody(countUserRequest)
                 .build(), new ResponseConsumer(future));
 
-        return future.thenApply(response -> ((CountUserResponse) response.getBody()).getEntityCountResponse());
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

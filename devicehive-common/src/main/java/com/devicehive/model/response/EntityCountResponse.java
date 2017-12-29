@@ -22,6 +22,7 @@ package com.devicehive.model.response;
 
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.HiveEntity;
+import com.devicehive.model.rpc.CountResponse;
 import com.google.gson.annotations.SerializedName;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
@@ -36,6 +37,10 @@ public class EntityCountResponse implements HiveEntity {
 
     public EntityCountResponse(long count) {
         this.count = count;
+    }
+
+    public EntityCountResponse(CountResponse countResponse) {
+        this.count = countResponse.getCount();
     }
 
     public long getCount() {

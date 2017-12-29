@@ -27,10 +27,7 @@ import com.devicehive.dao.DeviceTypeDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.response.EntityCountResponse;
-import com.devicehive.model.rpc.CountDeviceTypeRequest;
-import com.devicehive.model.rpc.CountDeviceTypeResponse;
-import com.devicehive.model.rpc.ListDeviceTypeRequest;
-import com.devicehive.model.rpc.ListDeviceTypeResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.DeviceTypeUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
@@ -206,7 +203,7 @@ public class DeviceTypeService {
                 .withBody(countDeviceTypeRequest)
                 .build(), new ResponseConsumer(future));
 
-        return future.thenApply(response -> ((CountDeviceTypeResponse) response.getBody()).getEntityCountResponse());
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional

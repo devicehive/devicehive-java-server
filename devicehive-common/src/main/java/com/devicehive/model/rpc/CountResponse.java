@@ -20,20 +20,23 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
-import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
-public class CountDeviceTypeResponse extends Body {
+public class CountResponse extends Body {
 
-    private EntityCountResponse entityCountResponse;
+    private long count;
 
-    public CountDeviceTypeResponse(EntityCountResponse entityCountResponse) {
-        super(Action.COUNT_DEVICE_TYPE_RESPONSE);
-        this.entityCountResponse = entityCountResponse;
+    public CountResponse(long count) {
+        super(Action.COUNT_RESPONSE);
+        this.count = count;
     }
 
-    public EntityCountResponse getEntityCountResponse() {
-        return entityCountResponse;
+    public long getCount() {
+        return count;
+    }
+
+    public void setCount(long count) {
+        this.count = count;
     }
 }

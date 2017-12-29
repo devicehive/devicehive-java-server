@@ -102,28 +102,26 @@ public class GsonFactory {
                 .registerSubtype(ListUserRequest.class, Action.LIST_USER_REQUEST.ordinal())
                 .registerSubtype(ListUserResponse.class, Action.LIST_USER_RESPONSE.ordinal())
                 .registerSubtype(CountUserRequest.class, Action.COUNT_USER_REQUEST.ordinal())
-                .registerSubtype(CountUserResponse.class, Action.COUNT_USER_RESPONSE.ordinal())
 
                 .registerSubtype(ListNetworkRequest.class, Action.LIST_NETWORK_REQUEST.ordinal())
                 .registerSubtype(ListNetworkResponse.class, Action.LIST_NETWORK_RESPONSE.ordinal())
                 .registerSubtype(CountNetworkRequest.class, Action.COUNT_NETWORK_REQUEST.ordinal())
-                .registerSubtype(CountNetworkResponse.class, Action.COUNT_NETWORK_RESPONSE.ordinal())
 
                 .registerSubtype(ListDeviceTypeRequest.class, Action.LIST_DEVICE_TYPE_REQUEST.ordinal())
                 .registerSubtype(ListDeviceTypeResponse.class, Action.LIST_DEVICE_TYPE_RESPONSE.ordinal())
                 .registerSubtype(CountDeviceTypeRequest.class, Action.COUNT_DEVICE_TYPE_REQUEST.ordinal())
-                .registerSubtype(CountDeviceTypeResponse.class, Action.COUNT_DEVICE_TYPE_RESPONSE.ordinal())
 
                 .registerSubtype(ListDeviceRequest.class, Action.LIST_DEVICE_REQUEST.ordinal())
                 .registerSubtype(ListDeviceResponse.class, Action.LIST_DEVICE_RESPONSE.ordinal())
                 .registerSubtype(CountDeviceRequest.class, Action.COUNT_DEVICE_REQUEST.ordinal())
-                .registerSubtype(CountDeviceResponse.class, Action.COUNT_DEVICE_RESPONSE.ordinal())
 
                 .registerSubtype(DeviceDeleteRequest.class, Action.DEVICE_DELETE_REQUEST.ordinal())
                 .registerSubtype(DeviceDeleteResponse.class, Action.DEVICE_DELETE_RESPONSE.ordinal())
 
                 .registerSubtype(ListSubscribeRequest.class, Action.LIST_SUBSCRIBE_REQUEST.ordinal())
-                .registerSubtype(ListSubscribeResponse.class, Action.LIST_SUBSCRIBE_RESPONSE.ordinal());
+                .registerSubtype(ListSubscribeResponse.class, Action.LIST_SUBSCRIBE_RESPONSE.ordinal())
+
+                .registerSubtype(CountResponse.class, Action.COUNT_RESPONSE.ordinal());
 
         return new GsonBuilder()
                 .disableHtmlEscaping()

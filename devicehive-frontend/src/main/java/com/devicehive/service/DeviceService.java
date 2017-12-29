@@ -221,7 +221,7 @@ public class DeviceService extends BaseDeviceService {
                 .withBody(countDeviceRequest)
                 .build(), new ResponseConsumer(future));
 
-        return future.thenApply(response -> ((CountDeviceResponse) response.getBody()).getEntityCountResponse());
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
