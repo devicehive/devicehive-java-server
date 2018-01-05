@@ -164,6 +164,53 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] deviceCountPredicates(CriteriaBuilder cb,
+                                                   Root<Device> from,
+                                                   Optional<String> name,
+                                                   Optional<String> namePattern,
+                                                   Optional<Long> networkId,
+                                                   Optional<String> networkName,
+                                                   Optional<HivePrincipal> principal) {
+        final List<Predicate> predicates = new LinkedList<>();
+
+        name.ifPresent(n -> predicates.add(cb.equal(from.<String>get("name"), n)));
+        namePattern.ifPresent(np -> predicates.add(cb.like(from.get("name"), np)));
+
+        final Join<Device, Network> networkJoin = from.join("network", JoinType.LEFT);
+        networkId.ifPresent(nId -> predicates.add(cb.equal(networkJoin.<Long>get("id"), nId)));
+        networkName.ifPresent(nName ->  predicates.add(cb.equal(networkJoin.<String>get("name"), nName)));
+
+        predicates.addAll(deviceCountPrincipalPredicates(cb, from, principal));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
+    private static List<Predicate> deviceCountPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
+        final List<Predicate> predicates = new LinkedList<>();
+        final Join<Device, Network> networkJoin = from.join("network", JoinType.LEFT);
+        final Join<Device, DeviceType> deviceTypeJoin = from.join("deviceType", JoinType.LEFT);
+        principal.ifPresent(p -> {
+            UserVO user = p.getUser();
+
+            if (user != null && !user.isAdmin()) {
+
+                // Joining after check to prevent duplicate objects
+                final Join<Device, Network> usersJoin = networkJoin.join("users", JoinType.LEFT);
+                predicates.add(cb.equal(usersJoin.<Long>get("id"), user.getId()));
+            }
+
+            if (p.getNetworkIds() != null) {
+                predicates.add(networkJoin.<Long>get("id").in(p.getNetworkIds()));
+            }
+
+            if (p.getDeviceTypeIds() != null) {
+                predicates.add(deviceTypeJoin.<Long>get("id").in(p.getDeviceTypeIds()));
+            }
+        });
+
+        return predicates;
+    }
+
     @SuppressWarnings("unchecked")
     private static List<Predicate> deviceSpecificPrincipalPredicates(CriteriaBuilder cb, Root<Device> from, Optional<HivePrincipal> principal) {
         final List<Predicate> predicates = new LinkedList<>();

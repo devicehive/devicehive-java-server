@@ -134,15 +134,15 @@ public class DeviceTypeDaoRdbmsImpl extends RdbmsGenericDao implements DeviceTyp
     @Override
     public long count(String name, String namePattern, Optional<HivePrincipal> principal) {
         CriteriaBuilder cb = criteriaBuilder();
-        CriteriaQuery<DeviceType> criteria = cb.createQuery(DeviceType.class);
+        CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
         Root<DeviceType> from = criteria.from(DeviceType.class);
 
         Predicate[] nameAndPrincipalPredicates = CriteriaHelper.deviceTypeListPredicates(cb, from,
                 ofNullable(name), ofNullable(namePattern), principal);
-        criteria.where(nameAndPrincipalPredicates);
 
-        TypedQuery<DeviceType> query = createQuery(criteria);
-        return query.getResultList().size();
+        criteria.where(nameAndPrincipalPredicates);
+        criteria.select(cb.count(from));
+        return count(criteria);
     }
 
     @Override

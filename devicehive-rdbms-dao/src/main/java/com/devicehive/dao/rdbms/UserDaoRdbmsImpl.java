@@ -212,15 +212,15 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     @Override
     public long count(String login, String loginPattern, Integer role, Integer status) {
         final CriteriaBuilder cb = criteriaBuilder();
-        final CriteriaQuery<User> criteria = cb.createQuery(User.class);
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
         final Root<User> from = criteria.from(User.class);
 
         final Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from,
                 ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
 
         criteria.where(predicates);
-        final TypedQuery<User> query = createQuery(criteria);
-        return query.getResultList().size();
+        criteria.select(cb.count(from));
+        return count(criteria);
     }
 
     private Optional<UserVO> optionalUserConvertToVo(Optional<User> login) {

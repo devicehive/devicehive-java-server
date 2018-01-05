@@ -62,6 +62,11 @@ public class RdbmsGenericDao {
         em.remove(entity);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public long count(CriteriaQuery<Long> cq) {
+        return em.createQuery(cq).getSingleResult();
+    }
+
     public <T extends Serializable> T reference(Class<T> entityClass, Object primaryKey) {
         return em.getReference(entityClass, primaryKey);
     }
