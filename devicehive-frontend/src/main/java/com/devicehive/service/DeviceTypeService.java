@@ -26,8 +26,8 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceTypeDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.rpc.ListDeviceTypeRequest;
-import com.devicehive.model.rpc.ListDeviceTypeResponse;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.DeviceTypeUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
@@ -186,6 +186,24 @@ public class DeviceTypeService {
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListDeviceTypeResponse) r.getBody()).getDeviceTypes());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {
+        Optional<HivePrincipal> principalOpt = ofNullable(principal);
+        CountDeviceTypeRequest countDeviceTypeRequest = new CountDeviceTypeRequest(name, namePattern, principalOpt);
+
+        return count(countDeviceTypeRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountDeviceTypeRequest countDeviceTypeRequest) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countDeviceTypeRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional

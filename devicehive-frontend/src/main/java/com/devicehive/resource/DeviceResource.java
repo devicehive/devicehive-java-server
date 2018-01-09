@@ -22,6 +22,7 @@ package com.devicehive.resource;
 
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.vo.DeviceVO;
 import io.swagger.annotations.*;
@@ -100,6 +101,45 @@ public interface DeviceResource {
             @QueryParam("skip")
             @Min(0) @Max(Integer.MAX_VALUE)
             Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
+
+    /**
+     * Implementation of <a href="http://www.devicehive.com/restful#Reference/Device/count"> DeviceHive RESTful API:
+     * Device: list</a>
+     *
+     * @param name               Device name.
+     * @param namePattern        Device name pattern.
+     * @param networkId          Associated network identifier
+     * @param networkName        Associated network name
+     * @return Count of Devices
+     */
+    @GET
+    @Path("/count")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
+    @ApiOperation(value = "Count devices", notes = "Gets count of devices.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns the count of devices, matching the filters.",
+                    response = EntityCountResponse.class, responseContainer = "Count"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    void count(
+            @ApiParam(name = "name", value = "Filter by device name.")
+            @QueryParam("name")
+                    String name,
+            @ApiParam(name = "namePattern", value = "Filter by device name pattern. In pattern wildcards '%' and '_' can be used.")
+            @QueryParam("namePattern")
+                    String namePattern,
+            @ApiParam(name = "networkId", value = "Filter by associated network identifier.")
+            @QueryParam("networkId")
+                    Long networkId,
+            @ApiParam(name = "networkName", value = "Filter by associated network name.")
+            @QueryParam("networkName")
+                    String networkName,
             @Suspended final AsyncResponse asyncResponse);
 
     /**

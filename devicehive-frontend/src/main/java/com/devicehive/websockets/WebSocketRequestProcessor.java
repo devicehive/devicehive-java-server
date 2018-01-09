@@ -157,6 +157,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_LIST:
                 deviceHandlers.processDeviceList(request, session);
                 break;
+            case DEVICE_COUNT:
+                deviceHandlers.processDeviceCount(request, session);
+                break;
             case DEVICE_SAVE:
                 deviceHandlers.processDeviceSave(deviceId, request, session);
                 break;
@@ -165,6 +168,9 @@ public class WebSocketRequestProcessor {
                 break;
             case NETWORK_LIST:
                 networkHandlers.processNetworkList(request, session);
+                break;
+            case NETWORK_COUNT:
+                networkHandlers.processNetworkCount(request, session);
                 break;
             case NETWORK_GET:
                 networkHandlers.processNetworkGet(networkId, request, session);
@@ -181,6 +187,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_TYPE_LIST:
                 deviceTypeHandlers.processDeviceTypeList(request, session);
                 break;
+            case DEVICE_TYPE_COUNT:
+                deviceTypeHandlers.processDeviceTypeCount(request, session);
+                break;
             case DEVICE_TYPE_GET:
                 deviceTypeHandlers.processDeviceTypeGet(deviceTypeId, request, session);
                 break;
@@ -195,6 +204,9 @@ public class WebSocketRequestProcessor {
                 break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);
+                break;
+            case USER_COUNT:
+                userHandlers.processUserCount(request, session);
                 break;
             case USER_GET:
                 userHandlers.processUserGet(request, session);
@@ -279,19 +291,23 @@ public class WebSocketRequestProcessor {
         SUBSCRIPTION_LIST("subscription/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
+        DEVICE_COUNT("device/count"),
         DEVICE_SAVE("device/save"),
         DEVICE_DELETE("device/delete"),
         NETWORK_LIST("network/list"),
+        NETWORK_COUNT("network/count"),
         NETWORK_INSERT("network/insert"),
         NETWORK_GET("network/get"),
         NETWORK_DELETE("network/delete"),
         NETWORK_UPDATE("network/update"),
         DEVICE_TYPE_LIST("devicetype/list"),
+        DEVICE_TYPE_COUNT("devicetype/count"),
         DEVICE_TYPE_INSERT("devicetype/insert"),
         DEVICE_TYPE_GET("devicetype/get"),
         DEVICE_TYPE_DELETE("devicetype/delete"),
         DEVICE_TYPE_UPDATE("devicetype/update"),
         USER_LIST("user/list"),
+        USER_COUNT("user/count"),
         USER_GET("user/get"),
         USER_INSERT("user/insert"),
         USER_UPDATE("user/update"),

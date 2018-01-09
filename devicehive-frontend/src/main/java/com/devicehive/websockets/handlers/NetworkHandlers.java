@@ -20,12 +20,12 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.rpc.CountNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.NetworkService;
@@ -91,6 +91,21 @@ public class NetworkHandlers {
                         webSocketClientHandler.sendMessage(request, response, session);
                     });
         }
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_NETWORK')")
+    public void processNetworkCount(JsonObject request, WebSocketSession session) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CountNetworkRequest countNetworkRequest = CountNetworkRequest.createCountNetworkRequest(request, principal);
+
+        WebSocketResponse response = new WebSocketResponse();
+        networkService.count(countNetworkRequest)
+                .thenAccept(count -> {
+                    logger.debug("Network count request proceed successfully.");
+                    response.addValue(COUNT, count.getCount(), null);
+                    webSocketClientHandler.sendMessage(request, response, session);
+                });
     }
 
     @HiveWebsocketAuth

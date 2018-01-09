@@ -98,6 +98,20 @@ public class UserResourceImpl implements UserResource {
      * {@inheritDoc}
      */
     @Override
+    public void count(String login, String loginPattern, Integer role, Integer status, AsyncResponse asyncResponse) {
+        logger.debug("User count requested");
+
+        userService.count(login, loginPattern, role, status)
+                .thenApply(count -> {
+                    logger.debug("User count request proceed successfully");
+                    return ResponseFactory.response(OK, count, JsonPolicyDef.Policy.USERS_LISTED);
+                }).thenAccept(asyncResponse::resume);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Response getUser(Long userId) {
         UserVO currentLoggedInUser = findCurrentUserFromAuthContext();
 

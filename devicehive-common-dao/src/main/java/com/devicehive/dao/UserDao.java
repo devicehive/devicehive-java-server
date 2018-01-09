@@ -58,4 +58,6 @@ public interface UserDao {
 
     List<UserVO> list(String login, String loginPattern, Integer role, Integer status, String sortField,
                        boolean sortOrderAsc, Integer take, Integer skip);
+
+    long count(String login, String loginPattern, Integer role, Integer status);
 }

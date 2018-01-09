@@ -29,8 +29,8 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
-import com.devicehive.model.rpc.ListUserRequest;
-import com.devicehive.model.rpc.ListUserResponse;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.service.configuration.ConfigurationService;
 import com.devicehive.service.helpers.PasswordProcessor;
@@ -309,6 +309,23 @@ public class UserService extends BaseUserService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListUserResponse) r.getBody()).getUsers());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String login, String loginPattern, Integer role, Integer status) {
+        CountUserRequest countUserRequest = new CountUserRequest(login, loginPattern, role, status);
+
+        return count(countUserRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountUserRequest countUserRequest) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countUserRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

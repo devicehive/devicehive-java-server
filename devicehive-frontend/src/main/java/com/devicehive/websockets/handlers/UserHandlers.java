@@ -30,6 +30,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
+import com.devicehive.model.rpc.CountUserRequest;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.updates.UserUpdate;
 import com.devicehive.resource.util.ResponseFactory;
@@ -99,6 +100,20 @@ public class UserHandlers {
                     logger.debug("User list request proceed successfully");
                     WebSocketResponse response = new WebSocketResponse();
                     response.addValue(USERS, users, USERS_LISTED);
+                    clientHandler.sendMessage(request, response, session);
+                });
+    }
+
+    @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_USER')")
+    public void processUserCount(JsonObject request, WebSocketSession session) {
+        CountUserRequest countUserRequest = CountUserRequest.createCountUserRequest(request);
+
+        WebSocketResponse response = new WebSocketResponse();
+        userService.count(countUserRequest)
+                .thenAccept(count -> {
+                    logger.debug("User count request proceed successfully");
+                    response.addValue(COUNT, count.getCount(), null);
                     clientHandler.sendMessage(request, response, session);
                 });
     }

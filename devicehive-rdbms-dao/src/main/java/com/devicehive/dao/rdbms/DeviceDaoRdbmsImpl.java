@@ -129,4 +129,21 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         List<Device> resultList = query.getResultList();
         return resultList.stream().map(Device::convertToVo).collect(Collectors.toList());
     }
+
+    @Override
+    public long count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Device> from = criteria.from(Device.class);
+
+        final Predicate[] predicates = CriteriaHelper.deviceCountPredicates(cb, from,
+                ofNullable(name), ofNullable(namePattern), ofNullable(networkId), ofNullable(networkName),
+                ofNullable(principal));
+
+        criteria.where(predicates);
+        criteria.select(cb.count(from));
+        return count(criteria);
+    }
+
+
 }
