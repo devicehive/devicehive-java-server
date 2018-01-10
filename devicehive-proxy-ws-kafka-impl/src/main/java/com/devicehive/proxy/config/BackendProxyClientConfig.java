@@ -22,6 +22,7 @@ package com.devicehive.proxy.config;
 
 import com.devicehive.api.HandlersMapper;
 import com.devicehive.model.ServerEvent;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.proxy.ProxyMessageDispatcher;
 import com.devicehive.proxy.ProxyRequestHandler;
 import com.devicehive.proxy.ProxyServerEventHandler;
@@ -30,6 +31,7 @@ import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
+import com.devicehive.proxy.eventbus.DistributedFilterRegistry;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
@@ -86,6 +88,11 @@ public class BackendProxyClientConfig {
     @Bean
     public MessageDispatcher messageDispatcher(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
         return new ProxyMessageDispatcher(gson, proxyConfig);
+    }
+
+    @Bean
+    public FilterRegistry filterRegistry(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
+        return new DistributedFilterRegistry(gson, proxyConfig);
     }
 
     private WaitStrategy getWaitStrategy() {
