@@ -22,6 +22,7 @@ package com.devicehive.service;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.FilterEntity;
 import com.devicehive.model.enums.PluginStatus;
@@ -64,9 +65,7 @@ import java.util.concurrent.CompletableFuture;
 import static com.devicehive.auth.HiveAction.MANAGE_PLUGIN;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static javax.ws.rs.core.Response.Status.CREATED;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
-import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Component
 public class PluginRegisterService {
@@ -111,6 +110,11 @@ public class PluginRegisterService {
     @Transactional
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
+        PluginVO existingPlugin = pluginService.findByName(pluginUpdate.getName());
+        if (existingPlugin != null) {
+            logger.error("Plugin with name {} already exists", pluginUpdate.getName());
+            throw new HiveException(String.format(Messages.PLUGIN_ALREADY_EXISTS, pluginUpdate.getName()), BAD_REQUEST.getStatusCode());
+        }
         PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(filterService);
 
         return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString(), userId).thenApply(pluginVO -> {
