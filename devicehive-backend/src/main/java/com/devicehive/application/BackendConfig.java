@@ -20,7 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.eventbus.FilterRegistry;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
@@ -35,12 +35,6 @@ public class BackendConfig {
     @Bean
     public Gson gson() {
         return GsonFactory.createGson();
-    }
-
-    @Bean
-    @DependsOn("hazelcast")
-    public FilterRegistry filterRegistry() {
-        return new FilterRegistry();
     }
 
     @Bean

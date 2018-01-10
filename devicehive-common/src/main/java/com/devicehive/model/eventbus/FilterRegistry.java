@@ -1,4 +1,4 @@
-package com.devicehive.eventbus;
+package com.devicehive.model.eventbus;
 
 /*
  * #%L
@@ -20,8 +20,6 @@ package com.devicehive.eventbus;
  * #L%
  */
 
-import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -40,7 +38,7 @@ public class FilterRegistry {
      */
     private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    void register(Filter filter, Subscriber subscriber) {
+    public void register(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
             subscribers = new HashSet<>();
@@ -51,7 +49,7 @@ public class FilterRegistry {
         }
     }
 
-    void unregister(Subscriber subscriber) {
+    public void unregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> {
             Iterator iterator = subscribers.iterator();
 
@@ -64,7 +62,7 @@ public class FilterRegistry {
         });
     }
 
-    Collection<Subscriber> getSubscribers(Filter filter) {
+    public Collection<Subscriber> getSubscribers(Filter filter) {
         Set<Subscriber> subscribers = Optional.ofNullable(subscriberTable.get("*,*,*", filter.getSecondKey()))
                 .orElse(new HashSet<>());
         Set<Subscriber> filterSubscribers = subscriberTable.get(filter.getDeviceIgnoredFirstKey(), filter.getSecondKey());
@@ -78,7 +76,7 @@ public class FilterRegistry {
         return subscribers;
     }
 
-    void unregisterDevice(DeviceVO device) {
+    public void unregisterDevice(DeviceVO device) {
         final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
         subscriberTable.row(deviceFilter.getFirstKey()).clear();
     }

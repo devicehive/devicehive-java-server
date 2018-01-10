@@ -21,7 +21,6 @@ package com.devicehive.messages.handler.notification;
  */
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.rpc.*;
 import com.devicehive.shim.api.Request;
@@ -35,16 +34,10 @@ import org.springframework.util.Assert;
 public class NotificationUnsubscribeRequestHandler implements RequestHandler {
 
     private EventBus eventBus;
-    private FilterRegistry filterRegistry;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
-    }
-
-    @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
     }
 
     @Override

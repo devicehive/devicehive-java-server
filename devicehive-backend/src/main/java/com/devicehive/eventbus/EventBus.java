@@ -21,13 +21,12 @@ package com.devicehive.eventbus;
  */
 
 import com.devicehive.model.eventbus.Filter;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.eventbus.events.Event;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.vo.DeviceVO;
-
-import java.util.Collection;
 
 /**
  * Central class for interaction with devicehive-backend subscription mechanism.

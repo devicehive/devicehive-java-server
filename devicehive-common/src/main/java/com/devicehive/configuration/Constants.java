@@ -58,6 +58,7 @@ public class Constants {
     public static final String ENV_SECRET_VAR_NAME = "JWT_SECRET";
     public static final String DB_SECRET_VAR_NAME = "jwt.secret";
     public static final String REQUEST_TOPIC = "request_topic";
+    public static final String SUBSCRIPTION_TOPIC = "subscription_update";
     public final static String USER_ID = "userId";
     
     //API constants

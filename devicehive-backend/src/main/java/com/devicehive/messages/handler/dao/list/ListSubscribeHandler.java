@@ -20,7 +20,7 @@ package com.devicehive.messages.handler.dao.list;
  * #L%
  */
 
-import com.devicehive.eventbus.FilterRegistry;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListSubscribeRequest;
 import com.devicehive.model.rpc.ListSubscribeResponse;

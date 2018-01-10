@@ -23,7 +23,6 @@ package com.devicehive;
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.base.NotificationTestUtils;
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.messages.handler.command.CommandInsertHandler;
 import com.devicehive.messages.handler.command.CommandSearchHandler;
 import com.devicehive.messages.handler.notification.NotificationInsertHandler;
@@ -49,7 +48,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -64,9 +62,7 @@ import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class BackendSmokeTest extends AbstractSpringTest {
 
