@@ -135,6 +135,7 @@ if (deploy_branches.contains(env.BRANCH_NAME)) {
     node('dev-server') {
       dir('/home/centos/devicehive-docker/rdbms-image'){
         sh '''
+          echo "$(date): Deploying build #${BUILD_NUMBER} from ${BRANCH_NAME} branch..." > ./jenkins-cd.timestamp
           sed -i -e "s/DH_TAG=.*/DH_TAG=${BRANCH_NAME}/g" .env
           sudo docker-compose pull
           sudo docker-compose up -d
