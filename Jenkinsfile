@@ -5,7 +5,7 @@ properties([
 def test_branches = ["development", "master"]
 def publish_branches = ["development", "master"]
 def deploy_branches = ["development"]
-def test_wsproxy = false
+def test_wsproxy = true
 
 stage('Build jars') {
   node('docker') {
