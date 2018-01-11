@@ -57,6 +57,10 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     @Override
     public void start() {
         try {
+            this.futureMap = new ConcurrentHashMap<>();
+            if (webSocketKafkaProxyConfig.getAckEnable()) {
+                this.ackReceived = new ConcurrentHashMap<>();
+            }
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, new URI("ws://" + webSocketKafkaProxyConfig.getProxyConnect()));
         } catch (Exception e) {
@@ -87,10 +91,6 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        this.futureMap = new ConcurrentHashMap<>();
-        if (webSocketKafkaProxyConfig.getAckEnable()) {
-            this.ackReceived = new ConcurrentHashMap<>();
-        }
         logger.info("New WebSocket session established: {}", session.getId());
     }
 
