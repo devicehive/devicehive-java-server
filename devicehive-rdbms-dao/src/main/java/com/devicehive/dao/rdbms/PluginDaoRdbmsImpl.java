@@ -26,6 +26,7 @@ import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.NoResultException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,18 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
                 .getSingleResult();
 
         return convertToVo(plugin);
+    }
+
+    @Override
+    public PluginVO findByName(String pluginName) {
+        try {
+            Plugin plugin = (Plugin) createNamedQuery("Plugin.findByName", of(CacheConfig.refresh()))
+                    .setParameter("name", pluginName)
+                    .getSingleResult();
+            return convertToVo(plugin);
+        } catch (NoResultException ex) {
+            return null;
+        }
     }
 
     @Override

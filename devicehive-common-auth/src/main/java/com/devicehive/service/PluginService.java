@@ -20,10 +20,13 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.PluginDao;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.PluginVO;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +34,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 @Component
 public class PluginService {
@@ -70,6 +76,11 @@ public class PluginService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Transactional
+    public PluginVO findByName(String pluginName) {
+        return pluginDao.findByName(pluginName);
     }
 
     @Transactional

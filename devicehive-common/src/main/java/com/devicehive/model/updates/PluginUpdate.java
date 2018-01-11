@@ -22,6 +22,7 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
@@ -31,7 +32,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_PUBLISH
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static com.devicehive.model.enums.PluginStatus.ACTIVE;
 
-public class PluginUpdate {
+public class PluginUpdate implements HiveEntity {
+
+    private static final long serialVersionUID = 1499386299938178873L;
 
     @SerializedName("name")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})

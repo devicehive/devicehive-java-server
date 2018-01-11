@@ -51,7 +51,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITT
 @NamedQueries({
         @NamedQuery(name = "Plugin.deleteById", query = "delete from Plugin p where p.id = :id"),
         @NamedQuery(name = "Plugin.findByStatus", query = "select p from Plugin p where p.status = :status"),
-        @NamedQuery(name = "Plugin.findByTopic", query = "select p from Plugin p where p.topicName = :topicName")
+        @NamedQuery(name = "Plugin.findByTopic", query = "select p from Plugin p where p.topicName = :topicName"),
+        @NamedQuery(name = "Plugin.findByName", query = "select p from Plugin p where p.name = :name")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)

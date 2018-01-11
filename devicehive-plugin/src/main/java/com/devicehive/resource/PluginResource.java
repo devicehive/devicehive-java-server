@@ -20,6 +20,8 @@ package com.devicehive.resource;
  * #L%
  */
 
+import com.devicehive.json.strategies.JsonPolicyApply;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.updates.PluginUpdate;
@@ -36,6 +38,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.MediaType;
 
 @Api(tags = {"Plugin"}, description = "Plugin management operations", consumes = "application/json")
 @Path("/plugin")

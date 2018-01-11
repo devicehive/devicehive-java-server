@@ -137,6 +137,7 @@ public class Messages {
     public static final String EMPTY_TOKEN = BidBundle.get("EMPTY_TOKEN");
     public static final String PLUGIN_NOT_FOUND = BidBundle.get("PLUGIN_NOT_FOUND");
     public static final String PLUGIN_NOT_ACTIVE = BidBundle.get("PLUGIN_NOT_ACTIVE");
+    public static final String PLUGIN_ALREADY_EXISTS = BidBundle.get("PLUGIN_ALREADY_EXISTS");
 
     /**
      * Bundle to extract localized strings from property files.
