@@ -5,7 +5,7 @@ properties([
 def test_branches = ["development", "master"]
 def publish_branches = ["development", "master"]
 def deploy_branches = ["development"]
-def test_wsproxy = false
+def test_wsproxy = true
 
 stage('Build jars') {
   node('docker') {
@@ -50,53 +50,58 @@ stage('Build and publish Docker images in CI repository') {
 }
 
 if (test_branches.contains(env.BRANCH_NAME)) {
-  stage('Run regression tests with rpc'){
-    node('tests-runner'){
-      try {
-        clone_devicehive_docker()
-        dir('devicehive-docker/rdbms-image'){
-          writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-          COMPOSE_FILE=docker-compose.yml:ci-images.yml
-          DH_TAG=${BRANCH_NAME}
-          JWT_SECRET=devicehive
-          """
+  stage('Run integration tests'){
+    parallel rpc: {
+      stage('Run integration tests with rpc'){
+        node('tests-runner'){
+          try {
+            clone_devicehive_docker()
+            dir('devicehive-docker/rdbms-image'){
+              writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+              COMPOSE_FILE=docker-compose.yml:ci-images.yml
+              DH_TAG=${BRANCH_NAME}
+              JWT_SECRET=devicehive
+              """
 
-          start_devicehive()
-        }
-        wait_for_devicehive_is_up()
-        run_devicehive_tests()
-      } finally {
-        archive_container_logs('rpc')
-        zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
-        shutdown_devicehive()
-        cleanWs()
-      }
-    }
-  }
-
-  if (test_wsproxy) {
-    stage('Run regression tests with ws-proxy'){
-      node('tests-runner'){
-        try {
-          clone_devicehive_docker()
-          dir('devicehive-docker/rdbms-image'){
-            writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-            COMPOSE_FILE=docker-compose.yml:ci-images.yml
-            DH_TAG=${BRANCH_NAME}
-            JWT_SECRET=devicehive
-            DH_FE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-frontend
-            DH_BE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-backend
-            """
-
-            start_devicehive()
+              start_devicehive()
+            }
+            wait_for_devicehive_is_up()
+            run_devicehive_tests()
+          } finally {
+            archive_container_logs('rpc')
+            zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+            shutdown_devicehive()
+            cleanWs()
           }
-          wait_for_devicehive_is_up()
-          run_devicehive_tests()
-        } finally {
-          archive_container_logs('ws-proxy')
-          zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
-          shutdown_devicehive()
-          cleanWs()
+        }
+      }
+    },
+    wsproxy: {
+      if (test_wsproxy) {
+        stage('Run integration tests with ws-proxy'){
+          node('tests-runner'){
+            try {
+              clone_devicehive_docker()
+              dir('devicehive-docker/rdbms-image'){
+                writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+                COMPOSE_FILE=docker-compose.yml:ci-images.yml
+                DH_TAG=${BRANCH_NAME}
+                JWT_SECRET=devicehive
+                DH_FE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-frontend
+                DH_BE_SPRING_PROFILES_ACTIVE=ws-kafka-proxy-backend
+                """
+
+                start_devicehive()
+              }
+              wait_for_devicehive_is_up()
+              run_devicehive_tests()
+            } finally {
+              archive_container_logs('ws-proxy')
+              zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+              shutdown_devicehive()
+              cleanWs()
+            }
+          }
         }
       }
     }
@@ -162,15 +167,15 @@ def wait_for_devicehive_is_up() {
   echo("Wait for devicehive")
   timeout(time:5, unit: 'MINUTES') {
     waitUntil{
-      def fe_status = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
-      return (fe_status == 0)
+      def is_up = sh script: 'curl --output /dev/null --silent --head --fail "http://127.0.0.1/api/rest/info"', returnStatus: true
+      return (is_up == 0)
     }
   }
 }
 
 def run_devicehive_tests() {
   dir('devicehive-tests') {
-    echo("Clone regression tests")
+    echo("Clone integration tests")
     git branch: 'development', url: 'https://github.com/devicehive/devicehive-tests.git', depth: 1
 
     echo("Install dependencies with npm")
