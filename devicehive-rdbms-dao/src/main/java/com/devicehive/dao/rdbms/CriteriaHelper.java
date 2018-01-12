@@ -85,7 +85,7 @@ public class CriteriaHelper {
 
             return ofNullable(user);
         }).ifPresent(user -> {
-            if (!user.isAdmin()) {
+            if (!user.isAdmin() && !user.getAllDeviceTypesAvailable()) {
                 User usr = User.convertToEntity(user);
                 predicates.add(from.join("users").in(usr));
             }
