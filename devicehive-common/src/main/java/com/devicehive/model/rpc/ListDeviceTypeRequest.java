@@ -35,7 +35,6 @@ import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListDeviceTypeRequest extends Body {
 
-    private boolean getAll;
     private String name;
     private String namePattern;
     private String sortField;
@@ -117,13 +116,5 @@ public class ListDeviceTypeRequest extends Body {
 
     public void setPrincipal(Optional<HivePrincipal> principal) {
         this.principal = principal;
-    }
-
-    public boolean isGetAll() {
-        return getAll;
-    }
-
-    public void setGetAll(boolean getAll) {
-        this.getAll = getAll;
     }
 }

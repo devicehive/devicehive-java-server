@@ -30,6 +30,7 @@ import com.devicehive.vo.DeviceTypeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -46,7 +47,7 @@ public class ListDeviceTypeHandler implements RequestHandler {
     public Response handle(Request request) {
         final ListDeviceTypeRequest req = (ListDeviceTypeRequest) request.getBody();
 
-        final List<DeviceTypeVO> deviceTypes = req.isGetAll() ? deviceTypeDao.listAll() : deviceTypeDao.list(req.getName(),
+        final List<DeviceTypeVO> deviceTypes = deviceTypeDao.list(req.getName(),
                 req.getNamePattern(), req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(), req.getPrincipal());
 
         return Response.newBuilder()

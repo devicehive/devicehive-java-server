@@ -154,7 +154,6 @@ public class DeviceTypeService {
 
     public CompletableFuture<List<DeviceTypeVO>> listAll() {
         final ListDeviceTypeRequest request = new ListDeviceTypeRequest();
-        request.setGetAll(true);
 
         return list(request);
     }
@@ -169,9 +168,6 @@ public class DeviceTypeService {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListDeviceTypeRequest request = new ListDeviceTypeRequest();
-        if (principal.areAllDeviceTypesAvailable()) {
-            request.setGetAll(true);
-        }
         request.setName(name);
         request.setNamePattern(namePattern);
         request.setSortField(sortField);
