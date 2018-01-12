@@ -169,6 +169,9 @@ public class DeviceTypeService {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
         ListDeviceTypeRequest request = new ListDeviceTypeRequest();
+        if (principal.areAllDeviceTypesAvailable()) {
+            request.setGetAll(true);
+        }
         request.setName(name);
         request.setNamePattern(namePattern);
         request.setSortField(sortField);
