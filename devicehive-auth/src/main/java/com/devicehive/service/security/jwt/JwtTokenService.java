@@ -89,11 +89,15 @@ public class JwtTokenService {
                     networkIds.add(network.getId().toString());
                 });
             }
-            Set<DeviceTypeVO> deviceTypes = userWithDeviceType.getDeviceTypes();
-            if (!deviceTypes.isEmpty()) {
-                deviceTypes.forEach(deviceType -> {
-                    deviceTypeIds.add(deviceType.getId().toString());
-                });
+            if (userWithDeviceType.getAllDeviceTypesAvailable()) {
+                deviceTypeIds.add("*");
+            } else {
+                Set<DeviceTypeVO> deviceTypes = userWithDeviceType.getDeviceTypes();
+                if (!deviceTypes.isEmpty()) {
+                    deviceTypes.forEach(deviceType -> {
+                        deviceTypeIds.add(deviceType.getId().toString());
+                    });
+                }
             }
             actions = getIdSet(getClientHiveActions());
         }
