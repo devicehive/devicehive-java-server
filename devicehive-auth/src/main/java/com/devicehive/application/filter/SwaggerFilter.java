@@ -49,6 +49,17 @@ public class SwaggerFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        final String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+        final String xForwardedFor = request.getHeader("X-Forwarded-For");
+
+        if (xForwardedProto != null) {
+            swaggerProtocol = xForwardedProto;
+        }
+
+        if (xForwardedFor != null) {
+            swaggerPort = xForwardedFor;
+        }
+
         logger.debug("swagger.protocol: {}", swaggerProtocol);
         logger.debug("swagger.port: {}", swaggerPort);
 
