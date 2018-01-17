@@ -23,7 +23,7 @@ package com.devicehive.model.enums;
 
 public enum PluginStatus {
     ACTIVE(0),
-    DISABLED(1),
+    INACTIVE(1),
     CREATED(2);
 
     private int value;
