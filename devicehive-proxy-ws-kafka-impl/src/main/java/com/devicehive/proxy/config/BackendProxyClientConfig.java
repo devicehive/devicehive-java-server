@@ -29,6 +29,7 @@ import com.devicehive.proxy.ProxyServerEventHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
+import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.eventbus.DistributedFilterRegistry;
@@ -81,7 +82,7 @@ public class BackendProxyClientConfig {
         client.setWebSocketKafkaProxyConfig(proxyConfig);
         client.start();
         client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
-        client.push(ProxyMessageBuilder.subscribe(new TopicsPayload(REQUEST_TOPIC))).join();
+        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
         return client;
     }
 

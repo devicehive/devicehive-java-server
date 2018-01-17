@@ -24,6 +24,7 @@ import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
+import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
@@ -80,7 +81,7 @@ public class FrontendProxyClient implements RpcClient {
     public void start() {
         client.start();
         client.push(ProxyMessageBuilder.create(new TopicsPayload(Arrays.asList(requestTopic, replyToTopic)))).join();
-        client.push(ProxyMessageBuilder.subscribe(new TopicsPayload(replyToTopic))).join();
+        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic))).join();
 
         pingServer();
     }

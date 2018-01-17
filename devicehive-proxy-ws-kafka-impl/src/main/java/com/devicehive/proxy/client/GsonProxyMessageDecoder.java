@@ -95,7 +95,7 @@ class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
                         decoded.withPayload(gson.fromJson(object.get("p"), TopicsPayload.class));
                         break;
                     case "topic/subscribe":
-                        decoded.withPayload(gson.fromJson(object.get("p"), TopicsPayload.class));
+                        decoded.withPayload(gson.fromJson(object.get("p"), SubscribePayload.class));
                         break;
                     case "notif":
                         decoded.withPayload(gson.fromJson(object.get("p"), MessagePayload.class));

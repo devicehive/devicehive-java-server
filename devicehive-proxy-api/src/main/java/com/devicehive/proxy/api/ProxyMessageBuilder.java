@@ -20,6 +20,7 @@ package com.devicehive.proxy.api;
  * #L%
  */
 
+import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 
@@ -40,7 +41,7 @@ public class ProxyMessageBuilder {
                 .build();
     }
 
-    public static ProxyMessage subscribe(TopicsPayload payload) {
+    public static ProxyMessage subscribe(SubscribePayload payload) {
         return ProxyMessage.newBuilder()
                 .withType("topic")
                 .withAction("subscribe")

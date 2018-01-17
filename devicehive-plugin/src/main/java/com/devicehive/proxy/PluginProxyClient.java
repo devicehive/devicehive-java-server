@@ -23,6 +23,7 @@ package com.devicehive.proxy;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
+import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
@@ -83,7 +84,7 @@ public class PluginProxyClient implements RpcClient {
     }
     
     public void subscribeToTopic(String topic) {
-        client.push(ProxyMessageBuilder.subscribe(new TopicsPayload(topic))).join();
+        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(topic))).join();
     }
     
     @Override

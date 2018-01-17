@@ -24,15 +24,12 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.MessagePayload;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
-import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
 import com.google.gson.Gson;
 
 import java.util.*;
@@ -63,7 +60,7 @@ public class DistributedFilterRegistry extends FilterRegistry {
         });
         proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
         proxyClient.start();
-        proxyClient.push(ProxyMessageBuilder.subscribe(new TopicsPayload(SUBSCRIPTION_TOPIC))).thenAccept(message -> {
+        proxyClient.push(ProxyMessageBuilder.subscribe(new SubscribePayload(SUBSCRIPTION_TOPIC, "fr-" + UUID.randomUUID()))).thenAccept(message -> {
             if (message.getStatus() == null || message.getStatus() != 0) {
                 MessagePayload payload = (MessagePayload) message.getPayload();
                 throw new HiveException("Response message is failed: " + payload.getMessage());
