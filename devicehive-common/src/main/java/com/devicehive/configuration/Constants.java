@@ -61,7 +61,7 @@ public class Constants {
     public static final String SUBSCRIPTION_TOPIC = "subscription_update";
     public final static String USER_ID = "userId";
     public final static String X_FORWARDED_PROTO_HEADER_NAME = "X-Forwarded-Proto";
-    public final static String X_FORWARDED_PORT_HEADER_NAME = "X-Forwarded-For";
+    public final static String X_FORWARDED_PORT_HEADER_NAME = "X-Forwarded-Port";
     
     //API constants
     public static final String INFO = "info";
