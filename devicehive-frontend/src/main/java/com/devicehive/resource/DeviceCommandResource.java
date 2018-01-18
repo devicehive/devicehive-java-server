@@ -107,12 +107,15 @@ public interface DeviceCommandResource {
             @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
     })
     void pollMany(
-            @ApiParam(name = "deviceIds", value = "List of device IDs")
-            @QueryParam("deviceIds")
-            String deviceIdsString,
+            @ApiParam(name = "deviceIds", value = "Device ID")
+            @QueryParam("deviceId")
+            String deviceId,
             @ApiParam(name = "networkIds", value = "List of network IDs")
             @QueryParam("networkIds")
             String networkIdsString,
+            @ApiParam(name = "deviceTypeIds", value = "List of device type IDs")
+            @QueryParam("deviceTypeIds")
+            String deviceTypeIdsString,
             @ApiParam(name = "names", value = "Command names")
             @QueryParam("names")
             String namesString,

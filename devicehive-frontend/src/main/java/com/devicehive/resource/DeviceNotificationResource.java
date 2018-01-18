@@ -215,12 +215,15 @@ public interface DeviceNotificationResource {
             @Max(value = Constants.MAX_WAIT_TIMEOUT, message = "Timeout can't be more than " + Constants.MAX_WAIT_TIMEOUT + " seconds. ")
             @QueryParam("waitTimeout")
             long timeout,
-            @ApiParam(name = "deviceIds", value = "Device ids")
-            @QueryParam("deviceIds")
-            String deviceIdsString,
-            @ApiParam(name = "networkIds", value = "Network ids")
+            @ApiParam(name = "deviceId", value = "Device ID")
+            @QueryParam("deviceId")
+            String deviceId,
+            @ApiParam(name = "networkIds", value = "List of network IDs")
             @QueryParam("networkIds")
             String networkIdsString,
+            @ApiParam(name = "deviceTypeIds", value = "List of device type IDs")
+            @QueryParam("deviceTypeIds")
+            String deviceTypeIdsString,
             @ApiParam(name = "names", value = "Notification names")
             @QueryParam("names")
             String namesString,

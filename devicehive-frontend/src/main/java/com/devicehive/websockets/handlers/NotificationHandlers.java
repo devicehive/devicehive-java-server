@@ -30,18 +30,13 @@ import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceTypeRequest;
-import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.DeviceTypeService;
-import com.devicehive.service.NetworkService;
-import com.devicehive.shim.api.Action;
+import com.devicehive.service.FilterBuilderService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -62,16 +57,11 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.configuration.Messages.DEVICE_TYPES_NOT_FOUND;
-import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static com.devicehive.configuration.Messages.NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
-import static com.devicehive.model.enums.SortOrder.ASC;
 import static com.devicehive.model.rpc.NotificationSearchRequest.createNotificationSearchRequest;
 import static com.devicehive.shim.api.Action.NOTIFICATION_EVENT;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -82,25 +72,22 @@ public class NotificationHandlers {
 
     public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
 
-    private final DeviceService deviceService;
-    private final NetworkService networkService;
-    private final DeviceTypeService deviceTypeService;
-    private final DeviceNotificationService notificationService;
     private final Gson gson;
+    private final DeviceService deviceService;
+    private final DeviceNotificationService notificationService;
+    private final FilterBuilderService filterBuilderService;
     private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    public NotificationHandlers(DeviceService deviceService,
-                                NetworkService networkService,
-                                DeviceTypeService deviceTypeService,
+    public NotificationHandlers(Gson gson,
+                                DeviceService deviceService,
                                 DeviceNotificationService notificationService,
-                                Gson gson,
+                                FilterBuilderService filterBuilderService,
                                 WebSocketClientHandler clientHandler) {
-        this.deviceService = deviceService;
-        this.networkService = networkService;
-        this.deviceTypeService = deviceTypeService;
-        this.notificationService = notificationService;
         this.gson = gson;
+        this.deviceService = deviceService;
+        this.notificationService = notificationService;
+        this.filterBuilderService = filterBuilderService;
         this.clientHandler = clientHandler;
     }
 
@@ -110,7 +97,6 @@ public class NotificationHandlers {
     public void processNotificationSubscribe(String deviceId, JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
         Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
         Set<Long> deviceTypes = gson.fromJson(request.getAsJsonArray(DEVICE_TYPE_IDS), JsonTypes.LONG_SET_TYPE);
@@ -119,76 +105,9 @@ public class NotificationHandlers {
         logger.debug("notification/subscribe requested for device: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
-        if (networks != null) {
-            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(
-                    networkService::getWithDevices
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
-            if (actualNetworks.size() != networks.size()) {
-                throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
-            }
-        } else {
-            networks = principal.getNetworkIds();
-        }
-        if (deviceTypes != null) {
-            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream().map(deviceType ->
-                    deviceTypeService.getWithDevices(deviceType, authentication)
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
-            if (actualDeviceTypes.size() != deviceTypes.size()) {
-                throw new HiveException(String.format(DEVICE_TYPES_NOT_FOUND, deviceTypes), SC_FORBIDDEN);
-            }
-        } else {
-            deviceTypes = principal.getDeviceTypeIds();
-        }
+        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
 
-        if ((networks != null && !networks.isEmpty() || principal.areAllNetworksAvailable())
-                && (deviceTypes != null && !deviceTypes.isEmpty() || principal.areAllDeviceTypesAvailable())) {
-            Set<Filter> filters;
-            if (deviceId != null) {
-                DeviceVO device = deviceService.findByIdWithPermissionsCheckIfExists(deviceId, principal);
-                if (names != null) {
-                    filters = names.stream().map(name ->
-                            new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, NOTIFICATION_EVENT.name(), name))
-                            .collect(Collectors.toSet());
-                } else {
-                    filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, NOTIFICATION_EVENT.name(), null));
-                }
-            } else {
-                if (networks == null && deviceTypes == null) {
-                    if (names != null) {
-                        filters = names.stream().map(name ->
-                                new Filter(null, null, null, NOTIFICATION_EVENT.name(), name))
-                                .collect(Collectors.toSet());
-                    } else {
-                        filters = Collections.singleton(new Filter(null, null, null, NOTIFICATION_EVENT.name(), null));
-                    }
-                } else {
-                    if (networks == null) {
-                        ListNetworkRequest listNetworkRequest = new ListNetworkRequest();
-                        listNetworkRequest.setPrincipal(Optional.of(principal));
-                        networks = networkService.list(listNetworkRequest).join()
-                                .stream().map(NetworkVO::getId).collect(Collectors.toSet());
-                    }
-                    if (deviceTypes == null) {
-                        ListDeviceTypeRequest listDeviceTypeRequest = new ListDeviceTypeRequest();
-                        listDeviceTypeRequest.setPrincipal(Optional.of(principal));
-                        deviceTypes = deviceTypeService.list(listDeviceTypeRequest).join()
-                                .stream().map(DeviceTypeVO::getId).collect(Collectors.toSet());
-                    }
-                    final Set<Long> finalDeviceTypes = deviceTypes;
-                    filters = networks.stream()
-                            .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                                if (names != null) {
-                                    return names.stream().map(name ->
-                                            new Filter(network, deviceType, null, NOTIFICATION_EVENT.name(), name)
-                                    );
-                                } else {
-                                    return Stream.of(new Filter(network, deviceType, null, NOTIFICATION_EVENT.name(), null));
-                                }
-                            }))
-                            .collect(Collectors.toSet());
-                }
-            }
-
+        if (!filters.isEmpty()) {
             BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
                 JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
                 clientHandler.sendMessage(json, session);

@@ -21,20 +21,14 @@ package com.devicehive.service.helpers;
  */
 
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
-import com.devicehive.model.enums.SearchableField;
 import com.hazelcast.query.Predicate;
 import com.hazelcast.query.Predicates;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.devicehive.model.enums.SearchableField.*;
 
@@ -53,7 +47,8 @@ public class HazelcastHelper {
     public <T extends HazelcastEntity> Predicate prepareFilters(String deviceId, Collection<Long> networkIds,
             Collection<Long> deviceTypeIds, Collection<String> names, Date timestampSt, Date timestampEnd,
             boolean returnUpdated, String status, Class<T> entityClass) {
-        return prepareFilters(null, Collections.singleton(deviceId), networkIds, deviceTypeIds, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
+        Set<String> deviceIdSet = deviceId != null ? Collections.singleton(deviceId) : null;
+        return prepareFilters(null, deviceIdSet, networkIds, deviceTypeIds, names, timestampSt, timestampEnd, returnUpdated, status, entityClass);
     }
 
     private <T extends HazelcastEntity> Predicate prepareFilters(Long id, Collection<String> deviceIds, Collection<Long> networkIds,

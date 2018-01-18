@@ -29,14 +29,11 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
-import com.devicehive.model.rpc.ListDeviceTypeRequest;
-import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.DeviceTypeService;
-import com.devicehive.service.NetworkService;
+import com.devicehive.service.FilterBuilderService;
 import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
@@ -54,8 +51,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.configuration.Messages.*;
@@ -77,23 +72,20 @@ public class CommandHandlers {
 
     private final Gson gson;
     private final DeviceService deviceService;
-    private final NetworkService networkService;
-    private final DeviceTypeService deviceTypeService;
     private final DeviceCommandService commandService;
+    private final FilterBuilderService filterBuilderService;
     private final WebSocketClientHandler clientHandler;
 
     @Autowired
     public CommandHandlers(Gson gson,
                            DeviceService deviceService,
-                           NetworkService networkService,
-                           DeviceTypeService deviceTypeService,
                            DeviceCommandService commandService,
+                           FilterBuilderService filterBuilderService,
                            WebSocketClientHandler clientHandler) {
         this.gson = gson;
         this.deviceService = deviceService;
-        this.networkService = networkService;
-        this.deviceTypeService = deviceTypeService;
         this.commandService = commandService;
+        this.filterBuilderService = filterBuilderService;
         this.clientHandler = clientHandler;
     }
 
@@ -103,7 +95,6 @@ public class CommandHandlers {
     public void processCommandSubscribe(String deviceId, JsonObject request, WebSocketSession session)
             throws InterruptedException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(TIMESTAMP), Date.class);
         final Set<String> names = gson.fromJson(request.getAsJsonArray(NAMES), JsonTypes.STRING_SET_TYPE);
         Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
@@ -115,75 +106,9 @@ public class CommandHandlers {
         logger.debug("command/subscribe requested for device: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
-        if (networks != null) {
-            Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(networkService::getWithDevices
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
-            if (actualNetworks.size() != networks.size()) {
-                throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
-            }
-        } else {
-            networks = principal.getNetworkIds();
-        }
-        if (deviceTypes != null) {
-            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream().map(deviceType ->
-                    deviceTypeService.getWithDevices(deviceType, authentication)
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
-            if (actualDeviceTypes.size() != deviceTypes.size()) {
-                throw new HiveException(String.format(DEVICE_TYPES_NOT_FOUND, deviceTypes), SC_FORBIDDEN);
-            }
-        } else {
-            deviceTypes = principal.getDeviceTypeIds();
-        }
+        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, COMMAND_EVENT.name(), names, authentication);
 
-        if ((networks != null && !networks.isEmpty() || principal.areAllNetworksAvailable())
-                && (deviceTypes != null && !deviceTypes.isEmpty() || principal.areAllDeviceTypesAvailable())) {
-            Set<Filter> filters;
-            if (deviceId != null) {
-                DeviceVO device = deviceService.findByIdWithPermissionsCheckIfExists(deviceId, principal);
-                if (names != null) {
-                    filters = names.stream().map(name ->
-                            new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, COMMAND_EVENT.name(), name))
-                            .collect(Collectors.toSet());
-                } else {
-                    filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), deviceId, COMMAND_EVENT.name(), null));
-                }
-            } else {
-                if (networks == null && deviceTypes == null) {
-                    if (names != null) {
-                        filters = names.stream().map(name ->
-                                new Filter(null, null, null, COMMAND_EVENT.name(), name))
-                                .collect(Collectors.toSet());
-                    } else {
-                        filters = Collections.singleton(new Filter(null, null, null, COMMAND_EVENT.name(), null));
-                    }
-                } else {
-                    if (networks == null) {
-                        ListNetworkRequest listNetworkRequest = new ListNetworkRequest();
-                        listNetworkRequest.setPrincipal(Optional.of(principal));
-                        networks = networkService.list(listNetworkRequest).join()
-                                .stream().map(NetworkVO::getId).collect(Collectors.toSet());
-                    }
-                    if (deviceTypes == null) {
-                        ListDeviceTypeRequest listDeviceTypeRequest = new ListDeviceTypeRequest();
-                        listDeviceTypeRequest.setPrincipal(Optional.of(principal));
-                        deviceTypes = deviceTypeService.list(listDeviceTypeRequest).join()
-                                .stream().map(DeviceTypeVO::getId).collect(Collectors.toSet());
-                    }
-                    final Set<Long> finalDeviceTypes = deviceTypes;
-                    filters = networks.stream()
-                            .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                                if (names != null) {
-                                    return names.stream().map(name ->
-                                            new Filter(network, deviceType, null, COMMAND_EVENT.name(), name)
-                                    );
-                                } else {
-                                    return Stream.of(new Filter(network, deviceType, null, COMMAND_EVENT.name(), null));
-                                }
-                            }))
-                            .collect(Collectors.toSet());
-                }
-            }
-
+        if (!filters.isEmpty()) {
             BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {
                 JsonObject json = createCommandMessage(command, subscriptionId, returnUpdated);
                 clientHandler.sendMessage(json, session);
