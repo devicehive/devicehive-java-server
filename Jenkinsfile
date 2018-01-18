@@ -205,7 +205,7 @@ def run_devicehive_tests() {
 def archive_container_logs(flavour) {
   def logsdir = "${flavour}-container-logs"
   sh """
-    mkdir ${logsdir}
+    mkdir ${logsdir} || :
     sudo docker logs ci_dh_auth_1 > ${logsdir}/auth.log 2>&1
     sudo docker logs ci_dh_backend_1 > ${logsdir}/backend.log 2>&1
     sudo docker logs ci_dh_frontend_1 > ${logsdir}/frontend.log 2>&1
