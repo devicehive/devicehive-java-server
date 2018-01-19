@@ -56,6 +56,7 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -142,6 +143,9 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
             } else {
                 response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
             }
+        } catch (NoSuchElementException ex) {
+            logger.error("Error executing the request: {}", ex.getMessage());
+            response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_NOT_FOUND, ex.getMessage());
         } catch (Exception ex) {
             logger.error("Error executing the request: {}", ex.getMessage());
             response = webSocketClientHandler.buildErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
