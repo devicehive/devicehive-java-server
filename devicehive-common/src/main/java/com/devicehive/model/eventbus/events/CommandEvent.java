@@ -21,7 +21,7 @@ package com.devicehive.model.eventbus.events;
  */
 
 import com.devicehive.model.DeviceCommand;
-import com.devicehive.model.eventbus.Subscription;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 
 import java.util.Arrays;
@@ -42,10 +42,18 @@ public class CommandEvent extends Event {
     }
 
     @Override
-    public Collection<Subscription> getApplicableSubscriptions() {
-        Subscription device = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceId());
-        Subscription deviceWithName = new Subscription(Action.COMMAND_EVENT.name(), command.getDeviceId(), command.getCommand());
-        return Arrays.asList(device, deviceWithName);
+    public Collection<Filter> getApplicableFilters() {
+        Filter deviceFilter = new Filter(command.getNetworkId(),
+                command.getDeviceTypeId(),
+                command.getDeviceId(),
+                Action.COMMAND_EVENT.name(),
+                null);
+        Filter deviceWithNameFilter = new Filter(command.getNetworkId(),
+                command.getDeviceTypeId(),
+                command.getDeviceId(),
+                Action.COMMAND_EVENT.name(),
+                command.getCommand());
+        return Arrays.asList(deviceFilter, deviceWithNameFilter);
     }
 
     @Override

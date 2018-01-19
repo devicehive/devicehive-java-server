@@ -20,6 +20,7 @@ package com.devicehive.shim.config.server;
  * #L%
  */
 
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
@@ -141,5 +142,10 @@ public class KafkaRpcServerConfig {
         RpcServer server = new KafkaRpcServer(workerPool, requestConsumer, eventHandler, workerThreads);
         server.start();
         return server;
+    }
+
+    @Bean
+    public FilterRegistry filterRegistry() {
+        return new FilterRegistry();
     }
 }

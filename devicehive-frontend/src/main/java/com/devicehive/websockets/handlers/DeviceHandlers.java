@@ -26,6 +26,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.rpc.CountDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.service.DeviceService;
@@ -125,8 +126,8 @@ public class DeviceHandlers {
         }
 
         WebSocketResponse response = new WebSocketResponse();
-        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) &&
-                !principal.areAllDevicesAvailable() && (principal.getDeviceIds() == null || principal.getDeviceIds().isEmpty())) {
+        if (!principal.areAllNetworksAvailable() && (principal.getNetworkIds() == null || principal.getNetworkIds().isEmpty()) ||
+                !principal.areAllDeviceTypesAvailable() && (principal.getDeviceTypeIds() == null || principal.getDeviceTypeIds().isEmpty())) {
             logger.warn("Unable to get list for empty devices");
             response.addValue(DEVICES, Collections.<DeviceVO>emptyList(), DEVICES_LISTED);
             webSocketClientHandler.sendMessage(request, response, session);
@@ -141,6 +142,21 @@ public class DeviceHandlers {
     }
 
     @HiveWebsocketAuth
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE')")
+    public void processDeviceCount(JsonObject request, WebSocketSession session) throws HiveException {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        CountDeviceRequest countDeviceRequest = CountDeviceRequest.createCountDeviceRequest(request, principal);
+
+        WebSocketResponse response = new WebSocketResponse();
+        deviceService.count(countDeviceRequest)
+                .thenAccept(count -> {
+                    logger.debug("Device count request proceed successfully");
+                    response.addValue(COUNT, count.getCount(), null);
+                    webSocketClientHandler.sendMessage(request, response, session);
+                });
+    }
+
+    @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'REGISTER_DEVICE')")
     public void processDeviceSave(String deviceId, JsonObject request, WebSocketSession session) throws HiveException {
         DeviceUpdate device = gson.fromJson(request.get(Constants.DEVICE), DeviceUpdate.class);
@@ -152,12 +168,9 @@ public class DeviceHandlers {
         if (!deviceId.matches("[a-zA-Z0-9-]+")) {
             throw new HiveException(Messages.DEVICE_ID_CONTAINS_INVALID_CHARACTERS, SC_BAD_REQUEST);
         }
-        HivePrincipal hivePrincipal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-        deviceService.deviceSaveAndNotify(deviceId, device, hivePrincipal).thenAccept(actionName -> {
-            logger.debug("device/save process ended for session  {}", session.getId());
-            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
-        });
-        
+        deviceService.deviceSaveAndNotify(deviceId, device, (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        logger.debug("device/save process ended for session  {}", session.getId());
+
+        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }

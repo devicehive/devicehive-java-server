@@ -21,7 +21,6 @@ package com.devicehive.messages.handler.command;
  */
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.rpc.CommandUnsubscribeRequest;
 import com.devicehive.model.rpc.CommandUnsubscribeResponse;
@@ -36,16 +35,10 @@ import org.springframework.util.Assert;
 public class CommandUnsubscribeRequestHandler implements RequestHandler {
 
     private EventBus eventBus;
-    private FilterRegistry filterRegistry;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
-    }
-
-    @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
     }
 
     @Override
@@ -57,7 +50,6 @@ public class CommandUnsubscribeRequestHandler implements RequestHandler {
             for (Long subId : body.getSubscriptionIds()) {
                 Subscriber subscriber = new Subscriber(subId, request.getReplyTo(), request.getCorrelationId());
                 eventBus.unsubscribe(subscriber);
-                filterRegistry.unregister(subId);
             }
 
             CommandUnsubscribeResponse unsubscribeResponse = new CommandUnsubscribeResponse(body.getSubscriptionIds());

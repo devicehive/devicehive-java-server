@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;
+import static com.devicehive.configuration.Constants.DEVICE_TYPE_ID;
 import static com.devicehive.configuration.Constants.NETWORK_ID;
 
 @Component
@@ -48,6 +49,7 @@ public class WebSocketRequestProcessor {
     private final SubscriptionHandlers subscriptionHandlers;
     private final DeviceHandlers deviceHandlers;
     private final NetworkHandlers networkHandlers;
+    private final DeviceTypeHandlers deviceTypeHandlers;
     private final UserHandlers userHandlers;
     private final Gson gson;
 
@@ -60,6 +62,7 @@ public class WebSocketRequestProcessor {
                                      SubscriptionHandlers subscriptionHandlers,
                                      DeviceHandlers deviceHandlers,
                                      NetworkHandlers networkHandlers,
+                                     DeviceTypeHandlers deviceTypeHandlers,
                                      UserHandlers userHandlers,
                                      Gson gson) {
         this.commonHandlers = commonHandlers;
@@ -70,6 +73,7 @@ public class WebSocketRequestProcessor {
         this.subscriptionHandlers = subscriptionHandlers;
         this.deviceHandlers = deviceHandlers;
         this.networkHandlers = networkHandlers;
+        this.deviceTypeHandlers = deviceTypeHandlers;
         this.userHandlers = userHandlers;
         this.gson = gson;
     }
@@ -78,6 +82,7 @@ public class WebSocketRequestProcessor {
         WebsocketAction action = getAction(request);
         final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
         final Long networkId = gson.fromJson(request.get(NETWORK_ID), Long.class);
+        final Long deviceTypeId = gson.fromJson(request.get(DEVICE_TYPE_ID), Long.class);
         
         switch (action) {
             case SERVER_INFO:
@@ -152,6 +157,9 @@ public class WebSocketRequestProcessor {
             case DEVICE_LIST:
                 deviceHandlers.processDeviceList(request, session);
                 break;
+            case DEVICE_COUNT:
+                deviceHandlers.processDeviceCount(request, session);
+                break;
             case DEVICE_SAVE:
                 deviceHandlers.processDeviceSave(deviceId, request, session);
                 break;
@@ -160,6 +168,9 @@ public class WebSocketRequestProcessor {
                 break;
             case NETWORK_LIST:
                 networkHandlers.processNetworkList(request, session);
+                break;
+            case NETWORK_COUNT:
+                networkHandlers.processNetworkCount(request, session);
                 break;
             case NETWORK_GET:
                 networkHandlers.processNetworkGet(networkId, request, session);
@@ -173,8 +184,29 @@ public class WebSocketRequestProcessor {
             case NETWORK_DELETE:
                 networkHandlers.processNetworkDelete(networkId, request, session);
                 break;
+            case DEVICE_TYPE_LIST:
+                deviceTypeHandlers.processDeviceTypeList(request, session);
+                break;
+            case DEVICE_TYPE_COUNT:
+                deviceTypeHandlers.processDeviceTypeCount(request, session);
+                break;
+            case DEVICE_TYPE_GET:
+                deviceTypeHandlers.processDeviceTypeGet(deviceTypeId, request, session);
+                break;
+            case DEVICE_TYPE_INSERT:
+                deviceTypeHandlers.processDeviceTypeInsert(request, session);
+                break;
+            case DEVICE_TYPE_UPDATE:
+                deviceTypeHandlers.processDeviceTypeUpdate(deviceTypeId, request, session);
+                break;
+            case DEVICE_TYPE_DELETE:
+                deviceTypeHandlers.processDeviceTypeDelete(deviceTypeId, request, session);
+                break;
             case USER_LIST:
                 userHandlers.processUserList(request, session);
+                break;
+            case USER_COUNT:
+                userHandlers.processUserCount(request, session);
                 break;
             case USER_GET:
                 userHandlers.processUserGet(request, session);
@@ -202,6 +234,24 @@ public class WebSocketRequestProcessor {
                 break;
             case USER_UNASSIGN_NETWORK:
                 userHandlers.processUserUnassignNetwork(request, session);
+                break;
+            case USER_GET_DEVICE_TYPE:
+                userHandlers.processUserGetDeviceType(request, session);
+                break;
+            case USER_GET_DEVICE_TYPES:
+                userHandlers.processUserGetDeviceTypes(request, session);
+                break;
+            case USER_ASSIGN_DEVICE_TYPE:
+                userHandlers.processUserAssignDeviceType(request, session);
+                break;
+            case USER_UNASSIGN_DEVICE_TYPE:
+                userHandlers.processUserUnassignDeviceType(request, session);
+                break;
+            case USER_ALLOW_ALL_DEVICE_TYPES:
+                userHandlers.processUserAllowAllDeviceTypes(request, session);
+                break;
+            case USER_DISALLOW_ALL_DEVICE_TYPES:
+                userHandlers.processUserDisallowAllDeviceTypes(request, session);
                 break;
             case EMPTY: default:
                 throw new JsonParseException("'action' field could not be parsed to known endpoint");
@@ -241,14 +291,23 @@ public class WebSocketRequestProcessor {
         SUBSCRIPTION_LIST("subscription/list"),
         DEVICE_GET("device/get"),
         DEVICE_LIST("device/list"),
+        DEVICE_COUNT("device/count"),
         DEVICE_SAVE("device/save"),
         DEVICE_DELETE("device/delete"),
         NETWORK_LIST("network/list"),
+        NETWORK_COUNT("network/count"),
         NETWORK_INSERT("network/insert"),
         NETWORK_GET("network/get"),
         NETWORK_DELETE("network/delete"),
         NETWORK_UPDATE("network/update"),
+        DEVICE_TYPE_LIST("devicetype/list"),
+        DEVICE_TYPE_COUNT("devicetype/count"),
+        DEVICE_TYPE_INSERT("devicetype/insert"),
+        DEVICE_TYPE_GET("devicetype/get"),
+        DEVICE_TYPE_DELETE("devicetype/delete"),
+        DEVICE_TYPE_UPDATE("devicetype/update"),
         USER_LIST("user/list"),
+        USER_COUNT("user/count"),
         USER_GET("user/get"),
         USER_INSERT("user/insert"),
         USER_UPDATE("user/update"),
@@ -258,6 +317,12 @@ public class WebSocketRequestProcessor {
         USER_GET_NETWORK("user/getNetwork"),
         USER_ASSIGN_NETWORK("user/assignNetwork"),
         USER_UNASSIGN_NETWORK("user/unassignNetwork"),
+        USER_GET_DEVICE_TYPE("user/getDeviceType"),
+        USER_GET_DEVICE_TYPES("user/getDeviceTypes"),
+        USER_ASSIGN_DEVICE_TYPE("user/assignDeviceType"),
+        USER_UNASSIGN_DEVICE_TYPE("user/unassignDeviceType"),
+        USER_ALLOW_ALL_DEVICE_TYPES("user/allowAllDeviceTypes"),
+        USER_DISALLOW_ALL_DEVICE_TYPES("user/disallowAllDeviceTypes"),
         EMPTY("");
 
         private String value;

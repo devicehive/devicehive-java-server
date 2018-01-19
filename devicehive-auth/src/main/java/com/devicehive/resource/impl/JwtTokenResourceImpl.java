@@ -191,11 +191,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             return ResponseFactory.response(UNAUTHORIZED,
                     new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
         }
-        if (!pluginVO.getStatus().equals(PluginStatus.ACTIVE)) {
-            logger.warn(PLUGIN_NOT_ACTIVE);
-            return ResponseFactory.response(UNAUTHORIZED,
-                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_ACTIVE));
-        }
 
         JwtTokenVO responseTokenVO = new JwtTokenVO();
         responseTokenVO.setAccessToken(tokenService.generateJwtAccessToken(payload, false));
@@ -244,11 +239,6 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                 logger.warn(PLUGIN_NOT_FOUND);
                 return ResponseFactory.response(UNAUTHORIZED, 
                         new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
-            }
-            if (!PluginStatus.ACTIVE.equals(pluginVO.getStatus())) {
-                logger.warn(PLUGIN_NOT_ACTIVE);
-                return ResponseFactory.response(UNAUTHORIZED,
-                        new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_ACTIVE));
             }
         }
         

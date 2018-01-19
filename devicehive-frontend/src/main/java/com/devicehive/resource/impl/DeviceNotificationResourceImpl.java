@@ -20,6 +20,7 @@ package com.devicehive.resource.impl;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceNotification;
@@ -33,14 +34,17 @@ import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
+import com.devicehive.service.FilterBuilderService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.container.AsyncResponse;
@@ -51,9 +55,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
-import static com.devicehive.model.converters.SetHelper.toLongSet;
-import static com.devicehive.model.converters.SetHelper.toStringSet;
+import static com.devicehive.shim.api.Action.NOTIFICATION_EVENT;
 import static javax.ws.rs.core.Response.Status.*;
 
 /**
@@ -64,18 +68,24 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceNotificationResourceImpl.class);
 
+    private final Gson gson;
     private final DeviceNotificationService notificationService;
     private final DeviceService deviceService;
+    private final FilterBuilderService filterBuilderService;
     private final TimestampService timestampService;
     private final HiveValidator hiveValidator;
 
     @Autowired
-    public DeviceNotificationResourceImpl(DeviceNotificationService notificationService,
+    public DeviceNotificationResourceImpl(Gson gson,
+                                          DeviceNotificationService notificationService,
                                           DeviceService deviceService,
+                                          FilterBuilderService filterBuilderService,
                                           TimestampService timestampService,
                                           HiveValidator hiveValidator) {
+        this.gson = gson;
         this.notificationService = notificationService;
         this.deviceService = deviceService;
+        this.filterBuilderService = filterBuilderService;
         this.timestampService = timestampService;
         this.hiveValidator = hiveValidator;
     }
@@ -148,23 +158,26 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     @Override
     public void poll(final String deviceId, final String namesString, final String timestamp,
                      final long timeout, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceId, null, namesString, timestamp, asyncResponse);
+        poll(timeout, deviceId, null, null, namesString, timestamp, asyncResponse);
     }
 
     @Override
-    public void pollMany(final long timeout, String deviceIdsString, String networkIdsString, final String namesString,
-                         final String timestamp, final AsyncResponse asyncResponse) throws Exception {
-        poll(timeout, deviceIdsString, networkIdsString, namesString, timestamp, asyncResponse);
+    public void pollMany(final long timeout, String deviceIdsString, String networkIdsString, final String deviceTypeIdsString,
+                         final String namesString, final String timestamp, final AsyncResponse asyncResponse)
+            throws Exception {
+        poll(timeout, deviceIdsString, networkIdsString, deviceTypeIdsString, namesString, timestamp, asyncResponse);
     }
 
     private void poll(final long timeout,
-                      final String deviceIdsCsv,
+                      final String deviceId,
                       final String networkIdsCsv,
+                      final String deviceTypeIdsCsv,
                       final String namesCsv,
                       final String timestamp,
                       final AsyncResponse asyncResponse) throws InterruptedException {
-        final Date ts = Optional.ofNullable(timestamp)
-                .map(TimestampQueryParamParser::parse)
+        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+
+        final Date ts = Optional.ofNullable(timestamp).map(TimestampQueryParamParser::parse)
                 .orElse(timestampService.getDate());
         
         final Response response = ResponseFactory.response(
@@ -174,9 +187,22 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
 
         asyncResponse.setTimeoutHandler(asyncRes -> asyncRes.resume(response));
 
-        Set<String> deviceIds = toStringSet(deviceIdsCsv);
-        Set<Long> networkIds = toLongSet(networkIdsCsv);
-        Set<String> availableDeviceIds = deviceService.getAvailableDeviceIds(deviceIds, networkIds);
+        Set<String> names = Optional.ofNullable(StringUtils.split(namesCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream().collect(Collectors.toSet()))
+                .orElse(null);
+        Set<Long> networks = Optional.ofNullable(StringUtils.split(networkIdsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream()
+                        .map(n -> gson.fromJson(n, Long.class))
+                        .collect(Collectors.toSet())
+                ).orElse(null);
+        Set<Long> deviceTypes = Optional.ofNullable(StringUtils.split(deviceTypeIdsCsv, ','))
+                .map(Arrays::asList)
+                .map(list -> list.stream()
+                        .map(dt -> gson.fromJson(dt, Long.class))
+                        .collect(Collectors.toSet())
+                ).orElse(null);
 
         BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
             if (!asyncResponse.isDone()) {
@@ -187,12 +213,11 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
         };
 
-        Filter filter = new Filter();
-        filter.setNames(toStringSet(namesCsv));
-        
-        if (!availableDeviceIds.isEmpty()) {
+        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
+
+        if (!filters.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                    .subscribe(availableDeviceIds, filter, ts, callback);
+                    .subscribe(filters, names, ts, callback);
             pair.getRight().thenAccept(collection -> {
                 if (!collection.isEmpty() && !asyncResponse.isDone()) {
                     asyncResponse.resume(ResponseFactory.response(

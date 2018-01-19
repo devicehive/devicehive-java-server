@@ -33,6 +33,8 @@ public interface PluginDao {
     
     PluginVO findByTopic(String topicName);
 
+    PluginVO findByName(String pluginName);
+
     void persist(PluginVO pluginVO);
 
     PluginVO merge(PluginVO existing);

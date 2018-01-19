@@ -25,11 +25,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.security.jwt.JwtUserPayload;
 import com.devicehive.service.BaseUserService;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.JwtRequestVO;
-import com.devicehive.vo.JwtTokenVO;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,14 +71,15 @@ public class JwtTokenService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public JwtTokenVO createJwtToken(@NotNull UserVO user) {
         Set<String> networkIds = new HashSet<>();
-        Set<String> deviceIds = new HashSet<>();
+        Set<String> deviceTypeIds = new HashSet<>();
         Set<Integer> actions = new HashSet<>();
         if (user.isAdmin()) {
             networkIds.add("*");
-            deviceIds.add("*");
+            deviceTypeIds.add("*");
             actions.add(ANY.getId());
         } else {
             UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
+            UserWithDeviceTypeVO userWithDeviceType = userService.findUserWithDeviceType(user.getId());
 //          TODO: check if needed
             userService.refreshUserLoginData(user);
 
@@ -91,7 +88,16 @@ public class JwtTokenService {
                 networks.forEach(network -> {
                     networkIds.add(network.getId().toString());
                 });
-                deviceIds.add("*");
+            }
+            if (userWithDeviceType.getAllDeviceTypesAvailable()) {
+                deviceTypeIds.add("*");
+            } else {
+                Set<DeviceTypeVO> deviceTypes = userWithDeviceType.getDeviceTypes();
+                if (!deviceTypes.isEmpty()) {
+                    deviceTypes.forEach(deviceType -> {
+                        deviceTypeIds.add(deviceType.getId().toString());
+                    });
+                }
             }
             actions = getIdSet(getClientHiveActions());
         }
@@ -101,7 +107,7 @@ public class JwtTokenService {
                 .withUserId(user.getId())
                 .withActions(actions)
                 .withNetworkIds(networkIds)
-                .withDeviceIds(deviceIds)
+                .withDeviceTypeIds(deviceTypeIds)
                 .buildPayload();
 
         JwtUserPayload refreshPayload = JwtUserPayload.newBuilder().withPayload(accessPayload)

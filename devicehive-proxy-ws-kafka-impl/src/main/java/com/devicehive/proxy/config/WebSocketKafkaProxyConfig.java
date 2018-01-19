@@ -43,6 +43,9 @@ public class WebSocketKafkaProxyConfig {
     @Value("${lmax.wait.strategy:blocking}")
     private String waitStrategy;
 
+    @Value("${proxy.ack.enable:false}")
+    private boolean ackEnable;
+
     public String getProxyConnect() {
         return proxyConnect;
     }
@@ -61,5 +64,9 @@ public class WebSocketKafkaProxyConfig {
 
     public String getWaitStrategy() {
         return waitStrategy;
+    }
+
+    public boolean getAckEnable() {
+        return ackEnable;
     }
 }

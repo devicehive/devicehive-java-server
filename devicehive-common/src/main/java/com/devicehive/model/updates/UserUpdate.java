@@ -30,6 +30,7 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Size;
+import javax.ws.rs.DefaultValue;
 import java.util.Optional;
 
 public class UserUpdate implements HiveEntity {
@@ -55,6 +56,9 @@ public class UserUpdate implements HiveEntity {
     private JsonStringWrapper data;
 
     private Boolean introReviewed;
+
+    @ApiModelProperty(hidden = true)
+    private Boolean allDeviceTypesAvailable;
 
     public Optional<String> getLogin() {
         return Optional.ofNullable(login);
@@ -104,6 +108,14 @@ public class UserUpdate implements HiveEntity {
         this.introReviewed = introReviewed;
     }
 
+    public Boolean getAllDeviceTypesAvailable() {
+        return allDeviceTypesAvailable;
+    }
+
+    public void setAllDeviceTypesAvailable(Boolean allDeviceTypesAvailable) {
+        this.allDeviceTypesAvailable = allDeviceTypesAvailable;
+    }
+
     @ApiModelProperty(hidden = true)
     public UserRole getRoleEnum() {
         return getRole().map(UserRole::getValueForIndex).orElse(null);
@@ -124,6 +136,9 @@ public class UserUpdate implements HiveEntity {
         }
         if (introReviewed != null) {
             result.setIntroReviewed(introReviewed);
+        }
+        if (allDeviceTypesAvailable != null) {
+            result.setAllDeviceTypesAvailable(allDeviceTypesAvailable);
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

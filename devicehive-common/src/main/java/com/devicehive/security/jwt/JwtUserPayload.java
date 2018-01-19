@@ -51,9 +51,8 @@ public class JwtUserPayload extends JwtPayload {
     private static final long serialVersionUID = -6904689203121394308L;
 
     public final static String USER_ID = "u";
-    public final static String ACTIONS = "a";
     public final static String NETWORK_IDS = "n";
-    public final static String DEVICE_IDS = "d";
+    public final static String DEVICE_TYPE_IDS = "dt";
     
     //Public claims
 
@@ -62,25 +61,20 @@ public class JwtUserPayload extends JwtPayload {
     @JsonProperty(USER_ID)
     private Long userId;
 
-    @SerializedName(ACTIONS)
-    @JsonProperty(ACTIONS)
-    private Set<Integer> actions;
-
     @SerializedName(NETWORK_IDS)
     @JsonProperty(NETWORK_IDS)
     private Set<String> networkIds;
 
-    @SerializedName(DEVICE_IDS)
-    @JsonProperty(DEVICE_IDS)
-    private Set<String> deviceIds;
+    @SerializedName(DEVICE_TYPE_IDS)
+    @JsonProperty(DEVICE_TYPE_IDS)
+    private Set<String> deviceTypeIds;
 
     public JwtUserPayload(Long userId, Set<Integer> actions, Set<String> networkIds,
-                       Set<String> deviceIds, Date expiration, Integer tokenType) {
-        super(expiration, tokenType);
+                       Set<String> deviceTypeIds, Date expiration, Integer tokenType) {
+        super(actions, expiration, tokenType);
         this.userId = userId;
-        this.actions = actions;
         this.networkIds = networkIds;
-        this.deviceIds = deviceIds;
+        this.deviceTypeIds = deviceTypeIds;
     }
 
     public Long getUserId() {
@@ -91,14 +85,6 @@ public class JwtUserPayload extends JwtPayload {
         this.userId = userId;
     }
 
-    public Set<Integer> getActions() {
-        return actions;
-    }
-
-    public void setActions(Set<Integer> actions) {
-        this.actions = actions;
-    }
-
     public Set<String> getNetworkIds() {
         return networkIds;
     }
@@ -107,12 +93,12 @@ public class JwtUserPayload extends JwtPayload {
         this.networkIds = networkIds;
     }
 
-    public Set<String> getDeviceIds() {
-        return deviceIds;
+    public Set<String> getDeviceTypeIds() {
+        return deviceTypeIds;
     }
 
-    public void setDeviceIds(Set<String> deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setDeviceTypeIds(Set<String> deviceTypeIds) {
+        this.deviceTypeIds = deviceTypeIds;
     }
 
     @Override
@@ -127,16 +113,15 @@ public class JwtUserPayload extends JwtPayload {
 
     public static class JwtUserPayloadBuilder extends JwtPayloadBuilder {
         private Long userId;
-        private Set<Integer> actions;
         private Set<String> networkIds;
-        private Set<String> deviceIds;
+        private Set<String> deviceTypeIds;
         
         public JwtUserPayloadBuilder withPublicClaims(Long userId, Set<Integer> actions,
-                                        Set<String> networkIds, Set<String> deviceIds) {
+                                        Set<String> networkIds, Set<String> deviceTypeIds) {
             this.userId = userId;
             this.actions = actions;
             this.networkIds = networkIds;
-            this.deviceIds = deviceIds;
+            this.deviceTypeIds = deviceTypeIds;
             return this;
         }
 
@@ -144,7 +129,7 @@ public class JwtUserPayload extends JwtPayload {
             this.userId = payload.getUserId();
             this.actions = payload.getActions();
             this.networkIds = payload.getNetworkIds();
-            this.deviceIds = payload.getDeviceIds();
+            this.deviceTypeIds = payload.getDeviceTypeIds();
             this.expiration = payload.getExpiration();
             return this;
         }
@@ -164,8 +149,8 @@ public class JwtUserPayload extends JwtPayload {
             return this;
         }
 
-        public JwtUserPayloadBuilder withDeviceIds(Set<String> deviceIds) {
-            this.deviceIds = deviceIds;
+        public JwtUserPayloadBuilder withDeviceTypeIds(Set<String> deviceTypeIds) {
+            this.deviceTypeIds = deviceTypeIds;
             return this;
         }
 
@@ -180,7 +165,7 @@ public class JwtUserPayload extends JwtPayload {
         }
 
         public JwtUserPayload buildPayload() {
-            return new JwtUserPayload(userId, actions, networkIds, deviceIds, expiration, tokenType);
+            return new JwtUserPayload(userId, actions, networkIds, deviceTypeIds, expiration, tokenType);
         }
     }
 }

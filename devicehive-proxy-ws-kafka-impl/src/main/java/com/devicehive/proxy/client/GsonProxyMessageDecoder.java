@@ -21,10 +21,7 @@ package com.devicehive.proxy.client;
  */
 
 import com.devicehive.proxy.api.ProxyMessage;
-import com.devicehive.proxy.api.payload.HealthPayload;
-import com.devicehive.proxy.api.payload.NotificationPayload;
-import com.devicehive.proxy.api.payload.TopicCreatePayload;
-import com.devicehive.proxy.api.payload.TopicListPayload;
+import com.devicehive.proxy.api.payload.*;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
@@ -82,30 +79,33 @@ class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
             type += "/" + a.getAsString();
         }
 
+        Integer status = object.get("s") != null ? object.get("s").getAsInt() : null;
         ProxyMessage.Builder decoded = ProxyMessage.newBuilder()
                 .withId(object.get("id") != null ? object.get("id").getAsString() : null)
                 .withType(t.getAsString())
                 .withAction(a != null ? a.getAsString() : null)
-                .withStatus(object.get("s") != null ? object.get("s").getAsInt() : null);
-        Type listType = new TypeToken<List<String>>() {}.getType();
+                .withStatus(status);
         if (object.get("p") != null) {
-            switch (type) {
-                case "topic/create":
-                    decoded.withPayload(new TopicCreatePayload((List<String>) gson.fromJson(object.get("p"), listType)));
-                    break;
-                case "topic/list":
-                    decoded.withPayload(new TopicListPayload(gson.fromJson(object.get("p"),
-                            new TypeToken<List<TopicListPayload.TopicInfo>>() {}.getType())));
-                    break;
-                case "topic/subscribe":
-                    decoded.withPayload(new TopicCreatePayload((List<String>) gson.fromJson(object.get("p"), listType)));
-                    break;
-                case "notif":
-                    decoded.withPayload(new NotificationPayload(gson.fromJson(object.get("p"), String.class)));
-                    break;
-                case "health":
-                    decoded.withPayload(gson.fromJson(object.get("p"), HealthPayload.class));
-                    break;
+            if (status != null && status == 0) {
+                switch (type) {
+                    case "topic/create":
+                        decoded.withPayload(gson.fromJson(object.get("p"), TopicsPayload.class));
+                        break;
+                    case "topic/list":
+                        decoded.withPayload(gson.fromJson(object.get("p"), TopicsPayload.class));
+                        break;
+                    case "topic/subscribe":
+                        decoded.withPayload(gson.fromJson(object.get("p"), SubscribePayload.class));
+                        break;
+                    case "notif":
+                        decoded.withPayload(gson.fromJson(object.get("p"), MessagePayload.class));
+                        break;
+                    case "health":
+                        decoded.withPayload(gson.fromJson(object.get("p"), HealthPayload.class));
+                        break;
+                }
+            } else {
+                decoded.withPayload(gson.fromJson(object.get("p"), MessagePayload.class));
             }
         }
         return decoded.build();

@@ -22,28 +22,29 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.devicehive.vo.DeviceVO;
 
 public class DeviceDeleteRequest extends Body {
 
-    private String deviceId;
+    private DeviceVO device;
 
-    public DeviceDeleteRequest(String deviceId) {
+    public DeviceDeleteRequest(DeviceVO device) {
         super(Action.DEVICE_DELETE_REQUEST);
-        this.deviceId = deviceId;
+        this.device = device;
     }
 
-    public String getDeviceId() {
-        return deviceId;
+    public DeviceVO getDevice() {
+        return device;
     }
 
-    public void setDeviceId(String deviceId) {
-        this.deviceId = deviceId;
+    public void setDevice(DeviceVO device) {
+        this.device = device;
     }
 
     @Override
     public String toString() {
         return "DeviceDeleteRequest{" +
-                "deviceId=" + deviceId +
+                "device=" + device +
                 '}';
     }
 }

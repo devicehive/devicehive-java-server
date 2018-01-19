@@ -24,9 +24,11 @@ package com.devicehive.resource.impl;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseDeviceService;
 import com.devicehive.service.PluginRegisterService;
 import com.devicehive.util.HiveValidator;
 import org.slf4j.Logger;
@@ -62,16 +64,29 @@ public class PluginResourceImpl implements PluginResource {
     public void register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate, String authorization,
             @Suspended final AsyncResponse asyncResponse) {
         hiveValidator.validate(pluginUpdate);
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
-            pluginRegisterService.register(pluginReqisterQuery.toRequest(principal), pluginUpdate, authorization)
-                    .thenAccept(response ->
-                            asyncResponse.resume(response)
+            HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            pluginRegisterService.register(principal.getUser().getId(), pluginReqisterQuery, pluginUpdate, authorization)
+                    .thenAccept(asyncResponse::resume
                     );
         } catch (ServiceUnavailableException e) {
             logger.warn(HEALTH_CHECK_FAILED);
             asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
                     new ErrorResponse(BAD_REQUEST.getStatusCode(), HEALTH_CHECK_FAILED)));
         }
+    }
+
+    @Override
+    public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.update(principal.getPlugin(), updateQuery, authorization)
+                .thenAccept(asyncResponse::resume);
+    }
+
+    @Override
+    public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        pluginRegisterService.delete(principal.getPlugin(), authorization)
+                .thenAccept(asyncResponse::resume);
     }
 }

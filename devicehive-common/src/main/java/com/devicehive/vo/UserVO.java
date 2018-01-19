@@ -80,6 +80,10 @@ public class UserVO implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Boolean introReviewed;
 
+    @SerializedName("allDeviceTypesAvailable")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean allDeviceTypesAvailable;
+
     /**
      * @return true, if user is admin
      */
@@ -166,6 +170,14 @@ public class UserVO implements HiveEntity {
 
     public void setIntroReviewed(Boolean introReviewed) {
         this.introReviewed = introReviewed;
+    }
+
+    public Boolean getAllDeviceTypesAvailable() {
+        return allDeviceTypesAvailable;
+    }
+
+    public void setAllDeviceTypesAvailable(Boolean allDeviceTypesAvailable) {
+        this.allDeviceTypesAvailable = allDeviceTypesAvailable;
     }
 
     @Override

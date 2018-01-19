@@ -22,6 +22,7 @@ package com.devicehive.model.updates;
 
 
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.vo.PluginVO;
@@ -31,7 +32,9 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_PUBLISH
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static com.devicehive.model.enums.PluginStatus.ACTIVE;
 
-public class PluginUpdate {
+public class PluginUpdate implements HiveEntity {
+
+    private static final long serialVersionUID = 1499386299938178873L;
 
     @SerializedName("name")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -40,10 +43,6 @@ public class PluginUpdate {
     @SerializedName("description")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String description;
-    
-    @SerializedName("healthCheckUrl")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private String healthCheckUrl;
 
     @SerializedName("parameters")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -65,14 +64,6 @@ public class PluginUpdate {
         this.description = description;
     }
 
-    public String getHealthCheckUrl() {
-        return healthCheckUrl;
-    }
-
-    public void setHealthCheckUrl(String healthCheckUrl) {
-        this.healthCheckUrl = healthCheckUrl;
-    }
-
     public JsonStringWrapper getParameters() {
         return parameters;
     }
@@ -85,7 +76,6 @@ public class PluginUpdate {
         PluginVO pluginVO = new PluginVO();
         pluginVO.setName(name);
         pluginVO.setDescription(description);
-        pluginVO.setHealthCheckUrl(healthCheckUrl);
         pluginVO.setStatus(ACTIVE);
         pluginVO.setParameters(parameters);
 

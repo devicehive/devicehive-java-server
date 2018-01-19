@@ -20,58 +20,52 @@ package com.devicehive.model.query;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.converters.TimestampQueryParamParser;
-import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
+import com.devicehive.service.FilterService;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
 
-import static com.devicehive.configuration.Constants.RETURN_COMMANDS;
-import static com.devicehive.configuration.Constants.RETURN_NOTIFICATIONS;
-import static com.devicehive.configuration.Constants.RETURN_UPDATED_COMMANDS;
-import static com.devicehive.model.converters.SetHelper.toLongSet;
-import static com.devicehive.model.converters.SetHelper.toStringSet;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.model.FilterEntity.ALL_ENTITIES;
 
 
 public class PluginReqisterQuery {
 
-    @ApiParam(name = "deviceIds", value = "Device ids")
-    @QueryParam("deviceIds")
-    private String deviceIds;
+    @ApiParam(name = "deviceId", value = "Device device_id")
+    @QueryParam("deviceId")
+    private String deviceId;
 
     @ApiParam(name = "networkIds", value = "Network ids")
     @QueryParam("networkIds")
     private String networkIds;
 
+    @ApiParam(name = "deviceTypeIds", value = "Device type ids")
+    @QueryParam("deviceTypeIds")
+    private String deviceTypeIds;
+
     @ApiParam(name = "names", value = "Command/Notification names")
     @QueryParam("names")
     private String names;
 
-    @ApiParam(name = "timestamp", value = "Timestamp to start from")
-    @QueryParam("timestamp")
-    private String timestamp;
-
     @ApiParam(name = RETURN_COMMANDS, value = "Checks if commands should be returned", defaultValue = "true")
     @QueryParam(RETURN_COMMANDS)
-    private boolean returnCommands;
+    private Boolean returnCommands;
 
     @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
     @QueryParam(RETURN_UPDATED_COMMANDS)
-    private boolean returnUpdatedCommands;
+    private Boolean returnUpdatedCommands;
 
     @ApiParam(name = RETURN_NOTIFICATIONS, value = "Checks if commands should be returned", defaultValue = "false")
     @QueryParam(RETURN_NOTIFICATIONS)
-    private boolean returnNotifications;
+    private Boolean returnNotifications;
 
-    public String getDeviceIds() {
-        return deviceIds;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setDeviceIds(String deviceIds) {
-        this.deviceIds = deviceIds;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getNetworkIds() {
@@ -82,6 +76,14 @@ public class PluginReqisterQuery {
         this.networkIds = networkIds;
     }
 
+    public String getDeviceTypeIds() {
+        return deviceTypeIds;
+    }
+
+    public void setDeviceTypeIds(String deviceTypeIds) {
+        this.deviceTypeIds = deviceTypeIds;
+    }
+
     public String getNames() {
         return names;
     }
@@ -90,59 +92,84 @@ public class PluginReqisterQuery {
         this.names = names;
     }
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public boolean isReturnCommands() {
+    public Boolean isReturnCommands() {
         return returnCommands;
     }
 
-    public void setReturnCommands(boolean returnCommands) {
+    public void setReturnCommands(Boolean returnCommands) {
         this.returnCommands = returnCommands;
     }
 
-    public boolean isReturnUpdatedCommands() {
+    public Boolean isReturnUpdatedCommands() {
         return returnUpdatedCommands;
     }
 
-    public void setReturnUpdatedCommands(boolean returnUpdatedCommands) {
+    public void setReturnUpdatedCommands(Boolean returnUpdatedCommands) {
         this.returnUpdatedCommands = returnUpdatedCommands;
     }
 
-    public boolean isReturnNotifications() {
+    public Boolean isReturnNotifications() {
         return returnNotifications;
     }
 
-    public void setReturnNotifications(boolean returnNotifications) {
+    public void setReturnNotifications(Boolean returnNotifications) {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(HivePrincipal principal) {
+    public PluginSubscribeRequest toRequest(FilterService filterService) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
-        request.setFilter(createFilter(principal));
-        request.setTimestamp(TimestampQueryParamParser.parse(timestamp));
+        request.setFilters(filterService.createFilters(this));
         request.setReturnCommands(returnCommands);
         request.setReturnUpdatedCommands(returnUpdatedCommands);
         request.setReturnNotifications(returnNotifications);
         
         return request;
     }
-    
-    private Filter createFilter(HivePrincipal principal) {
-        Filter filter = new Filter();
-        filter.setPrincipal(principal);
-        filter.setDeviceIds(toStringSet(deviceIds));
-        filter.setNetworkIds(toLongSet(networkIds));
-        filter.setNames(toStringSet(names));
-        if (isEmpty(filter.getDeviceIds()) && isEmpty(filter.getNetworkIds())) {
-            filter.setGlobal(true);
+
+    // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
+    // TODO - change to embedded entity for better code readability
+    public String constructFilterString() {
+        StringBuilder sb = new StringBuilder();
+        if (returnCommands && returnUpdatedCommands && returnNotifications) {
+            sb.append(ALL_ENTITIES);
+        } else if (returnCommands) {
+            sb.append("command");
+        } else if (returnUpdatedCommands) {
+            sb.append("command_update");
+        } else {
+            sb.append("notification");
         }
-        
-        return filter;
+        sb.append("/");
+
+        if (networkIds != null) {
+            sb.append(networkIds);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (deviceTypeIds != null) {
+            sb.append(deviceTypeIds);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (deviceId != null) {
+            sb.append(deviceId);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+        sb.append("/");
+
+        if (names != null) {
+            sb.append(names);
+        } else {
+            sb.append(ALL_ENTITIES);
+        }
+
+        return sb.toString();
     }
+    
+
 }

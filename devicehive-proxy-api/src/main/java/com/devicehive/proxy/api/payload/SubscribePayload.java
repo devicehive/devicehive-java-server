@@ -9,9 +9,9 @@ package com.devicehive.proxy.api.payload;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,31 +25,30 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Collections;
 import java.util.List;
 
-public class TopicSubscribePayload implements Payload {
-
+public class SubscribePayload implements Payload {
 
     @SerializedName("t")
     private List<String> topics;
 
-    @SerializedName("consumer_group")
-    private String consumerGroup;
+    @SerializedName("sg")
+    private String subscriptionGroup;
 
-    public TopicSubscribePayload(List<String> topics, String consumerGroup) {
-        this.topics = topics;
-        this.consumerGroup = consumerGroup;
-    }
-
-    public TopicSubscribePayload(String topic, String consumerGroup) {
-        this.topics = Collections.singletonList(topic);
-        this.consumerGroup = consumerGroup;
-    }
-
-    public TopicSubscribePayload(List<String> topics) {
+    public SubscribePayload(List<String> topics) {
         this.topics = topics;
     }
 
-    public TopicSubscribePayload(String topic) {
+    public SubscribePayload(String topic) {
         this.topics = Collections.singletonList(topic);
+    }
+
+    public SubscribePayload(List<String> topics, String subscriptionGroup) {
+        this.topics = topics;
+        this.subscriptionGroup = subscriptionGroup;
+    }
+
+    public SubscribePayload(String topic, String subscriptionGroup) {
+        this.topics = Collections.singletonList(topic);
+        this.subscriptionGroup = subscriptionGroup;
     }
 
     public List<String> getTopics() {
@@ -60,19 +59,19 @@ public class TopicSubscribePayload implements Payload {
         this.topics = topics;
     }
 
-    public String getConsumerGroup() {
-        return consumerGroup;
+    public String getSubscriptionGroup() {
+        return subscriptionGroup;
     }
 
-    public void setConsumerGroup(String consumerGroup) {
-        this.consumerGroup = consumerGroup;
+    public void setSubscriptionGroup(String subscriptionGroup) {
+        this.subscriptionGroup = subscriptionGroup;
     }
 
     @Override
     public String toString() {
-        return "TopicSubscribePayload{" +
+        return "TopicsPayload{" +
                 "topics=" + topics +
-                ", consumerGroup='" + consumerGroup + '\'' +
+                ", subscriptionGroup=" + subscriptionGroup +
                 '}';
     }
 }

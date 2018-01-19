@@ -49,6 +49,8 @@ public interface NetworkDao {
     List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
                        Integer skip, Optional<HivePrincipal> principal);
 
+    long count(String name, String namePattern, HivePrincipal principal);
+
     Optional<NetworkVO> findFirstByName(String name);
 
     Optional<NetworkWithUsersAndDevicesVO> findWithUsers(@NotNull long networkId);

@@ -108,7 +108,6 @@ public class NetworkService {
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Long> permittedNetworks = principal.getNetworkIds();
-        Set<String> permittedDevices = principal.getDeviceIds();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -122,14 +121,6 @@ public class NetworkService {
                     List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
-                }).map(network -> {
-                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
-                        Set<DeviceVO> allowed = network.getDevices().stream()
-                                .filter(device -> permittedDevices.contains(device.getDeviceId()))
-                                .collect(Collectors.toSet());
-                        network.setDevices(allowed);
-                    }
-                    return network;
                 });
 
         return result.orElse(null);

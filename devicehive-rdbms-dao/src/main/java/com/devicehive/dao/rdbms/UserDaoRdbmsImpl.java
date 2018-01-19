@@ -21,11 +21,10 @@ package com.devicehive.dao.rdbms;
  */
 
 import com.devicehive.dao.UserDao;
+import com.devicehive.model.DeviceType;
 import com.devicehive.model.Network;
 import com.devicehive.model.User;
-import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.UserVO;
-import com.devicehive.vo.UserWithNetworkVO;
+import com.devicehive.vo.*;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.TypedQuery;
@@ -34,6 +33,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -93,6 +93,27 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     }
 
     @Override
+    public UserWithDeviceTypeVO getWithDeviceTypeById(long id) {
+        User user = createNamedQuery(User.class, "User.getWithDeviceTypesById", of(CacheConfig.get()))
+                .setParameter("id", id)
+                .getResultList()
+                .stream().findFirst().orElse(null);
+        if (user == null) {
+            return null;
+        }
+        UserVO vo = User.convertToVo(user);
+        UserWithDeviceTypeVO userWithDeviceTypeVO = UserWithDeviceTypeVO.fromUserVO(vo);
+        //TODO [rafa] change here to bulk fetch data
+        if (user.getDeviceTypes() != null) {
+            for (DeviceType deviceType : user.getDeviceTypes()) {
+                DeviceTypeVO deviceTypeVO = DeviceType.convertDeviceType(deviceType);
+                userWithDeviceTypeVO.getDeviceTypes().add(deviceTypeVO);
+            }
+        }
+        return userWithDeviceTypeVO;
+    }
+
+    @Override
     public int deleteById(long id) {
         return createNamedQuery("User.deleteById", of(CacheConfig.bypass()))
                 .setParameter("id", id)
@@ -134,6 +155,41 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
     }
 
     @Override
+    public void unassignDeviceType(@NotNull UserVO existingUser, @NotNull long deviceTypeId) {
+        createNamedQuery(DeviceType.class, "DeviceType.findWithUsers", of(CacheConfig.refresh()))
+                .setParameter("id", deviceTypeId)
+                .getResultList()
+                .stream().findFirst()
+                .ifPresent(existingDeviceType -> {
+                    User usr = new User();
+                    usr.setId(existingUser.getId());
+                    existingDeviceType.getUsers().remove(usr);
+                    merge(existingDeviceType);
+                });
+    }
+
+    @Override
+    public UserVO allowAllDeviceTypes(UserWithDeviceTypeVO existingUser) {
+        User entity = User.convertToEntity(existingUser);
+        entity.setAllDeviceTypesAvailable(true);
+        //TODO - add single named query to avoid cycling through all device types
+        for (DeviceType dt: entity.getDeviceTypes()) {
+            unassignDeviceType(existingUser, dt.getId());
+        }
+        entity.setDeviceTypes(Collections.EMPTY_SET);
+        User merge = super.merge(entity);
+        return User.convertToVo(merge);
+    }
+
+    @Override
+    public UserVO disallowAllDeviceTypes(UserVO existingUser) {
+        User entity = User.convertToEntity(existingUser);
+        entity.setAllDeviceTypesAvailable(false);
+        User merge = super.merge(entity);
+        return User.convertToVo(merge);
+    }
+
+    @Override
     public List<UserVO> list(String login, String loginPattern,
                               Integer role, Integer status,
                               String sortField, boolean sortOrderAsc,
@@ -151,6 +207,20 @@ public class UserDaoRdbmsImpl extends RdbmsGenericDao implements UserDao {
         ofNullable(take).ifPresent(query::setMaxResults);
         ofNullable(skip).ifPresent(query::setFirstResult);
         return query.getResultList().stream().map(User::convertToVo).collect(Collectors.toList());
+    }
+
+    @Override
+    public long count(String login, String loginPattern, Integer role, Integer status) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<User> from = criteria.from(User.class);
+
+        final Predicate[] predicates = CriteriaHelper.userListPredicates(cb, from,
+                ofNullable(login), ofNullable(loginPattern), ofNullable(role), ofNullable(status));
+
+        criteria.where(predicates);
+        criteria.select(cb.count(from));
+        return count(criteria);
     }
 
     private Optional<UserVO> optionalUserConvertToVo(Optional<User> login) {

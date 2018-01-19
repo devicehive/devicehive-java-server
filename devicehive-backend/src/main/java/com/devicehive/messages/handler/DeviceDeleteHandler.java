@@ -21,12 +21,12 @@ package com.devicehive.messages.handler;
  */
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.rpc.DeviceDeleteRequest;
 import com.devicehive.model.rpc.DeviceDeleteResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,25 +34,18 @@ import org.springframework.stereotype.Component;
 public class DeviceDeleteHandler implements RequestHandler {
 
     private EventBus eventBus;
-    private FilterRegistry filterRegistry;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
     }
 
-    @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
-    }
-
     @Override
     public Response handle(Request request) {
         final DeviceDeleteRequest req = (DeviceDeleteRequest) request.getBody();
-        final String deviceId = req.getDeviceId();
+        final DeviceVO device = req.getDevice();
 
-        eventBus.unsubscribeDevice(deviceId);
-        filterRegistry.unregisterDevice(deviceId);
+        eventBus.unsubscribeDevice(device);
 
         return Response.newBuilder()
                 .withBody(new DeviceDeleteResponse())

@@ -24,7 +24,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessage;
-import com.devicehive.proxy.api.payload.NotificationPayload;
+import com.devicehive.proxy.api.payload.MessagePayload;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +57,10 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     @Override
     public void start() {
         try {
+            this.futureMap = new ConcurrentHashMap<>();
+            if (webSocketKafkaProxyConfig.getAckEnable()) {
+                this.ackReceived = new ConcurrentHashMap<>();
+            }
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, new URI("ws://" + webSocketKafkaProxyConfig.getProxyConnect()));
         } catch (Exception e) {
@@ -87,8 +91,6 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
     @OnOpen
     public void onOpen(Session session) {
         this.session = session;
-        this.futureMap = new ConcurrentHashMap<>();
-        this.ackReceived = new ConcurrentHashMap<>();
         logger.info("New WebSocket session established: {}", session.getId());
     }
 
@@ -97,34 +99,47 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
         logger.info("WebSocket session {} closed, close code {}", session.getId(), reason.getCloseCode());
         this.session = null;
         futureMap.clear();
-        ackReceived.clear();
+        if (webSocketKafkaProxyConfig.getAckEnable()) {
+            ackReceived.clear();
+        }
     }
 
     @OnMessage
     public void onMessage(List<ProxyMessage> messages) {
         messages.forEach(message -> {
+            if (message.getStatus() == null || message.getStatus() != 0) {
+                MessagePayload payload = (MessagePayload) message.getPayload();
+                String msg = "Response message is failed: " + payload.getMessage();
+                logger.warn(msg);
+                throw new HiveException(msg);
+            }
+
             String id = message.getId();
-            CompletableFuture<ProxyMessage> future = futureMap.get(id);
-            if (future != null) {
-                if ("ack".equals(message.getType())) {
-                    if (message.getStatus() != 0) {
-                        throw new HiveException("Acknowledgement failed for request id " + id);
+            if (id != null) {
+                CompletableFuture<ProxyMessage> future = futureMap.get(id);
+                if (future != null) {
+                    if (webSocketKafkaProxyConfig.getAckEnable() && "ack".equals(message.getType())) {
+                        if (message.getStatus() != 0) {
+                            throw new HiveException("Acknowledgement failed for request id " + id);
+                        }
+                        ackReceived.put(id, true);
+                        logger.debug("Acknowledgement message {} received for request id {}", message, id);
+                    } else {
+                        if (webSocketKafkaProxyConfig.getAckEnable() && !ackReceived.getOrDefault(id, false)) {
+                            throw new HiveException("No acknowledgement received for request id " + id);
+                        }
+                        future.complete(message);
+                        futureMap.remove(id);
+                        if (webSocketKafkaProxyConfig.getAckEnable()) {
+                            ackReceived.remove(id);
+                        }
                     }
-                    ackReceived.put(id, true);
-                    logger.debug("Acknowledgement message {} received for request id {}", message, id);
-                } else {
-                    if (!ackReceived.getOrDefault(id, false)) {
-                        throw new HiveException("No acknowledgement received for request id " + id); // toDo: implement flexible logic for acknowledgement behavior
-                    }
-                    future.complete(message);
-                    futureMap.remove(id);
-                    ackReceived.remove(id);
                 }
             }
 
             if ("notif".equals(message.getType()) && message.getAction() == null) {
-                NotificationPayload payload = (NotificationPayload) message.getPayload();
-                notificationHandler.handle(payload.getValue(), this);
+                MessagePayload payload = (MessagePayload) message.getPayload();
+                notificationHandler.handle(payload.getMessage(), this);
             }
             logger.debug("Message {} was received", message);
         });

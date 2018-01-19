@@ -36,10 +36,9 @@ import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.NetworkService;
-import com.devicehive.shim.api.Action;
+import com.devicehive.service.FilterBuilderService;
 import com.devicehive.util.ServerResponsesFactory;
-import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -60,11 +59,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
 
 import static com.devicehive.configuration.Constants.*;
+import static com.devicehive.configuration.Messages.NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 import static com.devicehive.model.rpc.NotificationSearchRequest.createNotificationSearchRequest;
+import static com.devicehive.shim.api.Action.NOTIFICATION_EVENT;
 import static javax.servlet.http.HttpServletResponse.*;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class NotificationHandlers {
@@ -72,22 +72,22 @@ public class NotificationHandlers {
 
     public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
 
-    private final DeviceService deviceService;
-    private final NetworkService networkService;
-    private final DeviceNotificationService notificationService;
     private final Gson gson;
+    private final DeviceService deviceService;
+    private final DeviceNotificationService notificationService;
+    private final FilterBuilderService filterBuilderService;
     private final WebSocketClientHandler clientHandler;
 
     @Autowired
-    public NotificationHandlers(DeviceService deviceService,
-                                NetworkService networkService,
+    public NotificationHandlers(Gson gson,
+                                DeviceService deviceService,
                                 DeviceNotificationService notificationService,
-                                Gson gson,
+                                FilterBuilderService filterBuilderService,
                                 WebSocketClientHandler clientHandler) {
-        this.deviceService = deviceService;
-        this.networkService = networkService;
-        this.notificationService = notificationService;
         this.gson = gson;
+        this.deviceService = deviceService;
+        this.notificationService = notificationService;
+        this.filterBuilderService = filterBuilderService;
         this.clientHandler = clientHandler;
     }
 
@@ -97,54 +97,45 @@ public class NotificationHandlers {
     public void processNotificationSubscribe(String deviceId, JsonObject request,
                                                           WebSocketSession session) throws InterruptedException, IOException {
         final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
-        final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
         final Date timestamp = gson.fromJson(request.get(Constants.TIMESTAMP), Date.class);
-        Set<String> deviceIds = gson.fromJson(request.get(Constants.DEVICE_IDS), JsonTypes.STRING_SET_TYPE);
-        final Set<Long> networkIds = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
+        Set<Long> networks = gson.fromJson(request.getAsJsonArray(NETWORK_IDS), JsonTypes.LONG_SET_TYPE);
+        Set<Long> deviceTypes = gson.fromJson(request.getAsJsonArray(DEVICE_TYPE_IDS), JsonTypes.LONG_SET_TYPE);
         final Set<String> names = gson.fromJson(request.get(Constants.NAMES), JsonTypes.STRING_SET_TYPE);
-        
-        logger.debug("notification/subscribe requested for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
-                deviceIds, deviceId, networkIds, timestamp, names, session.getId());
 
-        deviceIds = prepareActualList(deviceIds, deviceId);
+        logger.debug("notification/subscribe requested for device: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
+                deviceId, networks, deviceTypes, timestamp, names, session);
 
-        Filter filter = new Filter();
-        filter.setNames(names);
-        filter.setPrincipal(principal);
-        filter.setEventName(Action.NOTIFICATION_EVENT.name());
-        Set<String> availableDeviceIds = deviceService.getAvailableDeviceIds(deviceIds, networkIds);
-        filter.setDeviceIds(availableDeviceIds);
-        filter.setNetworkIds(networkIds);
+        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
 
-        if (isEmpty(deviceIds) && isEmpty(networkIds)) {
-            filter.setGlobal(true);
-        }
-
-        BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
-            JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
-            clientHandler.sendMessage(json, session);
-        };
-
-        Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
-                .subscribe(availableDeviceIds, filter, timestamp, callback);
-
-        logger.debug("notification/subscribe done for devices: {}, {}. Networks: {}. Timestamp: {}. Names {} Session: {}",
-                deviceIds, deviceId, networkIds, timestamp, names, session.getId());
-
-        ((CopyOnWriteArraySet) session
-                .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME))
-                .add(pair.getLeft());
-
-        pair.getRight().thenAccept(collection -> {
-            WebSocketResponse response = new WebSocketResponse();
-            response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
-            clientHandler.sendMessage(request, response, session);
-            collection.forEach(notification -> {
-                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
+        if (!filters.isEmpty()) {
+            BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {
+                JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, subscriptionId);
                 clientHandler.sendMessage(json, session);
+            };
+
+            Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService
+                    .subscribe(filters, names, timestamp, callback);
+
+            logger.debug("notification/subscribe done for devices: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
+                    deviceId, networks, deviceTypes, timestamp, names, session.getId());
+
+            ((CopyOnWriteArraySet) session
+                    .getAttributes()
+                    .get(SUBSCSRIPTION_SET_NAME))
+                    .add(pair.getLeft());
+
+            pair.getRight().thenAccept(collection -> {
+                WebSocketResponse response = new WebSocketResponse();
+                response.addValue(SUBSCRIPTION_ID, pair.getLeft(), null);
+                clientHandler.sendMessage(request, response, session);
+                collection.forEach(notification -> {
+                    JsonObject json = ServerResponsesFactory.createNotificationInsertMessage(notification, pair.getLeft());
+                    clientHandler.sendMessage(json, session);
+                });
             });
-        });
+        } else {
+            throw new HiveException(NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS, SC_FORBIDDEN);
+        }
     }
 
     /**

@@ -20,7 +20,7 @@ package com.devicehive.model.eventbus.events;
  * #L%
  */
 
-import com.devicehive.model.eventbus.Subscription;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
@@ -33,13 +33,13 @@ public abstract class Event extends Body {
     }
 
     /**
-     * Returns applicable to this event subscriptions.
+     * Returns applicable to this event filter.
      * For example, if event is device_notification { deviceId = a, notificationName = b },
      * then subscriptions on { deviceId = a, name = null } and { deviceId = a, name = b } will be returned,
      * but not { deviceId = a, name = c }, cause it is not applicable to this event.
      *
-     * @return collection of potentially valid subscriptions, for which this event can be routed.
+     * @return valid filter, for which this event can be routed.
      */
-    public abstract Collection<Subscription> getApplicableSubscriptions();
+    public abstract Collection<Filter> getApplicableFilters();
 
 }

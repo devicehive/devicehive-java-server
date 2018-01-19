@@ -33,6 +33,7 @@ public class CommandTestUtils {
         command.setCommand("do_work");
         command.setDeviceId(UUID.randomUUID().toString());
         command.setNetworkId(0L);
+        command.setDeviceTypeId(0L);
         command.setTimestamp(new Date(0));
         command.setLastUpdated(new Date(0));
         command.setUserId(0L);

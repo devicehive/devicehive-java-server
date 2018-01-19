@@ -20,8 +20,7 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.eventbus.FilterRegistry;
-import com.devicehive.eventbus.SubscriberRegistry;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
@@ -39,20 +38,8 @@ public class BackendConfig {
     }
 
     @Bean
-    @DependsOn("hazelcast")
-    public FilterRegistry filterRegistry() {
-        return new FilterRegistry();
-    }
-
-    @Bean
-    @DependsOn("hazelcast")
-    public SubscriberRegistry subscriberRegistry() {
-        return new SubscriberRegistry();
-    }
-
-    @Bean
-    @DependsOn("subscriberRegistry")
-    public EventBus eventBus(MessageDispatcher dispatcher, SubscriberRegistry subscriberRegistry) {
-        return new EventBus(dispatcher, subscriberRegistry);
+    @DependsOn("filterRegistry")
+    public EventBus eventBus(MessageDispatcher dispatcher, FilterRegistry filterRegistry) {
+        return new EventBus(dispatcher, filterRegistry);
     }
 }

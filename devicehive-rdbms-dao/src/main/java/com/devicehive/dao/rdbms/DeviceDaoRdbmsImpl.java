@@ -23,6 +23,7 @@ package com.devicehive.dao.rdbms;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.model.Device;
+import com.devicehive.model.DeviceType;
 import com.devicehive.model.Network;
 import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,9 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
         }
+        if (device.getDeviceType() != null) {
+            device.setDeviceType(reference(DeviceType.class, device.getDeviceType().getId()));
+        }
         super.persist(device);
         vo.setId(device.getId());
     }
@@ -77,6 +81,9 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         Device device = Device.convertToEntity(vo);
         if (device.getNetwork() != null) {
             device.setNetwork(reference(Network.class, device.getNetwork().getId()));
+        }
+        if (device.getDeviceType() != null) {
+            device.setDeviceType(reference(DeviceType.class, device.getDeviceType().getId()));
         }
         Device merged = super.merge(device);
         return Device.convertToVo(merged);
@@ -102,17 +109,6 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public long getAllowedDeviceCount(HivePrincipal principal, List<String> deviceIds) {
-        final CriteriaBuilder cb = criteriaBuilder();
-        final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
-        final Root<Device> from = criteria.from(Device.class);
-        final Predicate[] predicates = CriteriaHelper.deviceListPredicates(cb, from, deviceIds, Optional.ofNullable(principal));
-        criteria.where(predicates);
-        final TypedQuery<Device> query = createQuery(criteria);
-        return query.getResultList().size();
-    }
-
-    @Override
     public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
                                 String sortField, boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
@@ -133,4 +129,21 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
         List<Device> resultList = query.getResultList();
         return resultList.stream().map(Device::convertToVo).collect(Collectors.toList());
     }
+
+    @Override
+    public long count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Device> from = criteria.from(Device.class);
+
+        final Predicate[] predicates = CriteriaHelper.deviceCountPredicates(cb, from,
+                ofNullable(name), ofNullable(namePattern), ofNullable(networkId), ofNullable(networkName),
+                ofNullable(principal));
+
+        criteria.where(predicates);
+        criteria.select(cb.count(from));
+        return count(criteria);
+    }
+
+
 }

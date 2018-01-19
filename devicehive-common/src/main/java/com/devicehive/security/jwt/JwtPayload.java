@@ -26,13 +26,19 @@ import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
+import java.util.Set;
 
 public abstract class JwtPayload implements HiveEntity {
     private static final long serialVersionUID = -8814080198864472032L;
 
     public final static String JWT_CLAIM_KEY = "payload";
+    public final static String ACTIONS = "a";
     public final static String EXPIRATION = "e";
     public final static String TOKEN_TYPE = "t";
+
+    @SerializedName(ACTIONS)
+    @JsonProperty(ACTIONS)
+    private Set<Integer> actions;
 
     @SerializedName(EXPIRATION)
     @JsonProperty(EXPIRATION)
@@ -42,9 +48,18 @@ public abstract class JwtPayload implements HiveEntity {
     @ApiModelProperty(hidden = true)
     private Integer tokenType;
 
-    public JwtPayload(Date expiration, Integer tokenType) {
+    public JwtPayload(Set<Integer> actions, Date expiration, Integer tokenType) {
+        this.actions = actions;
         this.expiration = expiration;
         this.tokenType = tokenType;
+    }
+
+    public Set<Integer> getActions() {
+        return actions;
+    }
+
+    public void setActions(Set<Integer> actions) {
+        this.actions = actions;
     }
 
     public Date getExpiration() {
@@ -69,7 +84,13 @@ public abstract class JwtPayload implements HiveEntity {
     public abstract static class JwtPayloadBuilder {
         protected Date expiration;
         protected Integer tokenType;
-        
+        protected Set<Integer> actions;
+
+        public JwtPayloadBuilder withActions(Set<Integer> actions) {
+            this.actions = actions;
+            return this;
+        }
+
         public JwtPayloadBuilder withTokenType(Integer tokenType) {
             this.tokenType = tokenType;
             return this;

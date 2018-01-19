@@ -1,10 +1,10 @@
-package com.devicehive.proxy.api.payload;
+package com.devicehive.proxy.eventbus;
 
 /*
  * #%L
- * DeviceHive Proxy WebSocket Kafka Implementation
+ * DeviceHive Backend Logic
  * %%
- * Copyright (C) 2016 - 2017 DataArt
+ * Copyright (C) 2016 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,26 +20,21 @@ package com.devicehive.proxy.api.payload;
  * #L%
  */
 
-public class NotificationPayload implements Payload {
+enum SubscribeAction {
+    REGISTER(0),
+    UNREGISTER(1);
 
-    private String value;
+    private int value;
 
-    public NotificationPayload(String value) {
+    SubscribeAction(int value) {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
+    public int getValue() {
+        return this.value;
     }
 
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return "NotificationPayload{" +
-                "value='" + value + '\'' +
-                '}';
+    public static SubscribeAction getValueForIndex(int index){
+        return values()[index];
     }
 }

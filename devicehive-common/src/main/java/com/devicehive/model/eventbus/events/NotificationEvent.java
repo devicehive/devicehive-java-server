@@ -21,7 +21,7 @@ package com.devicehive.model.eventbus.events;
  */
 
 import com.devicehive.model.DeviceNotification;
-import com.devicehive.model.eventbus.Subscription;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 
 import java.util.Arrays;
@@ -46,12 +46,18 @@ public class NotificationEvent extends Event {
     }
 
     @Override
-    public Collection<Subscription> getApplicableSubscriptions() {
-        Subscription deviceOnly =
-                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceId());
-        Subscription deviceWithName =
-                new Subscription(Action.NOTIFICATION_EVENT.name(), notification.getDeviceId(), notification.getNotification());
-        return Arrays.asList(deviceOnly, deviceWithName);
+    public Collection<Filter> getApplicableFilters() {
+        Filter deviceFilter = new Filter(notification.getNetworkId(),
+                notification.getDeviceTypeId(),
+                notification.getDeviceId(),
+                Action.NOTIFICATION_EVENT.name(),
+                null);
+        Filter deviceWithNameFilter = new Filter(notification.getNetworkId(),
+                notification.getDeviceTypeId(),
+                notification.getDeviceId(),
+                Action.NOTIFICATION_EVENT.name(),
+                notification.getNotification());
+        return Arrays.asList(deviceFilter, deviceWithNameFilter);
     }
 
     @Override

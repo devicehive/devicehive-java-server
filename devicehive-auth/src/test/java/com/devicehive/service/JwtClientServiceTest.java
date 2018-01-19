@@ -62,10 +62,12 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
-        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtAccessToken(payload, true);
         JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
@@ -81,10 +83,12 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
-        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds,deviceIds).buildPayload();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         String token = jwtClientService.generateJwtRefreshToken(payload, true);
         JwtUserPayload resultPayload = jwtClientService.getUserPayload(token);
@@ -100,10 +104,12 @@ public class JwtClientServiceTest  extends AuthAbstractResourceTest {
         actions.add(0);
         Set<String> networkIds = new HashSet<>();
         networkIds.add("string");
+        Set<String> deviceTypeIds = new HashSet<>();
+        deviceTypeIds.add("string");
         Set<String> deviceIds = new HashSet<>();
         deviceIds.add("string");
         JwtUserPayload.JwtUserPayloadBuilder jwtUserPayloadBuilder = new JwtUserPayload.JwtUserPayloadBuilder();
-        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds, deviceIds).buildPayload();
+        JwtUserPayload payload = jwtUserPayloadBuilder.withPublicClaims(userId, actions, networkIds, deviceTypeIds).buildPayload();
 
         // Generate key without expiration date and token type
         Map<String, Object> jwtMap = new HashMap<>();

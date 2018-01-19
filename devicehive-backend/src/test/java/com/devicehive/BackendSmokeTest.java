@@ -23,7 +23,6 @@ package com.devicehive;
 import com.devicehive.base.AbstractSpringTest;
 import com.devicehive.base.NotificationTestUtils;
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.messages.handler.command.CommandInsertHandler;
 import com.devicehive.messages.handler.command.CommandSearchHandler;
 import com.devicehive.messages.handler.notification.NotificationInsertHandler;
@@ -33,7 +32,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.*;
@@ -50,7 +48,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -65,9 +62,7 @@ import static com.devicehive.model.enums.SortOrder.DESC;
 import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class BackendSmokeTest extends AbstractSpringTest {
 
@@ -76,9 +71,6 @@ public class BackendSmokeTest extends AbstractSpringTest {
 
     @Autowired
     private RpcClient client;
-
-    @Autowired
-    private FilterRegistry filterRegistry;
 
     private EventBus eventBus;
 
@@ -109,7 +101,6 @@ public class BackendSmokeTest extends AbstractSpringTest {
         notificationSubscribeRequestHandler = new NotificationSubscribeRequestHandler();
         notificationSubscribeRequestHandler.setEventBus(eventBus);
         notificationSubscribeRequestHandler.setHazelcastService(hazelcastService);
-        notificationSubscribeRequestHandler.setFilterRegistry(filterRegistry);
     }
 
     @Test
@@ -316,13 +307,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         final String deviceId = UUID.randomUUID().toString();
         final long id = System.nanoTime();
 
-        DeviceNotification originalNotification = new DeviceNotification();
-        originalNotification.setTimestamp(Date.from(Instant.now()));
-        originalNotification.setId(id);
-        originalNotification.setDeviceId(deviceId);
-        originalNotification.setNetworkId(0L);
-        originalNotification.setNotification("SOME TEST DATA");
-        originalNotification.setParameters(new JsonStringWrapper("{\"param1\":\"value1\",\"param2\":\"value2\"}"));
+        DeviceNotification originalNotification = NotificationTestUtils.generateNotification(id, deviceId);
         NotificationInsertRequest nir = new NotificationInsertRequest(originalNotification);
         Response response = notificationInsertHandler.handle(
                 Request.newBuilder()
@@ -351,7 +336,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         String deviceId = UUID.randomUUID().toString();
         // create notifications
         List<DeviceNotification> notifications = LongStream.range(0, 3)
-                .mapToObj(i -> NotificationTestUtils.generateNotification(i, i, deviceId))
+                .mapToObj(i -> NotificationTestUtils.generateNotification(i, i, i, deviceId))
                 .collect(Collectors.toList());
 
         // insert notifications
@@ -381,7 +366,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         String deviceId = UUID.randomUUID().toString();
         // create notifications
         List<DeviceNotification> notifications = LongStream.range(0, 3)
-                .mapToObj(i -> NotificationTestUtils.generateNotification(i, i, deviceId))
+                .mapToObj(i -> NotificationTestUtils.generateNotification(i, i, i, deviceId))
                 .collect(Collectors.toList());
 
         // insert notifications
@@ -410,7 +395,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(subscriptionId, device, new Filter(), null);
+                new NotificationSubscribeRequest(subscriptionId, new Filter(null, null, device, Action.NOTIFICATION_EVENT.name(), null), null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())
@@ -419,18 +404,18 @@ public class BackendSmokeTest extends AbstractSpringTest {
         notificationSubscribeRequestHandler.handle(request);
 
         ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
-        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
-        verify(eventBus).subscribe(subscriberCaptor.capture(), subscriptionCaptor.capture());
+        ArgumentCaptor<Filter> filterCaptor = ArgumentCaptor.forClass(Filter.class);
+        verify(eventBus).subscribe(filterCaptor.capture(), subscriberCaptor.capture());
 
         Subscriber subscriber = subscriberCaptor.getValue();
         assertEquals(subscriber.getId(), subscriptionId);
         assertEquals(subscriber.getCorrelationId(), request.getCorrelationId());
         assertEquals(subscriber.getReplyTo(), request.getReplyTo());
 
-        Subscription subscription = subscriptionCaptor.getValue();
-        assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
-        assertEquals(subscription.getEntityId(), device);
-        assertNull(subscription.getName());
+        Filter filter = filterCaptor.getValue();
+        assertEquals(filter.getEventName(), Action.NOTIFICATION_EVENT.name());
+        assertEquals(filter.getDeviceId(), device);
+        assertNull(filter.getName());
     }
 
     @Test
@@ -438,10 +423,8 @@ public class BackendSmokeTest extends AbstractSpringTest {
         Long subscriptionId = randomUUID().getMostSignificantBits();
         String device = randomUUID().toString();
         Set<String> names = Stream.of("a", "b", "c").collect(Collectors.toSet());
-        Filter filter = new Filter();
-        filter.setNames(names);
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(subscriptionId, device, filter, null);
+                new NotificationSubscribeRequest(subscriptionId, new Filter(null, null, device, Action.NOTIFICATION_EVENT.name(), null), names, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())
@@ -450,8 +433,8 @@ public class BackendSmokeTest extends AbstractSpringTest {
         notificationSubscribeRequestHandler.handle(request);
 
         ArgumentCaptor<Subscriber> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
-        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
-        verify(eventBus, times(names.size())).subscribe(subscriberCaptor.capture(), subscriptionCaptor.capture());
+        ArgumentCaptor<Filter> filterCaptor = ArgumentCaptor.forClass(Filter.class);
+        verify(eventBus).subscribe(filterCaptor.capture(), subscriberCaptor.capture());
 
         Set<Subscriber> subscribers = new HashSet<>(subscriberCaptor.getAllValues());
         assertThat(subscribers, hasSize(1));
@@ -460,15 +443,11 @@ public class BackendSmokeTest extends AbstractSpringTest {
         assertEquals(subscriber.getId(), subscriptionId);
         assertEquals(subscriber.getCorrelationId(), request.getCorrelationId());
 
-        List<Subscription> subscriptions = subscriptionCaptor.getAllValues();
-        assertThat(subscriptions, hasSize(names.size()));
-        subscriptions.forEach(subscription -> {
-            assertEquals(subscription.getEntityId(), device);
-            assertEquals(subscription.getType(), Action.NOTIFICATION_EVENT.name());
+        List<Filter> filters = filterCaptor.getAllValues();
+        filters.forEach(subscription -> {
+            assertEquals(subscription.getDeviceId(), device);
+            assertEquals(subscription.getEventName(), Action.NOTIFICATION_EVENT.name());
         });
-        Set<String> notificationNames = subscriptions.stream().map(Subscription::getName).collect(Collectors.toSet());
-        assertThat(notificationNames, hasSize(3));
-        assertEquals(notificationNames, names);
     }
 
     @Test
@@ -489,7 +468,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         ex.expectMessage("Subscription id not provided");
 
         NotificationSubscribeRequest sr =
-                new NotificationSubscribeRequest(null, randomUUID().toString(), null, null);
+                new NotificationSubscribeRequest(null, new Filter(), null, null);
         Request request = Request.newBuilder()
                 .withBody(sr)
                 .withPartitionKey(randomUUID().toString())
@@ -499,9 +478,9 @@ public class BackendSmokeTest extends AbstractSpringTest {
     }
 
     @Test
-    public void shouldThrowIfDeviceIdIsNull() throws Exception {
+    public void shouldThrowIfFilterIsNull() throws Exception {
         ex.expect(IllegalArgumentException.class);
-        ex.expectMessage("Device id is null");
+        ex.expectMessage("Filter is null");
 
         NotificationSubscribeRequest sr =
                 new NotificationSubscribeRequest(randomUUID().getMostSignificantBits(), null, null, null);

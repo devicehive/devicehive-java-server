@@ -51,7 +51,8 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITT
 @NamedQueries({
         @NamedQuery(name = "Plugin.deleteById", query = "delete from Plugin p where p.id = :id"),
         @NamedQuery(name = "Plugin.findByStatus", query = "select p from Plugin p where p.status = :status"),
-        @NamedQuery(name = "Plugin.findByTopic", query = "select p from Plugin p where p.topicName = :topicName")
+        @NamedQuery(name = "Plugin.findByTopic", query = "select p from Plugin p where p.topicName = :topicName"),
+        @NamedQuery(name = "Plugin.findByName", query = "select p from Plugin p where p.name = :name")
 })
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -96,10 +97,12 @@ public class Plugin implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String topicName;
 
-    @Column(name = "health_check_url")
-    @SerializedName("healthCheckUrl")
+    // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
+    // TODO - change to embedded entity for better code readability
+    @Column(name = "filter")
+    @SerializedName("filter")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private String healthCheckUrl;
+    private String filter;
 
     @Column(name = "status")
     @SerializedName("status")
@@ -156,12 +159,12 @@ public class Plugin implements HiveEntity {
         this.topicName = topicName;
     }
 
-    public String getHealthCheckUrl() {
-        return healthCheckUrl;
+    public String getFilter() {
+        return filter;
     }
 
-    public void setHealthCheckUrl(String healthCheckUrl) {
-        this.healthCheckUrl = healthCheckUrl;
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
     public PluginStatus getStatus() {
@@ -202,9 +205,9 @@ public class Plugin implements HiveEntity {
             vo = new PluginVO();
             vo.setId(entity.getId());
             vo.setName(entity.getName());
-            vo.setDescription(entity.description);
+            vo.setDescription(entity.getDescription());
             vo.setTopicName(entity.getTopicName());
-            vo.setHealthCheckUrl(entity.getHealthCheckUrl());
+            vo.setFilter(entity.getFilter());
             vo.setStatus(entity.getStatus());
             vo.setSubscriptionId(entity.getSubscriptionId());
             vo.setUserId(entity.getUserId());
@@ -222,7 +225,7 @@ public class Plugin implements HiveEntity {
             entity.setName(vo.getName());
             entity.setDescription(vo.getDescription());
             entity.setTopicName(vo.getTopicName());
-            entity.setHealthCheckUrl(vo.getHealthCheckUrl());
+            entity.setFilter(vo.getFilter());
             entity.setStatus(vo.getStatus());
             entity.setSubscriptionId(vo.getSubscriptionId());
             entity.setUserId(vo.getUserId());

@@ -9,9 +9,9 @@ package com.devicehive.model.rpc;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,26 +20,22 @@ package com.devicehive.model.rpc;
  * #L%
  */
 
-import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
-import java.util.Set;
+public abstract class BasePluginRequest extends Body {
 
-public class CommandGetSubscriptionResponse extends Body {
+    protected Long subscriptionId;
 
-    private Set<Subscription> subscriptions;
-
-    public CommandGetSubscriptionResponse(Set<Subscription> subscriptions) {
-        super(Action.COMMAND_GET_SUBSCRIPTION_RESPONSE);
-        this.subscriptions = subscriptions;
+    protected BasePluginRequest(Action action) {
+        super(action);
     }
 
-    public Set<Subscription> getSubscriptions() {
-        return subscriptions;
+    public Long getSubscriptionId() {
+        return subscriptionId;
     }
 
-    public void setSubscriptions(Set<Subscription> subscriptions) {
-        this.subscriptions = subscriptions;
+    public void setSubscriptionId(Long subscriptionId) {
+        this.subscriptionId = subscriptionId;
     }
 }

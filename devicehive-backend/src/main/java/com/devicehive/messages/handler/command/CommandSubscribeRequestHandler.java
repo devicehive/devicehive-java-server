@@ -21,10 +21,9 @@ package com.devicehive.messages.handler.command;
  */
 
 import com.devicehive.eventbus.EventBus;
-import com.devicehive.eventbus.FilterRegistry;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
-import com.devicehive.model.eventbus.Subscription;
 import com.devicehive.model.rpc.CommandSubscribeRequest;
 import com.devicehive.model.rpc.CommandSubscribeResponse;
 import com.devicehive.service.HazelcastService;
@@ -34,28 +33,20 @@ import com.devicehive.shim.api.server.RequestHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
 import static com.devicehive.shim.api.Action.COMMANDS_UPDATE_EVENT;
-import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 
 @Component
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private EventBus eventBus;
-    private FilterRegistry filterRegistry;
     private HazelcastService hazelcastService;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
-    }
-
-    @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
     }
 
     @Autowired
@@ -69,24 +60,14 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
         validate(body);
 
         Subscriber subscriber = new Subscriber(body.getSubscriptionId(), request.getReplyTo(), request.getCorrelationId());
+        Filter filter = body.getFilter();
 
-        Set<Subscription> subscriptions = new HashSet<>();
-        String eventName = body.isReturnUpdated() ? COMMANDS_UPDATE_EVENT.name() : COMMAND_EVENT.name();
-        body.getFilter().setEventName(eventName);
-        if (CollectionUtils.isEmpty(body.getFilter().getNames())) {
-            Subscription subscription = new Subscription(eventName, body.getDevice());
-            subscriptions.add(subscription);
-        } else {
-            for (String name : body.getFilter().getNames()) {
-                Subscription subscription = new Subscription(eventName, body.getDevice(), name);
-                subscriptions.add(subscription);
-            }
+        if (body.isReturnUpdated()) {
+            filter.setEventName(COMMANDS_UPDATE_EVENT.name());
         }
+        eventBus.subscribe(filter, subscriber);
 
-        subscriptions.forEach(subscription -> eventBus.subscribe(subscriber, subscription));
-        filterRegistry.register(body.getFilter(), body.getSubscriptionId());
-
-        Collection<DeviceCommand> commands = findCommands(body.getDevice(), body.getFilter().getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
+        Collection<DeviceCommand> commands = findCommands(filter, body.getNames(), body.getTimestamp(), body.isReturnUpdated(), body.getLimit());
         CommandSubscribeResponse subscribeResponse = new CommandSubscribeResponse(body.getSubscriptionId(), commands);
 
         return Response.newBuilder()
@@ -98,13 +79,16 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private void validate(CommandSubscribeRequest request) {
         Assert.notNull(request, "Request body is null");
-        Assert.notNull(request.getDevice(), "Device deviceId is null");
+        Assert.notNull(request.getFilter(), "Filter is null");
         Assert.notNull(request.getSubscriptionId(), "Subscription id not provided");
     }
 
-    private Collection<DeviceCommand> findCommands(String device, Collection<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
+    private Collection<DeviceCommand> findCommands(Filter filter, Collection<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         return Optional.ofNullable(timestamp)
-                .map(t -> hazelcastService.find(Collections.singleton(device), names, limit, t, null, returnUpdated, null, DeviceCommand.class))
+                .map(t -> hazelcastService.find(filter.getDeviceId(),
+                        Collections.singleton(filter.getNetworkId()),
+                        Collections.singleton(filter.getDeviceTypeId()),
+                        names, limit, t, null, returnUpdated, null, DeviceCommand.class))
                 .orElse(Collections.emptyList());
     }
 }

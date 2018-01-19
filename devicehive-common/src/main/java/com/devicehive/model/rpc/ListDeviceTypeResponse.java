@@ -22,21 +22,20 @@ package com.devicehive.model.rpc;
 
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
+import com.devicehive.vo.DeviceTypeVO;
 
-public class CommandGetSubscriptionRequest extends Body {
+import java.util.List;
 
-    private Long subscriptionId;
+public class ListDeviceTypeResponse extends Body {
 
-    public CommandGetSubscriptionRequest(Long subscriptionId) {
-        super(Action.COMMAND_GET_SUBSCRIPTION_REQUEST);
-        this.subscriptionId = subscriptionId;
+    private List<DeviceTypeVO> deviceTypes;
+
+    public ListDeviceTypeResponse(List<DeviceTypeVO> networks) {
+        super(Action.LIST_DEVICE_TYPE_RESPONSE);
+        this.deviceTypes = networks;
     }
 
-    public Long getSubscriptionId() {
-        return subscriptionId;
-    }
-
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
+    public List<DeviceTypeVO> getDeviceTypes() {
+        return deviceTypes;
     }
 }

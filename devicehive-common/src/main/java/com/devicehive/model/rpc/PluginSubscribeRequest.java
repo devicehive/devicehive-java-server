@@ -24,14 +24,13 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Body;
 
-import java.util.Date;
+import java.util.Set;
 
 
-public class PluginSubscribeRequest extends Body {
+public class PluginSubscribeRequest extends BasePluginRequest {
 
-    private Long subscriptionId;
-    private Filter filter;
-    private Date timestamp;
+    private Set<Filter> filters;
+    private Set<String> names;
     private String topicName;
     private boolean returnCommands;
     private boolean returnUpdatedCommands;
@@ -41,28 +40,20 @@ public class PluginSubscribeRequest extends Body {
         super(Action.PLUGIN_SUBSCRIBE_REQUEST);
     }
 
-    public Long getSubscriptionId() {
-        return subscriptionId;
+    public Set<Filter> getFilters() {
+        return filters;
     }
 
-    public void setSubscriptionId(Long subscriptionId) {
-        this.subscriptionId = subscriptionId;
+    public void setFilters(Set<Filter> filters) {
+        this.filters = filters;
     }
 
-    public Filter getFilter() {
-        return filter;
+    public Set<String> getNames() {
+        return names;
     }
 
-    public void setFilter(Filter filter) {
-        this.filter = filter;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Date timestamp) {
-        this.timestamp = timestamp;
+    public void setNames(Set<String> names) {
+        this.names = names;
     }
 
     public String getTopicName() {

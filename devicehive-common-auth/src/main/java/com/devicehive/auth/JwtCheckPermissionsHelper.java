@@ -21,6 +21,8 @@ package com.devicehive.auth;
  */
 
 import com.devicehive.service.BaseDeviceService;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.PluginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,20 +45,30 @@ public class JwtCheckPermissionsHelper {
 
         Set<HiveAction> permittedActions = hivePrincipal.getActions();
         return checkActionAllowed(action, permittedActions)
-                && checkNetworksAllowed(hivePrincipal, targetDomainObject)
+                && checkNetworksAllowed(hivePrincipal, action, targetDomainObject)
+                && checkDeviceTypesAllowed(hivePrincipal, action, targetDomainObject)
                 && checkDeviceIdsAllowed(hivePrincipal, targetDomainObject);
     }
 
+    // TODO - verify permission-checking logic
     private boolean checkActionAllowed(HiveAction hiveAction, Set<HiveAction> permissions) {
         boolean result = false;
         if (permissions != null) result = permissions.contains(hiveAction);
         return result;
     }
 
-    private boolean checkNetworksAllowed(HivePrincipal principal, Object targetDomainObject) {
+    private boolean checkNetworksAllowed(HivePrincipal principal, HiveAction action, Object targetDomainObject) {
         if (principal.areAllNetworksAvailable()) return true;
-        else if (targetDomainObject instanceof Long) {
+        else if (targetDomainObject instanceof Long && action.getValue().contains("Network")) {
             return principal.getNetworkIds() != null && principal.getNetworkIds().contains(targetDomainObject);
+        }
+        return true;
+    }
+
+    private boolean checkDeviceTypesAllowed(HivePrincipal principal, HiveAction action, Object targetDomainObject) {
+        if (principal.areAllDeviceTypesAvailable()) return true;
+        else if (targetDomainObject instanceof Long && action.getValue().contains("DeviceType")) {
+            return principal.getDeviceTypeIds() != null && principal.getDeviceTypeIds().contains(targetDomainObject);
         }
         return true;
     }
@@ -64,22 +76,35 @@ public class JwtCheckPermissionsHelper {
     private boolean checkDeviceIdsAllowed(HivePrincipal principal, Object targetDomainObject) {
 
         if (targetDomainObject instanceof String) {
+            final PluginVO plugin = principal.getPlugin();
+            if (plugin != null && plugin.getTopicName() != null) {
+                return plugin.getTopicName().equals(targetDomainObject);
+            }
 
-            Set<Long> networks = principal.getNetworkIds();
-            Set<String> devices = principal.getDeviceIds();
-
-            if (principal.areAllDevicesAvailable() && principal.areAllNetworksAvailable()) {
+            if (principal.areAllDeviceTypesAvailable() && principal.areAllNetworksAvailable()) {
                 return true;
-            } else if (networks != null && principal.areAllDevicesAvailable()) {
-                return networks.stream().flatMap(n -> deviceService.list(n).stream())
-                        .anyMatch(deviceVO -> deviceVO.getDeviceId().equals(targetDomainObject));
-            } else if (devices != null && principal.areAllNetworksAvailable()) {
-                return devices.contains(targetDomainObject);
-            } else
-                return networks != null && devices != null && devices.contains(targetDomainObject);
+            }
+
+            final Set<Long> networks = principal.getNetworkIds();
+            final Set<Long> deviceTypes = principal.getDeviceTypeIds();
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck((String) targetDomainObject, principal);
+
+            if (device == null) {
+                return false;
+            }
+            if (principal.areAllNetworksAvailable() && deviceTypes != null) {
+                return deviceTypes.contains(device.getDeviceTypeId());
+            }
+            if (principal.areAllDeviceTypesAvailable() && networks != null) {
+                return networks.contains(device.getNetworkId());
+            }
+            if (networks != null && deviceTypes != null) {
+                return networks.contains(device.getNetworkId()) && deviceTypes.contains(device.getDeviceTypeId());
+            }
+
+            return false;
         }
 
         return true;
     }
-
 }

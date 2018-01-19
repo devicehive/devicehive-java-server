@@ -19,14 +19,15 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.rpc.ListNetworkRequest;
-import com.devicehive.model.rpc.ListNetworkResponse;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
@@ -95,11 +96,11 @@ public class NetworkService {
                 .flatMap(Collection::stream)
                 .map(DeviceVO::getDeviceId)
                 .collect(Collectors.toSet());
-        
+
         if (!isEmpty(forbiddenNetworkIds)) {
             throw new HiveException(String.format(NETWORKS_NOT_FOUND, forbiddenNetworkIds), SC_FORBIDDEN);
         }
-        
+
         return deviceIds;
     }
 
@@ -107,7 +108,7 @@ public class NetworkService {
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Long> permittedNetworks = principal.getNetworkIds();
-        Set<String> permittedDevices = principal.getDeviceIds();
+        Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -122,9 +123,9 @@ public class NetworkService {
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
                 }).map(network -> {
-                    if (permittedDevices != null && !permittedDevices.isEmpty()) {
+                    if (permittedDeviceTypes != null && !permittedDeviceTypes.isEmpty()) {
                         Set<DeviceVO> allowed = network.getDevices().stream()
-                                .filter(device -> permittedDevices.contains(device.getDeviceId()))
+                                .filter(device -> permittedDeviceTypes.contains(device.getDeviceTypeId()))
                                 .collect(Collectors.toSet());
                         network.setDevices(allowed);
                     }
@@ -204,6 +205,23 @@ public class NetworkService {
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListNetworkResponse) r.getBody()).getNetworks());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {
+        CountNetworkRequest countNetworkRequest = new CountNetworkRequest(name, namePattern, principal);
+
+        return count(countNetworkRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountNetworkRequest countNetworkRequest) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countNetworkRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
     @Transactional

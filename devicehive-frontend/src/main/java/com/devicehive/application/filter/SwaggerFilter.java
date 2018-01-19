@@ -34,6 +34,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URL;
 
+import static com.devicehive.configuration.Constants.X_FORWARDED_PORT_HEADER_NAME;
+import static com.devicehive.configuration.Constants.X_FORWARDED_PROTO_HEADER_NAME;
+
 @WebFilter("/swagger")
 public class SwaggerFilter extends OncePerRequestFilter {
 
@@ -48,6 +51,17 @@ public class SwaggerFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        final String xForwardedProto = request.getHeader(X_FORWARDED_PROTO_HEADER_NAME);
+        final String xForwardedPort = request.getHeader(X_FORWARDED_PORT_HEADER_NAME);
+
+        if (xForwardedProto != null) {
+            swaggerProtocol = xForwardedProto;
+        }
+
+        if (xForwardedPort != null) {
+            swaggerPort = xForwardedPort;
+        }
 
         logger.debug("swagger.protocol: {}", swaggerProtocol);
         logger.debug("swagger.port: {}", swaggerPort);

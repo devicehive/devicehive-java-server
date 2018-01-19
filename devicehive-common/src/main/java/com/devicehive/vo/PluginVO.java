@@ -68,9 +68,9 @@ public class PluginVO implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
     private String topicName;
 
-    @SerializedName("healthCheckUrl")
+    @SerializedName("filter")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
-    private String healthCheckUrl;
+    private String filter;
 
     @SerializedName("status")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
@@ -121,12 +121,12 @@ public class PluginVO implements HiveEntity {
         this.topicName = topicName;
     }
 
-    public String getHealthCheckUrl() {
-        return healthCheckUrl;
+    public String getFilter() {
+        return filter;
     }
 
-    public void setHealthCheckUrl(String healthCheckUrl) {
-        this.healthCheckUrl = healthCheckUrl;
+    public void setFilter(String filter) {
+        this.filter = filter;
     }
 
     public PluginStatus getStatus() {
