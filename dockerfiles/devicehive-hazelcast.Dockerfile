@@ -1,4 +1,4 @@
-FROM hazelcast/hazelcast:3.8.8
+FROM hazelcast/hazelcast:3.8.9
 
 MAINTAINER devicehive
 
