@@ -36,7 +36,7 @@ stage('Build and publish Docker images in CI repository') {
     def plugin = docker.build('devicehiveci/devicehive-plugin:${BRANCH_NAME}', '-f dockerfiles/devicehive-plugin.Dockerfile .')
     def frontend = docker.build('devicehiveci/devicehive-frontend:${BRANCH_NAME}', '-f dockerfiles/devicehive-frontend.Dockerfile .')
     def backend = docker.build('devicehiveci/devicehive-backend:${BRANCH_NAME}', '-f dockerfiles/devicehive-backend.Dockerfile .')
-    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '-f dockerfiles/devicehive-hazelcast.Dockerfile .')
+    def hazelcast = docker.build('devicehiveci/devicehive-hazelcast:${BRANCH_NAME}', '--pull -f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     echo 'Pushing images to CI repository ...'
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
