@@ -72,7 +72,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
               run_devicehive_tests()
             } finally {
               archive_container_logs('rpc')
-              zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+              zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report-rpc.zip'
               shutdown_devicehive()
               cleanWs()
             }
@@ -97,8 +97,8 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             wait_for_devicehive_is_up()
             run_devicehive_tests()
           } finally {
-            archive_container_logs('ws-proxy')
-            zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report.zip'
+            archive_container_logs('wsproxy')
+            zip archive: true, dir: 'devicehive-tests', glob: 'mochawesome-report/**', zipFile: 'mochawesome-report-wsproxy.zip'
             shutdown_devicehive()
             cleanWs()
           }
