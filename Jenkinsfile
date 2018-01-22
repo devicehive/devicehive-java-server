@@ -1,5 +1,5 @@
 properties([
-  buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '7', numToKeepStr: '7'))
+  buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '32', daysToKeepStr: '', numToKeepStr: '100'))
 ])
 
 def test_branches = ["development", "master"]
