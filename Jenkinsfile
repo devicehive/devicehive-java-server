@@ -59,7 +59,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
               clone_devicehive_docker()
               dir('devicehive-docker/rdbms-image'){
                 writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-                COMPOSE_FILE=docker-compose.yml:ci-images.yml
+                COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
                 DH_TAG=${BRANCH_NAME}
                 JWT_SECRET=devicehive
                 DH_FE_SPRING_PROFILES_ACTIVE=rpc-client
@@ -87,7 +87,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             clone_devicehive_docker()
             dir('devicehive-docker/rdbms-image'){
               writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
-              COMPOSE_FILE=docker-compose.yml:ci-images.yml
+              COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
               DH_TAG=${BRANCH_NAME}
               JWT_SECRET=devicehive
               """
@@ -153,6 +153,10 @@ def clone_devicehive_docker(){
   dir('devicehive-docker'){
     echo("Clone Docker Compose files")
     git branch: 'development', url: 'https://github.com/devicehive/devicehive-docker.git', depth: 1
+    sh '''
+      mkdir ../ssl || :
+      tar -xakf rdbms-image/tests/localhost_cert.tar.gz -C ../ssl
+    '''
   }
 }
 
