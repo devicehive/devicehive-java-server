@@ -58,7 +58,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             try {
               clone_devicehive_docker()
               dir('devicehive-docker/rdbms-image'){
-                writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+                writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=rpc
                 COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
                 DH_TAG=${BRANCH_NAME}
                 JWT_SECRET=devicehive
@@ -86,7 +86,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
           try {
             clone_devicehive_docker()
             dir('devicehive-docker/rdbms-image'){
-              writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=ci
+              writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=wsproxy
               COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
               DH_TAG=${BRANCH_NAME}
               JWT_SECRET=devicehive
@@ -208,20 +208,20 @@ def run_devicehive_tests() {
 }
 
 def archive_container_logs(flavour) {
-  def logsdir = "${flavour}-container-logs"
+  def logsdir = "container-logs"
   sh """
     mkdir ${logsdir} || :
-    sudo docker logs ci_dh_auth_1 > ${logsdir}/auth.log 2>&1
-    sudo docker logs ci_dh_backend_1 > ${logsdir}/backend.log 2>&1
-    sudo docker logs ci_dh_frontend_1 > ${logsdir}/frontend.log 2>&1
-    sudo docker logs ci_dh_proxy_1 > ${logsdir}/proxy.log 2>&1
-    sudo docker logs ci_hazelcast_1 > ${logsdir}/hazelcast.log 2>&1
-    sudo docker logs ci_kafka_1 > ${logsdir}/kafka.log 2>&1
-    sudo docker logs ci_wsproxy_1 > ${logsdir}/wsproxy.log 2>&1
-    sudo docker logs ci_postgres_1 > ${logsdir}/postgres.log 2>&1
-    sudo docker logs ci_zookeeper_1 > ${logsdir}/zookeeper.log 2>&1
+    sudo docker logs ${flavour}_dh_auth_1 > ${logsdir}/${flavour}_auth.log 2>&1
+    sudo docker logs ${flavour}_dh_backend_1 > ${logsdir}/${flavour}_backend.log 2>&1
+    sudo docker logs ${flavour}_dh_frontend_1 > ${logsdir}/${flavour}_frontend.log 2>&1
+    sudo docker logs ${flavour}_dh_proxy_1 > ${logsdir}/${flavour}_proxy.log 2>&1
+    sudo docker logs ${flavour}_hazelcast_1 > ${logsdir}/${flavour}_hazelcast.log 2>&1
+    sudo docker logs ${flavour}_kafka_1 > ${logsdir}/${flavour}_kafka.log 2>&1
+    sudo docker logs ${flavour}_wsproxy_1 > ${logsdir}/${flavour}_wsproxy.log 2>&1
+    sudo docker logs ${flavour}_postgres_1 > ${logsdir}/${flavour}_postgres.log 2>&1
+    sudo docker logs ${flavour}_zookeeper_1 > ${logsdir}/${flavour}_zookeeper.log 2>&1
   """
-  def logs = "${logsdir}/auth.log, ${logsdir}/backend.log, ${logsdir}/frontend.log, ${logsdir}/proxy.log, ${logsdir}/hazelcast.log, ${logsdir}/kafka.log, ${logsdir}/wsproxy.log, ${logsdir}/postgres.log, ${logsdir}/zookeeper.log"
+  def logs = "${logsdir}/${flavour}_auth.log, ${logsdir}/${flavour}_backend.log, ${logsdir}/${flavour}_frontend.log, ${logsdir}/${flavour}_proxy.log, ${logsdir}/${flavour}_hazelcast.log, ${logsdir}/${flavour}_kafka.log, ${logsdir}/${flavour}_wsproxy.log, ${logsdir}/${flavour}_postgres.log, ${logsdir}/${flavour}_zookeeper.log"
   archiveArtifacts artifacts: logs, fingerprint: true
 }
 
