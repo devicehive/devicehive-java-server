@@ -35,6 +35,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.*;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
@@ -44,6 +46,51 @@ import javax.ws.rs.core.MediaType;
 @Path("/plugin")
 @Produces({"application/json"})
 public interface PluginResource {
+
+    @GET
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
+    @ApiOperation(value = "List plugins", notes = "Gets list of plugins.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "Authorization token", required = true, dataType = "string", paramType = "header")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "If successful, this method returns array of Plugin resources in the response body.",
+                    response = PluginVO.class, responseContainer = "List"),
+            @ApiResponse(code = 400, message = "If request parameters invalid"),
+            @ApiResponse(code = 401, message = "If request is not authorized"),
+            @ApiResponse(code = 403, message = "If principal doesn't have permissions")
+    })
+    void list(
+            @ApiParam(name = "name", value = "Filter by plugin name.")
+            @QueryParam("name")
+                    String name,
+            @ApiParam(name = "namePattern", value = "Filter by plugin name pattern. In pattern wildcards '%' and '_' can be used.")
+            @QueryParam("namePattern")
+                    String namePattern,
+            @ApiParam(name = "topicName", value = "Filter by plugin topic name.")
+            @QueryParam("topicName")
+                    String topicName,
+            @ApiParam(name = "status", value = "Filter by plugin status.")
+            @QueryParam("status")
+                    Integer status,
+            @ApiParam(name = "userId", value = "Filter by associated user identifier. Only admin can see other users' plugins.")
+            @QueryParam("userId")
+                    Long userId,
+            @ApiParam(name = "sortField", value = "Result list sort field.", allowableValues = "Id,Name")
+            @QueryParam("sortField")
+                    String sortField,
+            @ApiParam(name = "sortOrder", value = "Result list sort order. The sortField should be specified.", allowableValues = "ASC,DESC")
+            @QueryParam("sortOrder")
+                    String sortOrderSt,
+            @ApiParam(name = "take", value = "Number of records to take from the result list.", defaultValue = "20")
+            @QueryParam("take")
+            @Min(0) @Max(Integer.MAX_VALUE)
+                    Integer take,
+            @ApiParam(name = "skip", value = "Number of records to skip from the result list.", defaultValue = "0")
+            @QueryParam("skip")
+            @Min(0) @Max(Integer.MAX_VALUE)
+                    Integer skip,
+            @Suspended final AsyncResponse asyncResponse);
 
     @POST
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")

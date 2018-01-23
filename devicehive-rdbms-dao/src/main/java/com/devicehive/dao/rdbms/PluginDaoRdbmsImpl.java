@@ -20,6 +20,7 @@ package com.devicehive.dao.rdbms;
  * #L%
  */
 
+import com.devicehive.auth.HivePrincipal;
 import com.devicehive.dao.PluginDao;
 import com.devicehive.model.Plugin;
 import com.devicehive.model.enums.PluginStatus;
@@ -27,11 +28,17 @@ import com.devicehive.vo.PluginVO;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.devicehive.model.Plugin.convertToVo;
 import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 
 @Repository
 public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
@@ -94,6 +101,28 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
         return createNamedQuery("Plugin.deleteById", of(CacheConfig.bypass()))
                 .setParameter("id", id)
                 .executeUpdate();
+    }
+
+    @Override
+    public List<PluginVO> list(String name, String namePattern, String topicName, Integer status, Long userId,
+                               String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Plugin> criteria = cb.createQuery(Plugin.class);
+        final Root<Plugin> from = criteria.from(Plugin.class);
+
+        final Predicate [] predicates = CriteriaHelper.pluginListPredicates(cb, from,
+                ofNullable(name), ofNullable(namePattern), ofNullable(topicName), ofNullable(status), ofNullable(userId),
+                ofNullable(principal));
+
+        criteria.where(predicates);
+        CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);
+
+        final TypedQuery<Plugin> query = createQuery(criteria);
+        cacheQuery(query, of(CacheConfig.refresh()));
+        ofNullable(take).ifPresent(query::setMaxResults);
+        ofNullable(skip).ifPresent(query::setFirstResult);
+        List<Plugin> resultList = query.getResultList();
+        return resultList.stream().map(Plugin::convertToVo).collect(Collectors.toList());
     }
 
 }

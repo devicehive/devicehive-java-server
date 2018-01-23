@@ -100,6 +100,41 @@ public class CriteriaHelper {
         return predicates.toArray(new Predicate[predicates.size()]);
     }
 
+    public static Predicate[] pluginListPredicates(CriteriaBuilder cb, Root<Plugin> from, Optional<String> nameOpt, Optional<String> namePatternOpt,
+                                                   Optional<String> topicNameOpt, Optional<Integer> statusOpt, Optional<Long> userIdOpt,
+                                                   Optional<HivePrincipal> principalOpt) {
+        List<Predicate> predicates = new LinkedList<>();
+
+        principalOpt.flatMap(principal -> {
+            UserVO user = principal.getUser();
+
+            return ofNullable(user);
+        }).ifPresent(user -> {
+            if (!user.isAdmin()) {
+                User usr = User.convertToEntity(user);
+
+                predicates.add(cb.equal(from.get("userId"), usr.getId()));
+            }
+        });
+
+        nameOpt.ifPresent(name ->
+                predicates.add(cb.equal(from.get("name"), name)));
+
+        namePatternOpt.ifPresent(pattern ->
+                predicates.add(cb.like(from.get("name"), pattern)));
+
+        topicNameOpt.ifPresent(topic ->
+                predicates.add(cb.equal(from.get("topicName"), topic)));
+
+        statusOpt.ifPresent(status ->
+                predicates.add(cb.equal(from.get("status"), status)));
+
+        userIdOpt.ifPresent(user ->
+                predicates.add(cb.equal(from.get("userId"), user)));
+
+        return predicates.toArray(new Predicate[predicates.size()]);
+    }
+
     /**
      * Adds ORDER BY ... ASC/DESC to query
      * Mutates provided criteria query

@@ -66,6 +66,7 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final DeviceDeleteHandler deviceDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
+    private final ListPluginHandler listPluginHandler;
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
@@ -92,7 +93,8 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CountNetworkHandler countNetworkHandler,
                                  CountDeviceHandler countDeviceHandler,
                                  PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
-                                 PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
+                                 PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler,
+                                 ListPluginHandler listPluginHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
         this.notificationInsertHandler = notificationInsertHandler;
@@ -115,7 +117,7 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.countDeviceHandler = countDeviceHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
-
+        this.listPluginHandler = listPluginHandler;
     }
 
     @PostConstruct
@@ -143,6 +145,7 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
                 .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
+                .put(Action.LIST_PLUGIN_REQUEST, listPluginHandler)
                 .build();
     }
 

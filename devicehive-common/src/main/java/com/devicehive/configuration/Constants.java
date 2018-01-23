@@ -124,6 +124,7 @@ public class Constants {
     public static final String GET_DEVICE = "GetDevice";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
+    public static final String GET_PLUGIN = "GetPlugin";
     public static final String REGISTER_DEVICE = "RegisterDevice";
     public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
