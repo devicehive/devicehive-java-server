@@ -22,15 +22,19 @@ package com.devicehive.resource.impl;
 
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Messages;
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.resource.PluginResource;
 import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.service.BaseDeviceService;
 import com.devicehive.service.PluginRegisterService;
+import com.devicehive.service.PluginService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.PluginVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,11 +44,14 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Response;
 
+import java.util.Collections;
+
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.configuration.Messages.HEALTH_CHECK_FAILED;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CREATED;
 
 @Service
 public class PluginResourceImpl implements PluginResource {
@@ -55,11 +62,41 @@ public class PluginResourceImpl implements PluginResource {
     private final PluginRegisterService pluginRegisterService;
 
     @Autowired
-    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService) {
+    public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService, PluginService pluginService) {
         this.hiveValidator = hiveValidator;
         this.pluginRegisterService = pluginRegisterService;
     }
-    
+
+    @Override
+    public void list(String name, String namePattern, String topicName, Integer status, Long userId, String sortField, String sortOrderSt, Integer take, Integer skip, AsyncResponse asyncResponse) {
+        logger.debug("Plugin list requested");
+
+        if (sortField != null
+                && !NAME.equalsIgnoreCase(sortField)
+                && !ID.equalsIgnoreCase(sortField)) {
+            final Response response = ResponseFactory.response(BAD_REQUEST,
+                    new ErrorResponse(BAD_REQUEST.getStatusCode(),
+                            Messages.INVALID_REQUEST_PARAMETERS));
+            asyncResponse.resume(response);
+        } else if (sortField != null) {
+            sortField = sortField.toLowerCase();
+        }
+
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserVO user = principal.getUser();
+
+        if (!user.isAdmin() && userId != null && !userId.equals(user.getId())) {
+            final Response response = ResponseFactory.response(Response.Status.OK, Collections.<PluginVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+            asyncResponse.resume(response);
+        } else {
+            pluginRegisterService.list(name, namePattern, topicName, status, userId, sortField, sortOrderSt, take, skip, principal)
+                    .thenApply(plugins -> {
+                        logger.debug("Plugin list request proceed successfully");
+                        return ResponseFactory.response(Response.Status.OK, plugins, JsonPolicyDef.Policy.PLUGINS_LISTED);
+                    }).thenAccept(asyncResponse::resume);
+        }
+    }
+
     @Override
     public void register(PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate, String authorization,
             @Suspended final AsyncResponse asyncResponse) {

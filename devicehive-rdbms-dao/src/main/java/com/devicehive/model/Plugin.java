@@ -43,6 +43,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGINS_LISTED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_PUBLISHED;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
 
@@ -71,7 +72,7 @@ public class Plugin implements HiveEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @SerializedName("id")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private Long id;
 
     @Column(name = "name")
@@ -79,14 +80,14 @@ public class Plugin implements HiveEntity {
     @NotNull(message = "name field cannot be null.")
     @Size(min = 3, max = 128, message = PLUGIN_NAME_SIZE_MESSAGE)
     @Pattern(regexp = "^[\\w@.-]+$", message = PLUGIN_NAME_PATTERN_MESSAGE)
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private String name;
 
     @Column(name = "description")
     @SerializedName("description")
     @Size(min = 3, max = 128, message = PLUGIN_DESCRIPTION_SIZE_MESSAGE)
     @Pattern(regexp = "^[\\w\\s@.-]+$", message = PLUGIN_DESCRIPTION_SIZE_MESSAGE)
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private String description;
 
     @Column(name = "topic_name")
@@ -94,29 +95,29 @@ public class Plugin implements HiveEntity {
     @NotNull(message = "Topic name field cannot be null.")
     @Size(min = 3, max = 128, message = PLUGIN_NAME_SIZE_MESSAGE)
     @Pattern(regexp = "^[\\w@.-]+$", message = PLUGIN_NAME_PATTERN_MESSAGE)
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private String topicName;
 
     // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
     // TODO - change to embedded entity for better code readability
     @Column(name = "filter")
     @SerializedName("filter")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private String filter;
 
     @Column(name = "status")
     @SerializedName("status")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private PluginStatus status;
 
     @Column(name = "subscription_id")
     @SerializedName("subscriptionId")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private Long subscriptionId;
 
     @Column(name = "user_id")
     @SerializedName("userId")
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private Long userId;
 
     @SerializedName("parameters")
@@ -124,7 +125,7 @@ public class Plugin implements HiveEntity {
     @AttributeOverrides({
             @AttributeOverride(name = "jsonString", column = @Column(name = "parameters"))
     })
-    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED})
+    @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private JsonStringWrapper parameters;
 
     public Long getId() {
