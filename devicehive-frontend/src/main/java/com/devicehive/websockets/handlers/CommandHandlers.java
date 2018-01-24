@@ -27,6 +27,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
@@ -51,6 +52,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.configuration.Messages.*;
@@ -123,7 +125,7 @@ public class CommandHandlers {
             ((CopyOnWriteArraySet) session
                     .getAttributes()
                     .get(SUBSCRIPTION_SET_NAME))
-                    .add(pair.getLeft());
+                    .add(new SubscriptionInfo(pair.getLeft(), COMMAND, deviceId, networks, deviceTypes, names, timestamp));
 
             pair.getRight()
                     .thenAccept(collection -> {
@@ -141,11 +143,11 @@ public class CommandHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_COMMAND')")
     @SuppressWarnings("unchecked")
     public void processCommandUnsubscribe(JsonObject request, WebSocketSession session) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
-        CopyOnWriteArraySet<Long> sessionSubIds = ((CopyOnWriteArraySet) session
+        Set<SubscriptionInfo> sessionSubscriptions = ((CopyOnWriteArraySet) session
                 .getAttributes()
                 .get(SUBSCRIPTION_SET_NAME));
+        Set<Long> sessionSubIds = sessionSubscriptions.stream().map(SubscriptionInfo::getSubscriptionId).collect(Collectors.toSet());
 
         logger.debug("command/unsubscribe action. Session {} ", session.getId());
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
@@ -155,10 +157,10 @@ public class CommandHandlers {
         CompletableFuture<Set<Long>> future;
         if (subscriptionId == null) {
             future = commandService.sendUnsubscribeRequest(sessionSubIds);
-            sessionSubIds.clear();
+            sessionSubscriptions.clear();
         } else {
             future = commandService.sendUnsubscribeRequest(Collections.singleton(subscriptionId));
-            sessionSubIds.remove(subscriptionId);
+            sessionSubscriptions.remove(new SubscriptionInfo(subscriptionId));
         }
         
         future.thenAccept(collection -> {

@@ -24,6 +24,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.*;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
+import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.resource.exceptions.ExpiredTokenException;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceNotificationService;
@@ -59,6 +60,7 @@ import java.nio.channels.ClosedChannelException;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
 @Component
 public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
@@ -82,8 +84,8 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
         HiveWebsocketSessionState state = new HiveWebsocketSessionState();
         session.getAttributes().put(HiveWebsocketSessionState.KEY, state);
 
-        session.getAttributes().put(CommandHandlers.SUBSCRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
-        session.getAttributes().put(NotificationHandlers.SUBSCSRIPTION_SET_NAME, new CopyOnWriteArraySet<Long>());
+        session.getAttributes().put(CommandHandlers.SUBSCRIPTION_SET_NAME, new CopyOnWriteArraySet<SubscriptionInfo>());
+        session.getAttributes().put(NotificationHandlers.SUBSCRIPTION_SET_NAME, new CopyOnWriteArraySet<SubscriptionInfo>());
         session.getAttributes().put(WebSocketAuthenticationManager.SESSION_ATTR_AUTHENTICATION, session.getPrincipal());
 
         sessionMonitor.registerSession(session);
@@ -169,13 +171,15 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
     @Override
     @SuppressWarnings("unchecked")
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        CopyOnWriteArraySet<Long> commandSubscriptions = (CopyOnWriteArraySet)
+        CopyOnWriteArraySet<SubscriptionInfo> commandSubscriptions = (CopyOnWriteArraySet)
                 session.getAttributes().get(CommandHandlers.SUBSCRIPTION_SET_NAME);
-            commandService.sendUnsubscribeRequest(commandSubscriptions);
+        commandService.sendUnsubscribeRequest(commandSubscriptions.stream()
+                .map(SubscriptionInfo::getSubscriptionId).collect(Collectors.toSet()));
 
-        CopyOnWriteArraySet<Long> notificationSubscriptions = (CopyOnWriteArraySet)
-                session.getAttributes().get(NotificationHandlers.SUBSCSRIPTION_SET_NAME);
-        notificationService.unsubscribe(notificationSubscriptions);
+        CopyOnWriteArraySet<SubscriptionInfo> notificationSubscriptions = (CopyOnWriteArraySet)
+                session.getAttributes().get(NotificationHandlers.SUBSCRIPTION_SET_NAME);
+        notificationService.unsubscribe(notificationSubscriptions.stream()
+                .map(SubscriptionInfo::getSubscriptionId).collect(Collectors.toSet()));
 
         sessionMonitor.removeSession(session.getId());
 

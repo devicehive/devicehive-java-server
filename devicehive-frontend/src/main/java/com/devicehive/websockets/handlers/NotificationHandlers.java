@@ -29,6 +29,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.DeviceNotification;
+import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.websockets.InsertNotification;
@@ -57,6 +58,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.configuration.Messages.NO_ACCESS_TO_DEVICE_TYPES_OR_NETWORKS;
@@ -70,7 +72,7 @@ import static javax.servlet.http.HttpServletResponse.*;
 public class NotificationHandlers {
     private static final Logger logger = LoggerFactory.getLogger(NotificationHandlers.class);
 
-    public static final String SUBSCSRIPTION_SET_NAME = "notificationSubscriptions";
+    public static final String SUBSCRIPTION_SET_NAME = "notificationSubscriptions";
 
     private final Gson gson;
     private final DeviceService deviceService;
@@ -121,8 +123,8 @@ public class NotificationHandlers {
 
             ((CopyOnWriteArraySet) session
                     .getAttributes()
-                    .get(SUBSCSRIPTION_SET_NAME))
-                    .add(pair.getLeft());
+                    .get(SUBSCRIPTION_SET_NAME))
+                    .add(new SubscriptionInfo(pair.getLeft(), NOTIFICATION, deviceId, networks, deviceTypes, names, timestamp));
 
             pair.getRight().thenAccept(collection -> {
                 WebSocketResponse response = new WebSocketResponse();
@@ -149,13 +151,12 @@ public class NotificationHandlers {
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(null, 'GET_DEVICE_NOTIFICATION')")
     @SuppressWarnings("unchecked")
-    public void processNotificationUnsubscribe(JsonObject request,
-                                                            WebSocketSession session) throws IOException {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public void processNotificationUnsubscribe(JsonObject request, WebSocketSession session) throws IOException {
         final Long subscriptionId = gson.fromJson(request.get(SUBSCRIPTION_ID), Long.class);
-        CopyOnWriteArraySet<Long> sessionSubIds = ((CopyOnWriteArraySet) session
+        Set<SubscriptionInfo> sessionSubscriptions = ((CopyOnWriteArraySet) session
                 .getAttributes()
-                .get(SUBSCSRIPTION_SET_NAME));
+                .get(SUBSCRIPTION_SET_NAME));
+        Set<Long> sessionSubIds = sessionSubscriptions.stream().map(SubscriptionInfo::getSubscriptionId).collect(Collectors.toSet());
 
         logger.debug("notification/unsubscribe action. Session {} ", session.getId());
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
@@ -164,10 +165,10 @@ public class NotificationHandlers {
         CompletableFuture<Set<Long>> future;
         if (subscriptionId == null) {
             future = notificationService.unsubscribe(sessionSubIds);
-            sessionSubIds.clear();
+            sessionSubscriptions.clear();
         } else {
             future = notificationService.unsubscribe(Collections.singleton(subscriptionId));
-            sessionSubIds.remove(subscriptionId);
+            sessionSubscriptions.remove(new SubscriptionInfo(subscriptionId));
         }
         
         future.thenAccept(collection -> {

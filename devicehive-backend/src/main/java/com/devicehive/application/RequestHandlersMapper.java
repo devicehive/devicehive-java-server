@@ -63,7 +63,6 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final CountNetworkHandler countNetworkHandler;
     private final ListDeviceHandler listDeviceHandler;
     private final CountDeviceHandler countDeviceHandler;
-    private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceDeleteHandler deviceDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
@@ -84,7 +83,6 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CommandsUpdateHandler commandsUpdateHandler,
                                  ListNetworkHandler listNetworkHandler,
                                  ListDeviceTypeHandler listDeviceTypeHandler,
-                                 ListSubscribeHandler listSubscribeHandler,
                                  DeviceDeleteHandler deviceDeleteHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
@@ -107,7 +105,6 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.commandsUpdateHandler = commandsUpdateHandler;
         this.listNetworkHandler = listNetworkHandler;
         this.listDeviceTypeHandler = listDeviceTypeHandler;
-        this.listSubscribeHandler = listSubscribeHandler;
         this.deviceDeleteHandler = deviceDeleteHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
@@ -145,7 +142,6 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.COUNT_NETWORK_REQUEST, countNetworkHandler)
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
-                .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
                 .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
                 .build();
     }
