@@ -234,6 +234,7 @@ public class PluginRegisterService {
         if (existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
             request = pluginUpdateQuery.toRequest(filterService);
             request.setSubscriptionId(existingPlugin.getSubscriptionId());
+            ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());
         } else {
             request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
         }
@@ -265,7 +266,7 @@ public class PluginRegisterService {
 
         response.addProperty("accessToken", jwtTokenVO.getAccessToken());
         response.addProperty("refreshToken", jwtTokenVO.getRefreshToken());
-        response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyConnect());
+        response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyPluginConnect());
         response.addProperty("topicName", topicName);
 
         return response;
