@@ -43,7 +43,7 @@ public class Constants {
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final int WEBSOCKET_TIMEOUT = 4 * 60 * 1000;
-    public static final Integer DEFAULT_TAKE = 100;
+    public static final Integer DEFAULT_TAKE = 20;
     public static final Integer DEFAULT_SKIP = 0;
     public static final Boolean DEFAULT_RETURN_UPDATED_COMMANDS = false;
     public static final String DEFAULT_TAKE_STR = "100";

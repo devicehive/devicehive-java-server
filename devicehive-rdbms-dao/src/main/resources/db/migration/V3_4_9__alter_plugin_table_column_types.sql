@@ -18,11 +18,6 @@
 -- #L%
 ---
 
-/*
-ALTER TABLE plugin
-ALTER COLUMN subscription_id TYPE BIGINT,
-ALTER COLUMN user_id TYPE BIGINT;*/
-
 alter table plugin
 alter column subscription_id drop default;
 drop sequence plugin_subscription_id_seq;

@@ -52,6 +52,7 @@ import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.configuration.Messages.HEALTH_CHECK_FAILED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 @Service
 public class PluginResourceImpl implements PluginResource {
@@ -86,7 +87,9 @@ public class PluginResourceImpl implements PluginResource {
         UserVO user = principal.getUser();
 
         if (!user.isAdmin() && userId != null && !userId.equals(user.getId())) {
-            final Response response = ResponseFactory.response(Response.Status.OK, Collections.<PluginVO>emptyList(), JsonPolicyDef.Policy.DEVICE_PUBLISHED);
+            logger.warn(Messages.NO_ACCESS_TO_PLUGIN);
+            final Response response = ResponseFactory.response(FORBIDDEN,
+                    new ErrorResponse(FORBIDDEN.getStatusCode(), Messages.NO_ACCESS_TO_PLUGIN));
             asyncResponse.resume(response);
         } else {
             pluginRegisterService.list(name, namePattern, topicName, status, userId, sortField, sortOrderSt, take, skip, principal)
