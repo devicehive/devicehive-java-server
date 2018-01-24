@@ -20,39 +20,27 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.hazelcast.nio.serialization.Portable;
 import com.hazelcast.nio.serialization.PortableReader;
 import com.hazelcast.nio.serialization.PortableWriter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
-
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED;
 
 public class Filter implements Portable {
 
     public static final int FACTORY_ID = 1;
     public static final int CLASS_ID = 4;
 
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private Long networkId;
 
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private Long deviceTypeId;
 
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private String deviceId;
 
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private String eventName;
 
-    @JsonPolicyDef(SUBSCRIPTIONS_LISTED)
     private String name;
 
     public Filter() {

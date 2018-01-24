@@ -20,12 +20,11 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
-import com.devicehive.auth.HiveAction;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebSocketClientHandler;
-import com.devicehive.model.eventbus.Filter;
+import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.service.SubscriptionService;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
@@ -38,10 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import static com.devicehive.configuration.Constants.*;
 
@@ -71,27 +67,11 @@ public class SubscriptionHandlers {
         final HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final String type = gson.fromJson(request.get(TYPE), String.class);
 
-        logger.debug("subscribe/list action. Session {} ", session.getId());
-        Set<Long> subIds = new HashSet<>();
-        if (principal.getActions().contains(HiveAction.GET_DEVICE_COMMAND)) {
-            if (type == null || type.equals(COMMAND)) {
-                subIds.addAll(((CopyOnWriteArraySet<Long>) session
-                        .getAttributes()
-                        .get(CommandHandlers.SUBSCRIPTION_SET_NAME)));
-            }
-        }
-        if (principal.getActions().contains(HiveAction.GET_DEVICE_NOTIFICATION)) {
-            if (type == null || type.equals(NOTIFICATION)) {
-                subIds.addAll(((CopyOnWriteArraySet<Long>) session
-                        .getAttributes()
-                        .get(NotificationHandlers.SUBSCSRIPTION_SET_NAME)));
-            }
-        }
-        subscriptionService.list(subIds).thenAccept(onResponse -> {
-            logger.debug("subscribe/list completed for session {}", session.getId());
-            WebSocketResponse response = new WebSocketResponse();
-            response.addValue(SUBSCRIPTIONS, onResponse, JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED);
-            clientHandler.sendMessage(request, response, session);
-        });
+        Set<SubscriptionInfo> subscriptions = subscriptionService.list(type, principal, session);
+
+        logger.debug("subscribe/list completed for session {}", session.getId());
+        WebSocketResponse response = new WebSocketResponse();
+        response.addValue(SUBSCRIPTIONS, subscriptions, JsonPolicyDef.Policy.SUBSCRIPTIONS_LISTED);
+        clientHandler.sendMessage(request, response, session);
     }
 }
