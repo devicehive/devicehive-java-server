@@ -31,6 +31,7 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListPluginRequest extends Body {
 
@@ -71,7 +72,7 @@ public class ListPluginRequest extends Body {
                 .create()
                 .fromJson(request, ListPluginRequest.class);
 
-        listPluginRequest.setTake(Optional.ofNullable(listPluginRequest.getTake()).orElse(20));
+        listPluginRequest.setTake(Optional.ofNullable(listPluginRequest.getTake()).orElse(DEFAULT_TAKE));
         listPluginRequest.setSkip(Optional.ofNullable(listPluginRequest.getSkip()).orElse(DEFAULT_SKIP));
 
         listPluginRequest.setPrincipal(principal);
