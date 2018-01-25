@@ -43,7 +43,7 @@ public class Constants {
     public static final long LAST_LOGIN_TIMEOUT_DEFAULT = 1000; // 1 hour
     public static final int WEBSOCKET_MAX_BUFFER_SIZE = 10 * 1024;
     public static final int WEBSOCKET_TIMEOUT = 4 * 60 * 1000;
-    public static final Integer DEFAULT_TAKE = 100;
+    public static final Integer DEFAULT_TAKE = 20;
     public static final Integer DEFAULT_SKIP = 0;
     public static final Boolean DEFAULT_RETURN_UPDATED_COMMANDS = false;
     public static final String DEFAULT_TAKE_STR = "100";
@@ -124,6 +124,7 @@ public class Constants {
     public static final String GET_DEVICE = "GetDevice";
     public static final String GET_DEVICE_NOTIFICATION = "GetDeviceNotification";
     public static final String GET_DEVICE_COMMAND = "GetDeviceCommand";
+    public static final String GET_PLUGIN = "GetPlugin";
     public static final String REGISTER_DEVICE = "RegisterDevice";
     public static final String CREATE_DEVICE_NOTIFICATION = "CreateDeviceNotification";
     public static final String CREATE_DEVICE_COMMAND = "CreateDeviceCommand";
