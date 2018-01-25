@@ -28,9 +28,8 @@ import com.devicehive.model.FilterEntity;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
-import com.devicehive.model.rpc.BasePluginRequest;
-import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.model.rpc.PluginUnsubscribeRequest;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.resource.util.ResponseFactory;
@@ -59,6 +58,7 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -143,6 +143,45 @@ public class PluginRegisterService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
+    }
+
+    public CompletableFuture<List<PluginVO>> list(String name, String namePattern, String topicName, Integer status, Long userId,
+                                                  String sortField, String sortOrderSt, Integer take, Integer skip,
+                                                  HivePrincipal principal) {
+
+        ListPluginRequest listPluginRequest = new ListPluginRequest(name, namePattern, topicName, status, userId,
+                sortField, sortOrderSt, take, skip, principal);
+
+        return list(listPluginRequest);
+    }
+
+    public CompletableFuture<List<PluginVO>> list(ListPluginRequest listPluginRequest){
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(listPluginRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((ListPluginResponse) response.getBody()).getPlugins());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, String topicName,
+                                                        Integer status, Long userId, HivePrincipal principal) {
+        CountPluginRequest countPluginRequest = new CountPluginRequest(name, namePattern, topicName, status, userId, principal);
+
+        return count(countPluginRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountPluginRequest countPluginRequest) {
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countPluginRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse) response.getBody()));
     }
 
     private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString, Long userId) {
