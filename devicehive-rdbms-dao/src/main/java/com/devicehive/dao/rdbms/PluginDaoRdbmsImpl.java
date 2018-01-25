@@ -125,4 +125,20 @@ public class PluginDaoRdbmsImpl extends RdbmsGenericDao implements PluginDao {
         return resultList.stream().map(Plugin::convertToVo).collect(Collectors.toList());
     }
 
+    @Override
+    public long count(String name, String namePattern, String topicName, Integer status, Long userId,
+                               HivePrincipal principal) {
+        final CriteriaBuilder cb = criteriaBuilder();
+        final CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
+        final Root<Plugin> from = criteria.from(Plugin.class);
+
+        final Predicate [] predicates = CriteriaHelper.pluginListPredicates(cb, from,
+                ofNullable(name), ofNullable(namePattern), ofNullable(topicName), ofNullable(status), ofNullable(userId),
+                ofNullable(principal));
+
+        criteria.where(predicates);
+        criteria.select(cb.count(from));
+        return count(criteria);
+    }
+
 }
