@@ -28,6 +28,7 @@ import com.devicehive.model.FilterEntity;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
+import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
@@ -163,6 +164,24 @@ public class PluginRegisterService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(response -> ((ListPluginResponse) response.getBody()).getPlugins());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, String topicName,
+                                                        Integer status, Long userId, HivePrincipal principal) {
+        CountPluginRequest countPluginRequest = new CountPluginRequest(name, namePattern, topicName, status, userId, principal);
+
+        return count(countPluginRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountPluginRequest countPluginRequest) {
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countPluginRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse) response.getBody()));
     }
 
     private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString, Long userId) {

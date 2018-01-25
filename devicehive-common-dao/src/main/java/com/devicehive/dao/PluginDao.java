@@ -44,5 +44,6 @@ public interface PluginDao {
 
     List<PluginVO> list(String name, String namePattern, String topicName, Integer status, Long userId,
                         String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal);
-    
+
+    long count(String name, String namePattern, String topicName, Integer status, Long userId, HivePrincipal principal);
 }

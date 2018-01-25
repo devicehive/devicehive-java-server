@@ -32,7 +32,7 @@ public class EntityCountResponse implements HiveEntity {
     private static final long serialVersionUID = 5041089226691783525L;
 
     @SerializedName("count")
-    @JsonPolicyDef({USERS_LISTED, DEVICES_LISTED, NETWORKS_LISTED, DEVICE_TYPES_LISTED})
+    @JsonPolicyDef({USERS_LISTED, DEVICES_LISTED, NETWORKS_LISTED, DEVICE_TYPES_LISTED, PLUGINS_LISTED})
     private long count;
 
     public EntityCountResponse(long count) {
