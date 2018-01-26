@@ -141,28 +141,28 @@ public class PluginReqisterQuery {
         }
         sb.append("/");
 
-        if (networkIds != null) {
+        if (networkIds != null && !networkIds.isEmpty()) {
             sb.append(networkIds);
         } else {
             sb.append(ALL_ENTITIES);
         }
         sb.append("/");
 
-        if (deviceTypeIds != null) {
+        if (deviceTypeIds != null && !deviceTypeIds.isEmpty()) {
             sb.append(deviceTypeIds);
         } else {
             sb.append(ALL_ENTITIES);
         }
         sb.append("/");
 
-        if (deviceId != null) {
+        if (deviceId != null && !deviceId.isEmpty()) {
             sb.append(deviceId);
         } else {
             sb.append(ALL_ENTITIES);
         }
         sb.append("/");
 
-        if (names != null) {
+        if (names != null && !names.isEmpty()) {
             sb.append(names);
         } else {
             sb.append(ALL_ENTITIES);

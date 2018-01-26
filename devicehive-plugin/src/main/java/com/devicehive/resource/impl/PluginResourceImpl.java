@@ -51,9 +51,9 @@ import java.util.Collections;
 import static com.devicehive.configuration.Constants.ID;
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.configuration.Messages.HEALTH_CHECK_FAILED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.OK;
+import static com.devicehive.configuration.Messages.NO_ACCESS_TO_PLUGIN;
+import static com.devicehive.configuration.Messages.PLUGIN_NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Service
 public class PluginResourceImpl implements PluginResource {
@@ -62,15 +62,18 @@ public class PluginResourceImpl implements PluginResource {
 
     private final HiveValidator hiveValidator;
     private final PluginRegisterService pluginRegisterService;
+    private final PluginService pluginService;
 
     @Autowired
     public PluginResourceImpl(HiveValidator hiveValidator, PluginRegisterService pluginRegisterService, PluginService pluginService) {
         this.hiveValidator = hiveValidator;
         this.pluginRegisterService = pluginRegisterService;
+        this.pluginService = pluginService;
     }
 
     @Override
-    public void list(String name, String namePattern, String topicName, Integer status, Long userId, String sortField, String sortOrderSt, Integer take, Integer skip, AsyncResponse asyncResponse) {
+    public void list(String name, String namePattern, String topicName, Integer status, Long userId, String sortField,
+                     String sortOrderSt, Integer take, Integer skip, AsyncResponse asyncResponse) {
         logger.debug("Plugin list requested");
 
         if (sortField != null
@@ -140,14 +143,39 @@ public class PluginResourceImpl implements PluginResource {
     @Override
     public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        pluginRegisterService.update(principal.getPlugin(), updateQuery, authorization)
+        UserVO user = principal.getUser();
+
+        PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
+
+        pluginRegisterService.update(pluginVO, updateQuery, authorization)
                 .thenAccept(asyncResponse::resume);
     }
 
     @Override
     public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        pluginRegisterService.delete(principal.getPlugin(), authorization)
+        UserVO user = principal.getUser();
+
+        PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
+
+        pluginRegisterService.delete(pluginVO, authorization)
                 .thenAccept(asyncResponse::resume);
+    }
+
+    private PluginVO getPluginVO(String topicName, AsyncResponse asyncResponse, HivePrincipal principal, UserVO user) {
+        PluginVO pluginVO;
+        if (principal.getPlugin() != null) {
+            pluginVO = principal.getPlugin();
+        } else {
+            pluginVO = pluginService.findByTopic(topicName);
+            if (pluginVO == null) {
+                asyncResponse.resume(ResponseFactory.response(NOT_FOUND,
+                        new ErrorResponse(NOT_FOUND.getStatusCode(), PLUGIN_NOT_FOUND)));
+            } else if (!user.isAdmin() && pluginVO.getUserId() != null && !pluginVO.getUserId().equals(user.getId())) {
+                asyncResponse.resume(ResponseFactory.response(FORBIDDEN,
+                        new ErrorResponse(FORBIDDEN.getStatusCode(), NO_ACCESS_TO_PLUGIN)));
+            }
+        }
+        return pluginVO;
     }
 }
