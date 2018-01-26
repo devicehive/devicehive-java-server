@@ -59,7 +59,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
               clone_devicehive_docker()
               dir('devicehive-docker/rdbms-image'){
                 writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=rpc
-                COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
+                COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml:dh_plugin.yml:dh_plugin-ci-image.yml
                 DH_TAG=${BRANCH_NAME}
                 JWT_SECRET=devicehive
                 DH_FE_SPRING_PROFILES_ACTIVE=rpc-client
@@ -87,7 +87,7 @@ if (test_branches.contains(env.BRANCH_NAME)) {
             clone_devicehive_docker()
             dir('devicehive-docker/rdbms-image'){
               writeFile file: '.env', text: """COMPOSE_PROJECT_NAME=wsproxy
-              COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml
+              COMPOSE_FILE=docker-compose.yml:ci-images.yml:dh_proxy_custom_certificate.yml:dh_plugin.yml:dh_plugin-ci-image.yml
               DH_TAG=${BRANCH_NAME}
               JWT_SECRET=devicehive
               """
@@ -197,7 +197,8 @@ def run_devicehive_tests() {
       jq ".server.ip = \\"127.0.0.1\\"" | \\
       jq ".server.port = \\"80\\"" | \\
       jq ".server.restUrl = \\"http://127.0.0.1/api/rest\\"" | \\
-      jq ".server.authRestUrl = \\"http://127.0.0.1/auth/rest\\"" > config.json
+      jq ".server.authRestUrl = \\"http://127.0.0.1/auth/rest\\"" | \\
+      jq ".server.pluginRestUrl = \\"http://127.0.0.1/plugin/rest\\"" > config.json
     '''
 
     timeout(time:10, unit: 'MINUTES') {
@@ -214,6 +215,7 @@ def archive_container_logs(flavour) {
     sudo docker logs ${flavour}_dh_auth_1 > ${logsdir}/${flavour}_auth.log 2>&1
     sudo docker logs ${flavour}_dh_backend_1 > ${logsdir}/${flavour}_backend.log 2>&1
     sudo docker logs ${flavour}_dh_frontend_1 > ${logsdir}/${flavour}_frontend.log 2>&1
+    sudo docker logs ${flavour}_dh_plugin_1 > ${logsdir}/${flavour}_plugin.log 2>&1
     sudo docker logs ${flavour}_dh_proxy_1 > ${logsdir}/${flavour}_proxy.log 2>&1
     sudo docker logs ${flavour}_hazelcast_1 > ${logsdir}/${flavour}_hazelcast.log 2>&1
     sudo docker logs ${flavour}_kafka_1 > ${logsdir}/${flavour}_kafka.log 2>&1
@@ -221,7 +223,7 @@ def archive_container_logs(flavour) {
     sudo docker logs ${flavour}_postgres_1 > ${logsdir}/${flavour}_postgres.log 2>&1
     sudo docker logs ${flavour}_zookeeper_1 > ${logsdir}/${flavour}_zookeeper.log 2>&1
   """
-  def logs = "${logsdir}/${flavour}_auth.log, ${logsdir}/${flavour}_backend.log, ${logsdir}/${flavour}_frontend.log, ${logsdir}/${flavour}_proxy.log, ${logsdir}/${flavour}_hazelcast.log, ${logsdir}/${flavour}_kafka.log, ${logsdir}/${flavour}_wsproxy.log, ${logsdir}/${flavour}_postgres.log, ${logsdir}/${flavour}_zookeeper.log"
+  def logs = "${logsdir}/${flavour}_auth.log, ${logsdir}/${flavour}_backend.log, ${logsdir}/${flavour}_frontend.log, ${logsdir}/${flavour}_plugin.log, ${logsdir}/${flavour}_proxy.log, ${logsdir}/${flavour}_hazelcast.log, ${logsdir}/${flavour}_kafka.log, ${logsdir}/${flavour}_wsproxy.log, ${logsdir}/${flavour}_postgres.log, ${logsdir}/${flavour}_zookeeper.log"
   archiveArtifacts artifacts: logs, fingerprint: true
 }
 
