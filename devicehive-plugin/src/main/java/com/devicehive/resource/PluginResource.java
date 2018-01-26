@@ -144,12 +144,11 @@ public interface PluginResource {
             @Suspended final AsyncResponse asyncResponse);
 
     @PUT
-    @PreAuthorize("isAuthenticated() and hasPermission(#topicName, 'MANAGE_PLUGIN')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Update Plugin", notes = "Updates plugin in DH Server")
     @ApiResponses(value = {
-            @ApiResponse(code = 200,
-                    message = "Returns plugin uuid, topic name and health check period",
-                    response = PluginVO.class),
+            @ApiResponse(code = 403, message = "If principal does not have access to the plugin"),
+            @ApiResponse(code = 404, message = "If plugin not found")
     })
     void update(
             @ApiParam(name = "topicName", value = "Name of topic that was created for the plugin", required = true)
@@ -163,12 +162,11 @@ public interface PluginResource {
             @Suspended final AsyncResponse asyncResponse);
 
     @DELETE
-    @PreAuthorize("isAuthenticated() and hasPermission(#topicName, 'MANAGE_PLUGIN')")
+    @PreAuthorize("isAuthenticated() and hasPermission(null, 'MANAGE_PLUGIN')")
     @ApiOperation(value = "Delete Plugin", notes = "Deletes plugin in DH Server")
     @ApiResponses(value = {
-            @ApiResponse(code = 200,
-                    message = "Returns success",
-                    response = PluginVO.class),
+            @ApiResponse(code = 403, message = "If principal does not have access to the plugin"),
+            @ApiResponse(code = 404, message = "If plugin not found")
     })
     void delete(
             @QueryParam("topicName")
