@@ -48,8 +48,9 @@ Prerequisites
 In order to use DeviceHive framework you must have the following components installed and configured:
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
 * [Apache Kafka 0.10.0.0](http://kafka.apache.org/downloads.html) or above.
+* [DeviceHive Websocket Proxy](https://github.com/devicehive/devicehive-ws-proxy) running (relies on Kafka, 
+so should be started only when Kafka is up and running).
 * [Hazelcast IMDG](https://hazelcast.com/use-cases/imdg/).
-* [DeviceHive Websocket Proxy](https://github.com/devicehive/devicehive-ws-proxy) running.
 * [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/).
 * [Maven](http://maven.apache.org/download.cgi).
 * [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework.
