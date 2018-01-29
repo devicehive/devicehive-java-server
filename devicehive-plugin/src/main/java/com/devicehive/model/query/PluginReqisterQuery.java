@@ -27,7 +27,6 @@ import io.swagger.annotations.ApiParam;
 import javax.ws.rs.QueryParam;
 
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.model.FilterEntity.ALL_ENTITIES;
 
 
 public class PluginReqisterQuery {
@@ -131,41 +130,41 @@ public class PluginReqisterQuery {
     public String constructFilterString() {
         StringBuilder sb = new StringBuilder();
         if (returnCommands && returnUpdatedCommands && returnNotifications) {
-            sb.append(ALL_ENTITIES);
+            sb.append(ANY);
         } else if (returnCommands) {
-            sb.append("command");
+            sb.append(COMMAND);
         } else if (returnUpdatedCommands) {
-            sb.append("command_update");
+            sb.append(COMMAND_UPDATE);
         } else {
-            sb.append("notification");
+            sb.append(NOTIFICATION);
         }
         sb.append("/");
 
         if (networkIds != null && !networkIds.isEmpty()) {
             sb.append(networkIds);
         } else {
-            sb.append(ALL_ENTITIES);
+            sb.append(ANY);
         }
         sb.append("/");
 
         if (deviceTypeIds != null && !deviceTypeIds.isEmpty()) {
             sb.append(deviceTypeIds);
         } else {
-            sb.append(ALL_ENTITIES);
+            sb.append(ANY);
         }
         sb.append("/");
 
         if (deviceId != null && !deviceId.isEmpty()) {
             sb.append(deviceId);
         } else {
-            sb.append(ALL_ENTITIES);
+            sb.append(ANY);
         }
         sb.append("/");
 
         if (names != null && !names.isEmpty()) {
             sb.append(names);
         } else {
-            sb.append(ALL_ENTITIES);
+            sb.append(ANY);
         }
 
         return sb.toString();
