@@ -12,7 +12,7 @@ libraries to bootstrap development of smart energy, home automation, remote
 sensing, telemetry, remote control and monitoring software and much more.
 
 Connect embedded Linux using Python, Node.js or Java libraries and JSON format.
-Write and read your data via REST, Websockets or MQTT, explore visualization on [Garafana](https://grafana.com/plugins/devicehive-devicehive-datasource/installation) charts.
+Write and read your data via REST, Websockets or MQTT, explore visualization on [Grafana](https://grafana.com/plugins/devicehive-devicehive-datasource/installation) charts.
 
 Develop client applications using HTML5/JavaScript and Android libraries.
 Leave communications to DeviceHive and focus on actual product and innovation.
@@ -80,7 +80,7 @@ You need to update zookeeper.connect (zookeeper's contact point) and bootstrap.s
 
 Running Hazelcast
 -----------------------
-To start download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with folling contents:
+To start, download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with following contents:
 
 ```bash
 export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-common-<version>-shade.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
