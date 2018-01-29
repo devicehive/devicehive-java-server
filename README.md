@@ -11,12 +11,11 @@ It provides the communication layer, control software and multi-platform
 libraries to bootstrap development of smart energy, home automation, remote
 sensing, telemetry, remote control and monitoring software and much more.
 
-Connect embedded Linux using Python or C++ libraries and JSON protocol or
-connect AVR, Microchip devices using lightweight C libraries and BINARY protocol.
-Develop client applications using HTML5/JavaScript, iOS and Android libraries.
-For solutions involving gateways, there is also gateway middleware that allows
-to interface with devices connected to it. Leave communications to DeviceHive
-and focus on actual product and innovation.
+Connect embedded Linux using Python, Node.js or Java libraries and JSON format.
+Write and read your data via REST, Websockets or MQTT, explore visualization on [Garafana](https://grafana.com/plugins/devicehive-devicehive-datasource/installation) charts.
+
+Develop client applications using HTML5/JavaScript and Android libraries.
+Leave communications to DeviceHive and focus on actual product and innovation.
 
 DeviceHive license
 ------------------
@@ -32,27 +31,33 @@ highly encouraged to do so!
 
 Docker Container
 =========================================
-We have published a DeviceHive docker container so you can utilize docker's virtualization features with DeviceHive. 
-Check out [DeviceHive on Docker Hub](https://hub.docker.com/r/devicehive/devicehive/) with the instructions on 
-how to use it. You can check dockerfile implementation as well as the script for setting up a new instance running 
-under nginx on [DeviceHive Docker](https://github.com/devicehive/devicehive-docker) 
+DeviceHive could be deployed manually, via Docker Compose or to Kubernetes cluster.
+Our suggestion is to start from [Docker Compose](https://docs.docker.com/compose/) - the easiest way to start your 
+mastering DeviceHive capabilities. Instructions could be found [here](https://github.com/devicehive/devicehive-docker/tree/master/rdbms-image).
+In case you're more familiar with [Kubernetes](https://kubernetes.io/), please follow this 
+[link](https://github.com/devicehive/devicehive-docker/tree/master/k8s) for detailed instructions. 
 
 DeviceHive Java installation instructions
 =========================================
+
+Though docker-compose installation is the most developer-friendly way of running DeviceHive locally, sometimes it's required
+to build and start project manually. Below you can find detailed instructions on that.
 
 Prerequisites
 -------------
 In order to use DeviceHive framework you must have the following components installed and configured:
 * [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
 * [Apache Kafka 0.10.0.0](http://kafka.apache.org/downloads.html) or above.
-* [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/)
-* [Maven](http://maven.apache.org/download.cgi)
-* [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework
+* [Hazelcast IMDG](https://hazelcast.com/use-cases/imdg/).
+* [DeviceHive Websocket Proxy](https://github.com/devicehive/devicehive-ws-proxy) running.
+* [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/).
+* [Maven](http://maven.apache.org/download.cgi).
+* [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework.
 
 
 Build packages
 --------------
-* Download source code from [GitHub](https://github.com/devicehive/devicehive-java-server) using "Download ZIP" button.
+Download source code from [GitHub](https://github.com/devicehive/devicehive-java-server) using "Download ZIP" button.
 It should always point to recent stable or beta release, but you always can get any other tag or branch.
 It also can be done using one of [Git version control client](http://git-scm.com/downloads/guis) or git command line tool.
 If you prefer git, clone project using command
@@ -60,7 +65,7 @@ If you prefer git, clone project using command
 `git clone https://github.com/devicehive/devicehive-java-server.git`
 
 After that you can switch to the tag or branch you need. The list of all available releases can be found at
-https://github.com/devicehive/devicehive-java-server/releases
+https://github.com/devicehive/devicehive-java-server/releases.
 Execute following command from ${devicehive-java-server-directory}.
 
 `mvn clean package`
@@ -122,11 +127,7 @@ in hazelcast.xml localted in bin folder of hazelcast. Also replace all the map a
 ```
 
 
-Run hzstart.sh. At this ensure that correct value of property hazelcast.cluster.members is installed in
-
-`/path/to/devicehive-java-server/devicehive-backend/src/main/resources/application.properties`
-
-You can also pass this property in JAVA_OPTS when running devicehive-backend.
+Run hzstart.sh.
 
 Starting database
 ---------------------
@@ -137,13 +138,38 @@ the username is `postgres` and the password is `12345`. You can change this in t
 database.
 * Database schema will be initialized on application startup.
 
+Checking properties
+---------------------
+
+Each microservice has its own `src/main/resources/application.properties` file which contains all application-level 
+configurations (db credentials, hazelcast address, kafka props etc.). Please check them before building application in 
+order to avoid problems at runtime.
+
+You can also override these values by passing them to JVM while running `java -Dapplication.property.name=application.property.name -jar`.
+For example: 
+```
+java -Dhazelcast.cluster.members=0.0.0.1:5701 -jar ${devicehive-jar}.jar
+java -Dbootstrap.servers=0.0.0.1:9092 -jar ${devicehive-jar}.jar
+java -Dproxy.connect=0.0.0.1:3000 -jar ${devicehive-jar}.jar
+```
+
+DB connection properties are managed inside `devicehive-rdbms-dao/src/main/resources/application-persistence.properties`.
+To override them do the same:
+```
+java -Dspring.datasource.url=jdbc:postgresql://0.0.0.1:5432/devicehive -jar ${devicehive-jar}.jar
+java -Dspring.datasource.username=test -Dspring.datasource.password=test -jar ${devicehive-jar}.jar
+```
+
 Running application
 ---------------------
-* To start application, you have to start backend, frontend and auth microservices. To do this, first run following command:
+DeviceHive ecosystem contains of 3 mandatory and 1 optional services, namely Backend, Frontend, Auth and Plugin 
+management (optional) micro services.
+
+* To start application, first run following command:
 
 `java -jar ${devicehive-java-server-directory}/devicehive-backend/target/devicehive-backend-<version>-boot.jar`
  
-Wait for the application to start, then run: 
+This will start Backend. Wait for the application to start, then run: 
 
 `java -jar ${devicehive-java-server-directory}/devicehive-frontend/target/devicehive-frontend-<version>-boot.jar`
 
@@ -152,8 +178,8 @@ and
 `java -jar ${devicehive-java-server-directory}/devicehive-auth/target/devicehive-auth-<version>-boot.jar`
 
 This will start embedded undertow application server on default port 8080 and deploy DeviceHive application.
-You can visit http://localhost:8080/dh/swagger from your web browser to start learning the frontend's APIs.
-Also you can visit http://localhost:8090/dh/swagger from your web browser to start learning the auth's APIs.
+You can visit `http://localhost:8080/dh/swagger` from your web browser to start learning the frontend's APIs.
+Also you can visit `http://localhost:8090/dh/swagger` from your web browser to start learning the auth's APIs.
 
 For devicehive-frontend and devicehive-backend logging level can be changed by adding the following properties to the command above:
 
@@ -162,3 +188,16 @@ For devicehive-frontend and devicehive-backend logging level can be changed by a
 The values can be: TRACE, DEBUG, INFO, WARN, ERROR. If the properties are absent the default values will be used.
 For devicehive-frontend and devicehive-auth default values for value1 and value2 are WARN and INFO correspondingly.
 For devicehive-backend the default value for both is INFO.
+
+Plugin management service
+---------------------
+
+There's one optional service inside DeviceHive ecosystem - Plugin Management service. It allows to register and to update 
+DeviceHive plugins (that allow customers to implement their own business logic without diving into DeviceHive source code)
+via RESTful API.
+
+To start it simply run following command:
+
+`java -jar ${devicehive-java-server-directory}/devicehive-plugin/target/devicehive-plugin-<version>-boot.jar`
+
+Service will be started on 8110 port by default, so you can visit its swagger at `http://localhost:8110/dh/swagger`
