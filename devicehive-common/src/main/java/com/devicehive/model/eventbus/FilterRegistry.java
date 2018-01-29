@@ -38,7 +38,7 @@ public class FilterRegistry {
      */
     private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    public void register(Filter filter, Subscriber subscriber) {
+    public synchronized void register(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
             subscribers = new HashSet<>();
@@ -49,7 +49,7 @@ public class FilterRegistry {
         }
     }
 
-    public void unregister(Subscriber subscriber) {
+    public synchronized void unregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> {
             Iterator iterator = subscribers.iterator();
 
@@ -63,8 +63,11 @@ public class FilterRegistry {
     }
 
     public Collection<Subscriber> getSubscribers(Filter filter) {
-        Set<Subscriber> subscribers = Optional.ofNullable(subscriberTable.get("*,*,*", filter.getSecondKey()))
-                .orElse(new HashSet<>());
+        Set<Subscriber> subscribers = new HashSet<>();
+        Set<Subscriber> globalFilterSubscribers = subscriberTable.get("*,*,*", filter.getSecondKey());
+        if (globalFilterSubscribers != null) {
+            subscribers.addAll(globalFilterSubscribers);
+        }
         Set<Subscriber> filterSubscribers = subscriberTable.get(filter.getDeviceIgnoredFirstKey(), filter.getSecondKey());
         if (filterSubscribers != null) {
             subscribers.addAll(filterSubscribers);
