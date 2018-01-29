@@ -86,6 +86,7 @@ public class Constants {
     public static final String USERS = "users";
     public static final String COMMAND = "command";
     public static final String COMMANDS = "commands";
+    public static final String COMMAND_UPDATE = "command_update";
     public static final String PAYLOAD = "payload";
     public static final String SUBSCRIPTION_ID = "subscriptionId";
     public static final String SUBSCRIPTIONS = "subscriptions";
