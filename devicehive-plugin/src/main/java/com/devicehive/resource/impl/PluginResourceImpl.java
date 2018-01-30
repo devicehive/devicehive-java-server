@@ -147,8 +147,10 @@ public class PluginResourceImpl implements PluginResource {
 
         PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
 
-        pluginRegisterService.update(pluginVO, updateQuery, authorization)
-                .thenAccept(asyncResponse::resume);
+        if (!asyncResponse.isDone()) {
+            pluginRegisterService.update(pluginVO, updateQuery, authorization)
+                    .thenAccept(asyncResponse::resume);
+        }
     }
 
     @Override
@@ -158,8 +160,10 @@ public class PluginResourceImpl implements PluginResource {
 
         PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
 
-        pluginRegisterService.delete(pluginVO, authorization)
-                .thenAccept(asyncResponse::resume);
+        if (!asyncResponse.isDone()) {
+            pluginRegisterService.delete(pluginVO, authorization)
+                    .thenAccept(asyncResponse::resume);
+        }
     }
 
     private PluginVO getPluginVO(String topicName, AsyncResponse asyncResponse, HivePrincipal principal, UserVO user) {
