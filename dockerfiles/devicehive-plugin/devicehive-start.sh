@@ -77,6 +77,7 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
 -Dproxy.connect="${DH_WS_PROXY:-localhost:3000}" \
+-Dproxy.plugin.connect="${DH_PROXY_PLUGIN_CONNECT:-localhost:3001}" \
 -Dreplication.factor="${DH_REPLICATION_FACTOR:-1}" \
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Drpc.client.response-consumer.threads="${DH_RPC_CLIENT_RES_CONS_THREADS:-3}" \
