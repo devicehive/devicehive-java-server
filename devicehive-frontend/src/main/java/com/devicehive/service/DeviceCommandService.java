@@ -227,18 +227,6 @@ public class DeviceCommandService {
         cmd.setIsUpdated(true);
         cmd.setLastUpdated(timestampService.getDate());
 
-        if (commandWrapper.getCommand().isPresent()) {
-            cmd.setCommand(commandWrapper.getCommand().get());
-        }
-        if (commandWrapper.getTimestamp().isPresent()) {
-            cmd.setTimestamp(commandWrapper.getTimestamp().get());
-        }
-        if (commandWrapper.getParameters().isPresent()) {
-            cmd.setParameters(commandWrapper.getParameters().get());
-        }
-        if (commandWrapper.getLifetime().isPresent()) {
-            cmd.setLifetime(commandWrapper.getLifetime().get());
-        }
         if (commandWrapper.getStatus().isPresent()) {
             cmd.setStatus(commandWrapper.getStatus().get());
         }
