@@ -131,8 +131,7 @@ public class PluginResourceImpl implements PluginResource {
         try {
             HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             pluginRegisterService.register(principal.getUser().getId(), pluginReqisterQuery, pluginUpdate, authorization)
-                    .thenAccept(asyncResponse::resume
-                    );
+                    .thenAccept(asyncResponse::resume);
         } catch (ServiceUnavailableException e) {
             logger.warn(HEALTH_CHECK_FAILED);
             asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,

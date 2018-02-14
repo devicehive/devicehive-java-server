@@ -52,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.ws.rs.NotFoundException;
@@ -76,7 +77,6 @@ public class PluginRegisterService {
     
     private final HiveValidator hiveValidator;
     private final PluginService pluginService;
-    private final BaseDeviceService deviceService;
     private final FilterService filterService;
     private final RpcClient rpcClient;
     private final KafkaTopicService kafkaTopicService;
@@ -89,7 +89,7 @@ public class PluginRegisterService {
     public PluginRegisterService(
             HiveValidator hiveValidator,
             PluginService pluginService,
-            BaseDeviceService deviceService, FilterService filterService, RpcClient rpcClient,
+            FilterService filterService, RpcClient rpcClient,
             KafkaTopicService kafkaTopicService,
             LongIdGenerator idGenerator,
             HttpRestHelper httpRestHelper,
@@ -97,7 +97,6 @@ public class PluginRegisterService {
             Gson gson) {
         this.hiveValidator = hiveValidator;
         this.pluginService = pluginService;
-        this.deviceService = deviceService;
         this.filterService = filterService;
         this.rpcClient = rpcClient;
         this.kafkaTopicService = kafkaTopicService;
@@ -142,7 +141,7 @@ public class PluginRegisterService {
                     .build(), new ResponseConsumer(future));
         }
 
-        return CompletableFuture.completedFuture(ResponseFactory.response(NO_CONTENT));
+        return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
     }
 
     public CompletableFuture<List<PluginVO>> list(String name, String namePattern, String topicName, Integer status, Long userId,
@@ -184,8 +183,7 @@ public class PluginRegisterService {
         return future.thenApply(response -> new EntityCountResponse((CountResponse) response.getBody()));
     }
 
-    @Transactional
-    CompletableFuture<PluginVO> persistPlugin(PluginUpdate pluginUpdate, String filterString, Long userId) {
+    private CompletableFuture<PluginVO> persistPlugin(PluginUpdate pluginUpdate, String filterString, Long userId) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
         pluginVO.setUserId(userId);
@@ -266,7 +264,7 @@ public class PluginRegisterService {
             ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());
         }
 
-        if (!existingPlugin.getStatus().equals(PluginStatus.ACTIVE) && existingPlugin.getSubscriptionId() != null) {
+        if (existingPlugin.getStatus().equals(PluginStatus.INACTIVE) && existingPlugin.getSubscriptionId() != null) {
             request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
             existingPlugin.setSubscriptionId(null);
         }
@@ -279,7 +277,7 @@ public class PluginRegisterService {
                     .build(), new ResponseConsumer(future));
         }
 
-        return CompletableFuture.completedFuture(existingPlugin);
+        return future.thenApply(response -> existingPlugin);
     }
 
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {
