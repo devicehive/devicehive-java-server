@@ -50,7 +50,6 @@ import static org.mockito.Mockito.verify;
 
 public class PluginRegisterServiceTest {
     private static final Long USER_ID = 1L;
-    private static final Long SUBSCRIPTION_ID = 1L;
     private static final String ACCESS_TOKEN = "accessToken";
     private static final String REFRESH_TOKEN = "refreshToken";
     private static final String PROXY_PLUGIN_ENDPOINT = "proxyEndpoint";
@@ -93,7 +92,6 @@ public class PluginRegisterServiceTest {
 
         PluginUpdate pluginUpdate = new PluginUpdate();
 
-        given(idGenerator.generate()).willReturn(SUBSCRIPTION_ID);
         given(webSocketKafkaProxyConfig.getProxyPluginConnect()).willReturn(PROXY_PLUGIN_ENDPOINT);
         given(httpRestHelper.post(any(), any(), any(), any())).willReturn(createJwtTokenVO(ACCESS_TOKEN, REFRESH_TOKEN));
 
@@ -116,7 +114,7 @@ public class PluginRegisterServiceTest {
         assertEquals(actual.get(REFRESH_TOKEN).getAsString(), REFRESH_TOKEN);
         assertEquals(actual.get(PROXY_PLUGIN_ENDPOINT).getAsString(), PROXY_PLUGIN_ENDPOINT);
 
-        verify(rpcClient, times(1)).call(any(), any());
+        verify(rpcClient, times(0)).call(any(), any());
     }
     
     private JwtTokenVO createJwtTokenVO(String accessToken, String refreshToken) {
