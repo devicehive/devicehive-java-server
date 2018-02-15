@@ -131,8 +131,7 @@ public class PluginResourceImpl implements PluginResource {
         try {
             HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             pluginRegisterService.register(principal.getUser().getId(), pluginReqisterQuery, pluginUpdate, authorization)
-                    .thenAccept(asyncResponse::resume
-                    );
+                    .thenAccept(asyncResponse::resume);
         } catch (ServiceUnavailableException e) {
             logger.warn(HEALTH_CHECK_FAILED);
             asyncResponse.resume(ResponseFactory.response(BAD_REQUEST,
@@ -141,27 +140,27 @@ public class PluginResourceImpl implements PluginResource {
     }
 
     @Override
-    public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
+    public void update(String topicName, PluginUpdateQuery updateQuery, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO user = principal.getUser();
 
         PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
 
         if (!asyncResponse.isDone()) {
-            pluginRegisterService.update(pluginVO, updateQuery, authorization)
+            pluginRegisterService.update(pluginVO, updateQuery)
                     .thenAccept(asyncResponse::resume);
         }
     }
 
     @Override
-    public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
+    public void delete(String topicName, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO user = principal.getUser();
 
         PluginVO pluginVO = getPluginVO(topicName, asyncResponse, principal, user);
 
         if (!asyncResponse.isDone()) {
-            pluginRegisterService.delete(pluginVO, authorization)
+            pluginRegisterService.delete(pluginVO)
                     .thenAccept(asyncResponse::resume);
         }
     }

@@ -156,9 +156,6 @@ public interface PluginResource {
                     String topicName,
             @BeanParam
                     PluginUpdateQuery updateQuery,
-            @ApiParam(name = "Authorization", value = "Authorization token", required = true)
-            @HeaderParam("Authorization")
-                    String authorization,
             @Suspended final AsyncResponse asyncResponse);
 
     @DELETE
@@ -171,8 +168,5 @@ public interface PluginResource {
     void delete(
             @QueryParam("topicName")
                     String topicName,
-            @ApiParam(name = "Authorization", value = "Authorization token", required = true)
-            @HeaderParam("Authorization")
-                    String authorization,
             @Suspended final AsyncResponse asyncResponse);
 }
