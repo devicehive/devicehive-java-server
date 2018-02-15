@@ -4,14 +4,14 @@ package com.devicehive.messages.handler.dao.list;
  * #%L
  * DeviceHive Backend Logic
  * %%
- * Copyright (C) 2016 - 2017 DataArt
+ * Copyright (C) 2016 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,38 +20,38 @@ package com.devicehive.messages.handler.dao.list;
  * #L%
  */
 
-import com.devicehive.model.eventbus.FilterRegistry;
-import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.ListSubscribeRequest;
-import com.devicehive.model.rpc.ListSubscribeResponse;
+import com.devicehive.dao.PluginDao;
+import com.devicehive.model.rpc.ListPluginRequest;
+import com.devicehive.model.rpc.ListPluginResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
+import com.devicehive.vo.PluginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Component
-public class ListSubscribeHandler implements RequestHandler {
+public class ListPluginHandler implements RequestHandler {
 
-    private FilterRegistry filterRegistry;
+    private PluginDao pluginDao;
 
     @Autowired
-    public void setFilterRegistry(FilterRegistry filterRegistry) {
-        this.filterRegistry = filterRegistry;
+    public void setPluginDao(PluginDao pluginDao) {
+        this.pluginDao = pluginDao;
     }
 
     @Override
     public Response handle(Request request) {
-        final ListSubscribeRequest req = (ListSubscribeRequest) request.getBody();
-        Map<Long, Filter> onResponse = new HashMap<>();
+        final ListPluginRequest req = (ListPluginRequest) request.getBody();
 
-        // req.getSubscriptionIds().forEach(subId -> onResponse.put(subId, filterRegistry.getFilter(subId))); toDo: see DEV-338
+        final List<PluginVO> plugins = pluginDao.list(req.getName(), req.getNamePattern(), req.getTopicName(),
+                req.getStatus(), req.getUserId(), req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(),
+                req.getPrincipal());
 
         return Response.newBuilder()
-                .withBody(new ListSubscribeResponse(onResponse))
+                .withBody(new ListPluginResponse(plugins))
                 .buildSuccess();
     }
 }

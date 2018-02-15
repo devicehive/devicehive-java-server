@@ -150,6 +150,10 @@ public class DeviceTypeHandlers {
     public void processDeviceTypeUpdate(Long deviceTypeId, JsonObject request, WebSocketSession session) {
         DeviceTypeUpdate deviceTypeToUpdate = gson.fromJson(request.get(DEVICE_TYPE), DeviceTypeUpdate.class);
         logger.debug("Device type update requested. Id : {}", deviceTypeId);
+        if (deviceTypeId == null) {
+            logger.error(Messages.DEVICE_TYPE_ID_REQUIRED);
+            throw new HiveException(Messages.DEVICE_TYPE_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
         deviceTypeService.update(deviceTypeId, deviceTypeToUpdate);
         logger.debug("Device type has been updated successfully. Id : {}", deviceTypeId);
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);

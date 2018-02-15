@@ -30,6 +30,7 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListUserRequest extends Body {
 
@@ -51,7 +52,7 @@ public class ListUserRequest extends Body {
                 .excludeFieldsWithModifiers(Modifier.PROTECTED)
                 .create()
                 .fromJson(request, ListUserRequest.class);
-        listUserRequest.setTake(Optional.ofNullable(listUserRequest.getTake()).orElse(20));
+        listUserRequest.setTake(Optional.ofNullable(listUserRequest.getTake()).orElse(DEFAULT_TAKE));
         listUserRequest.setSkip(Optional.ofNullable(listUserRequest.getSkip()).orElse(DEFAULT_SKIP));
 
         return listUserRequest;

@@ -20,52 +20,48 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.rpc.ListSubscribeRequest;
-import com.devicehive.model.rpc.ListSubscribeResponse;
-import com.devicehive.shim.api.Action;
-import com.devicehive.shim.api.Request;
-import com.devicehive.shim.api.Response;
-import com.devicehive.shim.api.client.RpcClient;
+import com.devicehive.auth.HiveAction;
+import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.SubscriptionInfo;
+import com.devicehive.websockets.handlers.CommandHandlers;
+import com.devicehive.websockets.handlers.NotificationHandlers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.WebSocketSession;
 
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import static com.devicehive.configuration.Constants.COMMAND;
+import static com.devicehive.configuration.Constants.NOTIFICATION;
 
 @Component
 public class SubscriptionService {
 
     private static final Logger logger = LoggerFactory.getLogger(SubscriptionService.class);
 
-    private final RpcClient rpcClient;
+    @SuppressWarnings("unchecked")
+    public Set<SubscriptionInfo> list(String type, HivePrincipal principal, WebSocketSession session) {
+        logger.debug("subscribe/list action. Session {} ", session.getId());
 
-    @Autowired
-    public SubscriptionService(RpcClient rpcClient) {
-        this.rpcClient = rpcClient;
-    }
-
-    public CompletableFuture<Map<Long, Filter>> list(Set<Long> subscriptionIds) {
-        ListSubscribeRequest listSubscribeRequest = new ListSubscribeRequest(subscriptionIds);
-        Request request = Request.newBuilder()
-                .withBody(listSubscribeRequest)
-                .build();
-
-        CompletableFuture<Map<Long, Filter>> future = new CompletableFuture<>();
-        Consumer<Response> responseConsumer = response -> {
-            Action resAction = response.getBody().getAction();
-            if (resAction.equals(Action.LIST_SUBSCRIBE_RESPONSE)) {
-                future.complete(response.getBody().cast(ListSubscribeResponse.class).getSubscriptions());
-            } else {
-                logger.warn("Unknown action received from backend {}", resAction);
+        Set<SubscriptionInfo> subscriptions = new HashSet<>();
+        if (principal.getActions().contains(HiveAction.GET_DEVICE_COMMAND)) {
+            if (type == null || type.equals(COMMAND)) {
+                subscriptions.addAll(((CopyOnWriteArraySet<SubscriptionInfo>) session
+                        .getAttributes()
+                        .get(CommandHandlers.SUBSCRIPTION_SET_NAME)));
             }
-        };
+        }
+        if (principal.getActions().contains(HiveAction.GET_DEVICE_NOTIFICATION)) {
+            if (type == null || type.equals(NOTIFICATION)) {
+                subscriptions.addAll(((CopyOnWriteArraySet<SubscriptionInfo>) session
+                        .getAttributes()
+                        .get(NotificationHandlers.SUBSCRIPTION_SET_NAME)));
+            }
+        }
 
-        rpcClient.call(request, responseConsumer);
-        return future;
+        return subscriptions;
     }
 }

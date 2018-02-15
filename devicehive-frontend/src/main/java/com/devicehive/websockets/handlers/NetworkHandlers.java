@@ -150,6 +150,10 @@ public class NetworkHandlers {
     public void processNetworkUpdate(Long networkId, JsonObject request, WebSocketSession session) {
         NetworkUpdate networkToUpdate = gson.fromJson(request.get(NETWORK), NetworkUpdate.class);
         logger.debug("Network update requested. Id : {}", networkId);
+        if (networkId == null) {
+            logger.error(Messages.NETWORK_ID_REQUIRED);
+            throw new HiveException(Messages.NETWORK_ID_REQUIRED, BAD_REQUEST.getStatusCode());
+        }
         networkService.update(networkId, networkToUpdate);
         logger.debug("Network has been updated successfully. Id : {}", networkId);
         webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);

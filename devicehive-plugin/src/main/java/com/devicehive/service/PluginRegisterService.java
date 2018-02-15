@@ -28,9 +28,8 @@ import com.devicehive.model.FilterEntity;
 import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.model.query.PluginUpdateQuery;
-import com.devicehive.model.rpc.BasePluginRequest;
-import com.devicehive.model.rpc.PluginSubscribeRequest;
-import com.devicehive.model.rpc.PluginUnsubscribeRequest;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.resource.util.ResponseFactory;
@@ -38,7 +37,6 @@ import com.devicehive.security.jwt.JwtPluginPayload;
 import com.devicehive.service.helpers.HttpRestHelper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
-import com.devicehive.shim.api.Body;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
@@ -51,19 +49,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.devicehive.auth.HiveAction.MANAGE_PLUGIN;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITTED;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 import static javax.ws.rs.core.Response.Status.*;
 
@@ -76,7 +74,6 @@ public class PluginRegisterService {
     
     private final HiveValidator hiveValidator;
     private final PluginService pluginService;
-    private final BaseDeviceService deviceService;
     private final FilterService filterService;
     private final RpcClient rpcClient;
     private final KafkaTopicService kafkaTopicService;
@@ -89,7 +86,7 @@ public class PluginRegisterService {
     public PluginRegisterService(
             HiveValidator hiveValidator,
             PluginService pluginService,
-            BaseDeviceService deviceService, FilterService filterService, RpcClient rpcClient,
+            FilterService filterService, RpcClient rpcClient,
             KafkaTopicService kafkaTopicService,
             LongIdGenerator idGenerator,
             HttpRestHelper httpRestHelper,
@@ -97,7 +94,6 @@ public class PluginRegisterService {
             Gson gson) {
         this.hiveValidator = hiveValidator;
         this.pluginService = pluginService;
-        this.deviceService = deviceService;
         this.filterService = filterService;
         this.rpcClient = rpcClient;
         this.kafkaTopicService = kafkaTopicService;
@@ -107,7 +103,6 @@ public class PluginRegisterService {
         this.gson = gson;
     }
 
-    @Transactional
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
         PluginVO existingPlugin = pluginService.findByName(pluginUpdate.getName());
@@ -115,9 +110,8 @@ public class PluginRegisterService {
             logger.error("Plugin with name {} already exists", pluginUpdate.getName());
             throw new HiveException(String.format(Messages.PLUGIN_ALREADY_EXISTS, pluginUpdate.getName()), BAD_REQUEST.getStatusCode());
         }
-        PluginSubscribeRequest pollRequest = pluginReqisterQuery.toRequest(filterService);
 
-        return persistPlugin(pollRequest, pluginUpdate, pluginReqisterQuery.constructFilterString(), userId).thenApply(pluginVO -> {
+        return persistPlugin(pluginUpdate, pluginReqisterQuery.constructFilterString(), userId).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
             JsonObject response = createTokenResponse(pluginVO.getTopicName(), jwtTokenVO);
 
@@ -126,26 +120,68 @@ public class PluginRegisterService {
     }
 
     @Transactional
-    public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery, String authorization) {
+    public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
         return updatePlugin(existingPlugin, pluginUpdateQuery).thenApply(plugin ->
             ResponseFactory.response(NO_CONTENT)
         );
     }
 
     @Transactional
-    public CompletableFuture<Response> delete(PluginVO existingPlugin, String authorization) {
+    public CompletableFuture<Response> delete(PluginVO existingPlugin) {
         pluginService.delete(existingPlugin.getId());
 
-        PluginUnsubscribeRequest request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
-        rpcClient.call(Request.newBuilder()
-                .withBody(request)
-                .build(), new ResponseConsumer(future));
-
-        return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
+        if (existingPlugin.getSubscriptionId() != null) {
+            PluginUnsubscribeRequest request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
+            rpcClient.call(Request.newBuilder()
+                    .withBody(request)
+                    .build(), new ResponseConsumer(future));
+            return future.thenApply(response -> ResponseFactory.response(NO_CONTENT));
+        } else {
+            return CompletableFuture.completedFuture(ResponseFactory.response(NO_CONTENT));
+        }
     }
 
-    private CompletableFuture<PluginVO> persistPlugin(PluginSubscribeRequest pollRequest, PluginUpdate pluginUpdate, String filterString, Long userId) {
+    public CompletableFuture<List<PluginVO>> list(String name, String namePattern, String topicName, Integer status, Long userId,
+                                                  String sortField, String sortOrderSt, Integer take, Integer skip,
+                                                  HivePrincipal principal) {
+
+        ListPluginRequest listPluginRequest = new ListPluginRequest(name, namePattern, topicName, status, userId,
+                sortField, sortOrderSt, take, skip, principal);
+
+        return list(listPluginRequest);
+    }
+
+    public CompletableFuture<List<PluginVO>> list(ListPluginRequest listPluginRequest){
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(listPluginRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((ListPluginResponse) response.getBody()).getPlugins());
+    }
+
+    public CompletableFuture<EntityCountResponse> count(String name, String namePattern, String topicName,
+                                                        Integer status, Long userId, HivePrincipal principal) {
+        CountPluginRequest countPluginRequest = new CountPluginRequest(name, namePattern, topicName, status, userId, principal);
+
+        return count(countPluginRequest);
+    }
+
+    public CompletableFuture<EntityCountResponse> count(CountPluginRequest countPluginRequest) {
+        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(countPluginRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> new EntityCountResponse((CountResponse) response.getBody()));
+    }
+
+    private CompletableFuture<PluginVO> persistPlugin(PluginUpdate pluginUpdate, String filterString, Long userId) {
         hiveValidator.validate(pluginUpdate);
         PluginVO pluginVO = pluginUpdate.convertTo();
         pluginVO.setUserId(userId);
@@ -157,20 +193,9 @@ public class PluginRegisterService {
         kafkaTopicService.createTopic(pluginTopic);
         pluginVO.setTopicName(pluginTopic);
 
-        //Creation of subscription for plugin
-        final Long subscriptionId = idGenerator.generate();
-        pollRequest.setSubscriptionId(subscriptionId);
-        pollRequest.setTopicName(pluginTopic);
-
-        pluginVO.setSubscriptionId(subscriptionId);
         pluginService.create(pluginVO);
 
-        CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
-        rpcClient.call(Request.newBuilder()
-                .withBody(pollRequest)
-                .build(), new ResponseConsumer(future));
-        
-        return future.thenApply(response -> pluginVO);
+        return CompletableFuture.completedFuture(pluginVO);
     }
 
     private CompletableFuture<PluginVO> updatePlugin(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
@@ -226,23 +251,36 @@ public class PluginRegisterService {
 
         existingPlugin.setFilter(pluginUpdateQuery.constructFilterString());
 
-        pluginService.update(existingPlugin);
-
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
 
-        BasePluginRequest request;
-        if (existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
-            request = pluginUpdateQuery.toRequest(filterService);
-            request.setSubscriptionId(existingPlugin.getSubscriptionId());
-        } else {
-            request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
+        BasePluginRequest request = null;
+        if (pluginUpdateQuery.getStatus() != null) {
+            if (pluginUpdateQuery.getStatus().equals(PluginStatus.ACTIVE) && existingPlugin.getSubscriptionId() == null) {
+                final Long subscriptionId = idGenerator.generate();
+                request = pluginUpdateQuery.toRequest(filterService);
+                request.setSubscriptionId(subscriptionId);
+                existingPlugin.setSubscriptionId(subscriptionId);
+                ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());
+            }
+
+            if (pluginUpdateQuery.getStatus().equals(PluginStatus.INACTIVE) && existingPlugin.getSubscriptionId() != null) {
+                request = new PluginUnsubscribeRequest(existingPlugin.getSubscriptionId(), existingPlugin.getTopicName());
+                existingPlugin.setSubscriptionId(null);
+            }
         }
 
-        rpcClient.call(Request.newBuilder()
-                .withBody(request)
-                .build(), new ResponseConsumer(future));
+        pluginService.update(existingPlugin);
 
-        return future.thenApply(response -> existingPlugin);
+        if (request != null) {
+            rpcClient.call(Request.newBuilder()
+                    .withBody(request)
+                    .build(), new ResponseConsumer(future));
+
+            return future.thenApply(response -> existingPlugin);
+        } else {
+            return CompletableFuture.completedFuture(existingPlugin);
+        }
+
     }
 
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {
@@ -265,7 +303,7 @@ public class PluginRegisterService {
 
         response.addProperty("accessToken", jwtTokenVO.getAccessToken());
         response.addProperty("refreshToken", jwtTokenVO.getRefreshToken());
-        response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyConnect());
+        response.addProperty("proxyEndpoint", webSocketKafkaProxyConfig.getProxyPluginConnect());
         response.addProperty("topicName", topicName);
 
         return response;

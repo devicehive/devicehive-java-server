@@ -63,10 +63,11 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final CountNetworkHandler countNetworkHandler;
     private final ListDeviceHandler listDeviceHandler;
     private final CountDeviceHandler countDeviceHandler;
-    private final ListSubscribeHandler listSubscribeHandler;
     private final DeviceDeleteHandler deviceDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
+    private final ListPluginHandler listPluginHandler;
+    private final CountPluginHandler countPluginHandler;
 
     private Map<Action, RequestHandler> requestHandlerMap;
 
@@ -84,7 +85,6 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CommandsUpdateHandler commandsUpdateHandler,
                                  ListNetworkHandler listNetworkHandler,
                                  ListDeviceTypeHandler listDeviceTypeHandler,
-                                 ListSubscribeHandler listSubscribeHandler,
                                  DeviceDeleteHandler deviceDeleteHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
@@ -94,7 +94,9 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  CountNetworkHandler countNetworkHandler,
                                  CountDeviceHandler countDeviceHandler,
                                  PluginSubscribeRequestHandler pluginSubscribeRequestHandler,
-                                 PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler) {
+                                 PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler,
+                                 ListPluginHandler listPluginHandler,
+                                 CountPluginHandler countPluginHandler) {
         this.commandUpdateHandler = commandUpdateHandler;
         this.notificationSearchHandler = notificationSearchHandler;
         this.notificationInsertHandler = notificationInsertHandler;
@@ -107,7 +109,6 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.commandsUpdateHandler = commandsUpdateHandler;
         this.listNetworkHandler = listNetworkHandler;
         this.listDeviceTypeHandler = listDeviceTypeHandler;
-        this.listSubscribeHandler = listSubscribeHandler;
         this.deviceDeleteHandler = deviceDeleteHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
@@ -118,7 +119,8 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.countDeviceHandler = countDeviceHandler;
         this.pluginSubscribeRequestHandler = pluginSubscribeRequestHandler;
         this.pluginUnsubscribeRequestHandler = pluginUnsubscribeRequestHandler;
-
+        this.listPluginHandler = listPluginHandler;
+        this.countPluginHandler = countPluginHandler;
     }
 
     @PostConstruct
@@ -145,8 +147,9 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.COUNT_NETWORK_REQUEST, countNetworkHandler)
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
-                .put(Action.LIST_SUBSCRIBE_REQUEST, listSubscribeHandler)
                 .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
+                .put(Action.LIST_PLUGIN_REQUEST, listPluginHandler)
+                .put(Action.COUNT_PLUGIN_REQUEST, countPluginHandler)
                 .build();
     }
 

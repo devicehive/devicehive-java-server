@@ -48,12 +48,12 @@ public class DeviceCommandWrapper implements HiveEntity {
 
     @SerializedName("parameters")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper parameters;
 
     @SerializedName("lifetime")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            COMMAND_LISTED, REST_COMMAND_UPDATE_FROM_DEVICE})
+            COMMAND_LISTED})
     private Integer lifetime;
 
     @SerializedName("status")

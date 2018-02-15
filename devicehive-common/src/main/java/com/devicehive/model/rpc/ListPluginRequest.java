@@ -9,9 +9,9 @@ package com.devicehive.model.rpc;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,43 +33,51 @@ import java.util.Optional;
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
 import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
-public class ListDeviceRequest extends Body {
+public class ListPluginRequest extends Body {
 
     private String name;
     private String namePattern;
-    private Long networkId;
-    private String networkName;
+    private String topicName;
+    private Integer status;
+    private Long userId;
     private String sortField;
-    private String sortOrder;
+    private String sortOrderAsc;
     private Integer take;
     private Integer skip;
     private HivePrincipal principal;
 
-    public ListDeviceRequest() {
-        super(Action.LIST_DEVICE_REQUEST);
+    public ListPluginRequest() {
+        super(Action.LIST_PLUGIN_REQUEST);
     }
 
-    public ListDeviceRequest(Long networkId) {
-        super(Action.LIST_DEVICE_REQUEST);
-        this.networkId = networkId;
-    }
+    public ListPluginRequest(String name, String namePattern, String topicName, Integer status, Long userId,
+                             String sortField, String sortOrderAsc, Integer take, Integer skip,
+                             HivePrincipal principal) {
+        super(Action.LIST_PLUGIN_REQUEST);
 
-    public ListDeviceRequest(String sortOrder, HivePrincipal principal) {
-        super(Action.LIST_DEVICE_REQUEST);
-        this.sortOrder = sortOrder;
+        this.name = name;
+        this.namePattern = namePattern;
+        this.topicName = topicName;
+        this.status = status;
+        this.userId = userId;
+        this.sortField = sortField;
+        this.sortOrderAsc = sortOrderAsc;
+        this.take = take;
+        this.skip = skip;
         this.principal = principal;
     }
 
-    public static ListDeviceRequest createListDeviceRequest(JsonObject request, HivePrincipal principal) {
-        ListDeviceRequest listDeviceRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
+    public static ListPluginRequest createListPluginRequest(JsonObject request, HivePrincipal principal) {
+        ListPluginRequest listPluginRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
                 .create()
-                .fromJson(request, ListDeviceRequest.class);
-        listDeviceRequest.setTake(Optional.ofNullable(listDeviceRequest.getTake()).orElse(DEFAULT_TAKE));
-        listDeviceRequest.setSkip(Optional.ofNullable(listDeviceRequest.getSkip()).orElse(DEFAULT_SKIP));
-        
-        listDeviceRequest.setPrincipal(principal);
-                
-        return listDeviceRequest;
+                .fromJson(request, ListPluginRequest.class);
+
+        listPluginRequest.setTake(Optional.ofNullable(listPluginRequest.getTake()).orElse(DEFAULT_TAKE));
+        listPluginRequest.setSkip(Optional.ofNullable(listPluginRequest.getSkip()).orElse(DEFAULT_SKIP));
+
+        listPluginRequest.setPrincipal(principal);
+
+        return listPluginRequest;
     }
 
     public String getName() {
@@ -88,20 +96,28 @@ public class ListDeviceRequest extends Body {
         this.namePattern = namePattern;
     }
 
-    public Long getNetworkId() {
-        return networkId;
+    public String getTopicName() {
+        return topicName;
     }
 
-    public void setNetworkId(Long networkId) {
-        this.networkId = networkId;
+    public void setTopicName(String topicName) {
+        this.topicName = topicName;
     }
 
-    public String getNetworkName() {
-        return networkName;
+    public Integer getStatus() {
+        return status;
     }
 
-    public void setNetworkName(String networkName) {
-        this.networkName = networkName;
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getSortField() {
@@ -112,16 +128,16 @@ public class ListDeviceRequest extends Body {
         this.sortField = sortField;
     }
 
-    public String getSortOrder() {
-        return sortOrder;
+    public String getSortOrderAsc() {
+        return sortOrderAsc;
     }
 
-    public void setSortOrder(String sortOrder) {
-        this.sortOrder = sortOrder;
+    public void setSortOrderAsc(String sortOrderAsc) {
+        this.sortOrderAsc = sortOrderAsc;
     }
 
     public boolean isSortOrderAsc() {
-        return SortOrder.parse(sortOrder);
+        return SortOrder.parse(sortOrderAsc);
     }
 
     public Integer getTake() {
