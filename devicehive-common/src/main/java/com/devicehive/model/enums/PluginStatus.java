@@ -39,4 +39,8 @@ public enum PluginStatus {
     public static PluginStatus getValueForIndex(int index){
         return values()[index];
     }
+
+    public static PluginStatus fromString(final String s) {
+        return PluginStatus.valueOf(s.toUpperCase());
+    }
 }

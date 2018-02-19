@@ -20,11 +20,15 @@ package com.devicehive.model.query;
  * #L%
  */
 
+import com.devicehive.model.FilterEntity;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.service.FilterService;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
+
+import java.util.Optional;
+import java.util.StringJoiner;
 
 import static com.devicehive.configuration.Constants.*;
 
@@ -128,47 +132,54 @@ public class PluginReqisterQuery {
     // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
     // TODO - change to embedded entity for better code readability
     public String constructFilterString() {
-        StringBuilder sb = new StringBuilder();
-        if (returnCommands && returnUpdatedCommands && returnNotifications) {
-            sb.append(ANY);
-        } else if (returnCommands) {
-            sb.append(COMMAND);
-        } else if (returnUpdatedCommands) {
-            sb.append(COMMAND_UPDATE);
+        StringJoiner sj = new StringJoiner("/");
+        returnCommands = Optional.ofNullable(returnCommands).orElse(false);
+        returnUpdatedCommands = Optional.ofNullable(returnUpdatedCommands).orElse(false);
+        returnNotifications = Optional.ofNullable(returnNotifications).orElse(false);
+
+        if (returnCommands || returnUpdatedCommands || returnNotifications) {
+            StringJoiner dataSj = new StringJoiner(",");
+            if (returnCommands) {
+                dataSj.add(COMMAND);
+            }
+
+            if (returnUpdatedCommands) {
+                dataSj.add(COMMAND_UPDATE);
+            }
+
+            if (returnNotifications) {
+                dataSj.add(NOTIFICATION);
+            }
+            sj.add(dataSj.toString());
         } else {
-            sb.append(NOTIFICATION);
+            sj.add(ANY);
         }
-        sb.append("/");
 
         if (networkIds != null && !networkIds.isEmpty()) {
-            sb.append(networkIds);
+            sj.add(networkIds);
         } else {
-            sb.append(ANY);
+            sj.add(ANY);
         }
-        sb.append("/");
 
         if (deviceTypeIds != null && !deviceTypeIds.isEmpty()) {
-            sb.append(deviceTypeIds);
+            sj.add(deviceTypeIds);
         } else {
-            sb.append(ANY);
+            sj.add(ANY);
         }
-        sb.append("/");
 
         if (deviceId != null && !deviceId.isEmpty()) {
-            sb.append(deviceId);
+            sj.add(deviceId);
         } else {
-            sb.append(ANY);
+            sj.add(ANY);
         }
-        sb.append("/");
 
         if (names != null && !names.isEmpty()) {
-            sb.append(names);
+            sj.add(names);
         } else {
-            sb.append(ANY);
+            sj.add(ANY);
         }
 
-        return sb.toString();
+        return sj.toString();
     }
-    
 
 }

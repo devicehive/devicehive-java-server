@@ -38,20 +38,37 @@ public class FilterEntity {
 
     private boolean returnNotifications;
 
+    public FilterEntity(String deviceId, String networkIds, String deviceTypeIds, String names, boolean returnCommands,
+                        boolean returnUpdatedCommands, boolean returnNotifications) {
+        this.deviceId = deviceId;
+        this.networkIds = networkIds;
+        this.deviceTypeIds = deviceTypeIds;
+        this.names = names;
+        this.returnCommands = returnCommands;
+        this.returnUpdatedCommands = returnUpdatedCommands;
+        this.returnNotifications = returnNotifications;
+    }
+
     public FilterEntity(String filterString) {
         String[] filters = filterString.split("/");
 
         String typesString = filters[0];
-        if (typesString.equals(COMMAND)) {
+        if (typesString.equals(ANY)) {
             returnCommands = true;
-        } else if (typesString.equals(COMMAND_UPDATE)) {
             returnUpdatedCommands = true;
-        } else if (typesString.equals(NOTIFICATION)) {
             returnNotifications = true;
         } else {
-            returnCommands = true;
-            returnUpdatedCommands = true;
-            returnNotifications = true;
+            if (typesString.contains(COMMAND)) {
+                returnCommands = true;
+            }
+
+            if (typesString.contains(COMMAND_UPDATE)) {
+                returnUpdatedCommands = true;
+            }
+
+            if (typesString.contains(NOTIFICATION)) {
+                returnNotifications = true;
+            }
         }
 
         networkIds = filters[1];
