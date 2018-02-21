@@ -21,6 +21,7 @@ package com.devicehive.model.query;
  */
 
 import com.devicehive.model.FilterEntity;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.service.FilterService;
 import io.swagger.annotations.ApiParam;
@@ -28,6 +29,7 @@ import io.swagger.annotations.ApiParam;
 import javax.ws.rs.QueryParam;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import static com.devicehive.configuration.Constants.*;
@@ -119,12 +121,18 @@ public class PluginReqisterQuery {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(FilterService filterService) {
+    public PluginSubscribeRequest toRequest(Set<Filter> filters) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
-        request.setFilters(filterService.createFilters(this));
-        request.setReturnCommands(returnCommands);
-        request.setReturnUpdatedCommands(returnUpdatedCommands);
-        request.setReturnNotifications(returnNotifications);
+        request.setFilters(filters);
+        if (returnCommands != null) {
+            request.setReturnCommands(returnCommands);
+        }
+        if (returnUpdatedCommands != null) {
+            request.setReturnUpdatedCommands(returnUpdatedCommands);
+        }
+        if (returnNotifications != null) {
+            request.setReturnNotifications(returnNotifications);
+        }
         
         return request;
     }
@@ -133,23 +141,17 @@ public class PluginReqisterQuery {
     // TODO - change to embedded entity for better code readability
     public String constructFilterString() {
         StringJoiner sj = new StringJoiner("/");
-        returnCommands = Optional.ofNullable(returnCommands).orElse(false);
-        returnUpdatedCommands = Optional.ofNullable(returnUpdatedCommands).orElse(false);
-        returnNotifications = Optional.ofNullable(returnNotifications).orElse(false);
 
-        if (returnCommands || returnUpdatedCommands || returnNotifications) {
+        boolean commandChanges = returnCommands != null && returnCommands;
+        boolean commandUpdatedChanges = returnUpdatedCommands != null && returnUpdatedCommands;
+        boolean notificationsChanges = returnNotifications != null && returnNotifications;
+
+        if (commandChanges || commandUpdatedChanges || notificationsChanges) {
             StringJoiner dataSj = new StringJoiner(",");
-            if (returnCommands) {
-                dataSj.add(COMMAND);
-            }
+            if (commandChanges) dataSj.add(COMMAND);
+            if (commandUpdatedChanges) dataSj.add(COMMAND_UPDATE);
+            if (notificationsChanges) dataSj.add(NOTIFICATION);
 
-            if (returnUpdatedCommands) {
-                dataSj.add(COMMAND_UPDATE);
-            }
-
-            if (returnNotifications) {
-                dataSj.add(NOTIFICATION);
-            }
             sj.add(dataSj.toString());
         } else {
             sj.add(ANY);

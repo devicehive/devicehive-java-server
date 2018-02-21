@@ -21,9 +21,11 @@ package com.devicehive.service;
  */
 
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.FilterEntity;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.query.PluginReqisterQuery;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.PluginVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,44 +52,44 @@ public class FilterService {
         this.deviceService = deviceService;
     }
 
-    public Set<Filter> createFilters(PluginReqisterQuery query) {
+    public Set<Filter> createFilters(FilterEntity filterEntity) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Filter> filters;
-        if (query.getDeviceId() != null) {
-            DeviceVO device = deviceService.findByIdWithPermissionsCheck(query.getDeviceId(), principal);
+        if (filterEntity.getDeviceId() != null) {
+            DeviceVO device = deviceService.findByIdWithPermissionsCheck(filterEntity.getDeviceId(), principal);
             if (device == null) {
-                logger.error("Could not find device with id={}", query.getDeviceId());
+                logger.error("Could not find device with id={}", filterEntity.getDeviceId());
             }
-            if (query.getNames() != null) {
-                filters = toStringSet(query.getNames()).stream().map(name ->
-                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), query.getDeviceId(), null, name))
+            if (filterEntity.getNames() != null) {
+                filters = toStringSet(filterEntity.getNames()).stream().map(name ->
+                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), filterEntity.getDeviceId(), null, name))
                         .collect(Collectors.toSet());
             } else {
-                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), query.getDeviceId(), null, null));
+                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), filterEntity.getDeviceId(), null, null));
             }
         } else {
-            if (query.getNetworkIds() == null && query.getDeviceTypeIds() == null) {
-                if (query.getNames() != null) {
-                    filters = toStringSet(query.getNames()).stream().map(name ->
+            if (filterEntity.getNetworkIds() == null && filterEntity.getDeviceTypeIds() == null) {
+                if (filterEntity.getNames() != null) {
+                    filters = toStringSet(filterEntity.getNames()).stream().map(name ->
                             new Filter(null, null, null, null, name))
                             .collect(Collectors.toSet());
                 } else {
                     filters = Collections.singleton(new Filter());
                 }
             } else {
-                Set<Long> networks = toLongSet(query.getNetworkIds());
+                Set<Long> networks = toLongSet(filterEntity.getNetworkIds());
                 if (networks.isEmpty()) {
                     networks = principal.getNetworkIds();
                 }
-                Set<Long> deviceTypes = toLongSet(query.getDeviceTypeIds());
+                Set<Long> deviceTypes = toLongSet(filterEntity.getDeviceTypeIds());
                 if (deviceTypes.isEmpty()) {
                     deviceTypes = principal.getDeviceTypeIds();
                 }
                 final Set<Long> finalDeviceTypes = deviceTypes;
                 filters = networks.stream()
                         .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                            if (query.getNames() != null) {
-                                return toStringSet(query.getNames()).stream().map(name ->
+                            if (filterEntity.getNames() != null) {
+                                return toStringSet(filterEntity.getNames()).stream().map(name ->
                                         new Filter(network, deviceType, null, null, name)
                                 );
                             } else {

@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.Filter;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
@@ -206,6 +207,13 @@ public class PluginRegisterService {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
         }
 
+        if (pluginUpdateQuery.isReturnCommands() != null && !pluginUpdateQuery.isReturnCommands() &&
+                pluginUpdateQuery.isReturnUpdatedCommands() != null && !pluginUpdateQuery.isReturnUpdatedCommands() &&
+                pluginUpdateQuery.isReturnNotifications() != null && !pluginUpdateQuery.isReturnNotifications()) {
+            logger.error("Requested subscription is not valid. Please, set at least one 'return*' parameter to true.");
+            throw new HiveException(Messages.PLUGIN_SUBSCRIPTION_NOT_VALID, BAD_REQUEST.getStatusCode());
+        }
+
         if (pluginUpdateQuery.getName() != null) {
             existingPlugin.setName(pluginUpdateQuery.getName());
         }
@@ -218,15 +226,16 @@ public class PluginRegisterService {
             existingPlugin.setParameters(pluginUpdateQuery.getParameters());
         }
 
-        final boolean isFilterChanges = pluginUpdateQuery.getDeviceId() != null || pluginUpdateQuery.getNetworkIds() != null ||
+        final boolean isFilterUpdated = pluginUpdateQuery.getDeviceId() != null || pluginUpdateQuery.getNetworkIds() != null ||
                 pluginUpdateQuery.getDeviceTypeIds() != null || pluginUpdateQuery.getNames() != null ||
-                pluginUpdateQuery.isReturnCommands() != null || pluginUpdateQuery.isReturnUpdatedCommands() != null ||
+                pluginUpdateQuery.isReturnCommands() != null ||
+                pluginUpdateQuery.isReturnUpdatedCommands() != null ||
                 pluginUpdateQuery.isReturnNotifications() != null;
 
         final boolean isStatusUpdated = pluginUpdateQuery.getStatus() != null &&
                 !pluginUpdateQuery.getStatus().equals(existingPlugin.getStatus());
 
-        if (isFilterChanges && !isStatusUpdated && existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
+        if (isFilterUpdated && !isStatusUpdated && existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
             logger.error("Plugin's subscription filter can't be updated if plugin is ACTIVE");
             throw new HiveException(Messages.ACTIVE_PLUGIN_UPDATED, BAD_REQUEST.getStatusCode());
         }
@@ -235,15 +244,18 @@ public class PluginRegisterService {
             existingPlugin.setStatus(pluginUpdateQuery.getStatus());
         }
 
-        existingPlugin.setFilter(pluginUpdateQuery.constructFilterString());
+        if (isFilterUpdated) {
+            existingPlugin.setFilter(pluginUpdateQuery.constructFilterString());
+        }
 
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
 
         BasePluginRequest request = null;
         if (isStatusUpdated) {
             if (pluginUpdateQuery.getStatus().equals(PluginStatus.ACTIVE) && existingPlugin.getSubscriptionId() == null) {
-                final Long subscriptionId = idGenerator.generate();
-                request = pluginUpdateQuery.toRequest(filterService);
+                Long subscriptionId = idGenerator.generate();
+                FilterEntity filterEntity = new FilterEntity(existingPlugin.getFilter());
+                request = pluginUpdateQuery.toRequest(filterService.createFilters(filterEntity));
                 request.setSubscriptionId(subscriptionId);
                 existingPlugin.setSubscriptionId(subscriptionId);
                 ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());

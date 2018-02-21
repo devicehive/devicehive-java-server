@@ -139,6 +139,7 @@ public class Messages {
     public static final String PLUGIN_NOT_ACTIVE = BidBundle.get("PLUGIN_NOT_ACTIVE");
     public static final String PLUGIN_ALREADY_EXISTS = BidBundle.get("PLUGIN_ALREADY_EXISTS");
     public static final String ACTIVE_PLUGIN_UPDATED = BidBundle.get("ACTIVE_PLUGIN_UPDATED");
+    public static final String PLUGIN_SUBSCRIPTION_NOT_VALID = BidBundle.get("PLUGIN_SUBSCRIPTION_NOT_VALID");
     public static final String NO_ACCESS_TO_PLUGIN = BidBundle.get("NO_ACCESS_TO_PLUGIN");
 
     /**
