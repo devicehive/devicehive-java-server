@@ -124,15 +124,9 @@ public class PluginReqisterQuery {
     public PluginSubscribeRequest toRequest(Set<Filter> filters) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
         request.setFilters(filters);
-        if (returnCommands != null) {
-            request.setReturnCommands(returnCommands);
-        }
-        if (returnUpdatedCommands != null) {
-            request.setReturnUpdatedCommands(returnUpdatedCommands);
-        }
-        if (returnNotifications != null) {
-            request.setReturnNotifications(returnNotifications);
-        }
+        request.setReturnCommands(Optional.ofNullable(returnCommands).orElse(true));
+        request.setReturnUpdatedCommands(Optional.ofNullable(returnUpdatedCommands).orElse(true));
+        request.setReturnNotifications(Optional.ofNullable(returnNotifications).orElse(true));
         
         return request;
     }

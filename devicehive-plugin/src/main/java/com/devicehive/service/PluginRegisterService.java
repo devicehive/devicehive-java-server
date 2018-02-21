@@ -46,6 +46,7 @@ import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.PluginVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +108,7 @@ public class PluginRegisterService {
 
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
+        validateSubscription(pluginReqisterQuery);
         PluginVO existingPlugin = pluginService.findByName(pluginUpdate.getName());
         if (existingPlugin != null) {
             logger.error("Plugin with name {} already exists", pluginUpdate.getName());
@@ -125,6 +127,7 @@ public class PluginRegisterService {
 
     @Transactional
     public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
+        validateSubscription(pluginUpdateQuery);
         return updatePlugin(existingPlugin, pluginUpdateQuery).thenApply(plugin ->
             ResponseFactory.response(NO_CONTENT)
         );
@@ -283,6 +286,15 @@ public class PluginRegisterService {
 
     private void checkAuthServiceAvailable() {
         httpRestHelper.get(authBaseUrl + "/info", ApiInfoVO.class, null);
+    }
+
+    private void validateSubscription(PluginReqisterQuery pluginReqisterQuery) {
+        if (pluginReqisterQuery.isReturnCommands() != null && !pluginReqisterQuery.isReturnCommands() &&
+                pluginReqisterQuery.isReturnUpdatedCommands() != null && !pluginReqisterQuery.isReturnUpdatedCommands() &&
+                pluginReqisterQuery.isReturnNotifications() != null && !pluginReqisterQuery.isReturnNotifications()) {
+            logger.error("Requested subscription is not valid. Please, set at least one 'return*' parameter to true.");
+            throw new HiveException(Messages.PLUGIN_SUBSCRIPTION_NOT_VALID, BAD_REQUEST.getStatusCode());
+        }
     }
 
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {

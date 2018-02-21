@@ -136,7 +136,7 @@ public class PluginProxyClient implements RpcClient {
             }
         }
         if (connected) {
-            logger.info("Successfully connected to Websocket Proxy");
+            logger.info("Successfully connected to WebSocket Proxy");
         } else {
             logger.error("Unable to reach out RpcServer in {} attempts", attempts);
             throw new RuntimeException("RpcServer is not reachable");
