@@ -136,15 +136,11 @@ public class PluginReqisterQuery {
     public String constructFilterString() {
         StringJoiner sj = new StringJoiner("/");
 
-        boolean commandChanges = returnCommands != null && returnCommands;
-        boolean commandUpdatedChanges = returnUpdatedCommands != null && returnUpdatedCommands;
-        boolean notificationsChanges = returnNotifications != null && returnNotifications;
-
-        if (commandChanges || commandUpdatedChanges || notificationsChanges) {
+        if (returnCommands != null || returnUpdatedCommands != null || returnNotifications != null) {
             StringJoiner dataSj = new StringJoiner(",");
-            if (commandChanges) dataSj.add(COMMAND);
-            if (commandUpdatedChanges) dataSj.add(COMMAND_UPDATE);
-            if (notificationsChanges) dataSj.add(NOTIFICATION);
+            if (Optional.ofNullable(returnCommands).orElse(true)) dataSj.add(COMMAND);
+            if (Optional.ofNullable(returnUpdatedCommands).orElse(true)) dataSj.add(COMMAND_UPDATE);
+            if (Optional.ofNullable(returnNotifications).orElse(true)) dataSj.add(NOTIFICATION);
 
             sj.add(dataSj.toString());
         } else {
