@@ -32,9 +32,9 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.JsonTypes;
+import com.devicehive.service.BaseFilterService;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.FilterBuilderService;
 import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
@@ -75,19 +75,19 @@ public class CommandHandlers {
     private final Gson gson;
     private final DeviceService deviceService;
     private final DeviceCommandService commandService;
-    private final FilterBuilderService filterBuilderService;
+    private final BaseFilterService filterService;
     private final WebSocketClientHandler clientHandler;
 
     @Autowired
     public CommandHandlers(Gson gson,
                            DeviceService deviceService,
                            DeviceCommandService commandService,
-                           FilterBuilderService filterBuilderService,
+                           BaseFilterService filterService,
                            WebSocketClientHandler clientHandler) {
         this.gson = gson;
         this.deviceService = deviceService;
         this.commandService = commandService;
-        this.filterBuilderService = filterBuilderService;
+        this.filterService = filterService;
         this.clientHandler = clientHandler;
     }
 
@@ -108,7 +108,7 @@ public class CommandHandlers {
         logger.debug("command/subscribe requested for device: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
-        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, COMMAND_EVENT.name(), names, authentication);
+        Set<Filter> filters = filterService.getFilterList(deviceId, networks, deviceTypes, COMMAND_EVENT.name(), names, authentication);
 
         if (!filters.isEmpty()) {
             BiConsumer<DeviceCommand, Long> callback = (command, subscriptionId) -> {

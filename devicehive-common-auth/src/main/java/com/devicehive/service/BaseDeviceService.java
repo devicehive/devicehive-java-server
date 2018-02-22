@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -64,6 +65,17 @@ public class BaseDeviceService {
     public DeviceVO findByIdWithPermissionsCheck(String deviceId, HivePrincipal principal) {
         List<DeviceVO> result = findByIdWithPermissionsCheck(Collections.singletonList(deviceId), principal);
         return result.isEmpty() ? null : result.get(0);
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
+        DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (deviceVO == null) {
+            logger.error("Device with ID {} not found", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
+        }
+        return deviceVO;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)

@@ -28,7 +28,12 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListNetworkRequest;
+import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
@@ -51,6 +56,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
@@ -67,14 +73,17 @@ public class NetworkService {
 
     private final HiveValidator hiveValidator;
     private final NetworkDao networkDao;
+    private final RpcClient rpcClient;
     
     private BaseUserService baseUserService;
 
     @Autowired
     public NetworkService(HiveValidator hiveValidator,
-                          NetworkDao networkDao) {
+                          NetworkDao networkDao,
+                          RpcClient rpcClient) {
         this.hiveValidator = hiveValidator;
         this.networkDao = networkDao;
+        this.rpcClient = rpcClient;
     }
 
     @Autowired
@@ -181,9 +190,12 @@ public class NetworkService {
         return networkDao.list(name, namePattern, sortField, SortOrder.parse(sortOrder), take, skip, principalOpt);
     }
 
-    public List<NetworkVO> list(ListNetworkRequest request) {
-        return list(request.getName(), request.getNamePattern(), request.getSortField(), request.getSortOrder(),
-                request.getTake(), request.getSkip(), request.getPrincipal().orElse(null));
+    public CompletableFuture<List<NetworkVO>> list(ListNetworkRequest request) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
+
+        return future.thenApply(r -> ((ListNetworkResponse) r.getBody()).getNetworks());
     }
 
     @Transactional

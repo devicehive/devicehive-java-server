@@ -20,12 +20,17 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.FilterEntity;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.rpc.ListDeviceTypeRequest;
+import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
+import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.PluginVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,11 +52,11 @@ public class FilterService {
 
     private static final Logger logger = LoggerFactory.getLogger(FilterService.class);
 
-    private final BaseDeviceService deviceService;
+    private final BaseFilterService filterService;
 
     @Autowired
-    public FilterService(BaseDeviceService deviceService) {
-        this.deviceService = deviceService;
+    public FilterService(BaseFilterService filterService) {
+        this.filterService = filterService;
     }
 
     public PluginSubscribeRequest createPluginSubscribeRequest(String filter) {
@@ -66,53 +72,9 @@ public class FilterService {
     }
 
     private Set<Filter> createFilters(FilterEntity filterEntity) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<Filter> filters;
-        if (filterEntity.getDeviceId() != null) {
-            DeviceVO device = deviceService.findByIdWithPermissionsCheck(filterEntity.getDeviceId(), principal);
-            if (device == null) {
-                logger.error("Could not find device with id={}", filterEntity.getDeviceId());
-            }
-            if (filterEntity.getNames() != null) {
-                filters = toStringSet(filterEntity.getNames()).stream().map(name ->
-                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), filterEntity.getDeviceId(), null, name))
-                        .collect(Collectors.toSet());
-            } else {
-                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), filterEntity.getDeviceId(), null, null));
-            }
-        } else {
-            if (filterEntity.getNetworkIds() == null && filterEntity.getDeviceTypeIds() == null) {
-                if (filterEntity.getNames() != null) {
-                    filters = toStringSet(filterEntity.getNames()).stream().map(name ->
-                            new Filter(null, null, null, null, name))
-                            .collect(Collectors.toSet());
-                } else {
-                    filters = Collections.singleton(new Filter());
-                }
-            } else {
-                Set<Long> networks = toLongSet(filterEntity.getNetworkIds());
-                if (networks.isEmpty()) {
-                    networks = principal.getNetworkIds();
-                }
-                Set<Long> deviceTypes = toLongSet(filterEntity.getDeviceTypeIds());
-                if (deviceTypes.isEmpty()) {
-                    deviceTypes = principal.getDeviceTypeIds();
-                }
-                final Set<Long> finalDeviceTypes = deviceTypes;
-                filters = networks.stream()
-                        .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                            if (filterEntity.getNames() != null) {
-                                return toStringSet(filterEntity.getNames()).stream().map(name ->
-                                        new Filter(network, deviceType, null, null, name)
-                                );
-                            } else {
-                                return Stream.of(new Filter(network, deviceType, null, null, null));
-                            }
-                        }))
-                        .collect(Collectors.toSet());
-            }
-        }
-
-        return filters;
+        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        return filterService.getFilterList(filterEntity.getDeviceId(), toLongSet(filterEntity.getNetworkIds()),
+                toLongSet(filterEntity.getDeviceTypeIds()),
+                null, toStringSet(filterEntity.getNames()), authentication);
     }
 }
