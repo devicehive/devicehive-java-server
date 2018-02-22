@@ -143,5 +143,31 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>shim-kafka</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-shim-kafka-impl</artifactId>
+                    <version>${project.parent.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>proxy-ws-kafka</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.devicehive</groupId>
+                    <artifactId>devicehive-proxy-ws-kafka-impl</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 </project>  

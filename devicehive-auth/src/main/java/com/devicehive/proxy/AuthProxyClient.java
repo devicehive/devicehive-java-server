@@ -4,14 +4,14 @@ package com.devicehive.proxy;
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 - 2017 DataArt
+ * Copyright (C) 2016 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ package com.devicehive.proxy;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
@@ -29,7 +30,6 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.api.RequestResponseMatcher;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +44,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 @Profile("ws-kafka-proxy")
-public class PluginProxyClient implements RpcClient {
-    private static final Logger logger = LoggerFactory.getLogger(PluginProxyClient.class);
+public class AuthProxyClient implements RpcClient {
+    private static final Logger logger = LoggerFactory.getLogger(AuthProxyClient.class);
 
     private final String requestTopic;
     private final String replyToTopic;
@@ -53,7 +53,7 @@ public class PluginProxyClient implements RpcClient {
     private final RequestResponseMatcher requestResponseMatcher;
     private final Gson gson;
 
-    public PluginProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public AuthProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
         this.client = client;
@@ -78,27 +78,22 @@ public class PluginProxyClient implements RpcClient {
 
         client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
     }
-    
-    public void createTopic(List<String> topics) {
-        client.push(ProxyMessageBuilder.create(new TopicsPayload(topics))).join();
-    }
-    
-    public void subscribeToTopic(String topic) {
-        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(topic))).join();
-    }
-    
+
     @Override
     public void start() {
         client.start();
         createTopic(Arrays.asList(requestTopic, replyToTopic));
         subscribeToTopic(replyToTopic);
-        
+
         pingServer();
     }
 
-    @Override
-    public void shutdown() {
-        client.shutdown();
+    public void createTopic(List<String> topics) {
+        client.push(ProxyMessageBuilder.create(new TopicsPayload(topics))).join();
+    }
+
+    public void subscribeToTopic(String topic) {
+        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(topic))).join();
     }
 
     private void pingServer() {
@@ -141,5 +136,10 @@ public class PluginProxyClient implements RpcClient {
             logger.error("Unable to reach out WebSocket Proxy Server in {} attempts", attempts);
             throw new RuntimeException("WebSocket Proxy Server is not reachable");
         }
+    }
+
+    @Override
+    public void shutdown() {
+        client.shutdown();
     }
 }
