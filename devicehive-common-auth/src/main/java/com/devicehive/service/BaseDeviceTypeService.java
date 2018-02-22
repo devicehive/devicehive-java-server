@@ -22,9 +22,16 @@ package com.devicehive.service;
 
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceTypeDao;
+import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.model.response.EntityCountResponse;
+import com.devicehive.model.rpc.CountDeviceTypeRequest;
+import com.devicehive.model.rpc.CountResponse;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.rpc.ListDeviceTypeResponse;
+import com.devicehive.model.updates.DeviceTypeUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -33,6 +40,7 @@ import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +49,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -56,11 +61,12 @@ import static java.util.Optional.ofNullable;
 public class BaseDeviceTypeService {
     private static final Logger logger = LoggerFactory.getLogger(BaseDeviceTypeService.class);
 
-    private final DeviceTypeDao deviceTypeDao;
-    private final RpcClient rpcClient;
+    protected final DeviceTypeDao deviceTypeDao;
+    protected final RpcClient rpcClient;
 
     @Autowired
-    public BaseDeviceTypeService(DeviceTypeDao deviceTypeDao, RpcClient rpcClient) {
+    public BaseDeviceTypeService(DeviceTypeDao deviceTypeDao,
+                                 RpcClient rpcClient) {
         this.deviceTypeDao = deviceTypeDao;
         this.rpcClient = rpcClient;
 

@@ -50,63 +50,18 @@ import java.util.stream.Collectors;
 import static java.util.Optional.*;
 
 @Component
-public class DeviceTypeService {
+public class DeviceTypeService extends BaseDeviceTypeService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceTypeService.class);
 
     private final HiveValidator hiveValidator;
-    private final DeviceTypeDao deviceTypeDao;
-    private final RpcClient rpcClient;
-
-    private UserService userService;
 
     @Autowired
     public DeviceTypeService(HiveValidator hiveValidator,
                              DeviceTypeDao deviceTypeDao,
                              RpcClient rpcClient) {
+        super(deviceTypeDao, rpcClient);
         this.hiveValidator = hiveValidator;
-        this.deviceTypeDao = deviceTypeDao;
-        this.rpcClient = rpcClient;
-    }
-
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public DeviceTypeWithUsersAndDevicesVO getWithDevices(@NotNull Long deviceTypeId, @NotNull HiveAuthentication hiveAuthentication) {
-        HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
-
-        Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
-        Set<Long> permittedNetworks = principal.getNetworkIds();
-
-        Optional<DeviceTypeWithUsersAndDevicesVO> result = of(principal)
-                .flatMap(pr -> {
-                    if (pr.getUser() != null) {
-                        return of(pr.getUser());
-                    } else {
-                        return empty();
-                    }
-                }).flatMap(user -> {
-                    Long idForFiltering = user.isAdmin() ? null : user.getId();
-                    if (user.getAllDeviceTypesAvailable()) {
-                        idForFiltering = null;
-                    }
-                    List<DeviceTypeWithUsersAndDevicesVO> found = deviceTypeDao.getDeviceTypesByIdsAndUsers(idForFiltering,
-                            Collections.singleton(deviceTypeId), permittedDeviceTypes);
-                    return found.stream().findFirst();
-                }).map(deviceType -> {
-                    if (permittedNetworks != null && !permittedNetworks.isEmpty()) {
-                        Set<DeviceVO> allowed = deviceType.getDevices().stream()
-                                .filter(device -> permittedNetworks.contains(device.getNetworkId()))
-                                .collect(Collectors.toSet());
-                        deviceType.setDevices(allowed);
-                    }
-                    return deviceType;
-                });
-
-        return result.orElse(null);
     }
 
     @Transactional
@@ -156,35 +111,6 @@ public class DeviceTypeService {
         final ListDeviceTypeRequest request = new ListDeviceTypeRequest();
 
         return list(request);
-    }
-
-    public CompletableFuture<List<DeviceTypeVO>> list(String name,
-                                                      String namePattern,
-                                                      String sortField,
-                                                      String sortOrder,
-                                                      Integer take,
-                                                      Integer skip,
-                                                      HivePrincipal principal) {
-        Optional<HivePrincipal> principalOpt = ofNullable(principal);
-
-        ListDeviceTypeRequest request = new ListDeviceTypeRequest();
-        request.setName(name);
-        request.setNamePattern(namePattern);
-        request.setSortField(sortField);
-        request.setSortOrder(sortOrder);
-        request.setTake(take);
-        request.setSkip(skip);
-        request.setPrincipal(principalOpt);
-
-        return list(request);
-    }
-
-    public CompletableFuture<List<DeviceTypeVO>> list(ListDeviceTypeRequest request) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
-
-        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
-
-        return future.thenApply(r -> ((ListDeviceTypeResponse) r.getBody()).getDeviceTypes());
     }
 
     public CompletableFuture<EntityCountResponse> count(String name, String namePattern, HivePrincipal principal) {

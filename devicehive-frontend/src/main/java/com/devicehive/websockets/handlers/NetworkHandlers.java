@@ -28,6 +28,7 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.rpc.CountNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.service.BaseNetworkService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;

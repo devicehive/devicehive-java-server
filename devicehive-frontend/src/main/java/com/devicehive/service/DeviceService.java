@@ -63,27 +63,25 @@ public class DeviceService extends BaseDeviceService {
     private static final Logger logger = LoggerFactory.getLogger(BaseDeviceService.class);
 
     private final DeviceNotificationService deviceNotificationService;
-    private final NetworkService networkService;
+    private final BaseNetworkService networkService;
     private final DeviceTypeService deviceTypeService;
     private final UserService userService;
     private final TimestampService timestampService;
-    private final RpcClient rpcClient;
 
     @Autowired
     public DeviceService(DeviceNotificationService deviceNotificationService,
-                         NetworkService networkService,
+                         BaseNetworkService networkService,
                          DeviceTypeService deviceTypeService,
                          UserService userService,
                          TimestampService timestampService,
                          DeviceDao deviceDao,
                          RpcClient rpcClient) {
-        super(deviceDao, networkService);
+        super(deviceDao, networkService, rpcClient);
         this.deviceNotificationService = deviceNotificationService;
         this.networkService = networkService;
         this.deviceTypeService = deviceTypeService;
         this.userService = userService;
         this.timestampService = timestampService;
-        this.rpcClient = rpcClient;
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
@@ -127,17 +125,6 @@ public class DeviceService extends BaseDeviceService {
         }
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
-        DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
-
-        if (deviceVO == null) {
-            logger.error("Device with ID {} not found", deviceId);
-            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
-        }
-        return deviceVO;
-    }
-
     @Transactional(readOnly = true)
     public DeviceVO findById(String deviceId) {
         DeviceVO device = deviceDao.findById(deviceId);
@@ -177,34 +164,6 @@ public class DeviceService extends BaseDeviceService {
         rpcClient.call(request, responseConsumer);
 
         return deviceDao.deleteById(deviceId) != 0;
-    }
-
-    public CompletableFuture<List<DeviceVO>> list(String name, String namePattern, Long networkId, String networkName,
-              String sortField, String sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
-
-        ListDeviceRequest listDeviceRequest = new ListDeviceRequest();
-        listDeviceRequest.setName(name);
-        listDeviceRequest.setNamePattern(namePattern);
-        listDeviceRequest.setNetworkId(networkId);
-        listDeviceRequest.setNetworkName(networkName);
-        listDeviceRequest.setSortField(sortField);
-        listDeviceRequest.setSortOrder(sortOrderAsc);
-        listDeviceRequest.setTake(take);
-        listDeviceRequest.setSkip(skip);
-        listDeviceRequest.setPrincipal(principal);
-
-        return list(listDeviceRequest);
-    }
-
-    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest listDeviceRequest) {
-        CompletableFuture<Response> future = new CompletableFuture<>();
-
-        rpcClient.call(Request
-                .newBuilder()
-                .withBody(listDeviceRequest)
-                .build(), new ResponseConsumer(future));
-
-        return future.thenApply(response -> ((ListDeviceResponse) response.getBody()).getDevices());
     }
 
     public CompletableFuture<EntityCountResponse> count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal) {

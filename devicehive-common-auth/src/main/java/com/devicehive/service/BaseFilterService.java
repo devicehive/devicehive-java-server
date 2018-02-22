@@ -48,13 +48,13 @@ public class BaseFilterService {
     private static final Logger logger = LoggerFactory.getLogger(BaseFilterService.class);
 
     private final BaseDeviceService deviceService;
-    private final NetworkService networkService;
+    private final BaseNetworkService networkService;
     private final BaseDeviceTypeService deviceTypeService;
 
     @Autowired
     public BaseFilterService(BaseDeviceService deviceService,
-                                NetworkService networkService,
-                                BaseDeviceTypeService deviceTypeService) {
+                             BaseNetworkService networkService,
+                             BaseDeviceTypeService deviceTypeService) {
         this.deviceService = deviceService;
         this.networkService = networkService;
         this.deviceTypeService = deviceTypeService;
