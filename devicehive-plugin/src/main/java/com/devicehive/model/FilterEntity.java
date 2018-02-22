@@ -20,6 +20,8 @@ package com.devicehive.model;
  * #L%
  */
 
+import java.util.Arrays;
+
 import static com.devicehive.configuration.Constants.*;
 
 public class FilterEntity {
@@ -58,17 +60,19 @@ public class FilterEntity {
             returnUpdatedCommands = true;
             returnNotifications = true;
         } else {
-            if (typesString.contains(COMMAND)) {
-                returnCommands = true;
-            }
+            Arrays.stream(typesString.split(",")).forEach(type -> {
+                if (type.equals(COMMAND)) {
+                    returnCommands = true;
+                }
 
-            if (typesString.contains(COMMAND_UPDATE)) {
-                returnUpdatedCommands = true;
-            }
+                if (type.equals(COMMAND_UPDATE)) {
+                    returnUpdatedCommands = true;
+                }
 
-            if (typesString.contains(NOTIFICATION)) {
-                returnNotifications = true;
-            }
+                if (type.equals(NOTIFICATION)) {
+                    returnNotifications = true;
+                }
+            });
         }
 
         networkIds = filters[1];
