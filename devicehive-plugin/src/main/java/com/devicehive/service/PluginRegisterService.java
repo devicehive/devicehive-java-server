@@ -257,8 +257,7 @@ public class PluginRegisterService {
         if (isStatusUpdated) {
             if (pluginUpdateQuery.getStatus().equals(PluginStatus.ACTIVE) && existingPlugin.getSubscriptionId() == null) {
                 Long subscriptionId = idGenerator.generate();
-                FilterEntity filterEntity = new FilterEntity(existingPlugin.getFilter());
-                request = pluginUpdateQuery.toRequest(filterService.createFilters(filterEntity));
+                request = filterService.createPluginSubscribeRequest(existingPlugin.getFilter());
                 request.setSubscriptionId(subscriptionId);
                 existingPlugin.setSubscriptionId(subscriptionId);
                 ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());

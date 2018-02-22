@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.model.FilterEntity;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.PluginVO;
 import org.slf4j.Logger;
@@ -52,7 +53,19 @@ public class FilterService {
         this.deviceService = deviceService;
     }
 
-    public Set<Filter> createFilters(FilterEntity filterEntity) {
+    public PluginSubscribeRequest createPluginSubscribeRequest(String filter) {
+        FilterEntity filterEntity = new FilterEntity(filter);
+
+        PluginSubscribeRequest request = new PluginSubscribeRequest();
+        request.setFilters(createFilters(filterEntity));
+        request.setReturnCommands(filterEntity.isReturnCommands());
+        request.setReturnUpdatedCommands(filterEntity.isReturnUpdatedCommands());
+        request.setReturnNotifications(filterEntity.isReturnNotifications());
+
+        return request;
+    }
+
+    private Set<Filter> createFilters(FilterEntity filterEntity) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Filter> filters;
         if (filterEntity.getDeviceId() != null) {
