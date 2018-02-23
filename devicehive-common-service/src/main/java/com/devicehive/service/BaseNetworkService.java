@@ -210,7 +210,7 @@ public class BaseNetworkService {
     @Transactional
     public Long findDefaultNetworkByUserId(Long userId) {
     	return networkDao.findDefaultByUser(userId)
-    			.map(nvo -> nvo.getId())
+    			.map(NetworkVO::getId)
     			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
     }
 
@@ -219,7 +219,7 @@ public class BaseNetworkService {
         NetworkVO networkVO = new NetworkVO();
         networkVO.setName(user.getLogin());
         networkVO.setDescription(String.format("User %s default network", user.getLogin()));
-        return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
+        return createOrUpdateNetworkByUser(Optional.of(networkVO), user);
     }
 
     public boolean isNetworkExists(Long networkId) {

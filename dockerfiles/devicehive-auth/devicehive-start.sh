@@ -56,6 +56,7 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT:-5432}/${DH_POSTGRES_DB}" \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
+-Dproxy.connect="${DH_WS_PROXY:-localhost:3000}" \
 "./devicehive-auth-${DH_VERSION}-boot.jar" &
 PID=$!
 wait "$PID"
