@@ -33,8 +33,7 @@ import com.devicehive.service.BaseUserService;
 import com.devicehive.service.PluginService;
 import com.devicehive.service.security.jwt.BaseJwtClientService;
 import com.devicehive.service.time.TimestampService;
-import com.devicehive.vo.PluginVO;
-import com.devicehive.vo.UserVO;
+import com.devicehive.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,8 +93,8 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                 }
             }
 
+            UserVO userVO = null;
             if (jwtPayload.isUserPayload()) {
-                UserVO userVO = null;
                 JwtUserPayload userJwtPayload = (JwtUserPayload) jwtPayload;
                 if (userJwtPayload.getUserId() != null) {
                     userVO = userService.findById(userJwtPayload.getUserId());
@@ -136,6 +135,24 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                         throw new NotFoundException("Plugin with topic name " + topic + " was not found");
                     }
                     principal.setPlugin(existingPlugin);
+                    UserWithNetworkVO userWithNetworksVO = userService.findUserWithNetworks(existingPlugin.getUserId());
+
+                    if (!UserStatus.ACTIVE.equals(userWithNetworksVO.getStatus())) {
+                        throw new BadCredentialsException("Unauthorized: user is not active");
+                    }
+
+                    if (userWithNetworksVO.isAdmin()) {
+                        principal.setAllDeviceTypesAvailable(true);
+                        principal.setAllNetworksAvailable(true);
+                    } else {
+                        principal.setNetworkIds(userWithNetworksVO.getNetworks().stream()
+                                .map(NetworkVO::getId).collect(Collectors.toSet()));
+
+                        UserWithDeviceTypeVO userWithDeviceTypeVO = userService.findUserWithDeviceType(existingPlugin.getUserId());
+                        principal.setDeviceTypeIds(userWithDeviceTypeVO.getDeviceTypes().stream()
+                                .map(DeviceTypeVO::getId).collect(Collectors.toSet()));
+
+                    }
                 }
             }
 

@@ -139,6 +139,7 @@ public class BaseFilterService {
 
             return filters;
         } else {
+            logger.warn("Filters set is empty for userId {}", principal.getUser().getId());
             return Collections.emptySet();
         }
     }

@@ -17,9 +17,7 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
     || [ -z "$HC_MEMBERS" ] \
     || [ -z "$HC_GROUP_NAME" ] \
-    || [ -z "$HC_GROUP_PASSWORD" ] \
-    || [ -z "$DH_ZK_ADDRESS" ] \
-    || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
+    || [ -z "$HC_GROUP_PASSWORD" ]
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
@@ -30,32 +28,17 @@ then
     echo "- HC_MEMBERS"
     echo "- HC_GROUP_NAME"
     echo "- HC_GROUP_PASSWORD"
-    echo "- DH_ZK_ADDRESS"
-    echo "And one of variants of Kafka bootstrap parameters:"
-    echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
-    echo "or"
-    echo "- DH_KAFKA_ADDRESS for a single server"
     exit 1
-fi
-
-if [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ]
-then
-    DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
 # Check if Zookeper, Kafka, Postgres and Hazelcast are ready
 while true; do
-    nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
-    result_zk=$?
-    FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
-    nc -v -z -w1 "${FIRST_KAFKA_SERVER%%:*}" $(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')
-    result_kafka=$?
     nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
     result_postgres=$?
     nc -v -z -w1 "${HC_MEMBERS%%,*}" "${HC_PORT:=5701}"
     result_hc=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_hc" -eq 0 ]; then
+    if [ "$result_postgres" -eq 0 ] && [ "$result_hc" -eq 0 ]; then
         break
     fi
     sleep 3
@@ -67,7 +50,6 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
--Dbootstrap.servers="${DH_KAFKA_BOOTSTRAP_SERVERS}" \
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Dserver.context-path=/auth \
 -Dserver.port=8090 \
@@ -75,9 +57,6 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
 -Dproxy.connect="${DH_WS_PROXY:-localhost:3000}" \
--Dzookeeper.connect="${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181}" \
--Dzookeeper.connectionTimeout="${DH_ZK_CONNECTIONTIMEOUT:-8000}" \
--Dzookeeper.sessionTimeout="${DH_ZK_SESSIONTIMEOUT:-10000}" \
 "./devicehive-auth-${DH_VERSION}-boot.jar" &
 PID=$!
 wait "$PID"
