@@ -141,16 +141,20 @@ public class JwtTokenAuthenticationProvider implements AuthenticationProvider {
                         throw new BadCredentialsException("Unauthorized: user is not active");
                     }
 
+                    principal.setUser(userWithNetworksVO);
+
                     if (userWithNetworksVO.isAdmin()) {
-                        principal.setAllDeviceTypesAvailable(true);
                         principal.setAllNetworksAvailable(true);
                     } else {
                         principal.setNetworkIds(userWithNetworksVO.getNetworks().stream()
                                 .map(NetworkVO::getId).collect(Collectors.toSet()));
 
                         UserWithDeviceTypeVO userWithDeviceTypeVO = userService.findUserWithDeviceType(existingPlugin.getUserId());
-                        principal.setDeviceTypeIds(userWithDeviceTypeVO.getDeviceTypes().stream()
-                                .map(DeviceTypeVO::getId).collect(Collectors.toSet()));
+                        if (!userWithDeviceTypeVO.getAllDeviceTypesAvailable()) {
+                            principal.setAllDeviceTypesAvailable(false);
+                            principal.setDeviceTypeIds(userWithDeviceTypeVO.getDeviceTypes().stream()
+                                    .map(DeviceTypeVO::getId).collect(Collectors.toSet()));
+                        }
 
                     }
                 }
