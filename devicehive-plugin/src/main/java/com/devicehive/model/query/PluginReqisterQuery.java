@@ -138,9 +138,9 @@ public class PluginReqisterQuery {
 
         if (returnCommands != null || returnUpdatedCommands != null || returnNotifications != null) {
             StringJoiner dataSj = new StringJoiner(",");
-            if (Optional.ofNullable(returnCommands).orElse(true)) dataSj.add(COMMAND);
-            if (Optional.ofNullable(returnUpdatedCommands).orElse(true)) dataSj.add(COMMAND_UPDATE);
-            if (Optional.ofNullable(returnNotifications).orElse(true)) dataSj.add(NOTIFICATION);
+            if (Optional.ofNullable(returnCommands).orElse(false)) dataSj.add(COMMAND);
+            if (Optional.ofNullable(returnUpdatedCommands).orElse(false)) dataSj.add(COMMAND_UPDATE);
+            if (Optional.ofNullable(returnNotifications).orElse(false)) dataSj.add(NOTIFICATION);
 
             sj.add(dataSj.toString());
         } else {
