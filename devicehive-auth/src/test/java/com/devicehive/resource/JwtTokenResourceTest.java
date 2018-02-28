@@ -31,6 +31,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,6 +42,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static javax.ws.rs.core.Response.Status.*;
 
+@Ignore
 public class JwtTokenResourceTest extends AuthAbstractResourceTest {
 
     @Autowired

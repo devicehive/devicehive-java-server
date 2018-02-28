@@ -35,9 +35,9 @@ import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.websockets.InsertNotification;
 import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.util.JsonTypes;
+import com.devicehive.service.BaseFilterService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.FilterBuilderService;
 import com.devicehive.util.ServerResponsesFactory;
 import com.devicehive.vo.*;
 import com.devicehive.websockets.converters.WebSocketResponse;
@@ -77,19 +77,19 @@ public class NotificationHandlers {
     private final Gson gson;
     private final DeviceService deviceService;
     private final DeviceNotificationService notificationService;
-    private final FilterBuilderService filterBuilderService;
+    private final BaseFilterService filterService;
     private final WebSocketClientHandler clientHandler;
 
     @Autowired
     public NotificationHandlers(Gson gson,
                                 DeviceService deviceService,
                                 DeviceNotificationService notificationService,
-                                FilterBuilderService filterBuilderService,
+                                BaseFilterService filterService,
                                 WebSocketClientHandler clientHandler) {
         this.gson = gson;
         this.deviceService = deviceService;
         this.notificationService = notificationService;
-        this.filterBuilderService = filterBuilderService;
+        this.filterService = filterService;
         this.clientHandler = clientHandler;
     }
 
@@ -107,7 +107,7 @@ public class NotificationHandlers {
         logger.debug("notification/subscribe requested for device: {}. Networks: {}. Device types: {}. Timestamp: {}. Names {} Session: {}",
                 deviceId, networks, deviceTypes, timestamp, names, session);
 
-        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
+        Set<Filter> filters = filterService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
 
         if (!filters.isEmpty()) {
             BiConsumer<DeviceNotification, Long> callback = (notification, subscriptionId) -> {

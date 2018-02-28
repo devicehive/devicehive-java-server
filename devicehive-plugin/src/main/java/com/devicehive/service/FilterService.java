@@ -20,10 +20,18 @@ package com.devicehive.service;
  * #L%
  */
 
+import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
+import com.devicehive.model.FilterEntity;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.query.PluginReqisterQuery;
+import com.devicehive.model.rpc.ListDeviceTypeRequest;
+import com.devicehive.model.rpc.ListNetworkRequest;
+import com.devicehive.model.rpc.PluginSubscribeRequest;
+import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.PluginVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +39,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,61 +52,29 @@ public class FilterService {
 
     private static final Logger logger = LoggerFactory.getLogger(FilterService.class);
 
-    private final BaseDeviceService deviceService;
+    private final BaseFilterService filterService;
 
     @Autowired
-    public FilterService(BaseDeviceService deviceService) {
-        this.deviceService = deviceService;
+    public FilterService(BaseFilterService filterService) {
+        this.filterService = filterService;
     }
 
-    public Set<Filter> createFilters(PluginReqisterQuery query) {
-        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Set<Filter> filters;
-        if (query.getDeviceId() != null) {
-            DeviceVO device = deviceService.findByIdWithPermissionsCheck(query.getDeviceId(), principal);
-            if (device == null) {
-                logger.error("Could not find device with id={}", query.getDeviceId());
-            }
-            if (query.getNames() != null) {
-                filters = toStringSet(query.getNames()).stream().map(name ->
-                        new Filter(device.getNetworkId(), device.getDeviceTypeId(), query.getDeviceId(), null, name))
-                        .collect(Collectors.toSet());
-            } else {
-                filters = Collections.singleton(new Filter(device.getNetworkId(), device.getDeviceTypeId(), query.getDeviceId(), null, null));
-            }
-        } else {
-            if (query.getNetworkIds() == null && query.getDeviceTypeIds() == null) {
-                if (query.getNames() != null) {
-                    filters = toStringSet(query.getNames()).stream().map(name ->
-                            new Filter(null, null, null, null, name))
-                            .collect(Collectors.toSet());
-                } else {
-                    filters = Collections.singleton(new Filter());
-                }
-            } else {
-                Set<Long> networks = toLongSet(query.getNetworkIds());
-                if (networks.isEmpty()) {
-                    networks = principal.getNetworkIds();
-                }
-                Set<Long> deviceTypes = toLongSet(query.getDeviceTypeIds());
-                if (deviceTypes.isEmpty()) {
-                    deviceTypes = principal.getDeviceTypeIds();
-                }
-                final Set<Long> finalDeviceTypes = deviceTypes;
-                filters = networks.stream()
-                        .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                            if (query.getNames() != null) {
-                                return toStringSet(query.getNames()).stream().map(name ->
-                                        new Filter(network, deviceType, null, null, name)
-                                );
-                            } else {
-                                return Stream.of(new Filter(network, deviceType, null, null, null));
-                            }
-                        }))
-                        .collect(Collectors.toSet());
-            }
-        }
+    public PluginSubscribeRequest createPluginSubscribeRequest(String filter) {
+        FilterEntity filterEntity = new FilterEntity(filter);
 
-        return filters;
+        PluginSubscribeRequest request = new PluginSubscribeRequest();
+        request.setFilters(createFilters(filterEntity));
+        request.setReturnCommands(filterEntity.isReturnCommands());
+        request.setReturnUpdatedCommands(filterEntity.isReturnUpdatedCommands());
+        request.setReturnNotifications(filterEntity.isReturnNotifications());
+
+        return request;
+    }
+
+    private Set<Filter> createFilters(FilterEntity filterEntity) {
+        final HiveAuthentication authentication = (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication();
+        return filterService.getFilterList(filterEntity.getDeviceId(), toLongSet(filterEntity.getNetworkIds()),
+                toLongSet(filterEntity.getDeviceTypeIds()),
+                null, toStringSet(filterEntity.getNames()), authentication);
     }
 }

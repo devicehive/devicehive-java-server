@@ -28,6 +28,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.DeviceTypeUpdate;
 import com.devicehive.resource.DeviceTypeResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseDeviceTypeService;
 import com.devicehive.service.DeviceTypeService;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;

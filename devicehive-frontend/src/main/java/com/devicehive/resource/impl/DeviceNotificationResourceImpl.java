@@ -32,9 +32,9 @@ import com.devicehive.model.wrappers.DeviceNotificationWrapper;
 import com.devicehive.resource.DeviceNotificationResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseFilterService;
 import com.devicehive.service.DeviceNotificationService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.FilterBuilderService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
@@ -71,22 +71,22 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
     private final Gson gson;
     private final DeviceNotificationService notificationService;
     private final DeviceService deviceService;
-    private final FilterBuilderService filterBuilderService;
     private final TimestampService timestampService;
+    private final BaseFilterService filterService;
     private final HiveValidator hiveValidator;
 
     @Autowired
     public DeviceNotificationResourceImpl(Gson gson,
                                           DeviceNotificationService notificationService,
                                           DeviceService deviceService,
-                                          FilterBuilderService filterBuilderService,
                                           TimestampService timestampService,
+                                          BaseFilterService filterService,
                                           HiveValidator hiveValidator) {
         this.gson = gson;
         this.notificationService = notificationService;
         this.deviceService = deviceService;
-        this.filterBuilderService = filterBuilderService;
         this.timestampService = timestampService;
+        this.filterService = filterService;
         this.hiveValidator = hiveValidator;
     }
 
@@ -213,7 +213,7 @@ public class DeviceNotificationResourceImpl implements DeviceNotificationResourc
             }
         };
 
-        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
+        Set<Filter> filters = filterService.getFilterList(deviceId, networks, deviceTypes, NOTIFICATION_EVENT.name(), names, authentication);
 
         if (!filters.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceNotification>>> pair = notificationService

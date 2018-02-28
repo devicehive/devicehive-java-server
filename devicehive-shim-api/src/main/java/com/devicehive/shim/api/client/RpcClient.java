@@ -22,6 +22,7 @@ package com.devicehive.shim.api.client;
 
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
+import com.google.gson.Gson;
 
 import java.util.function.Consumer;
 

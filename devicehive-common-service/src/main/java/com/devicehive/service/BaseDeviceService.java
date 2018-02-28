@@ -24,12 +24,16 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.ListDeviceRequest;
+import com.devicehive.model.rpc.ListDeviceResponse;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.vo.DeviceVO;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,13 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.concurrent.CompletableFuture;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -51,13 +52,16 @@ public class BaseDeviceService {
     private static final Logger logger = LoggerFactory.getLogger(BaseDeviceService.class);
 
     protected final DeviceDao deviceDao;
-    protected final NetworkService networkService;
+    protected final BaseNetworkService networkService;
+    protected final RpcClient rpcClient;
 
     @Autowired
     public BaseDeviceService(DeviceDao deviceDao,
-                             NetworkService networkService) {
+                             BaseNetworkService networkService,
+                             RpcClient rpcClient) {
         this.deviceDao = deviceDao;
         this.networkService = networkService;
+        this.rpcClient = rpcClient;
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
@@ -67,14 +71,47 @@ public class BaseDeviceService {
     }
 
     @Transactional(propagation = Propagation.SUPPORTS)
+    public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
+        DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
+
+        if (deviceVO == null) {
+            logger.error("Device with ID {} not found", deviceId);
+            throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
+        }
+        return deviceVO;
+    }
+
+    @Transactional(propagation = Propagation.SUPPORTS)
     public List<DeviceVO> findByIdWithPermissionsCheck(Collection<String> deviceIds, HivePrincipal principal) {
         return getDeviceList(new ArrayList<>(deviceIds), principal);
     }
 
-    @Transactional(propagation = Propagation.SUPPORTS)
-    public List<DeviceVO> list(Long networkId) {
-        return deviceDao.list(null, null, networkId, null,
-                null, false, null, null, null);
+    public CompletableFuture<List<DeviceVO>> list(String name, String namePattern, Long networkId, String networkName,
+                                                  String sortField, String sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
+
+        ListDeviceRequest listDeviceRequest = new ListDeviceRequest();
+        listDeviceRequest.setName(name);
+        listDeviceRequest.setNamePattern(namePattern);
+        listDeviceRequest.setNetworkId(networkId);
+        listDeviceRequest.setNetworkName(networkName);
+        listDeviceRequest.setSortField(sortField);
+        listDeviceRequest.setSortOrder(sortOrderAsc);
+        listDeviceRequest.setTake(take);
+        listDeviceRequest.setSkip(skip);
+        listDeviceRequest.setPrincipal(principal);
+
+        return list(listDeviceRequest);
+    }
+
+    public CompletableFuture<List<DeviceVO>> list(ListDeviceRequest listDeviceRequest) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(Request
+                .newBuilder()
+                .withBody(listDeviceRequest)
+                .build(), new ResponseConsumer(future));
+
+        return future.thenApply(response -> ((ListDeviceResponse) response.getBody()).getDevices());
     }
 
     private List<DeviceVO> getDeviceList(List<String> deviceIds, HivePrincipal principal) {

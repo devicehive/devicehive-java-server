@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
     <name>DeviceHive Common Auth Module</name>
 
-    <artifactId>devicehive-common-auth</artifactId>
+    <artifactId>devicehive-common-service</artifactId>
 
     <dependencies>
         <dependency>

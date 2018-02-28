@@ -140,7 +140,7 @@ public class PluginResourceImpl implements PluginResource {
     }
 
     @Override
-    public void update(String topicName, PluginUpdateQuery updateQuery, AsyncResponse asyncResponse) {
+    public void update(String topicName, PluginUpdateQuery updateQuery, String authorization, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO user = principal.getUser();
 
@@ -153,7 +153,7 @@ public class PluginResourceImpl implements PluginResource {
     }
 
     @Override
-    public void delete(String topicName, AsyncResponse asyncResponse) {
+    public void delete(String topicName, String authorization, AsyncResponse asyncResponse) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserVO user = principal.getUser();
 

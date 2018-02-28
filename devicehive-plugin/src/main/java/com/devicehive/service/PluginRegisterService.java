@@ -41,10 +41,12 @@ import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
+import com.devicehive.vo.ApiInfoVO;
 import com.devicehive.vo.JwtTokenVO;
 import com.devicehive.vo.PluginVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +54,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.Filter;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
@@ -105,11 +108,14 @@ public class PluginRegisterService {
 
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
+        validateSubscription(pluginReqisterQuery);
         PluginVO existingPlugin = pluginService.findByName(pluginUpdate.getName());
         if (existingPlugin != null) {
             logger.error("Plugin with name {} already exists", pluginUpdate.getName());
             throw new HiveException(String.format(Messages.PLUGIN_ALREADY_EXISTS, pluginUpdate.getName()), BAD_REQUEST.getStatusCode());
         }
+
+        checkAuthServiceAvailable();
 
         return persistPlugin(pluginUpdate, pluginReqisterQuery.constructFilterString(), userId).thenApply(pluginVO -> {
             JwtTokenVO jwtTokenVO = createPluginTokens(pluginVO.getTopicName(), authorization);
@@ -121,6 +127,7 @@ public class PluginRegisterService {
 
     @Transactional
     public CompletableFuture<Response> update(PluginVO existingPlugin, PluginUpdateQuery pluginUpdateQuery) {
+        validateSubscription(pluginUpdateQuery);
         return updatePlugin(existingPlugin, pluginUpdateQuery).thenApply(plugin ->
             ResponseFactory.response(NO_CONTENT)
         );
@@ -203,6 +210,13 @@ public class PluginRegisterService {
             throw new IllegalArgumentException("Cannot change status of existing plugin to Created.");
         }
 
+        if (pluginUpdateQuery.isReturnCommands() != null && !pluginUpdateQuery.isReturnCommands() &&
+                pluginUpdateQuery.isReturnUpdatedCommands() != null && !pluginUpdateQuery.isReturnUpdatedCommands() &&
+                pluginUpdateQuery.isReturnNotifications() != null && !pluginUpdateQuery.isReturnNotifications()) {
+            logger.error("Requested subscription is not valid. Please, set at least one 'return*' parameter to true.");
+            throw new HiveException(Messages.PLUGIN_SUBSCRIPTION_NOT_VALID, BAD_REQUEST.getStatusCode());
+        }
+
         if (pluginUpdateQuery.getName() != null) {
             existingPlugin.setName(pluginUpdateQuery.getName());
         }
@@ -215,49 +229,35 @@ public class PluginRegisterService {
             existingPlugin.setParameters(pluginUpdateQuery.getParameters());
         }
 
-        if (pluginUpdateQuery.getStatus() != null) {
+        final boolean isFilterUpdated = pluginUpdateQuery.getDeviceId() != null || pluginUpdateQuery.getNetworkIds() != null ||
+                pluginUpdateQuery.getDeviceTypeIds() != null || pluginUpdateQuery.getNames() != null ||
+                pluginUpdateQuery.isReturnCommands() != null ||
+                pluginUpdateQuery.isReturnUpdatedCommands() != null ||
+                pluginUpdateQuery.isReturnNotifications() != null;
+
+        final boolean isStatusUpdated = pluginUpdateQuery.getStatus() != null &&
+                !pluginUpdateQuery.getStatus().equals(existingPlugin.getStatus());
+
+        if (isFilterUpdated && !isStatusUpdated && existingPlugin.getStatus().equals(PluginStatus.ACTIVE)) {
+            logger.error("Plugin's subscription filter can't be updated if plugin is ACTIVE");
+            throw new HiveException(Messages.ACTIVE_PLUGIN_UPDATED, BAD_REQUEST.getStatusCode());
+        }
+
+        if (isStatusUpdated) {
             existingPlugin.setStatus(pluginUpdateQuery.getStatus());
         }
 
-        // if no new information about filters is provided in PluginUpdateQuery, we should keep the same filters
-        FilterEntity filterEntity = new FilterEntity(existingPlugin.getFilter());
-        if (pluginUpdateQuery.getDeviceId() == null) {
-            pluginUpdateQuery.setDeviceId(filterEntity.getDeviceId());
+        if (isFilterUpdated) {
+            existingPlugin.setFilter(pluginUpdateQuery.constructFilterString());
         }
-
-        if (pluginUpdateQuery.getNetworkIds() == null) {
-            pluginUpdateQuery.setNetworkIds(filterEntity.getNetworkIds());
-        }
-
-        if (pluginUpdateQuery.getDeviceTypeIds() == null) {
-            pluginUpdateQuery.setDeviceTypeIds(filterEntity.getDeviceTypeIds());
-        }
-
-        if (pluginUpdateQuery.getNames() == null) {
-            pluginUpdateQuery.setNames(filterEntity.getNames());
-        }
-
-        if (pluginUpdateQuery.isReturnCommands() == null) {
-            pluginUpdateQuery.setReturnCommands(filterEntity.isReturnCommands());
-        }
-
-        if (pluginUpdateQuery.isReturnUpdatedCommands() == null) {
-            pluginUpdateQuery.setReturnUpdatedCommands(filterEntity.isReturnUpdatedCommands());
-        }
-
-        if (pluginUpdateQuery.isReturnNotifications() == null) {
-            pluginUpdateQuery.setReturnNotifications(filterEntity.isReturnNotifications());
-        }
-
-        existingPlugin.setFilter(pluginUpdateQuery.constructFilterString());
 
         CompletableFuture<com.devicehive.shim.api.Response> future = new CompletableFuture<>();
 
         BasePluginRequest request = null;
-        if (pluginUpdateQuery.getStatus() != null) {
+        if (isStatusUpdated) {
             if (pluginUpdateQuery.getStatus().equals(PluginStatus.ACTIVE) && existingPlugin.getSubscriptionId() == null) {
-                final Long subscriptionId = idGenerator.generate();
-                request = pluginUpdateQuery.toRequest(filterService);
+                Long subscriptionId = idGenerator.generate();
+                request = filterService.createPluginSubscribeRequest(existingPlugin.getFilter());
                 request.setSubscriptionId(subscriptionId);
                 existingPlugin.setSubscriptionId(subscriptionId);
                 ((PluginSubscribeRequest) request).setTopicName(existingPlugin.getTopicName());
@@ -283,6 +283,19 @@ public class PluginRegisterService {
 
     }
 
+    private void checkAuthServiceAvailable() {
+        httpRestHelper.get(authBaseUrl + "/info", ApiInfoVO.class, null);
+    }
+
+    private void validateSubscription(PluginReqisterQuery pluginReqisterQuery) {
+        if (pluginReqisterQuery.isReturnCommands() != null && !pluginReqisterQuery.isReturnCommands() &&
+                pluginReqisterQuery.isReturnUpdatedCommands() != null && !pluginReqisterQuery.isReturnUpdatedCommands() &&
+                pluginReqisterQuery.isReturnNotifications() != null && !pluginReqisterQuery.isReturnNotifications()) {
+            logger.error("Requested subscription is not valid. Please, set at least one 'return*' parameter to true.");
+            throw new HiveException(Messages.PLUGIN_SUBSCRIPTION_NOT_VALID, BAD_REQUEST.getStatusCode());
+        }
+    }
+
     private JwtTokenVO createPluginTokens(String topicName, String authorization) {
         JwtPluginPayload jwtPluginPayload = new JwtPluginPayload(Collections.singleton(MANAGE_PLUGIN.getId()), topicName, null, null);
         
@@ -290,12 +303,11 @@ public class PluginRegisterService {
         try {
             jwtToken = httpRestHelper.post(authBaseUrl + "/token/plugin/create", gson.toJson(jwtPluginPayload), JwtTokenVO.class, authorization);
         } catch (ServiceUnavailableException e) {
-            logger.warn("Service is not available");
-            throw new HiveException(e.getMessage(), SC_SERVICE_UNAVAILABLE);
+            logger.error("Authentication service is not available");
+            throw new HiveException(e.getMessage(), SERVICE_UNAVAILABLE.getStatusCode());
         }
         
         return jwtToken;
-
     }
 
     private JsonObject createTokenResponse(String topicName, JwtTokenVO jwtTokenVO) {

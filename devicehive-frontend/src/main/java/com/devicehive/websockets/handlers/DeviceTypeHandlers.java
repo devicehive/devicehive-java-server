@@ -29,6 +29,7 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.rpc.CountDeviceTypeRequest;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.updates.DeviceTypeUpdate;
+import com.devicehive.service.BaseDeviceTypeService;
 import com.devicehive.service.DeviceTypeService;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;

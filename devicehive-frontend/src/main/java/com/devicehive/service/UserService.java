@@ -68,11 +68,10 @@ public class UserService extends BaseUserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
-    private final NetworkDao networkDao;
     private final DeviceTypeDao deviceTypeDao;
     private final RpcClient rpcClient;
 
-    private NetworkService networkService;
+    private BaseNetworkService networkService;
 
     @Autowired
     public UserService(PasswordProcessor passwordService,
@@ -84,13 +83,12 @@ public class UserService extends BaseUserService {
                        HiveValidator hiveValidator,
                        RpcClient rpcClient) {
         super(passwordService, userDao, networkDao, timestampService, configurationService, hiveValidator);
-        this.networkDao = networkDao;
         this.deviceTypeDao = deviceTypeDao;
         this.rpcClient = rpcClient;
     }
 
     @Autowired
-    public void setNetworkService(NetworkService networkService) {
+    public void setNetworkService(BaseNetworkService networkService) {
         this.networkService = networkService;
     }
 
@@ -172,48 +170,6 @@ public class UserService extends BaseUserService {
 
         hiveValidator.validate(existing);
         return userDao.merge(existing);
-    }
-
-    /**
-     * Allows user access to given network
-     *
-     * @param userId id of user
-     * @param networkId id of network
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void assignNetwork(@NotNull long userId, @NotNull long networkId) {
-        UserVO existingUser = userDao.find(userId);
-        if (existingUser == null) {
-            logger.error("Can't assign network with id {}: user {} not found", networkId, userId);
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
-        }
-        NetworkWithUsersAndDevicesVO existingNetwork = networkDao.findWithUsers(networkId).orElse(null);
-        if (Objects.isNull(existingNetwork)) {
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
-        }
-            
-        networkDao.assignToNetwork(existingNetwork, existingUser);
-    }
-
-    /**
-     * Revokes user access to given network
-     *
-     * @param userId id of user
-     * @param networkId id of network
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void unassignNetwork(@NotNull long userId, @NotNull long networkId) {
-        UserVO existingUser = userDao.find(userId);
-        if (existingUser == null) {
-            logger.error("Can't unassign network with id {}: user {} not found", networkId, userId);
-            throw new HiveException(String.format(Messages.USER_NOT_FOUND, userId), NOT_FOUND.getStatusCode());
-        }
-        NetworkVO existingNetwork = networkDao.find(networkId);
-        if (existingNetwork == null) {
-            logger.error("Can't unassign user with id {}: network {} not found", userId, networkId);
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
-        }
-        userDao.unassignNetwork(existingUser, networkId);
     }
 
     /**

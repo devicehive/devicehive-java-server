@@ -108,7 +108,7 @@ public class PluginProxyClient implements RpcClient {
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
-            logger.info("Ping RpcServer attempt {}", i);
+            logger.info("Ping WebSocket Proxy Server attempt {}", i);
 
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 
@@ -121,9 +121,9 @@ public class PluginProxyClient implements RpcClient {
             try {
                 response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception occured while trying to ping RpcServer ", e);
+                logger.error("Exception occured while trying to ping WebSocket Proxy Server ", e);
             } catch (TimeoutException e) {
-                logger.warn("RpcServer didn't respond to ping request");
+                logger.warn("WebSocket Proxy Server didn't respond to ping request");
                 continue;
             } finally {
                 requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
@@ -136,10 +136,10 @@ public class PluginProxyClient implements RpcClient {
             }
         }
         if (connected) {
-            logger.info("Successfully connected to RpcServer");
+            logger.info("Successfully connected to WebSocket Proxy Server");
         } else {
-            logger.error("Unable to reach out RpcServer in {} attempts", attempts);
-            throw new RuntimeException("RpcServer is not reachable");
+            logger.error("Unable to reach out WebSocket Proxy Server in {} attempts", attempts);
+            throw new RuntimeException("WebSocket Proxy Server is not reachable");
         }
     }
 }
