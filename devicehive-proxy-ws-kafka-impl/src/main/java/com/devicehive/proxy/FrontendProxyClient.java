@@ -21,6 +21,7 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
+import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
@@ -31,6 +32,7 @@ import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
+import com.lmax.disruptor.RingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,13 +51,15 @@ public class FrontendProxyClient implements RpcClient {
     private final ProxyClient client;
     private final RequestResponseMatcher requestResponseMatcher;
     private final Gson gson;
+    private final RingBuffer<ServerEvent> ringBuffer;
 
-    public FrontendProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public FrontendProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson, RingBuffer<ServerEvent> ringBuffer) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
         this.client = client;
         this.requestResponseMatcher = requestResponseMatcher;
         this.gson = gson;
+        this.ringBuffer = ringBuffer;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class FrontendProxyClient implements RpcClient {
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
         logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-        push(request);
+        ringBuffer.publishEvent((serverEvent, sequence, response) -> serverEvent.set(response), request);
     }
 
     @Override
