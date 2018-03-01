@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.4.4-SNAPSHOT</version>
+    <version>3.4.4</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
