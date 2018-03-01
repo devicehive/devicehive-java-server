@@ -32,7 +32,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,29 +44,28 @@ import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 @Component
-public class FilterBuilderService {
+public class BaseFilterService {
+    private static final Logger logger = LoggerFactory.getLogger(BaseFilterService.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(FilterBuilderService.class);
-
-    private final DeviceService deviceService;
-    private final NetworkService networkService;
-    private final DeviceTypeService deviceTypeService;
+    private final BaseDeviceService deviceService;
+    private final BaseNetworkService networkService;
+    private final BaseDeviceTypeService deviceTypeService;
 
     @Autowired
-    public FilterBuilderService(DeviceService deviceService,
-                                NetworkService networkService,
-                                DeviceTypeService deviceTypeService) {
+    public BaseFilterService(BaseDeviceService deviceService,
+                             BaseNetworkService networkService,
+                             BaseDeviceTypeService deviceTypeService) {
         this.deviceService = deviceService;
         this.networkService = networkService;
         this.deviceTypeService = deviceTypeService;
     }
 
     public Set<Filter> getFilterList(String deviceId,
-                                            Set<Long> networks,
-                                            Set<Long> deviceTypes,
-                                            String eventName,
-                                            Set<String> names,
-                                            HiveAuthentication authentication) {
+                                     Set<Long> networks,
+                                     Set<Long> deviceTypes,
+                                     String eventName,
+                                     Set<String> names,
+                                     HiveAuthentication authentication) {
         final HivePrincipal principal = (HivePrincipal) authentication.getPrincipal();
 
         if (networks != null && !networks.isEmpty()) {
@@ -123,7 +125,7 @@ public class FilterBuilderService {
                     final Set<Long> finalDeviceTypes = deviceTypes;
                     filters = networks.stream()
                             .flatMap(network -> finalDeviceTypes.stream().flatMap(deviceType -> {
-                                if (names != null) {
+                                if (names != null && !names.isEmpty()) {
                                     return names.stream().map(name ->
                                             new Filter(network, deviceType, null, eventName, name)
                                     );
@@ -137,6 +139,7 @@ public class FilterBuilderService {
 
             return filters;
         } else {
+            logger.warn("Filters set is empty for userId {}", principal.getUser().getId());
             return Collections.emptySet();
         }
     }

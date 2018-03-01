@@ -20,10 +20,7 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.HivePrincipal;
-import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.query.PluginReqisterQuery;
-import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.model.updates.PluginUpdate;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.service.helpers.HttpRestHelper;
@@ -35,7 +32,6 @@ import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtTokenVO;
-import com.devicehive.vo.UserVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.junit.Rule;
@@ -44,8 +40,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -56,10 +50,9 @@ import static org.mockito.Mockito.verify;
 
 public class PluginRegisterServiceTest {
     private static final Long USER_ID = 1L;
-    private static final Long SUBSCRIPTION_ID = 1L;
     private static final String ACCESS_TOKEN = "accessToken";
     private static final String REFRESH_TOKEN = "refreshToken";
-    private static final String PROXY_ENDPOINT = "proxyEndpoint";
+    private static final String PROXY_PLUGIN_ENDPOINT = "proxyEndpoint";
     private static final String AUTHORIZATION = "auth";
 
     @Rule
@@ -99,8 +92,7 @@ public class PluginRegisterServiceTest {
 
         PluginUpdate pluginUpdate = new PluginUpdate();
 
-        given(idGenerator.generate()).willReturn(SUBSCRIPTION_ID);
-        given(webSocketKafkaProxyConfig.getProxyConnect()).willReturn(PROXY_ENDPOINT);
+        given(webSocketKafkaProxyConfig.getProxyPluginConnect()).willReturn(PROXY_PLUGIN_ENDPOINT);
         given(httpRestHelper.post(any(), any(), any(), any())).willReturn(createJwtTokenVO(ACCESS_TOKEN, REFRESH_TOKEN));
 
         doAnswer(invocation -> {
@@ -120,9 +112,9 @@ public class PluginRegisterServiceTest {
         //then
         assertEquals(actual.get(ACCESS_TOKEN).getAsString(), ACCESS_TOKEN);
         assertEquals(actual.get(REFRESH_TOKEN).getAsString(), REFRESH_TOKEN);
-        assertEquals(actual.get(PROXY_ENDPOINT).getAsString(), PROXY_ENDPOINT);
+        assertEquals(actual.get(PROXY_PLUGIN_ENDPOINT).getAsString(), PROXY_PLUGIN_ENDPOINT);
 
-        verify(rpcClient, times(1)).call(any(), any());
+        verify(rpcClient, times(0)).call(any(), any());
     }
     
     private JwtTokenVO createJwtTokenVO(String accessToken, String refreshToken) {

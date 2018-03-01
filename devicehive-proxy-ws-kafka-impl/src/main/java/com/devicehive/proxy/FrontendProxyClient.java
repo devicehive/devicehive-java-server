@@ -98,7 +98,7 @@ public class FrontendProxyClient implements RpcClient {
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
-            logger.info("Ping Backend Server attempt {}", i);
+            logger.info("Ping WebSocket Proxy attempt {}", i);
 
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 

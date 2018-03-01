@@ -27,6 +27,7 @@ import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.resource.NetworkResource;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseNetworkService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;

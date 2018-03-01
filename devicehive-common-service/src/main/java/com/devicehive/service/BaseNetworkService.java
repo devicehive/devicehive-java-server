@@ -28,7 +28,11 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListNetworkRequest;
-import com.devicehive.model.updates.NetworkUpdate;
+import com.devicehive.model.rpc.ListNetworkResponse;
+import com.devicehive.service.helpers.ResponseConsumer;
+import com.devicehive.shim.api.Request;
+import com.devicehive.shim.api.Response;
+import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
@@ -47,10 +51,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
@@ -61,20 +65,23 @@ import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
-public class NetworkService {
+public class BaseNetworkService {
 
-    private static final Logger logger = LoggerFactory.getLogger(NetworkService.class);
+    private static final Logger logger = LoggerFactory.getLogger(BaseNetworkService.class);
 
-    private final HiveValidator hiveValidator;
-    private final NetworkDao networkDao;
+    protected final HiveValidator hiveValidator;
+    protected final NetworkDao networkDao;
+    protected final RpcClient rpcClient;
     
     private BaseUserService baseUserService;
 
     @Autowired
-    public NetworkService(HiveValidator hiveValidator,
-                          NetworkDao networkDao) {
+    public BaseNetworkService(HiveValidator hiveValidator,
+                              NetworkDao networkDao,
+                              RpcClient rpcClient) {
         this.hiveValidator = hiveValidator;
         this.networkDao = networkDao;
+        this.rpcClient = rpcClient;
     }
 
     @Autowired
@@ -108,6 +115,7 @@ public class NetworkService {
     public NetworkWithUsersAndDevicesVO getWithDevices(@NotNull Long networkId) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Long> permittedNetworks = principal.getNetworkIds();
+        Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
 
         Optional<NetworkWithUsersAndDevicesVO> result = of(principal)
                 .flatMap(pr -> {
@@ -121,6 +129,14 @@ public class NetworkService {
                     List<NetworkWithUsersAndDevicesVO> found = networkDao.getNetworksByIdsAndUsers(idForFiltering,
                             Collections.singleton(networkId), permittedNetworks);
                     return found.stream().findFirst();
+                }).map(network -> {
+                    if (permittedDeviceTypes != null && !permittedDeviceTypes.isEmpty()) {
+                        Set<DeviceVO> allowed = network.getDevices().stream()
+                                .filter(device -> permittedDeviceTypes.contains(device.getDeviceTypeId()))
+                                .collect(Collectors.toSet());
+                        network.setDevices(allowed);
+                    }
+                    return network;
                 });
 
         return result.orElse(null);
@@ -134,72 +150,33 @@ public class NetworkService {
         return result > 0;
     }
 
-    @Transactional
-    public NetworkVO create(NetworkVO newNetwork) {
-        hiveValidator.validate(newNetwork);
-        logger.debug("Creating network {}", newNetwork);
-        if (newNetwork.getId() != null) {
-            logger.error("Can't create network entity with id={} specified", newNetwork.getId());
-            throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
-        }
-        List<NetworkVO> existing = networkDao.findByName(newNetwork.getName());
-        if (!existing.isEmpty()) {
-            logger.error("Network with name {} already exists", newNetwork.getName());
-            throw new ActionNotAllowedException(Messages.DUPLICATE_NETWORK);
-        }
-        networkDao.persist(newNetwork);
-        logger.info("Entity {} created successfully", newNetwork);
-        return newNetwork;
-    }
-
-    @Transactional
-    public NetworkVO update(@NotNull Long networkId, NetworkUpdate networkUpdate) {
-        NetworkVO existing = networkDao.find(networkId);
-        if (existing == null) {
-            throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, networkId));
-        }
-        if (networkUpdate.getName().isPresent()){
-            existing.setName(networkUpdate.getName().get());
-        }
-        if (networkUpdate.getDescription().isPresent()){
-            existing.setDescription(networkUpdate.getDescription().get());
-        }
-        hiveValidator.validate(existing);
-
-        return networkDao.merge(existing);
-    }
-
-    public List<NetworkVO> list(String name,
-            String namePattern,
-            String sortField,
-            String sortOrder,
-            Integer take,
-            Integer skip,
-            HivePrincipal principal) {
+    public CompletableFuture<List<NetworkVO>> list(String name,
+                                                   String namePattern,
+                                                   String sortField,
+                                                   String sortOrder,
+                                                   Integer take,
+                                                   Integer skip,
+                                                   HivePrincipal principal) {
         Optional<HivePrincipal> principalOpt = ofNullable(principal);
 
-        return networkDao.list(name, namePattern, sortField, SortOrder.parse(sortOrder), take, skip, principalOpt);
+        ListNetworkRequest request = new ListNetworkRequest();
+        request.setName(name);
+        request.setNamePattern(namePattern);
+        request.setSortField(sortField);
+        request.setSortOrder(sortOrder);
+        request.setTake(take);
+        request.setSkip(skip);
+        request.setPrincipal(principalOpt);
+
+        return list(request);
     }
 
-    public List<NetworkVO> list(ListNetworkRequest request) {
-        return list(request.getName(), request.getNamePattern(), request.getSortField(), request.getSortOrder(),
-                request.getTake(), request.getSkip(), request.getPrincipal().orElse(null));
-    }
+    public CompletableFuture<List<NetworkVO>> list(ListNetworkRequest request) {
+        CompletableFuture<Response> future = new CompletableFuture<>();
 
-    @Transactional
-    public NetworkVO verifyNetwork(Optional<NetworkVO> networkNullable) {
-        //case network is not defined
-        if (networkNullable == null || networkNullable.orElse(null) == null) {
-            return null;
-        }
-        NetworkVO network = networkNullable.get();
+        rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
 
-        Optional<NetworkVO> storedOpt = findNetworkByIdOrName(network);
-        if (storedOpt.isPresent()) {
-            return storedOpt.get();
-        }
-
-        throw new NoSuchElementException(String.format(Messages.NETWORK_NOT_FOUND, network.getId()));
+        return future.thenApply(r -> ((ListNetworkResponse) r.getBody()).getNetworks());
     }
 
     @Transactional
@@ -233,7 +210,7 @@ public class NetworkService {
     @Transactional
     public Long findDefaultNetworkByUserId(Long userId) {
     	return networkDao.findDefaultByUser(userId)
-    			.map(nvo -> nvo.getId())
+    			.map(NetworkVO::getId)
     			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
     }
 
@@ -242,7 +219,7 @@ public class NetworkService {
         NetworkVO networkVO = new NetworkVO();
         networkVO.setName(user.getLogin());
         networkVO.setDescription(String.format("User %s default network", user.getLogin()));
-        return createOrUpdateNetworkByUser(Optional.ofNullable(networkVO), user);
+        return createOrUpdateNetworkByUser(Optional.of(networkVO), user);
     }
 
     public boolean isNetworkExists(Long networkId) {

@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>3.4.3</version>
+    <version>3.4.4</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -99,7 +99,7 @@
         <module>devicehive-frontend</module>
         <module>devicehive-test-utils</module>
         <module>devicehive-auth</module>
-        <module>devicehive-common-auth</module>
+        <module>devicehive-common-service</module>
         <module>devicehive-plugin</module>
     </modules>
 

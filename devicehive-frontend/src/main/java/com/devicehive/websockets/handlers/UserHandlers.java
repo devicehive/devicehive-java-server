@@ -24,17 +24,14 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
 import com.devicehive.exceptions.HiveException;
-import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.messages.handler.WebSocketClientHandler;
-import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.response.UserDeviceTypeResponse;
 import com.devicehive.model.response.UserNetworkResponse;
 import com.devicehive.model.rpc.CountUserRequest;
 import com.devicehive.model.rpc.ListUserRequest;
 import com.devicehive.model.updates.UserUpdate;
-import com.devicehive.resource.util.ResponseFactory;
-import com.devicehive.service.BaseUserService;
+import com.devicehive.service.BaseDeviceTypeService;
 import com.devicehive.service.DeviceTypeService;
 import com.devicehive.service.UserService;
 import com.devicehive.util.HiveValidator;
@@ -51,7 +48,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -59,7 +55,6 @@ import static com.devicehive.configuration.Constants.*;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.rpc.ListUserRequest.createListUserRequest;
 import static javax.ws.rs.core.Response.Status.*;
-import static javax.ws.rs.core.Response.Status.OK;
 
 @Component
 public class UserHandlers {

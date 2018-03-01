@@ -32,9 +32,9 @@ import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.DeviceCommandResource;
 import com.devicehive.model.converters.TimestampQueryParamParser;
 import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.BaseFilterService;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.service.FilterBuilderService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceVO;
@@ -76,22 +76,22 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
     private final Gson gson;
     private final DeviceCommandService commandService;
     private final DeviceService deviceService;
-    private final FilterBuilderService filterBuilderService;
     private final TimestampService timestampService;
+    private final BaseFilterService filterService;
     private final HiveValidator hiveValidator;
 
     @Autowired
     public DeviceCommandResourceImpl(Gson gson,
                                      DeviceCommandService commandService,
                                      DeviceService deviceService,
-                                     FilterBuilderService filterBuilderService,
                                      TimestampService timestampService,
+                                     BaseFilterService filterService,
                                      HiveValidator hiveValidator) {
         this.gson = gson;
         this.commandService = commandService;
         this.deviceService = deviceService;
-        this.filterBuilderService = filterBuilderService;
         this.timestampService = timestampService;
+        this.filterService = filterService;
         this.hiveValidator = hiveValidator;
     }
 
@@ -159,7 +159,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             }
         };
 
-        Set<Filter> filters = filterBuilderService.getFilterList(deviceId, networks, deviceTypes, COMMAND_EVENT.name(), names, authentication);
+        Set<Filter> filters = filterService.getFilterList(deviceId, networks, deviceTypes, COMMAND_EVENT.name(), names, authentication);
 
         if (!filters.isEmpty()) {
             Pair<Long, CompletableFuture<List<DeviceCommand>>> pair = commandService

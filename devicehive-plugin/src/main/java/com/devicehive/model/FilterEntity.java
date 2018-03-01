@@ -20,9 +20,11 @@ package com.devicehive.model;
  * #L%
  */
 
-public class FilterEntity {
+import java.util.Arrays;
 
-    public static final String ALL_ENTITIES = "*";
+import static com.devicehive.configuration.Constants.*;
+
+public class FilterEntity {
 
     private String deviceId;
 
@@ -38,33 +40,52 @@ public class FilterEntity {
 
     private boolean returnNotifications;
 
+    public FilterEntity(String deviceId, String networkIds, String deviceTypeIds, String names, boolean returnCommands,
+                        boolean returnUpdatedCommands, boolean returnNotifications) {
+        this.deviceId = deviceId;
+        this.networkIds = networkIds;
+        this.deviceTypeIds = deviceTypeIds;
+        this.names = names;
+        this.returnCommands = returnCommands;
+        this.returnUpdatedCommands = returnUpdatedCommands;
+        this.returnNotifications = returnNotifications;
+    }
+
     public FilterEntity(String filterString) {
         String[] filters = filterString.split("/");
 
         String typesString = filters[0];
-        if (typesString.equals("command")) {
+        if (typesString.equals(ANY)) {
             returnCommands = true;
-        } else if (typesString.equals("commandUpdate")) {
             returnUpdatedCommands = true;
-        } else if (typesString.equals("notification")) {
             returnNotifications = true;
         } else {
-            returnCommands = true;
-            returnUpdatedCommands = true;
-            returnNotifications = true;
+            Arrays.stream(typesString.split(",")).forEach(type -> {
+                if (type.equals(COMMAND)) {
+                    returnCommands = true;
+                }
+
+                if (type.equals(COMMAND_UPDATE)) {
+                    returnUpdatedCommands = true;
+                }
+
+                if (type.equals(NOTIFICATION)) {
+                    returnNotifications = true;
+                }
+            });
         }
 
         networkIds = filters[1];
-        if (networkIds.equals(ALL_ENTITIES)) networkIds = null;
+        if (networkIds.equals(ANY)) networkIds = null;
 
         deviceTypeIds = filters[2];
-        if (deviceTypeIds.equals(ALL_ENTITIES)) deviceTypeIds = null;
+        if (deviceTypeIds.equals(ANY)) deviceTypeIds = null;
 
         deviceId = filters[3];
-        if (deviceId.equals(ALL_ENTITIES)) deviceId = null;
+        if (deviceId.equals(ANY)) deviceId = null;
 
         names = filters[4];
-        if (names.equals(ALL_ENTITIES)) names = null;
+        if (names.equals(ANY)) names = null;
     }
 
     public String getDeviceId() {

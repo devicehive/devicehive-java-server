@@ -23,10 +23,7 @@ package com.devicehive.model.converters;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SetHelper {
@@ -34,14 +31,14 @@ public class SetHelper {
     public static Set<String> toStringSet(String stringCsv) {
         return Optional.ofNullable(StringUtils.split(stringCsv, ','))
                 .map(Arrays::asList)
-                .map(list -> list.stream().collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+                .map(HashSet::new)
+                .orElse(null);
     }
 
     public static Set<Long> toLongSet(String stringCsv) {
         return Optional.ofNullable(StringUtils.split(stringCsv, ','))
                 .map(Arrays::asList)
-                .map(list -> list.stream().map(str -> Long.valueOf(str)).collect(Collectors.toSet()))
-                .orElse(Collections.emptySet());
+                .map(list -> list.stream().map(Long::valueOf).collect(Collectors.toSet()))
+                .orElse(null);
     }
 }

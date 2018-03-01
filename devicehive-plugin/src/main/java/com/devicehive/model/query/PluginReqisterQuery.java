@@ -20,14 +20,19 @@ package com.devicehive.model.query;
  * #L%
  */
 
+import com.devicehive.model.FilterEntity;
+import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.PluginSubscribeRequest;
 import com.devicehive.service.FilterService;
 import io.swagger.annotations.ApiParam;
 
 import javax.ws.rs.QueryParam;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.StringJoiner;
+
 import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.model.FilterEntity.ALL_ENTITIES;
 
 
 public class PluginReqisterQuery {
@@ -116,12 +121,12 @@ public class PluginReqisterQuery {
         this.returnNotifications = returnNotifications;
     }
 
-    public PluginSubscribeRequest toRequest(FilterService filterService) {
+    public PluginSubscribeRequest toRequest(Set<Filter> filters) {
         PluginSubscribeRequest request = new PluginSubscribeRequest();
-        request.setFilters(filterService.createFilters(this));
-        request.setReturnCommands(returnCommands);
-        request.setReturnUpdatedCommands(returnUpdatedCommands);
-        request.setReturnNotifications(returnNotifications);
+        request.setFilters(filters);
+        request.setReturnCommands(Optional.ofNullable(returnCommands).orElse(true));
+        request.setReturnUpdatedCommands(Optional.ofNullable(returnUpdatedCommands).orElse(true));
+        request.setReturnNotifications(Optional.ofNullable(returnNotifications).orElse(true));
         
         return request;
     }
@@ -129,47 +134,44 @@ public class PluginReqisterQuery {
     // Filter format <notification/command/command_update>/<networkIDs>/<deviceTypeIDs>/<deviceID>/<eventNames>
     // TODO - change to embedded entity for better code readability
     public String constructFilterString() {
-        StringBuilder sb = new StringBuilder();
-        if (returnCommands && returnUpdatedCommands && returnNotifications) {
-            sb.append(ALL_ENTITIES);
-        } else if (returnCommands) {
-            sb.append("command");
-        } else if (returnUpdatedCommands) {
-            sb.append("command_update");
-        } else {
-            sb.append("notification");
-        }
-        sb.append("/");
+        StringJoiner sj = new StringJoiner("/");
 
-        if (networkIds != null) {
-            sb.append(networkIds);
-        } else {
-            sb.append(ALL_ENTITIES);
-        }
-        sb.append("/");
+        if (returnCommands != null || returnUpdatedCommands != null || returnNotifications != null) {
+            StringJoiner dataSj = new StringJoiner(",");
+            if (Optional.ofNullable(returnCommands).orElse(false)) dataSj.add(COMMAND);
+            if (Optional.ofNullable(returnUpdatedCommands).orElse(false)) dataSj.add(COMMAND_UPDATE);
+            if (Optional.ofNullable(returnNotifications).orElse(false)) dataSj.add(NOTIFICATION);
 
-        if (deviceTypeIds != null) {
-            sb.append(deviceTypeIds);
+            sj.add(dataSj.toString());
         } else {
-            sb.append(ALL_ENTITIES);
-        }
-        sb.append("/");
-
-        if (deviceId != null) {
-            sb.append(deviceId);
-        } else {
-            sb.append(ALL_ENTITIES);
-        }
-        sb.append("/");
-
-        if (names != null) {
-            sb.append(names);
-        } else {
-            sb.append(ALL_ENTITIES);
+            sj.add(ANY);
         }
 
-        return sb.toString();
+        if (networkIds != null && !networkIds.isEmpty()) {
+            sj.add(networkIds);
+        } else {
+            sj.add(ANY);
+        }
+
+        if (deviceTypeIds != null && !deviceTypeIds.isEmpty()) {
+            sj.add(deviceTypeIds);
+        } else {
+            sj.add(ANY);
+        }
+
+        if (deviceId != null && !deviceId.isEmpty()) {
+            sj.add(deviceId);
+        } else {
+            sj.add(ANY);
+        }
+
+        if (names != null && !names.isEmpty()) {
+            sj.add(names);
+        } else {
+            sj.add(ANY);
+        }
+
+        return sj.toString();
     }
-    
 
 }

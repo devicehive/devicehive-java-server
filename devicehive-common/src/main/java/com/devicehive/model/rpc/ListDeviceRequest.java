@@ -31,6 +31,7 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 
 import static com.devicehive.configuration.Constants.DEFAULT_SKIP;
+import static com.devicehive.configuration.Constants.DEFAULT_TAKE;
 
 public class ListDeviceRequest extends Body {
 
@@ -63,7 +64,7 @@ public class ListDeviceRequest extends Body {
         ListDeviceRequest listDeviceRequest = new GsonBuilder().excludeFieldsWithModifiers(Modifier.PROTECTED)
                 .create()
                 .fromJson(request, ListDeviceRequest.class);
-        listDeviceRequest.setTake(Optional.ofNullable(listDeviceRequest.getTake()).orElse(20));
+        listDeviceRequest.setTake(Optional.ofNullable(listDeviceRequest.getTake()).orElse(DEFAULT_TAKE));
         listDeviceRequest.setSkip(Optional.ofNullable(listDeviceRequest.getSkip()).orElse(DEFAULT_SKIP));
         
         listDeviceRequest.setPrincipal(principal);
