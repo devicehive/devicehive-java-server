@@ -40,6 +40,8 @@ public class DevicePortableFactory implements PortableFactory {
             return new Filter();
         } else if (Subscriber.CLASS_ID == classId) {
             return new Subscriber();
+        } else if (HazelcastEntityComparator.CLASS_ID == classId) {
+            return new HazelcastEntityComparator();
         }
         
         return null;
