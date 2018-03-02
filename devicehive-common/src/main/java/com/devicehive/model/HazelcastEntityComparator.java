@@ -20,13 +20,36 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.hazelcast.nio.serialization.Portable;
+import com.hazelcast.nio.serialization.PortableReader;
+import com.hazelcast.nio.serialization.PortableWriter;
+
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Map;
 
-public class HazelcastEntityComparator implements Comparator<Map.Entry<String, HazelcastEntity>>, Serializable {
+
+public class HazelcastEntityComparator implements Comparator<Map.Entry<String, HazelcastEntity>>, Serializable, Portable {
     private static final long serialVersionUID = 5413354955792888308L;
+    public static final int FACTORY_ID = 1;
+    public static final int CLASS_ID = 7;
+
+    @Override
+    public int getFactoryId() {
+        return FACTORY_ID;
+    }
+
+    @Override
+    public int getClassId() {
+        return CLASS_ID;
+    }
+
+    @Override
+    public void writePortable(PortableWriter out) {}
+
+    @Override
+    public void readPortable(PortableReader in) {}
 
     @Override
     public int compare(Map.Entry<String, HazelcastEntity> o1, Map.Entry<String, HazelcastEntity> o2) {
