@@ -25,7 +25,6 @@ import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.FrontendProxyClient;
 import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
-import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
@@ -103,11 +102,9 @@ public class FrontendProxyClientConfig {
 
     @Bean
     public RpcClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson, WorkerPool<ServerEvent> workerPool) {
-        WebSocketKafkaProxyClient proxyClient = new WebSocketKafkaProxyClient(notificationHandler);
-        proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
         final ExecutorService execService = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
         RingBuffer<ServerEvent> ringBuffer = workerPool.start(execService);
-        RpcClient client = new FrontendProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyClient, requestResponseMatcher, gson, ringBuffer);
+        RpcClient client = new FrontendProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyConfig, notificationHandler, requestResponseMatcher, gson, ringBuffer);
         client.start();
         return client;
     }

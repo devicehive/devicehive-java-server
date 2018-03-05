@@ -42,6 +42,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -77,13 +78,18 @@ public class BackendProxyClientConfig {
     }
 
     @Bean
-    public ProxyClient proxyClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig) {
-        WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
-        client.setWebSocketKafkaProxyConfig(proxyConfig);
-        client.start();
-        client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
-        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
-        return client;
+    public Executor executionPool(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig) {
+        Executor executionPool = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
+        for (int i = 0; i < proxyConfig.getWorkerThreads(); i++) {
+            executionPool.execute(() -> {
+                WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
+                client.setWebSocketKafkaProxyConfig(proxyConfig);
+                client.start();
+                client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
+                client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
+            });
+        }
+        return executionPool;
     }
 
     @Bean
