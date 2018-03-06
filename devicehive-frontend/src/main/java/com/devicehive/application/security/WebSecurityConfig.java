@@ -65,8 +65,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(unauthorizedEntryPoint());
 
         http
-                .addFilterBefore(new HttpAuthenticationFilter(authenticationManager()), BasicAuthenticationFilter.class)
-                .addFilterAfter(new SimpleCORSFilter(), HttpAuthenticationFilter.class);
+                .addFilterBefore(new SimpleCORSFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new HttpAuthenticationFilter(authenticationManager()), SimpleCORSFilter.class);
     }
 
     @Override
