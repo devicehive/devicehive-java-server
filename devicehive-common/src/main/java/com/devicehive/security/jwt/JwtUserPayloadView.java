@@ -28,6 +28,7 @@ import com.google.gson.annotations.SerializedName;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.BadRequestException;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 
 import static com.devicehive.auth.HiveAction.NONE;
 
-public class JwtUserPayloadView implements HiveEntity {
+public class JwtUserPayloadView<T> implements HiveEntity {
 
     private static final long serialVersionUID = 9015868660504625526L;
 
@@ -54,7 +55,7 @@ public class JwtUserPayloadView implements HiveEntity {
 
     @JsonProperty(ACTIONS)
     @SerializedName(ACTIONS)
-    private Set<String> actions;
+    private Set<T> actions;
 
     @JsonProperty(NETWORK_IDS)
     @SerializedName(NETWORK_IDS)
@@ -72,7 +73,7 @@ public class JwtUserPayloadView implements HiveEntity {
     @SerializedName(TOKEN_TYPE)
     private TokenType tokenType;
 
-    public JwtUserPayloadView(Long userId, Set<String> actions, Set<String> networkIds,
+    public JwtUserPayloadView(Long userId, Set<T> actions, Set<String> networkIds,
             Set<String> deviceTypeIds, Date expiration, TokenType tokenType) {
         this.userId = userId;
         this.actions = actions;
@@ -90,11 +91,11 @@ public class JwtUserPayloadView implements HiveEntity {
         this.userId = userId;
     }
 
-    public Set<String> getActions() {
+    public Set<T> getActions() {
         return actions;
     }
 
-    public void setActions(Set<String> actions) {
+    public void setActions(Set<T> actions) {
         this.actions = actions;
     }
 
@@ -134,7 +135,13 @@ public class JwtUserPayloadView implements HiveEntity {
         Set<Integer> actionIds = Optional.ofNullable(actions)
                 .map(value -> value.stream()
                         //Here the compatibility with old behavior is provided to ignore not valid actions
-                        .map(action -> HiveAction.fromString(action))
+                        .map(action -> {
+                            if (action instanceof String) {
+                                return HiveAction.fromString((String) action);
+                            } else if (action instanceof Number) {
+                                return HiveAction.fromId(((Number) action).intValue());
+                            } else throw new BadRequestException("Actions list should contain only Strings or Integers");
+                        })
                         .filter(Objects::nonNull)
                         .mapToInt(HiveAction::getId)
                         .boxed()
@@ -148,15 +155,15 @@ public class JwtUserPayloadView implements HiveEntity {
         return new Builder();
     }
 
-    public static class Builder {
+    public static class Builder<T> {
         private Long userId;
-        private Set<String> actions;
+        private Set<T> actions;
         private Set<String> networkIds;
         private Set<String> deviceTypeIds;
         private Date expiration;
         private TokenType tokenType;
 
-        public Builder withPublicClaims(Long userId, Set<String> actions,
+        public Builder withPublicClaims(Long userId, Set<T> actions,
                                         Set<String> networkIds, Set<String> deviceTypeIds) {
             this.userId = userId;
             this.actions = actions;
@@ -165,7 +172,7 @@ public class JwtUserPayloadView implements HiveEntity {
             return this;
         }
 
-        public Builder withPayload(JwtUserPayloadView payload) {
+        public Builder withPayload(JwtUserPayloadView<T> payload) {
             this.userId = payload.getUserId();
             this.actions = payload.getActions();
             this.networkIds = payload.getNetworkIds();
@@ -179,7 +186,7 @@ public class JwtUserPayloadView implements HiveEntity {
             return this;
         }
 
-        public Builder withActions(Set<String> actions) {
+        public Builder withActions(Set<T> actions) {
             this.actions = actions;
             return this;
         }
@@ -204,8 +211,8 @@ public class JwtUserPayloadView implements HiveEntity {
             return this;
         }
 
-        public JwtUserPayloadView buildPayload() {
-            return new JwtUserPayloadView(userId, actions, networkIds, deviceTypeIds, expiration, tokenType);
+        public JwtUserPayloadView<T> buildPayload() {
+            return new JwtUserPayloadView<T>(userId, actions, networkIds, deviceTypeIds, expiration, tokenType);
         }
     }
 }
