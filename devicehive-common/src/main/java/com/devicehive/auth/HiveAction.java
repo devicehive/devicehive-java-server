@@ -89,6 +89,17 @@ public enum HiveAction {
         return null;
     }
 
+    public static HiveAction fromId(Integer id) {
+        if (id != null) {
+            for (HiveAction b : HiveAction.values()) {
+                if (id.equals(b.id)) {
+                    return b;
+                }
+            }
+        }
+        return null;
+    }
+
     public static Set<HiveAction> getAllHiveActions() {
         return KNOWN_ACTIONS;
     }
