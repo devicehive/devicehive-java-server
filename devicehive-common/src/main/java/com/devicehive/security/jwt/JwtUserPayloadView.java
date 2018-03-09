@@ -138,8 +138,8 @@ public class JwtUserPayloadView<T> implements HiveEntity {
                         .map(action -> {
                             if (action instanceof String) {
                                 return HiveAction.fromString((String) action);
-                            } else if (action instanceof Number) {
-                                return HiveAction.fromId(((Number) action).intValue());
+                            } else if (action instanceof Number && ((Double) action - ((Double) action).intValue() == 0)) {
+                                return HiveAction.fromId(((Double) action).intValue());
                             } else throw new BadRequestException("Actions list should contain only Strings or Integers");
                         })
                         .filter(Objects::nonNull)
