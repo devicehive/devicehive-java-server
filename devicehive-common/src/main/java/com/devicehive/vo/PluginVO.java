@@ -26,6 +26,7 @@ import com.devicehive.model.HiveEntity;
 import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.PluginStatus;
 import com.google.gson.annotations.SerializedName;
+import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.Column;
 import javax.validation.constraints.NotNull;
@@ -89,6 +90,9 @@ public class PluginVO implements HiveEntity {
     @SerializedName("parameters")
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private JsonStringWrapper parameters;
+
+    @ApiModelProperty(hidden = true)
+    private Long entityVersion;
 
     public Long getId() {
         return id;
@@ -160,5 +164,13 @@ public class PluginVO implements HiveEntity {
 
     public void setParameters(JsonStringWrapper parameters) {
         this.parameters = parameters;
+    }
+
+    public Long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(Long entityVersion) {
+        this.entityVersion = entityVersion;
     }
 }

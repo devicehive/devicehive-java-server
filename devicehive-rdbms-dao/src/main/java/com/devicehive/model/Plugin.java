@@ -27,18 +27,7 @@ import com.devicehive.vo.PluginVO;
 import com.google.gson.annotations.SerializedName;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import javax.persistence.AttributeOverride;
-import javax.persistence.AttributeOverrides;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -128,6 +117,10 @@ public class Plugin implements HiveEntity {
     @JsonPolicyDef({PLUGIN_PUBLISHED, PLUGIN_SUBMITTED, PLUGINS_LISTED})
     private JsonStringWrapper parameters;
 
+    @Version
+    @Column(name = "entity_version")
+    private Long entityVersion;
+
     public Long getId() {
         return id;
     }
@@ -200,6 +193,14 @@ public class Plugin implements HiveEntity {
         this.parameters = parameters;
     }
 
+    public Long getEntityVersion() {
+        return entityVersion;
+    }
+
+    public void setEntityVersion(Long entityVersion) {
+        this.entityVersion = entityVersion;
+    }
+
     public static PluginVO convertToVo(Plugin entity) {
         PluginVO vo = null;
         if (entity != null) {
@@ -213,6 +214,7 @@ public class Plugin implements HiveEntity {
             vo.setSubscriptionId(entity.getSubscriptionId());
             vo.setUserId(entity.getUserId());
             vo.setParameters(entity.getParameters());
+            vo.setEntityVersion(entity.getEntityVersion());
         }
         
         return vo;
@@ -230,7 +232,8 @@ public class Plugin implements HiveEntity {
             entity.setStatus(vo.getStatus());
             entity.setSubscriptionId(vo.getSubscriptionId());
             entity.setUserId(vo.getUserId());
-            entity.setParameters(vo.getParameters());            
+            entity.setParameters(vo.getParameters());
+            entity.setEntityVersion(vo.getEntityVersion());
         }
         
         return entity;
