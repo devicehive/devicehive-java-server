@@ -109,11 +109,6 @@ public class PluginRegisterService {
     public CompletableFuture<Response> register(Long userId, PluginReqisterQuery pluginReqisterQuery, PluginUpdate pluginUpdate,
                                                 String authorization) {
         validateSubscription(pluginReqisterQuery);
-        PluginVO existingPlugin = pluginService.findByName(pluginUpdate.getName());
-        if (existingPlugin != null) {
-            logger.error("Plugin with name {} already exists", pluginUpdate.getName());
-            throw new HiveException(String.format(Messages.PLUGIN_ALREADY_EXISTS, pluginUpdate.getName()), BAD_REQUEST.getStatusCode());
-        }
 
         checkAuthServiceAvailable();
 
