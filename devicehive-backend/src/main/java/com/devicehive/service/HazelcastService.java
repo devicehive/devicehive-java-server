@@ -78,6 +78,11 @@ public class HazelcastService {
         return find(filters, 1, entityClass).stream().findFirst();
     }
 
+    public <T extends HazelcastEntity> Optional<T> find(Long id, String deviceId, boolean returnUpdated, Class<T> entityClass) {
+        final Predicate filters = hazelcastHelper.prepareFilters(id, deviceId, returnUpdated, entityClass);
+        return find(filters, 1, entityClass).stream().findFirst();
+    }
+
     public <T extends HazelcastEntity> Collection<T> find(Collection<String> deviceIds,
                                                           Collection<String> names,
                                                           Integer take,

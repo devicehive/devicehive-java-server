@@ -251,7 +251,7 @@ public class CommandHandlers {
          
         Long commandId = gson.fromJson(request.get(COMMAND_ID), Long.class);
         if (commandId == null) {
-            logger.error("command/get proceed with error. Device ID should be provided.");
+            logger.error("command/get proceed with error. Command ID should be provided.");
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
