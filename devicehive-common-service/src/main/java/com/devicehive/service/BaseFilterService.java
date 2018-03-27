@@ -84,9 +84,8 @@ public class BaseFilterService {
             networks = principal.getNetworkIds();
         }
         if (deviceTypes != null && !deviceTypes.isEmpty()) {
-            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream().map(deviceType ->
-                    deviceTypeService.getWithDevices(deviceType, authentication)
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream()
+                    .map(deviceTypeService::getWithDevices).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualDeviceTypes.size() != deviceTypes.size()) {
                 if (UserRole.CLIENT.equals(principal.getUser().getRole())) {
                     throw new HiveException(ACCESS_DENIED, SC_FORBIDDEN);

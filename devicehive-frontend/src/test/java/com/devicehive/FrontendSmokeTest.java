@@ -565,7 +565,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
 
-        boolean deleted = networkService.delete(created.getId());
+        boolean deleted = networkService.delete(created.getId(), true);
         assertTrue(deleted);
 
         created = networkDao.find(created.getId());

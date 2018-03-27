@@ -117,6 +117,7 @@ public class Constants {
     public static final String COUNT = "count";
     public static final String DESCRIPTION = "description";
     public static final String PARAMETERS = "parameters";
+    public static final String FORCE = "force";
     public static final long DEFAULT_SESSION_TIMEOUT = 1200000;
 
     public static final String ANY = "*";

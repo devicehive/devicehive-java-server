@@ -44,6 +44,7 @@ import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,8 +74,8 @@ public class BaseDeviceTypeService {
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public DeviceTypeWithUsersAndDevicesVO getWithDevices(@NotNull Long deviceTypeId, @NotNull HiveAuthentication hiveAuthentication) {
-        HivePrincipal principal = (HivePrincipal) hiveAuthentication.getPrincipal();
+    public DeviceTypeWithUsersAndDevicesVO getWithDevices(@NotNull Long deviceTypeId) {
+        HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Set<Long> permittedDeviceTypes = principal.getDeviceTypeIds();
         Set<Long> permittedNetworks = principal.getNetworkIds();
