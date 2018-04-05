@@ -27,6 +27,7 @@ import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.rpc.*;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -219,19 +220,19 @@ public class DeviceCommandService {
         return future;
     }
 
-    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
-        hiveValidator.validate(commandWrapper);
+    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandUpdate commandUpdate) {
+        hiveValidator.validate(commandUpdate);
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
         cmd.setLastUpdated(timestampService.getDate());
 
-        if (commandWrapper.getStatus().isPresent()) {
-            cmd.setStatus(commandWrapper.getStatus().get());
+        if (commandUpdate.getStatus().isPresent()) {
+            cmd.setStatus(commandUpdate.getStatus().get());
         }
-        if (commandWrapper.getResult().isPresent()) {
-            cmd.setResult(commandWrapper.getResult().get());
+        if (commandUpdate.getResult().isPresent()) {
+            cmd.setResult(commandUpdate.getResult().get());
         }
 
         hiveValidator.validate(cmd);

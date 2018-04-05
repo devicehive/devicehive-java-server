@@ -96,12 +96,12 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
 
     @SerializedName("status")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private String status;
 
     @SerializedName("result")
     @JsonPolicyDef({COMMAND_FROM_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, COMMAND_UPDATE_FROM_DEVICE,
-            POST_COMMAND_TO_DEVICE, REST_COMMAND_UPDATE_FROM_DEVICE, COMMAND_LISTED})
+            POST_COMMAND_TO_DEVICE, COMMAND_LISTED})
     private JsonStringWrapper result;
 
     @SerializedName("isUpdated")
