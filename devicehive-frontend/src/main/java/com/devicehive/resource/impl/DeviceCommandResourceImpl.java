@@ -315,7 +315,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
      * {@inheritDoc}
      */
     @Override
-    public void get(String deviceId, String commandId, @Suspended final AsyncResponse asyncResponse) {
+    public void get(String deviceId, String commandId, boolean returnUpdatedCommands, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Device command get requested. deviceId = {}, commandId = {}", deviceId, commandId);
 
         DeviceVO device = deviceService.findById(deviceId);
@@ -326,7 +326,7 @@ public class DeviceCommandResourceImpl implements DeviceCommandResource {
             return;
         }
 
-        commandService.findOne(Long.valueOf(commandId), device.getDeviceId())
+        commandService.findOne(Long.valueOf(commandId), device.getDeviceId(), returnUpdatedCommands)
                 .thenApply(command -> {
                     if (!command.isPresent()) {
                         logger.warn("Device command get failed. No command with id = {} found for device with id = {}", commandId, deviceId);

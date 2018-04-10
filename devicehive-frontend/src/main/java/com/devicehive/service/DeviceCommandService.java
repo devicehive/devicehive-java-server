@@ -77,17 +77,21 @@ public class DeviceCommandService {
         this.requestResponseMatcher = requestResponseMatcher;
     }
 
-
-    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId, boolean returnUpdated) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
         searchRequest.setDeviceIds(Collections.singleton(deviceId));
+        searchRequest.setReturnUpdated(returnUpdated);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(searchRequest)
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
+    }
+
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
+        return findOne(id, deviceId, false);
     }
 
     public CompletableFuture<List<DeviceCommand>> find(CommandSearchRequest request) {

@@ -58,7 +58,7 @@ public class CommandSearchHandler implements RequestHandler {
         CommandSearchRequest searchRequest = (CommandSearchRequest) request.getBody();
 
         CommandSearchResponse payload = searchRequest.getId() != null && !StringUtils.isEmpty(searchRequest.getDeviceId())
-                ? searchSingleCommandByDeviceAndId(searchRequest.getId(), searchRequest.getDeviceId())
+                ? searchSingleCommandByDeviceAndId(searchRequest.getId(), searchRequest.getDeviceId(), searchRequest.isReturnUpdated())
                 : searchMultipleCommands(searchRequest);
 
         return Response.newBuilder()
@@ -66,9 +66,9 @@ public class CommandSearchHandler implements RequestHandler {
                 .buildSuccess();
     }
 
-    private CommandSearchResponse searchSingleCommandByDeviceAndId(long id, String deviceId) {
+    private CommandSearchResponse searchSingleCommandByDeviceAndId(long id, String deviceId, boolean returnUpdated) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
-        final List<DeviceCommand> commands = hazelcastService.find(id, deviceId, DeviceCommand.class)
+        final List<DeviceCommand> commands = hazelcastService.find(id, deviceId, returnUpdated, DeviceCommand.class)
                 .map(Collections::singletonList)
                 .orElse(Collections.emptyList());
 

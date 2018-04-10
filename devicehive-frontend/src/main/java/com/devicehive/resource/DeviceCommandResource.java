@@ -238,6 +238,9 @@ public interface DeviceCommandResource {
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
+            @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
+            @QueryParam(RETURN_UPDATED_COMMANDS)
+            boolean returnUpdatedCommands,
             @Suspended final AsyncResponse asyncResponse);
 
     /**
