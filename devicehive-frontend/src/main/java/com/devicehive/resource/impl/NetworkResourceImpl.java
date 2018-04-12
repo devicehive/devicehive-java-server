@@ -147,9 +147,9 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response delete(long id) {
+    public Response delete(long id, boolean force) {
         logger.debug("Network delete requested");
-        boolean isDeleted = networkService.delete(id);
+        boolean isDeleted = networkService.delete(id, force);
         if (!isDeleted) {
             logger.error(String.format(Messages.NETWORK_NOT_FOUND, id));
             return ResponseFactory.response(NOT_FOUND,

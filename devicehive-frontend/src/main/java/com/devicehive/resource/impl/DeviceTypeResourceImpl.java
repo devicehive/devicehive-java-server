@@ -111,7 +111,7 @@ public class DeviceTypeResourceImpl implements DeviceTypeResource {
     @Override
     public Response get(long id) {
         logger.debug("Device type get requested.");
-        DeviceTypeWithUsersAndDevicesVO existing = deviceTypeService.getWithDevices(id, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        DeviceTypeWithUsersAndDevicesVO existing = deviceTypeService.getWithDevices(id);
         if (existing == null) {
             logger.error("Device type with id =  {} does not exists", id);
             return ResponseFactory.response(Response.Status.NOT_FOUND, new ErrorResponse(NOT_FOUND.getStatusCode(),
@@ -146,9 +146,9 @@ public class DeviceTypeResourceImpl implements DeviceTypeResource {
      * {@inheritDoc}
      */
     @Override
-    public Response delete(long id) {
+    public Response delete(long id, boolean force) {
         logger.debug("Device type delete requested");
-        boolean isDeleted = deviceTypeService.delete(id);
+        boolean isDeleted = deviceTypeService.delete(id, force);
         if (!isDeleted) {
             logger.error(String.format(Messages.DEVICE_TYPE_NOT_FOUND, id));
             return ResponseFactory.response(NOT_FOUND,

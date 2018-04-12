@@ -25,6 +25,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceTypeDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.rpc.*;
@@ -48,6 +49,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.util.Optional.*;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 @Component
 public class DeviceTypeService extends BaseDeviceTypeService {
@@ -65,8 +67,14 @@ public class DeviceTypeService extends BaseDeviceTypeService {
     }
 
     @Transactional
-    public boolean delete(long id) {
+    public boolean delete(long id, boolean force) {
         logger.trace("About to execute named query \"DeviceType.deleteById\" for ");
+        DeviceTypeWithUsersAndDevicesVO deviceType = getWithDevices(id);
+        if (!force && deviceType != null && !deviceType.getDevices().isEmpty()) {
+            logger.warn("Failed to delete non-empty device type with id {}", id);
+            String deviceIds = deviceType.getDevices().stream().map(DeviceVO::getDeviceId).collect(Collectors.joining(", "));
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_DELETION_NOT_ALLOWED, deviceIds), SC_BAD_REQUEST);
+        }
         int result = deviceTypeDao.deleteById(id);
         logger.debug("Deleted {} rows from DeviceType table", result);
         return result > 0;

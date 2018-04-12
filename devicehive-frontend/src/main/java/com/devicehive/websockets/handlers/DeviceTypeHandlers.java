@@ -118,7 +118,7 @@ public class DeviceTypeHandlers {
             throw new HiveException(Messages.DEVICE_TYPE_ID_REQUIRED, BAD_REQUEST.getStatusCode());
         }
 
-        DeviceTypeWithUsersAndDevicesVO existing = deviceTypeService.getWithDevices(deviceTypeId, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+        DeviceTypeWithUsersAndDevicesVO existing = deviceTypeService.getWithDevices(deviceTypeId);
         if (existing == null) {
             logger.error(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId));
             throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
@@ -164,7 +164,8 @@ public class DeviceTypeHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceTypeId, 'MANAGE_DEVICE_TYPE')")
     public void processDeviceTypeDelete(Long deviceTypeId, JsonObject request, WebSocketSession session) {
         logger.debug("Device type delete requested");
-        boolean isDeleted = deviceTypeService.delete(deviceTypeId);
+        boolean force = Optional.ofNullable(gson.fromJson(request.get(FORCE), Boolean.class)).orElse(false);
+        boolean isDeleted = deviceTypeService.delete(deviceTypeId, force);
         if (!isDeleted) {
             logger.error(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId));
             throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
