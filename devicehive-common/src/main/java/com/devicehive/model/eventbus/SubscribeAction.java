@@ -1,4 +1,4 @@
-package com.devicehive.proxy.eventbus;
+package com.devicehive.model.eventbus;
 
 /*
  * #%L
@@ -20,7 +20,7 @@ package com.devicehive.proxy.eventbus;
  * #L%
  */
 
-enum SubscribeAction {
+public enum SubscribeAction {
     REGISTER(0),
     UNREGISTER(1);
 

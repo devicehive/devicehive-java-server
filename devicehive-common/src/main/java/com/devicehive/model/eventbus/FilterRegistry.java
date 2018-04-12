@@ -23,6 +23,7 @@ package com.devicehive.model.eventbus;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.google.gson.Gson;
 
 import java.util.*;
 
@@ -82,5 +83,18 @@ public class FilterRegistry {
     public void unregisterDevice(DeviceVO device) {
         final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
         subscriberTable.row(deviceFilter.getFirstKey()).clear();
+    }
+
+    protected void handleSubscriptionMessage(String message, Gson gson) {
+        SubscribeMessage subscribeMessage = gson.fromJson(message, SubscribeMessage.class);
+
+        switch (subscribeMessage.getAction()) {
+            case REGISTER:
+                register(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
+                break;
+            case UNREGISTER:
+                unregister(subscribeMessage.getSubscriber());
+                break;
+        }
     }
 }

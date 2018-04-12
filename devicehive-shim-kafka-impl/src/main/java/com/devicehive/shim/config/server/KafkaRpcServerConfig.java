@@ -24,6 +24,7 @@ import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.kafka.eventbus.DistributedRpcFilterRegistry;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
@@ -145,7 +146,7 @@ public class KafkaRpcServerConfig {
     }
 
     @Bean
-    public FilterRegistry filterRegistry() {
-        return new FilterRegistry();
+    public FilterRegistry filterRegistry(Gson gson) {
+        return new DistributedRpcFilterRegistry(gson, kafkaRpcConfig);
     }
 }
