@@ -557,6 +557,11 @@ public class FrontendSmokeTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_network() throws Exception {
+        UserVO user = new UserVO();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, VALID_PASSWORD);
+
         String namePrefix = RandomStringUtils.randomAlphabetic(10);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -564,6 +569,10 @@ public class FrontendSmokeTest extends AbstractResourceTest {
 
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), network.getId());
+
+        final HivePrincipal principal = new HivePrincipal(user);
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
         boolean deleted = networkService.delete(created.getId(), true);
         assertTrue(deleted);
