@@ -33,6 +33,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.*;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.*;
@@ -246,14 +247,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
         deviceCommand.setStatus(DEFAULT_STATUS);
 
-        final DeviceCommandWrapper commandWrapper = new DeviceCommandWrapper();
-        commandWrapper.setStatus("OK");
-        commandWrapper.setLifetime(100500);
+        final DeviceCommandUpdate commandUpdate = new DeviceCommandUpdate();
+        commandUpdate.setStatus("OK");
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> Response.newBuilder()
                 .buildSuccess());
 
-        deviceCommandService.update(deviceCommand, commandWrapper).
+        deviceCommandService.update(deviceCommand, commandUpdate).
                 thenAccept(Assert::assertNull).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(2)).handle(argument.capture());

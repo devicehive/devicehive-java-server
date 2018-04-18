@@ -30,6 +30,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.BaseFilterService;
@@ -210,8 +211,8 @@ public class CommandHandlers {
     public void processCommandUpdate(String deviceId, JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         final Long id = gson.fromJson(request.get(COMMAND_ID), Long.class);
-        final DeviceCommandWrapper commandUpdate = gson
-                .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
+        final DeviceCommandUpdate commandUpdate = gson
+                .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandUpdate.class);
 
         logger.debug("command/update requested for session: {}. Device ID: {}. Command id: {}", session, deviceId, id);
         if (id == null) {
@@ -310,26 +311,6 @@ public class CommandHandlers {
                     logger.warn("Unable to get commands list.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 });
-    }
-
-    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
-        if (deviceId == null && deviceIdSet == null) {
-            return new HashSet<>();
-        }
-        if (deviceIdSet != null && deviceId == null) {
-            deviceIdSet.remove(null);
-            return deviceIdSet;
-        }
-        if (deviceIdSet == null) {
-            return new HashSet<String>() {
-                {
-                    add(deviceId);
-                }
-
-                private static final long serialVersionUID = -8657632518613033661L;
-            };
-        }
-        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
 }
