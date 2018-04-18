@@ -30,7 +30,7 @@ import java.util.*;
 /**
  * Class for handling all subscriber's filters
  */
-public class FilterRegistry {
+public abstract class FilterRegistry {
 
     /**
      * Table for holding subscription request id (i.e. subscriber) for particular filter.
@@ -39,7 +39,11 @@ public class FilterRegistry {
      */
     private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    public synchronized void register(Filter filter, Subscriber subscriber) {
+    public abstract void register(Filter filter, Subscriber subscriber);
+
+    public abstract void unregister(Subscriber subscriber);
+
+    protected synchronized void processRegister(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
             subscribers = new HashSet<>();
@@ -50,7 +54,7 @@ public class FilterRegistry {
         }
     }
 
-    public synchronized void unregister(Subscriber subscriber) {
+    protected synchronized void processUnregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> {
             Iterator iterator = subscribers.iterator();
 
@@ -90,10 +94,10 @@ public class FilterRegistry {
 
         switch (subscribeMessage.getAction()) {
             case REGISTER:
-                register(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
+                processRegister(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
                 break;
             case UNREGISTER:
-                unregister(subscribeMessage.getSubscriber());
+                processUnregister(subscribeMessage.getSubscriber());
                 break;
         }
     }

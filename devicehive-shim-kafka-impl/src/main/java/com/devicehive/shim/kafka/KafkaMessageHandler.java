@@ -31,40 +31,53 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ForkJoinPool;
 
 
 public abstract class KafkaMessageHandler {
     private static final Logger logger = LoggerFactory.getLogger(KafkaMessageHandler.class);
 
     private final String topic;
+    private final KafkaRpcConfig kafkaRpcConfig;
     private final Producer<String, String> producer;
-    private final ConsumerWorker worker;
-    private final Thread workerThread;
+    private final ForkJoinPool executionPool;
 
     public KafkaMessageHandler(KafkaRpcConfig kafkaRpcConfig, String topic) {
         this.topic = topic;
+        this.kafkaRpcConfig = kafkaRpcConfig;
         this.producer = new KafkaProducer<>(kafkaRpcConfig.producerProps(), new StringSerializer(), new StringSerializer());
-        KafkaConsumer<String, String> consumer =
-                new KafkaConsumer<>(kafkaRpcConfig.clientConsumerProps(), new StringDeserializer(), new StringDeserializer());
-
-        this.worker = new ConsumerWorker<String>(topic, consumer, new CountDownLatch(1)) {
-            @Override
-            public void process(ConsumerRecord<String, String> record) {
-                handle(record.value());
-            }
-        };
-        this.workerThread = new Thread(worker, "KafkaMessageHandlerThread");
+        this.executionPool = new ForkJoinPool();
     }
 
     public void start() {
-        logger.info("Kafka message handler has started");
-        workerThread.start();
+        int consumerThreads = kafkaRpcConfig.getHandlerThreads();
+        Properties properties = kafkaRpcConfig.clientConsumerProps();
+        CountDownLatch latch = new CountDownLatch(consumerThreads);
+
+        for (int i = 0; i < consumerThreads; i++) {
+            KafkaConsumer<String, String> consumer =
+                    new KafkaConsumer<>(properties, new StringDeserializer(), new StringDeserializer());
+            executionPool.execute(new ConsumerWorker<String>(topic, consumer, latch) {
+                @Override
+                public void process(ConsumerRecord<String, String> record) {
+                    handle(record.value());
+                }
+            });
+        }
+
+        try {
+            latch.await();
+            logger.info("Kafka message handler has started");
+        } catch (InterruptedException e) {
+            logger.error("Error while waiting for consumers", e);
+        }
     }
 
     public void shutdown() {
+        executionPool.shutdown();
         logger.info("Kafka message handler has stopped");
-        worker.shutdown();
     }
 
     public abstract void handle(String message);

@@ -60,7 +60,7 @@ public class DistributedProxyFilterRegistry extends FilterRegistry {
 
     @Override
     public void register(Filter filter, Subscriber subscriber) {
-        super.register(filter, subscriber);
+        processRegister(filter, subscriber);
 
         String subscribeMessage = gson.toJson(new SubscribeMessage(REGISTER, filter, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(
@@ -74,7 +74,7 @@ public class DistributedProxyFilterRegistry extends FilterRegistry {
 
     @Override
     public void unregister(Subscriber subscriber) {
-        super.unregister(subscriber);
+        processUnregister(subscriber);
 
         String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(
