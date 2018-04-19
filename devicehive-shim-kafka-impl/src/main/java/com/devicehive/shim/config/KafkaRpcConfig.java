@@ -85,6 +85,9 @@ public class KafkaRpcConfig {
     @Value("${buffer.memory:33554432}")
     private String bufferMemory;
 
+    @Value("${rpc.handler.threads:1}")
+    private int handlerThreads;
+
     public Properties producerProps() {
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -141,5 +144,9 @@ public class KafkaRpcConfig {
 
     public int getConnectionTimeout() {
         return connectionTimeout;
+    }
+
+    public int getHandlerThreads() {
+        return handlerThreads;
     }
 }

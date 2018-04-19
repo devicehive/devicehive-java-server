@@ -1,4 +1,4 @@
-package com.devicehive.proxy.eventbus;
+package com.devicehive.model.eventbus;
 
 /*
  * #%L
@@ -20,14 +20,12 @@ package com.devicehive.proxy.eventbus;
  * #L%
  */
 
-import com.devicehive.model.eventbus.Filter;
-import com.devicehive.model.eventbus.Subscriber;
 import com.google.gson.annotations.SerializedName;
 
-class SubscribeMessage {
+public class SubscribeMessage {
 
     @SerializedName("a")
-    private int action;  // 0 - register, 1 - unregister todo: add enum for this field
+    private int action;
 
     @SerializedName("f")
     private Filter filter;
@@ -35,13 +33,13 @@ class SubscribeMessage {
     @SerializedName("s")
     private Subscriber subscriber;
 
-    SubscribeMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
+    public SubscribeMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
         this.action = action.getValue();
         this.filter = filter;
         this.subscriber = subscriber;
     }
 
-    SubscribeMessage(SubscribeAction action, Subscriber subscriber) {
+    public SubscribeMessage(SubscribeAction action, Subscriber subscriber) {
         this.action = action.getValue();
         this.subscriber = subscriber;
     }

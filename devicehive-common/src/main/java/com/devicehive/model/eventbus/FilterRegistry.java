@@ -23,13 +23,14 @@ package com.devicehive.model.eventbus;
 import com.devicehive.vo.DeviceVO;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.google.gson.Gson;
 
 import java.util.*;
 
 /**
  * Class for handling all subscriber's filters
  */
-public class FilterRegistry {
+public abstract class FilterRegistry {
 
     /**
      * Table for holding subscription request id (i.e. subscriber) for particular filter.
@@ -38,7 +39,11 @@ public class FilterRegistry {
      */
     private final Table<String, String, Set<Subscriber>> subscriberTable = HashBasedTable.create();
 
-    public synchronized void register(Filter filter, Subscriber subscriber) {
+    public abstract void register(Filter filter, Subscriber subscriber);
+
+    public abstract void unregister(Subscriber subscriber);
+
+    protected synchronized void processRegister(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
             subscribers = new HashSet<>();
@@ -49,7 +54,7 @@ public class FilterRegistry {
         }
     }
 
-    public synchronized void unregister(Subscriber subscriber) {
+    protected synchronized void processUnregister(Subscriber subscriber) {
         subscriberTable.values().forEach(subscribers -> {
             Iterator iterator = subscribers.iterator();
 
@@ -82,5 +87,18 @@ public class FilterRegistry {
     public void unregisterDevice(DeviceVO device) {
         final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
         subscriberTable.row(deviceFilter.getFirstKey()).clear();
+    }
+
+    protected void handleSubscriptionMessage(String message, Gson gson) {
+        SubscribeMessage subscribeMessage = gson.fromJson(message, SubscribeMessage.class);
+
+        switch (subscribeMessage.getAction()) {
+            case REGISTER:
+                processRegister(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
+                break;
+            case UNREGISTER:
+                processUnregister(subscribeMessage.getSubscriber());
+                break;
+        }
     }
 }
