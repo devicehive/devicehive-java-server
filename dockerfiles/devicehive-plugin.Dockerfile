@@ -1,4 +1,4 @@
-FROM openjdk:8u162-jre-slim
+FROM openjdk:8u171-jre-slim
 
 MAINTAINER devicehive
 
