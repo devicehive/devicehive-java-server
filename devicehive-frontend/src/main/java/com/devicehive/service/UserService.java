@@ -29,6 +29,7 @@ import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.enums.UserRole;
+import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.response.EntityCountResponse;
 import com.devicehive.model.rpc.*;
 import com.devicehive.model.updates.UserUpdate;
@@ -289,6 +290,12 @@ public class UserService extends BaseUserService {
         hiveValidator.validate(user);
         if (user.getId() != null) {
             throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
+        }
+        if (user.getRole() == null ) {
+            throw new IllegalParametersException(Messages.INVALID_USER_ROLE);
+        }
+        if (user.getStatus() == null) {
+            user.setStatus(UserStatus.ACTIVE);
         }
         final String userLogin = StringUtils.trim(user.getLogin());
         user.setLogin(userLogin);
