@@ -55,7 +55,10 @@ public class ProxyResponseHandler implements NotificationHandler, WorkHandler<Se
         WebSocketKafkaProxyClient webSocketKafkaProxyClient = new WebSocketKafkaProxyClient((message, client) -> {});
         webSocketKafkaProxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
         this.proxyClient = webSocketKafkaProxyClient;
-        this.proxyClient.start();
+    }
+
+    public void start() {
+        proxyClient.start();
     }
 
     @Override
