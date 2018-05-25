@@ -24,6 +24,7 @@ import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.rpc.ListDeviceRequest;
 import com.devicehive.model.rpc.ListDeviceResponse;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -44,8 +45,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static com.devicehive.configuration.Messages.ACCESS_DENIED;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 public class BaseDeviceService {
@@ -72,10 +75,17 @@ public class BaseDeviceService {
 
     @Transactional(propagation = Propagation.SUPPORTS)
     public DeviceVO findByIdWithPermissionsCheckIfExists(String deviceId, HivePrincipal principal) {
+        if (deviceId.isEmpty()) {
+            logger.error("Device ID is empty");
+            throw new HiveException(String.format(Messages.DEVICE_ID_REQUIRED, deviceId), BAD_REQUEST.getStatusCode());
+        }
         DeviceVO deviceVO = findByIdWithPermissionsCheck(deviceId, principal);
 
         if (deviceVO == null) {
             logger.error("Device with ID {} not found", deviceId);
+            if (UserRole.CLIENT.equals(principal.getUser().getRole())) {
+                throw new HiveException(ACCESS_DENIED, SC_FORBIDDEN);
+            }
             throw new HiveException(String.format(Messages.DEVICE_NOT_FOUND, deviceId), NOT_FOUND.getStatusCode());
         }
         return deviceVO;

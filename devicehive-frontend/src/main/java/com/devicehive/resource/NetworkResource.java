@@ -252,6 +252,9 @@ public interface NetworkResource {
     Response delete(
             @ApiParam(name = "id", value = "Network identifier.", required = true)
             @PathParam("id")
-            long id);
+            long id,
+            @ApiParam(name = "force", value = "Force deletion flag.", defaultValue = "false")
+            @QueryParam("force")
+            boolean force);
 
 }

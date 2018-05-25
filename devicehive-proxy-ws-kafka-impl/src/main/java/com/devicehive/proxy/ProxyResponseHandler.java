@@ -21,25 +21,41 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
+import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
+import com.devicehive.proxy.api.ProxyMessageBuilder;
+import com.devicehive.proxy.api.payload.NotificationCreatePayload;
+import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
+import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
+import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.google.gson.Gson;
+import com.lmax.disruptor.WorkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProxyResponseHandler implements NotificationHandler {
+public class ProxyResponseHandler implements NotificationHandler, WorkHandler<ServerEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(ProxyResponseHandler.class);
 
     private final Gson gson;
+    private final String requestTopic;
+    private final String replyToTopic;
+    private final ProxyClient proxyClient;
     private final RequestResponseMatcher requestResponseMatcher;
 
     @Autowired
-    public ProxyResponseHandler(Gson gson, RequestResponseMatcher requestResponseMatcher) {
+    public ProxyResponseHandler(Gson gson, String requestTopic, String replyToTopic, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher) {
         this.gson = gson;
+        this.requestTopic = requestTopic;
+        this.replyToTopic = replyToTopic;
         this.requestResponseMatcher = requestResponseMatcher;
+        WebSocketKafkaProxyClient webSocketKafkaProxyClient = new WebSocketKafkaProxyClient((message, client) -> {});
+        webSocketKafkaProxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
+        this.proxyClient = webSocketKafkaProxyClient;
+        this.proxyClient.start();
     }
 
     @Override
@@ -48,5 +64,17 @@ public class ProxyResponseHandler implements NotificationHandler {
         final Response response = gson.fromJson(message, Response.class);
 
         requestResponseMatcher.offerResponse(response);
+    }
+
+    @Override
+    public void onEvent(ServerEvent serverEvent) throws Exception {
+        final Request request = serverEvent.get();
+        if (request.getBody() == null) {
+            throw new NullPointerException("Request body must not be null.");
+        }
+        request.setReplyTo(replyToTopic);
+
+        proxyClient.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
     }
 }

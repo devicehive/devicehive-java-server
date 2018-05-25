@@ -25,6 +25,7 @@ import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.SpecialNotifications;
 import com.devicehive.model.enums.UserRole;
@@ -210,6 +211,9 @@ public class DeviceService extends BaseDeviceService {
                 .map(id -> {
                     NetworkVO networkVo = new NetworkVO();
                     networkVo.setId(id);
+                    if (!networkService.isNetworkExists(id)) {
+                        throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
+                    }
                     if (!userService.hasAccessToNetwork(user, networkVo)) {
                         throw new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK);
                     }
@@ -217,7 +221,12 @@ public class DeviceService extends BaseDeviceService {
                 })
                 .orElseGet(() -> networkService.findDefaultNetworkByUserId(user.getId()));
         Long deviceTypeId = deviceUpdate.getDeviceTypeId()
-                .orElseGet(() -> {
+                .map(id -> {
+                    if (!deviceTypeService.isDeviceTypeExists(id)) {
+                        throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
+                    }
+                    return id;
+                }).orElseGet(() -> {
                     if (principal.areAllDeviceTypesAvailable() || (principal.getDeviceTypeIds() != null && !principal.getDeviceTypeIds().isEmpty())) {
                         return deviceTypeService.findDefaultDeviceType(principal.getDeviceTypeIds());
                     } else {

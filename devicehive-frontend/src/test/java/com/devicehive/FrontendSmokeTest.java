@@ -33,6 +33,7 @@ import com.devicehive.model.JsonStringWrapper;
 import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.model.rpc.*;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.updates.DeviceUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.*;
@@ -246,14 +247,13 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         deviceCommand.setParameters(new JsonStringWrapper("{'test':'test'}"));
         deviceCommand.setStatus(DEFAULT_STATUS);
 
-        final DeviceCommandWrapper commandWrapper = new DeviceCommandWrapper();
-        commandWrapper.setStatus("OK");
-        commandWrapper.setLifetime(100500);
+        final DeviceCommandUpdate commandUpdate = new DeviceCommandUpdate();
+        commandUpdate.setStatus("OK");
 
         when(requestHandler.handle(any(Request.class))).then(invocation -> Response.newBuilder()
                 .buildSuccess());
 
-        deviceCommandService.update(deviceCommand, commandWrapper).
+        deviceCommandService.update(deviceCommand, commandUpdate).
                 thenAccept(Assert::assertNull).get(15, TimeUnit.SECONDS);
 
         verify(requestHandler, times(2)).handle(argument.capture());
@@ -557,6 +557,11 @@ public class FrontendSmokeTest extends AbstractResourceTest {
 
     @Test
     public void should_delete_network() throws Exception {
+        UserVO user = new UserVO();
+        user.setLogin(RandomStringUtils.randomAlphabetic(10));
+        user.setRole(UserRole.ADMIN);
+        user = userService.createUser(user, VALID_PASSWORD);
+
         String namePrefix = RandomStringUtils.randomAlphabetic(10);
         NetworkVO network = new NetworkVO();
         network.setName(namePrefix + randomUUID());
@@ -564,8 +569,12 @@ public class FrontendSmokeTest extends AbstractResourceTest {
 
         NetworkVO created = networkService.create(network);
         assertThat(created.getId(), notNullValue());
+        userService.assignNetwork(user.getId(), network.getId());
 
-        boolean deleted = networkService.delete(created.getId());
+        final HivePrincipal principal = new HivePrincipal(user);
+        SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
+
+        boolean deleted = networkService.delete(created.getId(), true);
         assertTrue(deleted);
 
         created = networkDao.find(created.getId());
@@ -577,7 +586,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
-
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
@@ -593,6 +602,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
@@ -612,6 +622,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());
@@ -630,6 +641,7 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         UserVO user = new UserVO();
         user.setLogin(RandomStringUtils.randomAlphabetic(10));
         user.setStatus(UserStatus.ACTIVE);
+        user.setRole(UserRole.CLIENT);
         user = userService.createUser(user, VALID_PASSWORD);
         assertThat(user, notNullValue());
         assertThat(user.getId(), notNullValue());

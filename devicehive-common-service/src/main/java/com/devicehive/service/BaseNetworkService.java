@@ -61,6 +61,7 @@ import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -143,8 +144,14 @@ public class BaseNetworkService {
     }
 
     @Transactional
-    public boolean delete(long id) {
+    public boolean delete(long id, boolean force) {
         logger.trace("About to execute named query \"Network.deleteById\" for ");
+        NetworkWithUsersAndDevicesVO network = getWithDevices(id);
+        if (!force && network != null && !network.getDevices().isEmpty()) {
+            logger.warn("Failed to delete non-empty network with id {}", id);
+            String deviceIds = network.getDevices().stream().map(DeviceVO::getDeviceId).collect(Collectors.joining(", "));
+            throw new HiveException(String.format(Messages.NETWORK_DELETION_NOT_ALLOWED, deviceIds), SC_BAD_REQUEST);
+        }
         int result = networkDao.deleteById(id);
         logger.debug("Deleted {} rows from Network table", result);
         return result > 0;

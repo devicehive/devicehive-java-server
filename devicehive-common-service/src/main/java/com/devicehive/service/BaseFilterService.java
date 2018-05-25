@@ -23,6 +23,7 @@ package com.devicehive.service;
 import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
@@ -39,9 +40,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.devicehive.configuration.Messages.ACCESS_DENIED;
 import static com.devicehive.configuration.Messages.DEVICE_TYPES_NOT_FOUND;
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class BaseFilterService {
@@ -72,17 +75,22 @@ public class BaseFilterService {
             Set<NetworkWithUsersAndDevicesVO> actualNetworks = networks.stream().map(networkService::getWithDevices
             ).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualNetworks.size() != networks.size()) {
-                throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_FORBIDDEN);
+                if (UserRole.CLIENT.equals(principal.getUser().getRole())) {
+                    throw new HiveException(ACCESS_DENIED, SC_FORBIDDEN);
+                }
+                throw new HiveException(String.format(NETWORKS_NOT_FOUND, networks), SC_NOT_FOUND);
             }
         } else {
             networks = principal.getNetworkIds();
         }
         if (deviceTypes != null && !deviceTypes.isEmpty()) {
-            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream().map(deviceType ->
-                    deviceTypeService.getWithDevices(deviceType, authentication)
-            ).filter(Objects::nonNull).collect(Collectors.toSet());
+            Set<DeviceTypeWithUsersAndDevicesVO> actualDeviceTypes = deviceTypes.stream()
+                    .map(deviceTypeService::getWithDevices).filter(Objects::nonNull).collect(Collectors.toSet());
             if (actualDeviceTypes.size() != deviceTypes.size()) {
-                throw new HiveException(String.format(DEVICE_TYPES_NOT_FOUND, deviceTypes), SC_FORBIDDEN);
+                if (UserRole.CLIENT.equals(principal.getUser().getRole())) {
+                    throw new HiveException(ACCESS_DENIED, SC_FORBIDDEN);
+                }
+                throw new HiveException(String.format(DEVICE_TYPES_NOT_FOUND, deviceTypes), SC_NOT_FOUND);
             }
         } else {
             deviceTypes = principal.getDeviceTypeIds();

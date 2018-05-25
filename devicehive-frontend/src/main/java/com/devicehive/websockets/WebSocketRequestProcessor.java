@@ -131,10 +131,10 @@ public class WebSocketRequestProcessor {
                 notificationHandlers.processNotificationList(request, session);
                 break;
             case COMMAND_INSERT:
-                commandHandlers.processCommandInsert(request, session);
+                commandHandlers.processCommandInsert(deviceId, request, session);
                 break;
             case COMMAND_UPDATE:
-                commandHandlers.processCommandUpdate(request, session);
+                commandHandlers.processCommandUpdate(deviceId, request, session);
                 break;
             case COMMAND_SUBSCRIBE:
                 commandHandlers.processCommandSubscribe(deviceId, request, session);

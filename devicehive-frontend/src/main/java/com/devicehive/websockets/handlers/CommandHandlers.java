@@ -30,6 +30,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.SubscriptionInfo;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.CommandSearchRequest;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.BaseFilterService;
@@ -170,10 +171,9 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'CREATE_DEVICE_COMMAND')")
-    public void processCommandInsert(JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_COMMAND')")
+    public void processCommandInsert(String deviceId, JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        final String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);
                 
         final DeviceCommandWrapper deviceCommand = gson
                 .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
@@ -207,13 +207,12 @@ public class CommandHandlers {
     }
 
     @HiveWebsocketAuth
-    @PreAuthorize("isAuthenticated() and hasPermission(null, 'UPDATE_DEVICE_COMMAND')")
-    public void processCommandUpdate(JsonObject request, WebSocketSession session) {
+    @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'UPDATE_DEVICE_COMMAND')")
+    public void processCommandUpdate(String deviceId, JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String deviceId = gson.fromJson(request.get(DEVICE_ID), String.class);;
-        final Long id = Long.valueOf(request.get(COMMAND_ID).getAsString()); // TODO: nullable long?
-        final DeviceCommandWrapper commandUpdate = gson
-                .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
+        final Long id = gson.fromJson(request.get(COMMAND_ID), Long.class);
+        final DeviceCommandUpdate commandUpdate = gson
+                .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandUpdate.class);
 
         logger.debug("command/update requested for session: {}. Device ID: {}. Command id: {}", session, deviceId, id);
         if (id == null) {
@@ -251,7 +250,7 @@ public class CommandHandlers {
          
         Long commandId = gson.fromJson(request.get(COMMAND_ID), Long.class);
         if (commandId == null) {
-            logger.error("command/get proceed with error. Device ID should be provided.");
+            logger.error("command/get proceed with error. Command ID should be provided.");
             throw new HiveException(Messages.COMMAND_ID_REQUIRED, SC_BAD_REQUEST);
         }
 
@@ -312,26 +311,6 @@ public class CommandHandlers {
                     logger.warn("Unable to get commands list.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 });
-    }
-
-    private Set<String> prepareActualList(Set<String> deviceIdSet, final String deviceId) {
-        if (deviceId == null && deviceIdSet == null) {
-            return new HashSet<>();
-        }
-        if (deviceIdSet != null && deviceId == null) {
-            deviceIdSet.remove(null);
-            return deviceIdSet;
-        }
-        if (deviceIdSet == null) {
-            return new HashSet<String>() {
-                {
-                    add(deviceId);
-                }
-
-                private static final long serialVersionUID = -8657632518613033661L;
-            };
-        }
-        throw new HiveException(Messages.INVALID_REQUEST_PARAMETERS, SC_BAD_REQUEST);
     }
 
 }

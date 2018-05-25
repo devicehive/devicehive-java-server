@@ -172,8 +172,13 @@ public class PluginResourceImpl implements PluginResource {
         } else {
             pluginVO = pluginService.findByTopic(topicName);
             if (pluginVO == null) {
-                asyncResponse.resume(ResponseFactory.response(NOT_FOUND,
-                        new ErrorResponse(NOT_FOUND.getStatusCode(), PLUGIN_NOT_FOUND)));
+                if (user.isAdmin()) {
+                    asyncResponse.resume(ResponseFactory.response(NOT_FOUND,
+                            new ErrorResponse(NOT_FOUND.getStatusCode(), PLUGIN_NOT_FOUND)));
+                } else {
+                    asyncResponse.resume(ResponseFactory.response(FORBIDDEN,
+                            new ErrorResponse(FORBIDDEN.getStatusCode(), NO_ACCESS_TO_PLUGIN)));
+                }
             } else if (!user.isAdmin() && pluginVO.getUserId() != null && !pluginVO.getUserId().equals(user.getId())) {
                 asyncResponse.resume(ResponseFactory.response(FORBIDDEN,
                         new ErrorResponse(FORBIDDEN.getStatusCode(), NO_ACCESS_TO_PLUGIN)));

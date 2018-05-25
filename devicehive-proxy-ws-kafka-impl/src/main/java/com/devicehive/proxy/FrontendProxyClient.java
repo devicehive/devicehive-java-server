@@ -21,24 +21,27 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
+import com.devicehive.model.ServerEvent;
+import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
+import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
+import com.lmax.disruptor.RingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public class FrontendProxyClient implements RpcClient {
@@ -46,16 +49,23 @@ public class FrontendProxyClient implements RpcClient {
 
     private final String requestTopic;
     private final String replyToTopic;
-    private final ProxyClient client;
+    private final WebSocketKafkaProxyClient client;
+    private final WebSocketKafkaProxyConfig proxyConfig;
+    private final NotificationHandler notificationHandler;
     private final RequestResponseMatcher requestResponseMatcher;
     private final Gson gson;
+    private final RingBuffer<ServerEvent> ringBuffer;
 
-    public FrontendProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public FrontendProxyClient(String requestTopic, String replyToTopic, WebSocketKafkaProxyConfig proxyConfig, NotificationHandler notificationHandler, RequestResponseMatcher requestResponseMatcher, Gson gson, RingBuffer<ServerEvent> ringBuffer) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
-        this.client = client;
+        this.proxyConfig = proxyConfig;
+        this.notificationHandler = notificationHandler;
         this.requestResponseMatcher = requestResponseMatcher;
         this.gson = gson;
+        this.ringBuffer = ringBuffer;
+        this.client = new WebSocketKafkaProxyClient((message, client) -> {});
+        client.setWebSocketKafkaProxyConfig(proxyConfig);
     }
 
     @Override
@@ -63,7 +73,7 @@ public class FrontendProxyClient implements RpcClient {
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
         logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-        push(request);
+        ringBuffer.publishEvent((serverEvent, sequence, response) -> serverEvent.set(response), request);
     }
 
     @Override
@@ -81,7 +91,17 @@ public class FrontendProxyClient implements RpcClient {
     public void start() {
         client.start();
         client.push(ProxyMessageBuilder.create(new TopicsPayload(Arrays.asList(requestTopic, replyToTopic)))).join();
-        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic))).join();
+
+        UUID uuid = UUID.randomUUID();
+        Executor executionPool = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
+        for (int i = 0; i < proxyConfig.getWorkerThreads(); i++) {
+            executionPool.execute(() -> {
+                WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
+                client.setWebSocketKafkaProxyConfig(proxyConfig);
+                client.start();
+                client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic, uuid.toString()))).join();
+            });
+        }
 
         pingServer();
     }

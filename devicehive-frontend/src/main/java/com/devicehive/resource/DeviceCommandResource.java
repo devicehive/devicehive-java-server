@@ -24,6 +24,7 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyApply;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.DeviceCommand;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -238,6 +239,9 @@ public interface DeviceCommandResource {
             @ApiParam(name = "commandId", value = "Command Id", required = true)
             @PathParam("commandId")
             String commandId,
+            @ApiParam(name = RETURN_UPDATED_COMMANDS, value = "Checks if updated commands should be returned", defaultValue = "false")
+            @QueryParam(RETURN_UPDATED_COMMANDS)
+            boolean returnUpdatedCommands,
             @Suspended final AsyncResponse asyncResponse);
 
     /**
@@ -308,8 +312,8 @@ public interface DeviceCommandResource {
             @PathParam("commandId")
             Long commandId,
             @ApiParam(value = "Command body", required = true, defaultValue = "{}")
-            @JsonPolicyApply(JsonPolicyDef.Policy.REST_COMMAND_UPDATE_FROM_DEVICE)
-            DeviceCommandWrapper command,
+            @JsonPolicyApply(JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT)
+            DeviceCommandUpdate commandUpdate,
             @Suspended
             final AsyncResponse asyncResponse);
 }

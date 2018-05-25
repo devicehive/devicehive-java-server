@@ -256,7 +256,7 @@ public class UserResourceImpl implements UserResource {
         }
 
         if (existingUser.getAllDeviceTypesAvailable()) {
-            DeviceTypeVO deviceTypeVO = deviceTypeService.getWithDevices(deviceTypeId, (HiveAuthentication) SecurityContextHolder.getContext().getAuthentication());
+            DeviceTypeVO deviceTypeVO = deviceTypeService.getWithDevices(deviceTypeId);
             if (deviceTypeVO != null) {
                 return ResponseFactory.response(OK, UserDeviceTypeResponse.fromDeviceType(deviceTypeVO), JsonPolicyDef.Policy.DEVICE_TYPES_LISTED);
             }

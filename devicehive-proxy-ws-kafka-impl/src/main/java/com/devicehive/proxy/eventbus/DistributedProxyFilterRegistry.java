@@ -23,6 +23,7 @@ package com.devicehive.proxy.eventbus;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.FilterRegistry;
+import com.devicehive.model.eventbus.SubscribeMessage;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.MessagePayload;
@@ -35,29 +36,18 @@ import com.google.gson.Gson;
 import java.util.*;
 
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_TOPIC;
-import static com.devicehive.proxy.eventbus.SubscribeAction.REGISTER;
-import static com.devicehive.proxy.eventbus.SubscribeAction.UNREGISTER;
+import static com.devicehive.model.eventbus.SubscribeAction.REGISTER;
+import static com.devicehive.model.eventbus.SubscribeAction.UNREGISTER;
 
-public class DistributedFilterRegistry extends FilterRegistry {
+public class DistributedProxyFilterRegistry extends FilterRegistry {
 
     private final Gson gson;
 
     private final WebSocketKafkaProxyClient proxyClient; // todo: fault tolerance, synchronisation, lifetime of kafka topic (log.retention)
 
-    public DistributedFilterRegistry(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
+    public DistributedProxyFilterRegistry(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
         this.gson = gson;
-        this.proxyClient = new WebSocketKafkaProxyClient((message, proxyClient) -> {
-            SubscribeMessage subscribeMessage = gson.fromJson(message, SubscribeMessage.class);
-
-            switch (subscribeMessage.getAction()) {
-                case REGISTER:
-                    super.register(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
-                    break;
-                case UNREGISTER:
-                    super.unregister(subscribeMessage.getSubscriber());
-                    break;
-            }
-        });
+        this.proxyClient = new WebSocketKafkaProxyClient((message, proxyClient) -> handleSubscriptionMessage(message, gson));
         proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
         proxyClient.start();
         proxyClient.push(ProxyMessageBuilder.subscribe(new SubscribePayload(SUBSCRIPTION_TOPIC, "fr-" + UUID.randomUUID()))).thenAccept(message -> {
@@ -70,7 +60,7 @@ public class DistributedFilterRegistry extends FilterRegistry {
 
     @Override
     public void register(Filter filter, Subscriber subscriber) {
-        super.register(filter, subscriber);
+        processRegister(filter, subscriber);
 
         String subscribeMessage = gson.toJson(new SubscribeMessage(REGISTER, filter, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(
@@ -84,7 +74,7 @@ public class DistributedFilterRegistry extends FilterRegistry {
 
     @Override
     public void unregister(Subscriber subscriber) {
-        super.unregister(subscriber);
+        processUnregister(subscriber);
 
         String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(

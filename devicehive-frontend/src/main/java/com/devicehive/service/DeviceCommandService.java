@@ -27,6 +27,7 @@ import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.eventbus.events.CommandsUpdateEvent;
 import com.devicehive.model.rpc.*;
+import com.devicehive.model.updates.DeviceCommandUpdate;
 import com.devicehive.model.wrappers.DeviceCommandWrapper;
 import com.devicehive.service.helpers.LongIdGenerator;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -77,17 +78,21 @@ public class DeviceCommandService {
         this.requestResponseMatcher = requestResponseMatcher;
     }
 
-
-    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId, boolean returnUpdated) {
         CommandSearchRequest searchRequest = new CommandSearchRequest();
         searchRequest.setId(id);
         searchRequest.setDeviceIds(Collections.singleton(deviceId));
+        searchRequest.setReturnUpdated(returnUpdated);
 
         CompletableFuture<Response> future = new CompletableFuture<>();
         rpcClient.call(Request.newBuilder()
                 .withBody(searchRequest)
                 .build(), new ResponseConsumer(future));
         return future.thenApply(r -> r.getBody().cast(CommandSearchResponse.class).getCommands().stream().findFirst());
+    }
+
+    public CompletableFuture<Optional<DeviceCommand>> findOne(Long id, String deviceId) {
+        return findOne(id, deviceId, false);
     }
 
     public CompletableFuture<List<DeviceCommand>> find(CommandSearchRequest request) {
@@ -219,19 +224,19 @@ public class DeviceCommandService {
         return future;
     }
 
-    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandWrapper commandWrapper) {
-        hiveValidator.validate(commandWrapper);
+    public CompletableFuture<Void> update(DeviceCommand cmd, DeviceCommandUpdate commandUpdate) {
+        hiveValidator.validate(commandUpdate);
         if (cmd == null) {
             throw new NoSuchElementException("Command not found");
         }
         cmd.setIsUpdated(true);
         cmd.setLastUpdated(timestampService.getDate());
 
-        if (commandWrapper.getStatus().isPresent()) {
-            cmd.setStatus(commandWrapper.getStatus().get());
+        if (commandUpdate.getStatus().isPresent()) {
+            cmd.setStatus(commandUpdate.getStatus().get());
         }
-        if (commandWrapper.getResult().isPresent()) {
-            cmd.setResult(commandWrapper.getResult().get());
+        if (commandUpdate.getResult().isPresent()) {
+            cmd.setResult(commandUpdate.getResult().get());
         }
 
         hiveValidator.validate(cmd);

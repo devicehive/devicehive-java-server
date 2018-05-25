@@ -32,7 +32,7 @@ import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
-import com.devicehive.proxy.eventbus.DistributedFilterRegistry;
+import com.devicehive.proxy.eventbus.DistributedProxyFilterRegistry;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
 import com.lmax.disruptor.*;
@@ -42,6 +42,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
@@ -77,13 +78,18 @@ public class BackendProxyClientConfig {
     }
 
     @Bean
-    public ProxyClient proxyClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig) {
-        WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
-        client.setWebSocketKafkaProxyConfig(proxyConfig);
-        client.start();
-        client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
-        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
-        return client;
+    public Executor executionPool(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig) {
+        Executor executionPool = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
+        for (int i = 0; i < proxyConfig.getWorkerThreads(); i++) {
+            executionPool.execute(() -> {
+                WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
+                client.setWebSocketKafkaProxyConfig(proxyConfig);
+                client.start();
+                client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
+                client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
+            });
+        }
+        return executionPool;
     }
 
     @Bean
@@ -93,7 +99,7 @@ public class BackendProxyClientConfig {
 
     @Bean
     public FilterRegistry filterRegistry(Gson gson, WebSocketKafkaProxyConfig proxyConfig) {
-        return new DistributedFilterRegistry(gson, proxyConfig);
+        return new DistributedProxyFilterRegistry(gson, proxyConfig);
     }
 
     private WaitStrategy getWaitStrategy() {

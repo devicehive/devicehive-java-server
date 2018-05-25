@@ -79,8 +79,8 @@ public class AuthProxyClientConfig {
     }
 
     @Bean
-    public NotificationHandler notificationHandler(Gson gson, RequestResponseMatcher requestResponseMatcher) {
-        return new ProxyResponseHandler(gson, requestResponseMatcher);
+    public NotificationHandler notificationHandler(Gson gson, RequestResponseMatcher requestResponseMatcher, WebSocketKafkaProxyConfig proxyConfig) {
+        return new ProxyResponseHandler(gson, REQUEST_TOPIC, RESPONSE_TOPIC, proxyConfig, requestResponseMatcher);
     }
 
     @Bean
