@@ -161,6 +161,17 @@ java -Dspring.datasource.url=jdbc:postgresql://0.0.0.1:5432/devicehive -jar ${de
 java -Dspring.datasource.username=test -Dspring.datasource.password=test -jar ${devicehive-jar}.jar
 ```
 
+RPC vs WS-KAFKA-PROXY
+---------------------
+DeviceHive supports direct Kafka connection via Kafka client libraries and websocket communication over the proxy service (a shim between Kafka and DeviceHive microservices). ws-kafka-proxy profile is enabled by default and requires proxy for proper work. To run DeviceHive services in RPC configuration please add this profile information to your `java -jar` command:
+
+* DeviceHive Backend:
+`java -jar -Dspring.profiles.active=rpc-server -jar ${name_of_your_jar_file}.jar`
+
+* DeviceHive Frontend, Auth or Plugin Management services:
+`java -Dspring.profiles.active=rpc-client -jar ${name_of_your_jar_file}.jar`
+
+
 Running application
 ---------------------
 DeviceHive ecosystem contains of 3 mandatory and 1 optional services, namely Backend, Frontend, Auth and Plugin 
