@@ -23,11 +23,12 @@ package com.devicehive.proxy;
 import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.model.ServerEvent;
 import com.devicehive.proxy.api.NotificationHandler;
-import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.devicehive.proxy.client.ProxyRole;
+import com.devicehive.proxy.client.ProxyType;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Request;
@@ -98,7 +99,7 @@ public class FrontendProxyClient implements RpcClient {
             executionPool.execute(() -> {
                 WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
                 client.setWebSocketKafkaProxyConfig(proxyConfig);
-                client.start();
+                client.start(ProxyRole.SUBSCRIBER, ProxyType.FRONTEND);
                 client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic, uuid.toString()))).join();
             });
         }
