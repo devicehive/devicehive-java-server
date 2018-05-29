@@ -34,6 +34,9 @@ public class WebSocketKafkaProxyConfig {
     @Value("${proxy.plugin.connect:localhost:3001}")
     private String proxyPluginConnect;
 
+    @Value("${proxy.connect.protocol:ws}")
+    private String proxyProtocol;
+
     @Value("${proxy.request-consumer.group:request-consumer-group}")
     private String consumerGroup;
 
@@ -55,6 +58,10 @@ public class WebSocketKafkaProxyConfig {
 
     public String getProxyPluginConnect() {
         return proxyPluginConnect;
+    }
+
+    public String getProxyProtocol() {
+        return proxyProtocol;
     }
 
     public String getConsumerGroup() {

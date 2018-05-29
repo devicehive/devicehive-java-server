@@ -22,7 +22,8 @@ package com.devicehive.proxy.client;
 
 public enum ProxyRole {
     SUBSCRIBER("sub"),
-    PUBLISHER("pub");
+    PUBLISHER("pub"),
+    ALL("pubsub");
 
     private String value;
 
