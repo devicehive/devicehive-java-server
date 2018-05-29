@@ -54,19 +54,27 @@ public class WebSocketKafkaProxyClient extends ProxyClient {
         super(notificationHandler);
     }
 
-    @Override
-    public void start() {
+    public void start(ProxyRole role, ProxyType type) {
         try {
             this.futureMap = new ConcurrentHashMap<>();
             if (webSocketKafkaProxyConfig.getAckEnable()) {
                 this.ackReceived = new ConcurrentHashMap<>();
             }
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-            this.session = container.connectToServer(this, new URI("ws://" + webSocketKafkaProxyConfig.getProxyConnect()));
+            String path = webSocketKafkaProxyConfig.getProxyProtocol() + "://" + webSocketKafkaProxyConfig.getProxyConnect();
+            if (role != null && type != null) {
+                path += "/?role=" + role.getValue() + "&type=" + type.getValue();
+            }
+            this.session = container.connectToServer(this, new URI(path));
         } catch (Exception e) {
             logger.error("Error during establishing connection: ", e);
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void start() {
+        start(null, null);
     }
 
     @Override

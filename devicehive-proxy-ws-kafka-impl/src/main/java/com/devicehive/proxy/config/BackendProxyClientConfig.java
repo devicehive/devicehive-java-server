@@ -27,10 +27,11 @@ import com.devicehive.proxy.ProxyMessageDispatcher;
 import com.devicehive.proxy.ProxyRequestHandler;
 import com.devicehive.proxy.ProxyServerEventHandler;
 import com.devicehive.proxy.api.NotificationHandler;
-import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.devicehive.proxy.client.ProxyRole;
+import com.devicehive.proxy.client.ProxyType;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.eventbus.DistributedProxyFilterRegistry;
 import com.devicehive.shim.api.server.MessageDispatcher;
@@ -61,7 +62,11 @@ public class BackendProxyClientConfig {
     public WorkerPool<ServerEvent> workerPool(Gson gson, WebSocketKafkaProxyConfig proxyConfig, HandlersMapper requestHandlersMapper) {
         final ProxyServerEventHandler[] workHandlers = new ProxyServerEventHandler[proxyConfig.getWorkerThreads()];
         IntStream.range(0, proxyConfig.getWorkerThreads()).forEach(
-                nbr -> workHandlers[nbr] = new ProxyServerEventHandler(gson, proxyConfig, requestHandlersMapper)
+                nbr -> {
+                    ProxyServerEventHandler handler = new ProxyServerEventHandler(gson, proxyConfig, requestHandlersMapper);
+                    handler.start();
+                    workHandlers[nbr] = handler;
+                }
         );
         final RingBuffer<ServerEvent> ringBuffer = RingBuffer.createMultiProducer(ServerEvent::new, proxyConfig.getBufferSize(), getWaitStrategy());
         final SequenceBarrier barrier = ringBuffer.newBarrier();
@@ -84,7 +89,7 @@ public class BackendProxyClientConfig {
             executionPool.execute(() -> {
                 WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
                 client.setWebSocketKafkaProxyConfig(proxyConfig);
-                client.start();
+                client.start(ProxyRole.SUBSCRIBER, ProxyType.BACKEND);
                 client.push(ProxyMessageBuilder.create(new TopicsPayload(REQUEST_TOPIC))).join();
                 client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(REQUEST_TOPIC, proxyConfig.getConsumerGroup()))).join();
             });

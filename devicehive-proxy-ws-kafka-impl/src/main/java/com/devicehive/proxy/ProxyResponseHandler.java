@@ -26,6 +26,8 @@ import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
+import com.devicehive.proxy.client.ProxyRole;
+import com.devicehive.proxy.client.ProxyType;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Request;
@@ -43,7 +45,7 @@ public class ProxyResponseHandler implements NotificationHandler, WorkHandler<Se
     private final Gson gson;
     private final String requestTopic;
     private final String replyToTopic;
-    private final ProxyClient proxyClient;
+    private final WebSocketKafkaProxyClient proxyClient;
     private final RequestResponseMatcher requestResponseMatcher;
 
     @Autowired
@@ -58,7 +60,7 @@ public class ProxyResponseHandler implements NotificationHandler, WorkHandler<Se
     }
 
     public void start() {
-        proxyClient.start();
+        proxyClient.start(ProxyRole.PUBLISHER, ProxyType.FRONTEND);
     }
 
     @Override

@@ -22,10 +22,11 @@ package com.devicehive.proxy;
 
 import com.devicehive.api.HandlersMapper;
 import com.devicehive.model.ServerEvent;
-import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessage;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
+import com.devicehive.proxy.client.ProxyRole;
+import com.devicehive.proxy.client.ProxyType;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Action;
@@ -49,7 +50,7 @@ public class ProxyServerEventHandler implements WorkHandler<ServerEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ProxyServerEventHandler.class);
 
     private final Gson gson;
-    private final ProxyClient proxyClient;
+    private final WebSocketKafkaProxyClient proxyClient;
     private final HandlersMapper requestHandlersMapper;
 
     @Autowired
@@ -59,7 +60,10 @@ public class ProxyServerEventHandler implements WorkHandler<ServerEvent> {
         WebSocketKafkaProxyClient webSocketKafkaProxyClient = new WebSocketKafkaProxyClient((message, client) -> {});
         webSocketKafkaProxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
         this.proxyClient = webSocketKafkaProxyClient;
-        this.proxyClient.start();
+    }
+
+    public void start() {
+        this.proxyClient.start(ProxyRole.PUBLISHER, ProxyType.BACKEND);
     }
 
     @Override
