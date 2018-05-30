@@ -121,14 +121,16 @@ public class UserService extends BaseUserService {
             return existing;
         }
 
-        final boolean isClient = UserRole.CLIENT.equals(curUser.getRole());
-        if (isClient) {
-            if (userToUpdate.getLogin().isPresent() ||
-                    userToUpdate.getStatus().isPresent() ||
-                    userToUpdate.getRole().isPresent()) {
-                logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
-                        "login, status or role", id);
-                throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
+        if (curUser != null) {
+            final boolean isClient = UserRole.CLIENT.equals(curUser.getRole());
+            if (isClient) {
+                if (userToUpdate.getLogin().isPresent() ||
+                        userToUpdate.getStatus().isPresent() ||
+                        userToUpdate.getRole().isPresent()) {
+                    logger.error("Can't update user with id {}: users with the 'client' role not allowed to change their " +
+                            "login, status or role", id);
+                    throw new HiveException(Messages.ADMIN_PERMISSIONS_REQUIRED, FORBIDDEN.getStatusCode());
+                }
             }
         }
 
@@ -171,6 +173,11 @@ public class UserService extends BaseUserService {
 
         hiveValidator.validate(existing);
         return userDao.merge(existing);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserVO updateUser(@NotNull Long id, UserUpdate userToUpdate) {
+        return updateUser(id, userToUpdate, null);
     }
 
     /**
