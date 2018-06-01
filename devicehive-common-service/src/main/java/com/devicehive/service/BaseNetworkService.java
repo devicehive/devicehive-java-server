@@ -73,7 +73,7 @@ public class BaseNetworkService {
     protected final HiveValidator hiveValidator;
     protected final NetworkDao networkDao;
     protected final RpcClient rpcClient;
-    
+
     private BaseUserService baseUserService;
 
     @Autowired
@@ -104,11 +104,11 @@ public class BaseNetworkService {
                 .flatMap(Collection::stream)
                 .map(DeviceVO::getDeviceId)
                 .collect(Collectors.toSet());
-        
+
         if (!isEmpty(forbiddenNetworkIds)) {
             throw new HiveException(String.format(NETWORKS_NOT_FOUND, forbiddenNetworkIds), SC_FORBIDDEN);
         }
-        
+
         return deviceIds;
     }
 
@@ -202,23 +202,21 @@ public class BaseNetworkService {
             if (network.getId() != null) {
                 throw new IllegalParametersException(Messages.INVALID_REQUEST_PARAMETERS);
             }
-            if (user.isAdmin()) {
-                NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
-                networkDao.persist(newNetwork);
-                network.setId(newNetwork.getId());
-                baseUserService.assignNetwork(user.getId(), network.getId()); // Assign created network to user
-            } else {
-                throw new ActionNotAllowedException(Messages.NETWORK_CREATION_NOT_ALLOWED);
-            }
+
+            NetworkWithUsersAndDevicesVO newNetwork = new NetworkWithUsersAndDevicesVO(network);
+            networkDao.persist(newNetwork);
+            network.setId(newNetwork.getId());
+            baseUserService.assignNetwork(user.getId(), network.getId()); // Assign created network to user
+
             return network;
         }
     }
 
     @Transactional
     public Long findDefaultNetworkByUserId(Long userId) {
-    	return networkDao.findDefaultByUser(userId)
-    			.map(NetworkVO::getId)
-    			.orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
+        return networkDao.findDefaultByUser(userId)
+                .map(NetworkVO::getId)
+                .orElseThrow(() -> new ActionNotAllowedException(Messages.NO_ACCESS_TO_NETWORK));
     }
 
     @Transactional
@@ -230,9 +228,9 @@ public class BaseNetworkService {
     }
 
     public boolean isNetworkExists(Long networkId) {
-    	return ofNullable(networkId)
-        	.map(id -> networkDao.find(id) != null)
-        	.orElse(false);
+        return ofNullable(networkId)
+                .map(id -> networkDao.find(id) != null)
+                .orElse(false);
     }
 
     private Optional<NetworkVO> findNetworkByIdOrName(NetworkVO network) {

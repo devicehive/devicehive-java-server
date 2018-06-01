@@ -21,10 +21,8 @@ package com.devicehive.resource.impl;
  */
 
 import com.devicehive.auth.HivePrincipal;
-import com.devicehive.configuration.Messages;
 import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.model.ErrorResponse;
-import com.devicehive.model.enums.PluginStatus;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.resource.JwtTokenResource;
 import com.devicehive.resource.util.ResponseFactory;
@@ -37,6 +35,7 @@ import com.devicehive.service.BaseUserService;
 import com.devicehive.service.PluginService;
 import com.devicehive.service.security.jwt.JwtClientService;
 import com.devicehive.service.security.jwt.JwtTokenService;
+import com.devicehive.service.security.oauth.OAuthService;
 import com.devicehive.service.time.TimestampService;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.JwtRefreshTokenVO;
@@ -54,6 +53,8 @@ import org.springframework.util.StringUtils;
 
 import javax.ws.rs.core.Response;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -63,12 +64,10 @@ import static com.devicehive.configuration.Messages.EXPIRED_TOKEN;
 import static com.devicehive.configuration.Messages.INVALID_TOKEN;
 import static com.devicehive.configuration.Messages.INVALID_TOKEN_TYPE;
 import static com.devicehive.configuration.Messages.INVALID_TOPIC_NAME;
-import static com.devicehive.configuration.Messages.PLUGIN_NOT_ACTIVE;
 import static com.devicehive.configuration.Messages.PLUGIN_NOT_FOUND;
 import static com.devicehive.configuration.Messages.USER_NOT_ACTIVE;
 import static com.devicehive.configuration.Messages.USER_NOT_FOUND;
 import static com.devicehive.configuration.Messages.USER_NOT_PLUGIN_CREATOR;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.CREATED;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
@@ -82,6 +81,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenResourceImpl.class);
 
     private final JwtClientService tokenService;
+    private final OAuthService oAuthService;
     private final BaseUserService userService;
     private final TimestampService timestampService;
     private final JwtTokenService jwtTokenService;
@@ -90,12 +90,13 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Autowired
     public JwtTokenResourceImpl(JwtClientService tokenService,
-                                BaseUserService userService,
+                                OAuthService oAuthService, BaseUserService userService,
                                 TimestampService timestampService,
                                 JwtTokenService jwtTokenService,
                                 HiveValidator hiveValidator,
                                 PluginService pluginService) {
         this.tokenService = tokenService;
+        this.oAuthService = oAuthService;
         this.userService = userService;
         this.timestampService = timestampService;
         this.jwtTokenService = jwtTokenService;
@@ -203,6 +204,45 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
     @Override
     public Response login(JwtRequestVO request) {
         JwtTokenVO jwtToken = jwtTokenService.createJwtToken(request);
+        return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response loginWithGoogle(String token) {
+        JwtTokenVO jwtToken;
+        try {
+            jwtToken = oAuthService.authenticateGoogle(token);
+        } catch (GeneralSecurityException | IOException e) {
+            logger.warn(INVALID_TOKEN);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOKEN));
+        }
+        return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response loginWithFacebook(String token) {
+        JwtTokenVO jwtToken;
+        try {
+            jwtToken = oAuthService.authenticateFacebook(token);
+        } catch (GeneralSecurityException e) {
+            logger.warn(INVALID_TOKEN);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOKEN));
+        }
+        return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
+    }
+
+    @Override
+    public Response loginWithGithub(String token) {
+        JwtTokenVO jwtToken;
+        try {
+            jwtToken = oAuthService.authenticateGithub(token);
+        } catch (GeneralSecurityException | IOException e) {
+            logger.warn(INVALID_TOKEN);
+            return ResponseFactory.response(UNAUTHORIZED,
+                    new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOKEN));
+        }
         return ResponseFactory.response(CREATED, jwtToken, JsonPolicyDef.Policy.JWT_REFRESH_TOKEN_SUBMITTED);
     }
 

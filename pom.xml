@@ -62,6 +62,9 @@
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
         <javax.el.version>2.2.4</javax.el.version>
         <javax.websocket.version>1.1</javax.websocket.version>
+        <spring.social.facebook.version>2.0.3.RELEASE</spring.social.facebook.version>
+        <google-api.version>1.22.0</google-api.version>
+        <github-api.version>2.1.5</github-api.version>
 
         <scala-binaries.version>2.10</scala-binaries.version>
 
@@ -327,6 +330,23 @@
                 <artifactId>spring-boot-starter-aop</artifactId>
                 <version>${springboot.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.springframework.social</groupId>
+                <artifactId>spring-social-facebook</artifactId>
+                <version>${spring.social.facebook.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.api-client</groupId>
+                <artifactId>google-api-client</artifactId>
+                <version>${google-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.mylyn.github</groupId>
+                <artifactId>org.eclipse.egit.github.core</artifactId>
+                <version>${github-api.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.hazelcast</groupId>
                 <artifactId>hazelcast-client</artifactId>
