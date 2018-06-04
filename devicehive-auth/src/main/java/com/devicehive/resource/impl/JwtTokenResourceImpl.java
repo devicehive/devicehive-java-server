@@ -9,9 +9,9 @@ package com.devicehive.resource.impl;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -90,7 +90,8 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
 
     @Autowired
     public JwtTokenResourceImpl(JwtClientService tokenService,
-                                OAuthService oAuthService, BaseUserService userService,
+                                OAuthService oAuthService,
+                                BaseUserService userService,
                                 TimestampService timestampService,
                                 JwtTokenService jwtTokenService,
                                 HiveValidator hiveValidator,
@@ -157,7 +158,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
                     EXPIRED_TOKEN));
         }
 
-        return payload.isUserPayload() ? getRefreshResponse((JwtUserPayload) payload) : 
+        return payload.isUserPayload() ? getRefreshResponse((JwtUserPayload) payload) :
                 getRefreshResponse((JwtPluginPayload) payload);
     }
 
@@ -259,7 +260,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
             jwtPluginPayload = tokenService.getPluginPayload(jwtPluginToken);
         } catch (Exception e) {
             logger.warn(INVALID_TOKEN);
-            return ResponseFactory.response(UNAUTHORIZED, 
+            return ResponseFactory.response(UNAUTHORIZED,
                     new ErrorResponse(UNAUTHORIZED.getStatusCode(), INVALID_TOKEN));
         }
 
@@ -271,19 +272,19 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         }
         if (jwtPluginPayload.getExpiration() != null && jwtPluginPayload.getExpiration().before(timestampService.getDate())) {
             logger.warn(EXPIRED_TOKEN);
-            return ResponseFactory.response(UNAUTHORIZED, 
+            return ResponseFactory.response(UNAUTHORIZED,
                     new ErrorResponse(UNAUTHORIZED.getStatusCode(), EXPIRED_TOKEN));
         }
-        
+
         if (jwtPluginPayload.getTopic() != null) {
             PluginVO pluginVO = pluginService.findByTopic(jwtPluginPayload.getTopic());
             if (pluginVO == null) {
                 logger.warn(PLUGIN_NOT_FOUND);
-                return ResponseFactory.response(UNAUTHORIZED, 
+                return ResponseFactory.response(UNAUTHORIZED,
                         new ErrorResponse(UNAUTHORIZED.getStatusCode(), PLUGIN_NOT_FOUND));
             }
         }
-        
+
         return ResponseFactory.response(OK, jwtPluginPayload);
     }
 
@@ -303,19 +304,19 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         Long creatorId = Optional.ofNullable(payload.getTopic())
                 .map(topic -> getCreatorId(topic, user))
                 .orElse(null);
-        
+
         if (Objects.isNull(creatorId)) {
             logger.warn(INVALID_TOPIC_NAME);
             return ResponseFactory.response(FORBIDDEN,
                     new ErrorResponse(FORBIDDEN.getStatusCode(), INVALID_TOPIC_NAME));
         }
-        
+
         if (!user.getId().equals(creatorId)) {
             logger.warn(String.format(USER_NOT_PLUGIN_CREATOR, creatorId));
-            return ResponseFactory.response(FORBIDDEN, 
+            return ResponseFactory.response(FORBIDDEN,
                     new ErrorResponse(FORBIDDEN.getStatusCode(), String.format(USER_NOT_PLUGIN_CREATOR, creatorId)));
         }
-        
+
         if (!user.getStatus().equals(UserStatus.ACTIVE)) {
             logger.warn(USER_NOT_ACTIVE);
             return ResponseFactory.response(FORBIDDEN,
@@ -337,7 +338,7 @@ public class JwtTokenResourceImpl implements JwtTokenResource {
         if (topic.equals("*")) {
             return user.isAdmin() ? user.getId() : null;
         }
-        
+
         PluginVO pluginVO = pluginService.findByTopic(topic);
 
         return Optional.ofNullable(pluginVO)

@@ -284,16 +284,6 @@ public class UserService extends BaseUserService {
         return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
     }
 
-    @Transactional(propagation = Propagation.REQUIRED)
-    public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
-        hiveValidator.validate(convertTo);
-        UserVO createdUser = createUser(convertTo, password);
-        NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
-        UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);
-        result.getNetworks().add(createdNetwork);
-        return result;
-    }
-
     /**
      * Deletes user by id. deletion is cascade
      *
