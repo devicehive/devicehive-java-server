@@ -34,7 +34,7 @@ fi
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
 then
     if [ -z "$DH_ZK_ADDRESS" ] \
-    || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
+    || { [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ]; }
     then
         echo "Some of required environment variables are not set or empty."
         echo "Please check following vars are passed to container:"
