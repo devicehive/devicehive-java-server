@@ -58,6 +58,7 @@ public class UserWithNetworkVO extends UserVO {
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
             vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+            vo.setAgreedToPersonalDataCollection(dc.getAgreedToPersonalDataCollection());
         }
 
         return vo;

@@ -60,6 +60,8 @@ public class UserUpdate implements HiveEntity {
     @ApiModelProperty(hidden = true)
     private Boolean allDeviceTypesAvailable;
 
+    private Boolean agreedToPersonalDataCollection;
+
     public Optional<String> getLogin() {
         return Optional.ofNullable(login);
     }
@@ -116,6 +118,14 @@ public class UserUpdate implements HiveEntity {
         this.allDeviceTypesAvailable = allDeviceTypesAvailable;
     }
 
+    public Optional<Boolean> getAgreedToPersonalDataCollection() {
+        return Optional.ofNullable(agreedToPersonalDataCollection);
+    }
+
+    public void setAgreedToPersonalDataCollection(Boolean agreedToPersonalDataCollection) {
+        this.agreedToPersonalDataCollection = agreedToPersonalDataCollection;
+    }
+
     @ApiModelProperty(hidden = true)
     public UserRole getRoleEnum() {
         return getRole().map(UserRole::getValueForIndex).orElse(null);
@@ -139,6 +149,9 @@ public class UserUpdate implements HiveEntity {
         }
         if (allDeviceTypesAvailable != null) {
             result.setAllDeviceTypesAvailable(allDeviceTypesAvailable);
+        }
+        if (agreedToPersonalDataCollection != null) {
+            result.setAgreedToPersonalDataCollection(agreedToPersonalDataCollection);
         }
         result.setStatus(getStatusEnum());
         result.setRole(getRoleEnum());

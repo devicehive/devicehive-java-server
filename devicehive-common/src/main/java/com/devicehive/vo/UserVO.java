@@ -84,6 +84,10 @@ public class UserVO implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Boolean allDeviceTypesAvailable;
 
+    @SerializedName("agreedToPersonalDataCollection")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean agreedToPersonalDataCollection;
+
     /**
      * @return true, if user is admin
      */
@@ -178,6 +182,14 @@ public class UserVO implements HiveEntity {
 
     public void setAllDeviceTypesAvailable(Boolean allDeviceTypesAvailable) {
         this.allDeviceTypesAvailable = allDeviceTypesAvailable;
+    }
+
+    public Boolean getAgreedToPersonalDataCollection() {
+        return agreedToPersonalDataCollection;
+    }
+
+    public void setAgreedToPersonalDataCollection(Boolean agreedToPersonalDataCollection) {
+        this.agreedToPersonalDataCollection = agreedToPersonalDataCollection;
     }
 
     @Override

@@ -127,6 +127,11 @@ public class User implements HiveEntity {
     @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
     private Boolean allDeviceTypesAvailable;
 
+    @Column(name = "agreed_to_personal_data_collection")
+    @SerializedName("agreedToPersonalDataCollection")
+    @JsonPolicyDef({USER_PUBLISHED, USERS_LISTED, USER_SUBMITTED})
+    private Boolean agreedToPersonalDataCollection;
+
     /**
      * @return true, if user is admin
      */
@@ -238,6 +243,14 @@ public class User implements HiveEntity {
         this.allDeviceTypesAvailable = allDeviceTypesAvailable;
     }
 
+    public Boolean getAgreedToPersonalDataCollection() {
+        return agreedToPersonalDataCollection;
+    }
+
+    public void setAgreedToPersonalDataCollection(Boolean agreedToPersonalDataCollection) {
+        this.agreedToPersonalDataCollection = agreedToPersonalDataCollection;
+    }
+
     @Override
     public boolean equals(Object o) {
 
@@ -276,6 +289,7 @@ public class User implements HiveEntity {
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
             vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+            vo.setAgreedToPersonalDataCollection(dc.getAgreedToPersonalDataCollection());
         }
         return vo;
     }
@@ -296,6 +310,7 @@ public class User implements HiveEntity {
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
             vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+            vo.setAgreedToPersonalDataCollection(dc.getAgreedToPersonalDataCollection());
         }
         return vo;
     }
@@ -315,6 +330,7 @@ public class User implements HiveEntity {
             vo.setStatus(dc.getStatus());
             vo.setIntroReviewed(dc.getIntroReviewed());
             vo.setAllDeviceTypesAvailable(dc.getAllDeviceTypesAvailable());
+            vo.setAgreedToPersonalDataCollection(dc.getAgreedToPersonalDataCollection());
 
             vo.setDeviceTypes(new HashSet<>());
 
