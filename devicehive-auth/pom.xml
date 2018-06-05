@@ -12,7 +12,7 @@
     <name>DeviceHive Auth Logic</name>
 
     <artifactId>devicehive-auth</artifactId>
-        
+
     <properties>
         <project.rootdir>${project.parent.basedir}</project.rootdir>
     </properties>
@@ -52,6 +52,25 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.social</groupId>
+            <artifactId>spring-social-facebook</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-social-config</artifactId>
+                    <groupId>org.springframework.social</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.api-client</groupId>
+            <artifactId>google-api-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.mylyn.github</groupId>
+            <artifactId>org.eclipse.egit.github.core</artifactId>
         </dependency>
     </dependencies>
     <build>

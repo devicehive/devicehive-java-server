@@ -9,9 +9,9 @@ package com.devicehive.resource;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -120,6 +120,48 @@ public interface JwtTokenResource {
             @ApiParam(value = "Access key request", required = true)
                     JwtRequestVO request);
 
+    @POST
+    @Path("/google")
+    @PreAuthorize("permitAll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Login with google", notes = "Authenticates a user and returns a session-level JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 403, message = "If identity provider is not allowed")
+    })
+    Response loginWithGoogle(
+            @ApiParam(value = "OAuth key request", required = true)
+                    String token);
+
+    @POST
+    @Path("/facebook")
+    @PreAuthorize("permitAll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Login with facebook", notes = "Authenticates a user and returns a session-level JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 403, message = "If identity provider is not allowed")
+    })
+    Response loginWithFacebook(
+            @ApiParam(value = "OAuth key request", required = true)
+                    String token);
+
+    @POST
+    @Path("/github")
+    @PreAuthorize("permitAll")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Login with github", notes = "Authenticates a user and returns a session-level JWT token.")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "If successful, this method returns the object with the following properties in the response body.",
+                    response = JwtTokenVO.class),
+            @ApiResponse(code = 403, message = "If identity provider is not allowed")
+    })
+    Response loginWithGithub(
+            @ApiParam(value = "OAuth key request", required = true)
+                    String token);
+
     @GET
     @Path("/plugin/authenticate")
     @PreAuthorize("permitAll")
@@ -132,6 +174,6 @@ public interface JwtTokenResource {
     Response authenticatePlugin(
             @ApiParam(name = "token", value = "Jwt Plugin Token", required = true)
             @QueryParam("token")
-            String jwtPluginToken);
+                    String jwtPluginToken);
 }
 

@@ -67,7 +67,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class UserService extends BaseUserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
-    private static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     private final DeviceTypeDao deviceTypeDao;
     private final RpcClient rpcClient;
@@ -283,54 +282,6 @@ public class UserService extends BaseUserService {
                 .build(), new ResponseConsumer(future));
 
         return future.thenApply(response -> new EntityCountResponse((CountResponse)response.getBody()));
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public UserVO createUser(@NotNull UserVO user, String password) {
-        hiveValidator.validate(user);
-        if (user.getId() != null) {
-            throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
-        }
-        if (user.getRole() == null ) {
-            throw new IllegalParametersException(Messages.INVALID_USER_ROLE);
-        }
-        if (user.getStatus() == null) {
-            user.setStatus(UserStatus.ACTIVE);
-        }
-        final String userLogin = StringUtils.trim(user.getLogin());
-        user.setLogin(userLogin);
-        Optional<UserVO> existing = userDao.findByName(user.getLogin());
-        if (existing.isPresent()) {
-            throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
-        }
-        if (StringUtils.isNotEmpty(password) && password.matches(PASSWORD_REGEXP)) {
-            String salt = passwordService.generateSalt();
-            String hash = passwordService.hashPassword(password, salt);
-            user.setPasswordSalt(salt);
-            user.setPasswordHash(hash);
-        } else {
-            throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
-        }
-        user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
-        if (user.getIntroReviewed() == null) {
-            user.setIntroReviewed(false);
-        }
-
-        if (user.getAllDeviceTypesAvailable() == null) {
-            user.setAllDeviceTypesAvailable(true);
-        }
-        userDao.persist(user);
-        return user;
-    }
-
-    @Transactional(propagation = Propagation.REQUIRED)
-    public UserWithNetworkVO createUserWithNetwork(UserVO convertTo, String password) {
-        hiveValidator.validate(convertTo);
-        UserVO createdUser = createUser(convertTo, password);
-        NetworkVO createdNetwork = networkService.createOrUpdateNetworkByUser(createdUser);
-        UserWithNetworkVO result = UserWithNetworkVO.fromUserVO(createdUser);
-        result.getNetworks().add(createdNetwork);
-        return result;
     }
 
     /**

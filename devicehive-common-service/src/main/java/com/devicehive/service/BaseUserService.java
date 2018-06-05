@@ -24,7 +24,9 @@ import com.devicehive.configuration.Constants;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.dao.UserDao;
+import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.enums.UserStatus;
 import com.devicehive.service.configuration.ConfigurationService;
@@ -36,6 +38,7 @@ import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import com.devicehive.vo.UserVO;
 import com.devicehive.vo.UserWithDeviceTypeVO;
 import com.devicehive.vo.UserWithNetworkVO;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +61,8 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 public class BaseUserService {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseUserService.class);
+
+    protected static final String PASSWORD_REGEXP = "^.{6,128}$";
 
     protected final PasswordProcessor passwordService;
     protected final UserDao userDao;
@@ -128,6 +133,55 @@ public class BaseUserService {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public UserWithDeviceTypeVO findUserWithDeviceType(@NotNull long id) {
         return userDao.getWithDeviceTypeById(id);
+    }
+
+    /**
+     * Retrieves user by login(no networks fetched in this case)
+     *
+     * @param login user login
+     * @return User model without networks, or null if there is no such user
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public Optional<UserVO> findByLogin(@NotNull String login) {
+        return userDao.findByName(login);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public UserVO createUser(@NotNull UserVO user, String password) {
+        hiveValidator.validate(user);
+        if (user.getId() != null) {
+            throw new IllegalParametersException(Messages.ID_NOT_ALLOWED);
+        }
+        if (user.getRole() == null ) {
+            throw new IllegalParametersException(Messages.INVALID_USER_ROLE);
+        }
+        if (user.getStatus() == null) {
+            user.setStatus(UserStatus.ACTIVE);
+        }
+        final String userLogin = StringUtils.trim(user.getLogin());
+        user.setLogin(userLogin);
+        Optional<UserVO> existing = userDao.findByName(user.getLogin());
+        if (existing.isPresent()) {
+            throw new ActionNotAllowedException(Messages.DUPLICATE_LOGIN);
+        }
+        if (StringUtils.isNotEmpty(password) && password.matches(PASSWORD_REGEXP)) {
+            String salt = passwordService.generateSalt();
+            String hash = passwordService.hashPassword(password, salt);
+            user.setPasswordSalt(salt);
+            user.setPasswordHash(hash);
+        } else {
+            throw new IllegalParametersException(Messages.PASSWORD_VALIDATION_FAILED);
+        }
+        user.setLoginAttempts(Constants.INITIAL_LOGIN_ATTEMPTS);
+        if (user.getIntroReviewed() == null) {
+            user.setIntroReviewed(false);
+        }
+
+        if (user.getAllDeviceTypesAvailable() == null) {
+            user.setAllDeviceTypesAvailable(true);
+        }
+        userDao.persist(user);
+        return user;
     }
 
     @Transactional
