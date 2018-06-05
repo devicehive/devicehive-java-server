@@ -21,9 +21,17 @@ package com.devicehive.resource.impl;
  */
 
 
+import com.devicehive.json.strategies.JsonPolicyDef;
 import com.devicehive.resource.AuthApiInfoResource;
 import com.devicehive.resource.BaseApiInfoResource;
+import com.devicehive.resource.util.ResponseFactory;
+import com.devicehive.service.time.TimestampService;
+import com.devicehive.vo.CacheInfoVO;
+import org.hibernate.SessionFactory;
+import org.hibernate.stat.SecondLevelCacheStatistics;
+import org.hibernate.stat.Statistics;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
@@ -33,14 +41,36 @@ import javax.ws.rs.core.UriInfo;
 public class AuthApiInfoResourceImpl implements AuthApiInfoResource {
 
     private final BaseApiInfoResource baseApiInfoResource;
+    private final TimestampService timestampService;
+    private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Autowired
-    public AuthApiInfoResourceImpl(BaseApiInfoResource baseApiInfoResource) {
+    public AuthApiInfoResourceImpl(BaseApiInfoResource baseApiInfoResource,
+                                   LocalContainerEntityManagerFactoryBean entityManagerFactory,
+                                   TimestampService timestampService) {
         this.baseApiInfoResource = baseApiInfoResource;
+        this.entityManagerFactory = entityManagerFactory;
+        this.timestampService = timestampService;
     }
 
     @Override
     public Response getApiInfo(UriInfo uriInfo, String protocol) {
         return baseApiInfoResource.getApiInfo(uriInfo, protocol);
+    }
+
+    @Override
+    public Response getApiInfoCache(UriInfo uriInfo) {
+        CacheInfoVO cacheInfoVO = new CacheInfoVO();
+        cacheInfoVO.setServerTimestamp(timestampService.getDate());
+        cacheInfoVO.setCacheStats(getCacheStats());
+
+        return ResponseFactory.response(Response.Status.OK, cacheInfoVO, JsonPolicyDef.Policy.REST_SERVER_INFO);
+    }
+
+    private String getCacheStats() {
+        SessionFactory sessionFactory = entityManagerFactory.getNativeEntityManagerFactory().unwrap(SessionFactory.class);
+        SecondLevelCacheStatistics statistics = sessionFactory.getStatistics().getSecondLevelCacheStatistics("devicehive");
+
+        return statistics.toString();
     }
 }

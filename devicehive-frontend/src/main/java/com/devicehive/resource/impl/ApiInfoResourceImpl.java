@@ -30,6 +30,7 @@ import com.devicehive.service.time.TimestampService;
 import com.devicehive.vo.CacheInfoVO;
 import com.devicehive.vo.ClusterConfigVO;
 import org.hibernate.SessionFactory;
+import org.hibernate.stat.SecondLevelCacheStatistics;
 import org.hibernate.stat.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class ApiInfoResourceImpl implements ApiInfoResource {
 
     private String getCacheStats() {
         SessionFactory sessionFactory = entityManagerFactory.getNativeEntityManagerFactory().unwrap(SessionFactory.class);
-        Statistics statistics = sessionFactory.getStatistics();
+        SecondLevelCacheStatistics statistics = sessionFactory.getStatistics().getSecondLevelCacheStatistics("devicehive");
 
         return statistics.toString();
     }

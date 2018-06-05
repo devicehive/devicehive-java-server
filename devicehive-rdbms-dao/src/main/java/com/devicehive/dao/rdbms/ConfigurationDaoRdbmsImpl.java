@@ -27,12 +27,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
+import static java.util.Optional.of;
+
 @Repository
 public class ConfigurationDaoRdbmsImpl extends RdbmsGenericDao implements ConfigurationDao {
 
     @Override
     public Optional<ConfigurationVO> getByName(String name) {
-        return Configuration.convert(createNamedQuery(Configuration.class, "Configuration.getByName", Optional.empty())
+        return Configuration.convert(createNamedQuery(Configuration.class, "Configuration.getByName", of(CacheConfig.get()))
                 .setParameter("name", name)
                 .getResultList()
                 .stream().findFirst());

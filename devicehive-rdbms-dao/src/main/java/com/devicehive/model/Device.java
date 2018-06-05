@@ -49,7 +49,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                   @NamedQuery(name = "Device.deleteById", query = "delete from Device d where d.deviceId = :deviceId")
               })
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "devicehive")
 public class Device implements HiveEntity {
 
     public static final String NETWORK_COLUMN = "network";

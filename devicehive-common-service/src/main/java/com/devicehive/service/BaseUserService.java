@@ -146,8 +146,9 @@ public class BaseUserService {
                 || timestampService.getTimestamp() - user.getLastLogin().getTime() > loginTimeout;
 
         if (validPassword && mustUpdateLoginStatistic) {
-            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
-            return of(user1);
+            //TODO: DO WE NEED IT?
+//            UserVO user1 = updateStatisticOnSuccessfulLogin(user, loginTimeout);
+            return of(user);
         } else if (!validPassword) {
             user.setLoginAttempts(user.getLoginAttempts() + 1);
             if (user.getLoginAttempts()

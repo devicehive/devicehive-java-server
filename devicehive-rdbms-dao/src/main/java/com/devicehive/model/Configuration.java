@@ -47,7 +47,7 @@ import static com.devicehive.model.Configuration.Queries.Values;
                   @NamedQuery(name = Names.DELETE, query = Values.DELETE)
               })
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "devicehive")
 public class Configuration implements HiveEntity {
 
 
