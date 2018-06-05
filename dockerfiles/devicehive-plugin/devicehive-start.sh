@@ -4,6 +4,8 @@ set -x
 
 trap 'terminate' TERM INT
 
+. /opt/devicehive/lib/helpers.sh
+
 terminate() {
     echo "SIGTERM received, terminating $PID"
     kill -TERM "$PID"
@@ -58,23 +60,25 @@ then
     fi
 fi
 
-# Check if Zookeper, Kafka, Postgres and Hazelcast are ready
+## Check if Postgres and Hazelcast are ready
 while true; do
-    nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
-    result_zk=$?
-    FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
-    nc -v -z -w1 "${FIRST_KAFKA_SERVER%%:*}" $(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')
-    result_kafka=$?
-    nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
-    result_postgres=$?
-    nc -v -z -w1 "${HC_MEMBERS%%,*}" "${HC_PORT:=5701}"
-    result_hc=$?
-
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_hc" -eq 0 ]; then
-        break
-    fi
+    test_port "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}" \
+       && test_port "${HC_MEMBERS%%,*}" "${HC_PORT:=5701}" \
+       && break
     sleep 3
 done
+
+if [ "$SPRING_PROFILES_ACTIVE" = "rpc-server" ]
+then
+    ## Check if Zookeper, Kafka, are ready
+    while true; do
+        FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
+        test_port "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}" \
+          && test_port "${FIRST_KAFKA_SERVER%%:*}" "$(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')" \
+          && break
+        sleep 3
+    done
+fi
 
 RPC_PARAMETERS=""
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
