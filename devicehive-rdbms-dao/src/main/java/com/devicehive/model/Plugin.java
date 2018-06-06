@@ -56,7 +56,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.PLUGIN_SUBMITT
         @NamedQuery(name = "Plugin.findByName", query = "select p from Plugin p where p.name = :name")
 })
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "devicehive")
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Plugin implements HiveEntity {
     private static final long serialVersionUID = 8558232738863824461L;
     private static final String PLUGIN_NAME_SIZE_MESSAGE = "Field cannot be empty. The length of plugin name should be from 3 " +

@@ -57,16 +57,16 @@ public class WebSocketAuthenticationManager {
         PreAuthenticatedAuthenticationToken authenticationToken = new PreAuthenticatedAuthenticationToken(token, null);
         HiveAuthentication authentication = (HiveAuthentication) authenticationManager.authenticate(authenticationToken);
         //TODO: DO WE NEED IT?
-//        refreshUserLoginData(authentication);
+        refreshUserLoginData(authentication);
         authentication.setDetails(details);
         return authentication;
     }
 
-//    private void refreshUserLoginData(HiveAuthentication authentication) {
-//        HivePrincipal hivePrincipal = (HivePrincipal) authentication.getPrincipal();
-//        UserVO user = hivePrincipal.getUser();
-//        baseUserService.refreshUserLoginData(user);
-//    }
+    private void refreshUserLoginData(HiveAuthentication authentication) {
+        HivePrincipal hivePrincipal = (HivePrincipal) authentication.getPrincipal();
+        UserVO user = hivePrincipal.getUser();
+        baseUserService.refreshUserLoginData(user);
+    }
 
     public HiveAuthentication authenticateAnonymous(HiveAuthentication.HiveAuthDetails details) {
         AnonymousAuthenticationToken authenticationToken = new AnonymousAuthenticationToken(

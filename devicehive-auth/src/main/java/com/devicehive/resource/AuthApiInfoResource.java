@@ -52,15 +52,4 @@ public interface AuthApiInfoResource {
                         @DefaultValue("http")
                                 String protocol);
 
-    @GET
-    @Path("/cache")
-    @PreAuthorize("permitAll")
-    @ApiOperation(value = "Get cache info", notes = "Returns cache info")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200,
-                    message = "Returns cache info",
-                    response = CacheInfoVO.class),
-    })
-    Response getApiInfoCache(@Context UriInfo uriInfo);
-
 }

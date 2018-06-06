@@ -41,36 +41,14 @@ import javax.ws.rs.core.UriInfo;
 public class AuthApiInfoResourceImpl implements AuthApiInfoResource {
 
     private final BaseApiInfoResource baseApiInfoResource;
-    private final TimestampService timestampService;
-    private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
     @Autowired
-    public AuthApiInfoResourceImpl(BaseApiInfoResource baseApiInfoResource,
-                                   LocalContainerEntityManagerFactoryBean entityManagerFactory,
-                                   TimestampService timestampService) {
+    public AuthApiInfoResourceImpl(BaseApiInfoResource baseApiInfoResource) {
         this.baseApiInfoResource = baseApiInfoResource;
-        this.entityManagerFactory = entityManagerFactory;
-        this.timestampService = timestampService;
     }
 
     @Override
     public Response getApiInfo(UriInfo uriInfo, String protocol) {
         return baseApiInfoResource.getApiInfo(uriInfo, protocol);
-    }
-
-    @Override
-    public Response getApiInfoCache(UriInfo uriInfo) {
-        CacheInfoVO cacheInfoVO = new CacheInfoVO();
-        cacheInfoVO.setServerTimestamp(timestampService.getDate());
-        cacheInfoVO.setCacheStats(getCacheStats());
-
-        return ResponseFactory.response(Response.Status.OK, cacheInfoVO, JsonPolicyDef.Policy.REST_SERVER_INFO);
-    }
-
-    private String getCacheStats() {
-        SessionFactory sessionFactory = entityManagerFactory.getNativeEntityManagerFactory().unwrap(SessionFactory.class);
-        SecondLevelCacheStatistics statistics = sessionFactory.getStatistics().getSecondLevelCacheStatistics("devicehive");
-
-        return statistics.toString();
     }
 }

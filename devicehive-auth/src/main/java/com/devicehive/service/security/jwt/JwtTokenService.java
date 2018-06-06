@@ -81,7 +81,7 @@ public class JwtTokenService {
             UserWithNetworkVO userWithNetwork = userService.findUserWithNetworks(user.getId());
             UserWithDeviceTypeVO userWithDeviceType = userService.findUserWithDeviceType(user.getId());
 //          TODO: check if needed
-//            userService.refreshUserLoginData(user);
+            userService.refreshUserLoginData(user);
 
             Set<NetworkVO> networks = userWithNetwork.getNetworks();
             if (!networks.isEmpty()) {

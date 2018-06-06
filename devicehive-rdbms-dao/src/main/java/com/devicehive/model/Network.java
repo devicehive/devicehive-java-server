@@ -51,7 +51,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
                 "where n.id in :networkIds and (u.id = :userId or :userId is null) and (n.id in :permittedNetworks or :permittedNetworks is null)")
 })
 @Cacheable
-@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE, region = "devicehive")
+@org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 public class Network implements HiveEntity {
     private static final long serialVersionUID = -4824259625517565076L;
 
