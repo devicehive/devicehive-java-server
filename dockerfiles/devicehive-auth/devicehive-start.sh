@@ -10,7 +10,7 @@ terminate() {
     wait "$PID"
 }
 
-# Check if all required parameters are set
+## Check if required parameters are set
 if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_USERNAME" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
@@ -31,10 +31,12 @@ then
     exit 1
 fi
 
+## By default Auth uses 'ws-kafka-proxy' Spring profile. In case 'rpc-client' profile is used
+## we need to check Kafka connection parameters
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
 then
     if [ -z "$DH_ZK_ADDRESS" ] \
-    || { [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ]; }
+        || { [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ]; }
     then
         echo "Some of required environment variables are not set or empty."
         echo "Please check following vars are passed to container:"
@@ -44,11 +46,13 @@ then
         echo "or"
         echo "- DH_KAFKA_ADDRESS for a single server"
         exit 1
-    else
-      if [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ]
-      then
-          DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
-      fi
+    fi
+
+    ## At lease one of DH_KAFKA_BOOTSTRAP_SERVERS or DH_KAFKA_ADDRESS must be set now
+    ## Construct if empty DH_KAFKA_BOOTSTRAP_SERVERS for later use
+    if [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ]
+    then
+        DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
     fi
 fi
 
@@ -75,10 +79,14 @@ while true; do
     fi
     sleep 3
 done
-KAFKA_PARAMETERS=""
+
+RPC_PARAMETERS=""
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
 then
-    KAFKA_PARAMETERS="-Dbootstrap.servers=${DH_KAFKA_BOOTSTRAP_SERVERS} -Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181} -Dzookeeper.connectionTimeout=${DH_ZK_CONNECTIONTIMEOUT:-8000} -Dzookeeper.sessionTimeout=${DH_ZK_SESSIONTIMEOUT:-10000}"
+    RPC_PARAMETERS="${RPC_PARAMETERS} -Dbootstrap.servers=${DH_KAFKA_BOOTSTRAP_SERVERS}"
+    RPC_PARAMETERS="${RPC_PARAMETERS} -Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT}"
+    RPC_PARAMETERS="${RPC_PARAMETERS} -Dzookeeper.connectionTimeout=${DH_ZK_CONNECTIONTIMEOUT:-8000}"
+    RPC_PARAMETERS="${RPC_PARAMETERS} -Dzookeeper.sessionTimeout=${DH_ZK_SESSIONTIMEOUT:-10000}"
 fi
 
 echo "Starting DeviceHive auth"
@@ -90,11 +98,11 @@ java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+Disable
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Dserver.context-path=/auth \
 -Dserver.port=8090 \
--Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT:-5432}/${DH_POSTGRES_DB}" \
+-Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT}/${DH_POSTGRES_DB}" \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
 -Dproxy.connect="${DH_WS_PROXY:-localhost:3000}" \
-$KAFKA_PARAMETERS \
+${RPC_PARAMETERS} \
 "./devicehive-auth-${DH_VERSION}-boot.jar" &
 PID=$!
 wait "$PID"
