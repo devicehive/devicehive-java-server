@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.9.xsd"
-           xmlns="http://www.hazelcast.com/schema/config"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.hazelcast.com/schema/config
+           http://www.hazelcast.com/schema/config/hazelcast-config-3.10.xsd">
    <serialization>
       <portable-version>0</portable-version>
       <portable-factories>
-           <portable-factory factory-id="1">com.devicehive.model.DevicePortableFactory</portable-factory>
+         <portable-factory factory-id="1">com.devicehive.model.DevicePortableFactory</portable-factory>
       </portable-factories>
    </serialization>
    <map name="default">
