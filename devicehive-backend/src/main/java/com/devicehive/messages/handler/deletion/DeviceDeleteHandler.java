@@ -1,4 +1,4 @@
-package com.devicehive.messages.handler;
+package com.devicehive.messages.handler.deletion;
 
 /*
  * #%L

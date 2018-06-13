@@ -165,13 +165,10 @@ public class NetworkHandlers {
     public void processNetworkDelete(Long networkId, JsonObject request, WebSocketSession session) {
         logger.debug("Network delete requested");
         boolean force = Optional.ofNullable(gson.fromJson(request.get(FORCE), Boolean.class)).orElse(false);
-        boolean isDeleted = networkService.delete(networkId, force);
-        if (!isDeleted) {
-            logger.error(String.format(Messages.NETWORK_NOT_FOUND, networkId));
-            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, networkId), NOT_FOUND.getStatusCode());
-        }
-        logger.debug("Network with id = {} does not exists any more.", networkId);
-        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        networkService.delete(networkId, force).thenAccept(response -> {
+            logger.debug("Network with id = {} does not exists any more.", networkId);
+            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        });
     }
 
 }

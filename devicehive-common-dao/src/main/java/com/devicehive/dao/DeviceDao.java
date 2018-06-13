@@ -41,7 +41,7 @@ public interface DeviceDao {
 
     List<DeviceVO> getDeviceList(List<String> ids, HivePrincipal principal);
 
-    List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
+    List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName, Long deviceTypeId,
                          String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal);
 
     long count(String name, String namePattern, Long networkId, String networkName, HivePrincipal principal);

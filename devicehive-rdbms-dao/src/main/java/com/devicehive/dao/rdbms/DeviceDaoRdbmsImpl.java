@@ -109,15 +109,15 @@ public class DeviceDaoRdbmsImpl extends RdbmsGenericDao implements DeviceDao {
     }
 
     @Override
-    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName,
+    public List<DeviceVO> list(String name, String namePattern, Long networkId, String networkName, Long deviceTypeId,
                                 String sortField, boolean sortOrderAsc, Integer take,
                                 Integer skip, HivePrincipal principal) {
         final CriteriaBuilder cb = criteriaBuilder();
         final CriteriaQuery<Device> criteria = cb.createQuery(Device.class);
         final Root<Device> from = criteria.from(Device.class);
 
-        final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(networkId), ofNullable(networkName),
-                ofNullable(principal));
+        final Predicate [] predicates = CriteriaHelper.deviceListPredicates(cb, from, ofNullable(name), ofNullable(namePattern),
+                ofNullable(networkId), ofNullable(networkName), ofNullable(deviceTypeId), ofNullable(principal));
 
         criteria.where(predicates);
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);

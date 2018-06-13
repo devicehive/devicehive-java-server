@@ -47,6 +47,12 @@ public class Filter implements Portable {
 
     }
 
+    public Filter(Long networkId, Long deviceTypeId, String deviceId) {
+        this.networkId = networkId;
+        this.deviceTypeId = deviceTypeId;
+        this.deviceId = deviceId;
+    }
+
     public Filter(Long networkId, Long deviceTypeId, String deviceId, String eventName, String name) {
         this.networkId = networkId;
         this.deviceTypeId = deviceTypeId;

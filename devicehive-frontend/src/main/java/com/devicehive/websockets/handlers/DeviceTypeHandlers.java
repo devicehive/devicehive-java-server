@@ -165,13 +165,10 @@ public class DeviceTypeHandlers {
     public void processDeviceTypeDelete(Long deviceTypeId, JsonObject request, WebSocketSession session) {
         logger.debug("Device type delete requested");
         boolean force = Optional.ofNullable(gson.fromJson(request.get(FORCE), Boolean.class)).orElse(false);
-        boolean isDeleted = deviceTypeService.delete(deviceTypeId, force);
-        if (!isDeleted) {
-            logger.error(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId));
-            throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, deviceTypeId), NOT_FOUND.getStatusCode());
-        }
-        logger.debug("Device type with id = {} does not exists any more.", deviceTypeId);
-        webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        deviceTypeService.delete(deviceTypeId, force).thenAccept(response -> {
+            logger.debug("Device type with id = {} does not exists any more.", deviceTypeId);
+            webSocketClientHandler.sendMessage(request, new WebSocketResponse(), session);
+        });
     }
 
 }

@@ -26,11 +26,14 @@ import com.devicehive.model.eventbus.SubscribeMessage;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.KafkaMessageHandler;
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 
+import java.util.Collection;
+import java.util.List;
+
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_TOPIC;
-import static com.devicehive.model.eventbus.SubscribeAction.REGISTER;
-import static com.devicehive.model.eventbus.SubscribeAction.UNREGISTER;
+import static com.devicehive.model.eventbus.SubscribeAction.*;
 
 public class DistributedRpcFilterRegistry extends FilterRegistry {
 
@@ -62,6 +65,30 @@ public class DistributedRpcFilterRegistry extends FilterRegistry {
         processUnregister(subscriber);
 
         String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER, subscriber));
+        messageHandler.push(subscribeMessage);
+    }
+
+    @Override
+    public void unregisterDevice(DeviceVO device) {
+        processUnregisterDevice(device);
+
+        String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER_DEVICE, device));
+        messageHandler.push(subscribeMessage);
+    }
+
+    @Override
+    public void unregisterNetwork(Long networkId, Collection<DeviceVO> devices) {
+        processUnregisterNetwork(networkId, devices);
+
+        String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER_NETWORK, devices, networkId, null));
+        messageHandler.push(subscribeMessage);
+    }
+
+    @Override
+    public void unregisterDeviceType(Long deviceTypeId, Collection<DeviceVO> devices) {
+        processUnregisterDeviceType(deviceTypeId, devices);
+
+        String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER_DEVICE_TYPE, devices, null, deviceTypeId));
         messageHandler.push(subscribeMessage);
     }
 }

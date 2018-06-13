@@ -20,27 +20,18 @@ package com.devicehive.service;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.DeviceTypeDao;
-import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.response.EntityCountResponse;
-import com.devicehive.model.rpc.CountDeviceTypeRequest;
-import com.devicehive.model.rpc.CountResponse;
-import com.devicehive.model.rpc.ListDeviceTypeRequest;
-import com.devicehive.model.rpc.ListDeviceTypeResponse;
-import com.devicehive.model.updates.DeviceTypeUpdate;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.model.rpc.*;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
-import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;
 import com.devicehive.vo.DeviceVO;
-import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +48,8 @@ import java.util.stream.Collectors;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class BaseDeviceTypeService {
@@ -135,5 +128,34 @@ public class BaseDeviceTypeService {
         rpcClient.call(Request.newBuilder().withBody(request).build(), new ResponseConsumer(future));
 
         return future.thenApply(r -> ((ListDeviceTypeResponse) r.getBody()).getDeviceTypes());
+    }
+
+    @Transactional
+    public CompletableFuture<Response> delete(long id, boolean force) {
+        logger.trace("About to execute named query \"DeviceType.deleteById\" for ");
+        DeviceTypeWithUsersAndDevicesVO deviceType = getWithDevices(id);
+        if (deviceType == null) {
+            logger.warn("Device type with id {} was not found", id);
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_NOT_FOUND, id), SC_NOT_FOUND);
+        }
+        if (!force && !deviceType.getDevices().isEmpty()) {
+            logger.warn("Failed to delete non-empty device type with id {}", id);
+            String deviceIds = deviceType.getDevices().stream().map(DeviceVO::getDeviceId).collect(Collectors.joining(", "));
+            throw new HiveException(String.format(Messages.DEVICE_TYPE_DELETION_NOT_ALLOWED, deviceIds), SC_BAD_REQUEST);
+        }
+        int result = deviceTypeDao.deleteById(id);
+        logger.debug("Deleted {} rows from DeviceType table", result);
+
+        DeviceTypeDeleteRequest deviceTypeDeleteRequest = new DeviceTypeDeleteRequest(id, deviceType.getDevices());
+
+        Request request = Request.newBuilder()
+                .withBody(deviceTypeDeleteRequest)
+                .build();
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(request, new ResponseConsumer(future));
+
+        return future;
     }
 }

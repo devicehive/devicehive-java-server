@@ -28,6 +28,8 @@ import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.devicehive.vo.DeviceVO;
 
+import java.util.Collection;
+
 /**
  * Central class for interaction with devicehive-backend subscription mechanism.
  * Provides basic interfaces and operations for subscription, unsubscription and publishing of events.
@@ -70,5 +72,13 @@ public class EventBus {
 
     public void unsubscribeDevice(DeviceVO device) {
          registry.unregisterDevice(device);
+    }
+
+    public void unsubscribeNetwork(Long networkId, Collection<DeviceVO> devices) {
+        registry.unregisterNetwork(networkId, devices);
+    }
+
+    public void unsubscribeDeviceType(Long deviceTypeId, Collection<DeviceVO> devices) {
+        registry.unregisterDeviceType(deviceTypeId, devices);
     }
 }
