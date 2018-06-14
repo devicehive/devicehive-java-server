@@ -26,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Collection;
 import java.util.Collections;
 
-public class SubscribeMessage {
+public class SubscriptionSyncMessage {
 
     @SerializedName("a")
     private int action;
@@ -46,25 +46,25 @@ public class SubscribeMessage {
     @SerializedName("dt")
     private Long deviceTypeId;
 
-    public SubscribeMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
+    public SubscriptionSyncMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
         this.action = action.getValue();
         this.filter = filter;
         this.subscriber = subscriber;
     }
 
-    public SubscribeMessage(SubscribeAction action, Subscriber subscriber) {
+    public SubscriptionSyncMessage(SubscribeAction action, Subscriber subscriber) {
         this.action = action.getValue();
         this.subscriber = subscriber;
     }
 
-    public SubscribeMessage(SubscribeAction action, Collection<DeviceVO> devices, Long networkId, Long deviceTypeId) {
+    public SubscriptionSyncMessage(SubscribeAction action, Collection<DeviceVO> devices, Long networkId, Long deviceTypeId) {
         this.action = action.getValue();
         this.devices = devices;
         this.networkId = networkId;
         this.deviceTypeId = deviceTypeId;
     }
 
-    public SubscribeMessage(SubscribeAction action, DeviceVO device) {
+    public SubscriptionSyncMessage(SubscribeAction action, DeviceVO device) {
         this.action = action.getValue();
         this.devices = Collections.singletonList(device);
     }

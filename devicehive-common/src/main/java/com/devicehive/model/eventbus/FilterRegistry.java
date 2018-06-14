@@ -112,23 +112,23 @@ public abstract class FilterRegistry {
     }
 
     protected void handleSubscriptionMessage(String message, Gson gson) {
-        SubscribeMessage subscribeMessage = gson.fromJson(message, SubscribeMessage.class);
+        SubscriptionSyncMessage syncMessage = gson.fromJson(message, SubscriptionSyncMessage.class);
 
-        switch (subscribeMessage.getAction()) {
+        switch (syncMessage.getAction()) {
             case REGISTER:
-                processRegister(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
+                processRegister(syncMessage.getFilter(), syncMessage.getSubscriber());
                 break;
             case UNREGISTER:
-                processUnregister(subscribeMessage.getSubscriber());
+                processUnregister(syncMessage.getSubscriber());
                 break;
             case UNREGISTER_DEVICE:
-                if (!subscribeMessage.getDevices().isEmpty()) processUnregisterDevice(subscribeMessage.getDevices().iterator().next());
+                if (!syncMessage.getDevices().isEmpty()) processUnregisterDevice(syncMessage.getDevices().iterator().next());
                 break;
             case UNREGISTER_NETWORK:
-                processUnregisterNetwork(subscribeMessage.getNetworkId(), subscribeMessage.getDevices());
+                processUnregisterNetwork(syncMessage.getNetworkId(), syncMessage.getDevices());
                 break;
             case UNREGISTER_DEVICE_TYPE:
-                processUnregisterDeviceType(subscribeMessage.getDeviceTypeId(), subscribeMessage.getDevices());
+                processUnregisterDeviceType(syncMessage.getDeviceTypeId(), syncMessage.getDevices());
         }
     }
 }

@@ -147,7 +147,6 @@ public class BaseNetworkService {
 
     @Transactional
     public CompletableFuture<Response> delete(long id, boolean force) {
-        logger.trace("About to execute named query \"Network.deleteById\" for ");
         NetworkWithUsersAndDevicesVO network = getWithDevices(id);
         if (network == null) {
             logger.warn("Network with id {} was not found", id);

@@ -132,7 +132,6 @@ public class BaseDeviceTypeService {
 
     @Transactional
     public CompletableFuture<Response> delete(long id, boolean force) {
-        logger.trace("About to execute named query \"DeviceType.deleteById\" for ");
         DeviceTypeWithUsersAndDevicesVO deviceType = getWithDevices(id);
         if (deviceType == null) {
             logger.warn("Device type with id {} was not found", id);
