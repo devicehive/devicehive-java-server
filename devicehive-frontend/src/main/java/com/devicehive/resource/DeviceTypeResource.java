@@ -255,12 +255,13 @@ public interface DeviceTypeResource {
             @ApiResponse(code = 403, message = "If principal doesn't have permissions"),
             @ApiResponse(code = 404, message = "If device type not found")
     })
-    Response delete(
+    void delete(
             @ApiParam(name = "id", value = "Device type identifier.", required = true)
             @PathParam("id")
                     long id,
             @ApiParam(name = "force", value = "Force deletion flag.", defaultValue = "false")
             @QueryParam("force")
-                    boolean force);
+                    boolean force,
+            @Suspended final AsyncResponse asyncResponse);
 
 }

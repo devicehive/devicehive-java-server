@@ -23,7 +23,7 @@ package com.devicehive.proxy.eventbus;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.FilterRegistry;
-import com.devicehive.model.eventbus.SubscribeMessage;
+import com.devicehive.model.eventbus.SubscriptionSyncMessage;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.MessagePayload;
@@ -31,13 +31,13 @@ import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
 import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.Gson;
 
 import java.util.*;
 
 import static com.devicehive.configuration.Constants.SUBSCRIPTION_TOPIC;
-import static com.devicehive.model.eventbus.SubscribeAction.REGISTER;
-import static com.devicehive.model.eventbus.SubscribeAction.UNREGISTER;
+import static com.devicehive.model.eventbus.SubscribeAction.*;
 
 public class DistributedProxyFilterRegistry extends FilterRegistry {
 
@@ -62,9 +62,9 @@ public class DistributedProxyFilterRegistry extends FilterRegistry {
     public void register(Filter filter, Subscriber subscriber) {
         processRegister(filter, subscriber);
 
-        String subscribeMessage = gson.toJson(new SubscribeMessage(REGISTER, filter, subscriber));
+        String syncMessage = gson.toJson(new SubscriptionSyncMessage(REGISTER, filter, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(
-                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, subscribeMessage))).thenAccept(message -> {
+                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, syncMessage))).thenAccept(message -> {
             if (message.getStatus() == null || message.getStatus() != 0) {
                 MessagePayload payload = (MessagePayload) message.getPayload();
                 throw new HiveException("Response message is failed: " + payload.getMessage());
@@ -76,9 +76,51 @@ public class DistributedProxyFilterRegistry extends FilterRegistry {
     public void unregister(Subscriber subscriber) {
         processUnregister(subscriber);
 
-        String subscribeMessage = gson.toJson(new SubscribeMessage(UNREGISTER, subscriber));
+        String syncMessage = gson.toJson(new SubscriptionSyncMessage(UNREGISTER, subscriber));
         proxyClient.push(ProxyMessageBuilder.notification(
-                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, subscribeMessage))).thenAccept(message -> {
+                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, syncMessage))).thenAccept(message -> {
+            if (message.getStatus() == null || message.getStatus() != 0) {
+                MessagePayload payload = (MessagePayload) message.getPayload();
+                throw new HiveException("Response message is failed: " + payload.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void unregisterDevice(DeviceVO device) {
+        processUnregisterDevice(device);
+
+        String syncMessage = gson.toJson(new SubscriptionSyncMessage(UNREGISTER_DEVICE, device));
+        proxyClient.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, syncMessage))).thenAccept(message -> {
+            if (message.getStatus() == null || message.getStatus() != 0) {
+                MessagePayload payload = (MessagePayload) message.getPayload();
+                throw new HiveException("Response message is failed: " + payload.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void unregisterNetwork(Long networkId, Collection<DeviceVO> devices) {
+        processUnregisterNetwork(networkId, devices);
+
+        String syncMessage = gson.toJson(new SubscriptionSyncMessage(UNREGISTER_NETWORK, devices, networkId, null));
+        proxyClient.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, syncMessage))).thenAccept(message -> {
+            if (message.getStatus() == null || message.getStatus() != 0) {
+                MessagePayload payload = (MessagePayload) message.getPayload();
+                throw new HiveException("Response message is failed: " + payload.getMessage());
+            }
+        });
+    }
+
+    @Override
+    public void unregisterDeviceType(Long deviceTypeId, Collection<DeviceVO> devices) {
+        processUnregisterDeviceType(deviceTypeId, devices);
+
+        String syncMessage = gson.toJson(new SubscriptionSyncMessage(UNREGISTER_DEVICE_TYPE, devices, null, deviceTypeId));
+        proxyClient.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(SUBSCRIPTION_TOPIC, syncMessage))).thenAccept(message -> {
             if (message.getStatus() == null || message.getStatus() != 0) {
                 MessagePayload payload = (MessagePayload) message.getPayload();
                 throw new HiveException("Response message is failed: " + payload.getMessage());

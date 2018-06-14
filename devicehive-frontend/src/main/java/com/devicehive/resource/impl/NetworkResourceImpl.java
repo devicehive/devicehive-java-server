@@ -147,15 +147,11 @@ public class NetworkResourceImpl implements NetworkResource {
      * {@inheritDoc}
      */
     @Override
-    public Response delete(long id, boolean force) {
+    public void delete(long id, boolean force, @Suspended final AsyncResponse asyncResponse) {
         logger.debug("Network delete requested");
-        boolean isDeleted = networkService.delete(id, force);
-        if (!isDeleted) {
-            logger.error(String.format(Messages.NETWORK_NOT_FOUND, id));
-            return ResponseFactory.response(NOT_FOUND,
-                    new ErrorResponse(NOT_FOUND.getStatusCode(), String.format(Messages.NETWORK_NOT_FOUND, id)));
-        }
-        logger.debug("Network with id = {} does not exists any more.", id);
-        return ResponseFactory.response(NO_CONTENT);
+        networkService.delete(id, force).thenApply(response -> {
+            logger.debug("Network with id = {} does not exists any more.", id);
+            return ResponseFactory.response(NO_CONTENT);
+        }).thenAccept(asyncResponse::resume);
     }
 }

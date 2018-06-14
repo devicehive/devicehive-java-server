@@ -1,17 +1,17 @@
-package com.devicehive.messages.handler.dao.list;
+package com.devicehive.messages.handler.deletion;
 
 /*
  * #%L
- * DeviceHive Backend Logic
+ * DeviceHive Common Module
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,10 @@ package com.devicehive.messages.handler.dao.list;
  * #L%
  */
 
-import com.devicehive.dao.DeviceDao;
-import com.devicehive.model.rpc.ListDeviceRequest;
-import com.devicehive.model.rpc.ListDeviceResponse;
+
+import com.devicehive.eventbus.EventBus;
+import com.devicehive.model.rpc.NetworkDeleteRequest;
+import com.devicehive.model.rpc.NetworkDeleteResponse;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -30,29 +31,28 @@ import com.devicehive.vo.DeviceVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 
 @Component
-public class ListDeviceHandler implements RequestHandler {
+public class NetworkDeleteHandler implements RequestHandler {
 
-    private DeviceDao deviceDao;
-
+    private EventBus eventBus;
     @Autowired
-    public void setDeviceDao(DeviceDao deviceDao) {
-        this.deviceDao = deviceDao;
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
     }
 
     @Override
     public Response handle(Request request) {
+        final NetworkDeleteRequest req = (NetworkDeleteRequest) request.getBody();
+        final Long networkId = req.getNetworkId();
+        final Set<DeviceVO> devices = req.getDevices();
 
-        final ListDeviceRequest req = (ListDeviceRequest) request.getBody();
-
-        final List<DeviceVO> devices = deviceDao.list(req.getName(), req.getNamePattern(), req.getNetworkId(),
-                req.getNetworkName(), null, req.getSortField(), req.isSortOrderAsc(), req.getTake(), req.getSkip(),
-                req.getPrincipal());
+        eventBus.unsubscribeNetwork(networkId, devices);
 
         return Response.newBuilder()
-                .withBody(new ListDeviceResponse(devices))
+                .withBody(new NetworkDeleteResponse())
+                .withCorrelationId(request.getCorrelationId())
                 .buildSuccess();
     }
 }

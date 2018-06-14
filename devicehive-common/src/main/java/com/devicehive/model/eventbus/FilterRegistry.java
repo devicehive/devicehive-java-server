@@ -43,6 +43,12 @@ public abstract class FilterRegistry {
 
     public abstract void unregister(Subscriber subscriber);
 
+    public abstract void unregisterDevice(DeviceVO device);
+
+    public abstract void unregisterNetwork(Long networkId, Collection<DeviceVO> devices);
+
+    public abstract void unregisterDeviceType(Long deviceTypeId, Collection<DeviceVO> devices);
+
     protected synchronized void processRegister(Filter filter, Subscriber subscriber) {
         Set<Subscriber> subscribers = subscriberTable.get(filter.getFirstKey(), filter.getSecondKey());
         if (subscribers == null) {
@@ -67,6 +73,27 @@ public abstract class FilterRegistry {
         });
     }
 
+    protected synchronized void processUnregisterDevice(DeviceVO device) {
+        final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId());
+        subscriberTable.row(deviceFilter.getFirstKey()).clear();
+    }
+
+    protected synchronized void processUnregisterNetwork(Long networkId, Collection<DeviceVO> devices) {
+        // Removing subscription on particular network
+        final Filter networkFilter = new Filter(networkId, null, null);
+        subscriberTable.row(networkFilter.getFirstKey()).clear();
+        // Removing subscription on all network's devices
+        devices.forEach(this::processUnregisterDevice);
+    }
+
+    protected synchronized void processUnregisterDeviceType(Long deviceTypeId, Collection<DeviceVO> devices) {
+        // Removing subscription on particular device type
+        final Filter deviceTypeFilter = new Filter(null, deviceTypeId, null);
+        subscriberTable.row(deviceTypeFilter.getFirstKey()).clear();
+        // Removing subscription on all device type's devices
+        devices.forEach(this::processUnregisterDevice);
+    }
+
     public Collection<Subscriber> getSubscribers(Filter filter) {
         Set<Subscriber> subscribers = new HashSet<>();
         Set<Subscriber> globalFilterSubscribers = subscriberTable.get("*,*,*", filter.getSecondKey());
@@ -84,21 +111,24 @@ public abstract class FilterRegistry {
         return subscribers;
     }
 
-    public void unregisterDevice(DeviceVO device) {
-        final Filter deviceFilter = new Filter(device.getNetworkId(), device.getDeviceTypeId(), device.getDeviceId(), null, null);
-        subscriberTable.row(deviceFilter.getFirstKey()).clear();
-    }
-
     protected void handleSubscriptionMessage(String message, Gson gson) {
-        SubscribeMessage subscribeMessage = gson.fromJson(message, SubscribeMessage.class);
+        SubscriptionSyncMessage syncMessage = gson.fromJson(message, SubscriptionSyncMessage.class);
 
-        switch (subscribeMessage.getAction()) {
+        switch (syncMessage.getAction()) {
             case REGISTER:
-                processRegister(subscribeMessage.getFilter(), subscribeMessage.getSubscriber());
+                processRegister(syncMessage.getFilter(), syncMessage.getSubscriber());
                 break;
             case UNREGISTER:
-                processUnregister(subscribeMessage.getSubscriber());
+                processUnregister(syncMessage.getSubscriber());
                 break;
+            case UNREGISTER_DEVICE:
+                if (!syncMessage.getDevices().isEmpty()) processUnregisterDevice(syncMessage.getDevices().iterator().next());
+                break;
+            case UNREGISTER_NETWORK:
+                processUnregisterNetwork(syncMessage.getNetworkId(), syncMessage.getDevices());
+                break;
+            case UNREGISTER_DEVICE_TYPE:
+                processUnregisterDeviceType(syncMessage.getDeviceTypeId(), syncMessage.getDevices());
         }
     }
 }

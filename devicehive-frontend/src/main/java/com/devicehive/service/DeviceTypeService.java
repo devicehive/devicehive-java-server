@@ -67,20 +67,6 @@ public class DeviceTypeService extends BaseDeviceTypeService {
     }
 
     @Transactional
-    public boolean delete(long id, boolean force) {
-        logger.trace("About to execute named query \"DeviceType.deleteById\" for ");
-        DeviceTypeWithUsersAndDevicesVO deviceType = getWithDevices(id);
-        if (!force && deviceType != null && !deviceType.getDevices().isEmpty()) {
-            logger.warn("Failed to delete non-empty device type with id {}", id);
-            String deviceIds = deviceType.getDevices().stream().map(DeviceVO::getDeviceId).collect(Collectors.joining(", "));
-            throw new HiveException(String.format(Messages.DEVICE_TYPE_DELETION_NOT_ALLOWED, deviceIds), SC_BAD_REQUEST);
-        }
-        int result = deviceTypeDao.deleteById(id);
-        logger.debug("Deleted {} rows from DeviceType table", result);
-        return result > 0;
-    }
-
-    @Transactional
     public DeviceTypeVO create(DeviceTypeVO newDeviceType) {
         hiveValidator.validate(newDeviceType);
         logger.debug("Creating device type {}", newDeviceType);

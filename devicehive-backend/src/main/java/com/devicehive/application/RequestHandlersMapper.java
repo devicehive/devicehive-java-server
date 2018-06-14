@@ -21,12 +21,14 @@ package com.devicehive.application;
  */
 
 import com.devicehive.api.HandlersMapper;
-import com.devicehive.messages.handler.DeviceDeleteHandler;
+import com.devicehive.messages.handler.deletion.DeviceDeleteHandler;
 import com.devicehive.messages.handler.PluginSubscribeRequestHandler;
 import com.devicehive.messages.handler.PluginUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.command.*;
 import com.devicehive.messages.handler.dao.count.*;
 import com.devicehive.messages.handler.dao.list.*;
+import com.devicehive.messages.handler.deletion.DeviceTypeDeleteHandler;
+import com.devicehive.messages.handler.deletion.NetworkDeleteHandler;
 import com.devicehive.messages.handler.notification.NotificationSubscribeRequestHandler;
 import com.devicehive.messages.handler.command.CommandUnsubscribeRequestHandler;
 import com.devicehive.messages.handler.notification.NotificationInsertHandler;
@@ -64,6 +66,8 @@ public class RequestHandlersMapper implements HandlersMapper {
     private final ListDeviceHandler listDeviceHandler;
     private final CountDeviceHandler countDeviceHandler;
     private final DeviceDeleteHandler deviceDeleteHandler;
+    private final NetworkDeleteHandler networkDeleteHandler;
+    private final DeviceTypeDeleteHandler deviceTypeDeleteHandler;
     private final PluginSubscribeRequestHandler pluginSubscribeRequestHandler;
     private final PluginUnsubscribeRequestHandler pluginUnsubscribeRequestHandler;
     private final ListPluginHandler listPluginHandler;
@@ -86,6 +90,8 @@ public class RequestHandlersMapper implements HandlersMapper {
                                  ListNetworkHandler listNetworkHandler,
                                  ListDeviceTypeHandler listDeviceTypeHandler,
                                  DeviceDeleteHandler deviceDeleteHandler,
+                                 NetworkDeleteHandler networkDeleteHandler,
+                                 DeviceTypeDeleteHandler deviceTypeDeleteHandler,
                                  CommandSubscribeRequestHandler commandSubscribeRequestHandler,
                                  CommandUnsubscribeRequestHandler commandUnsubscribeRequestHandler,
                                  CommandUpdateSubscribeRequestHandler commandUpdateSubscribeRequestHandler,
@@ -110,6 +116,8 @@ public class RequestHandlersMapper implements HandlersMapper {
         this.listNetworkHandler = listNetworkHandler;
         this.listDeviceTypeHandler = listDeviceTypeHandler;
         this.deviceDeleteHandler = deviceDeleteHandler;
+        this.networkDeleteHandler = networkDeleteHandler;
+        this.deviceTypeDeleteHandler = deviceTypeDeleteHandler;
         this.commandSubscribeRequestHandler = commandSubscribeRequestHandler;
         this.commandUnsubscribeRequestHandler = commandUnsubscribeRequestHandler;
         this.commandUpdateSubscribeRequestHandler = commandUpdateSubscribeRequestHandler;
@@ -148,6 +156,8 @@ public class RequestHandlersMapper implements HandlersMapper {
                 .put(Action.LIST_DEVICE_REQUEST, listDeviceHandler)
                 .put(Action.COUNT_DEVICE_REQUEST, countDeviceHandler)
                 .put(Action.DEVICE_DELETE_REQUEST, deviceDeleteHandler)
+                .put(Action.NETWORK_DELETE_REQUEST, networkDeleteHandler)
+                .put(Action.DEVICE_TYPE_DELETE_REQUEST, deviceTypeDeleteHandler)
                 .put(Action.LIST_PLUGIN_REQUEST, listPluginHandler)
                 .put(Action.COUNT_PLUGIN_REQUEST, countPluginHandler)
                 .build();

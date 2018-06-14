@@ -1,10 +1,10 @@
-package com.devicehive.model.eventbus;
+package com.devicehive.model.rpc;
 
 /*
  * #%L
- * DeviceHive Backend Logic
+ * DeviceHive Common Module
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,24 +20,12 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
-public enum SubscribeAction {
-    REGISTER(0),
-    UNREGISTER(1),
-    UNREGISTER_DEVICE(2),
-    UNREGISTER_NETWORK(3),
-    UNREGISTER_DEVICE_TYPE(4);
+import com.devicehive.shim.api.Action;
+import com.devicehive.shim.api.Body;
 
-    private int value;
+public class DeviceTypeDeleteResponse extends Body {
 
-    SubscribeAction(int value) {
-        this.value = value;
-    }
-
-    public int getValue() {
-        return this.value;
-    }
-
-    public static SubscribeAction getValueForIndex(int index){
-        return values()[index];
+    public DeviceTypeDeleteResponse() {
+        super(Action.DEVICE_TYPE_DELETE_RESPONSE);
     }
 }

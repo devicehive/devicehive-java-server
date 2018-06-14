@@ -20,9 +20,13 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
+import com.devicehive.vo.DeviceVO;
 import com.google.gson.annotations.SerializedName;
 
-public class SubscribeMessage {
+import java.util.Collection;
+import java.util.Collections;
+
+public class SubscriptionSyncMessage {
 
     @SerializedName("a")
     private int action;
@@ -33,15 +37,36 @@ public class SubscribeMessage {
     @SerializedName("s")
     private Subscriber subscriber;
 
-    public SubscribeMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
+    @SerializedName("d")
+    private Collection<DeviceVO> devices;
+
+    @SerializedName("n")
+    private Long networkId;
+
+    @SerializedName("dt")
+    private Long deviceTypeId;
+
+    public SubscriptionSyncMessage(SubscribeAction action, Filter filter, Subscriber subscriber) {
         this.action = action.getValue();
         this.filter = filter;
         this.subscriber = subscriber;
     }
 
-    public SubscribeMessage(SubscribeAction action, Subscriber subscriber) {
+    public SubscriptionSyncMessage(SubscribeAction action, Subscriber subscriber) {
         this.action = action.getValue();
         this.subscriber = subscriber;
+    }
+
+    public SubscriptionSyncMessage(SubscribeAction action, Collection<DeviceVO> devices, Long networkId, Long deviceTypeId) {
+        this.action = action.getValue();
+        this.devices = devices;
+        this.networkId = networkId;
+        this.deviceTypeId = deviceTypeId;
+    }
+
+    public SubscriptionSyncMessage(SubscribeAction action, DeviceVO device) {
+        this.action = action.getValue();
+        this.devices = Collections.singletonList(device);
     }
 
     public SubscribeAction getAction() {
@@ -66,5 +91,29 @@ public class SubscribeMessage {
 
     public void setSubscriber(Subscriber subscriber) {
         this.subscriber = subscriber;
+    }
+
+    public Collection<DeviceVO> getDevices() {
+        return devices;
+    }
+
+    public void setDevices(Collection<DeviceVO> devices) {
+        this.devices = devices;
+    }
+
+    public Long getNetworkId() {
+        return networkId;
+    }
+
+    public void setNetworkId(Long networkId) {
+        this.networkId = networkId;
+    }
+
+    public Long getDeviceTypeId() {
+        return deviceTypeId;
+    }
+
+    public void setDeviceTypeId(Long deviceTypeId) {
+        this.deviceTypeId = deviceTypeId;
     }
 }

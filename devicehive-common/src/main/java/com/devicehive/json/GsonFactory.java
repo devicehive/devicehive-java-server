@@ -122,6 +122,12 @@ public class GsonFactory {
                 .registerSubtype(DeviceDeleteRequest.class, Action.DEVICE_DELETE_REQUEST.ordinal())
                 .registerSubtype(DeviceDeleteResponse.class, Action.DEVICE_DELETE_RESPONSE.ordinal())
 
+                .registerSubtype(NetworkDeleteRequest.class, Action.NETWORK_DELETE_REQUEST.ordinal())
+                .registerSubtype(NetworkDeleteResponse.class, Action.NETWORK_DELETE_RESPONSE.ordinal())
+
+                .registerSubtype(DeviceTypeDeleteRequest.class, Action.DEVICE_TYPE_DELETE_REQUEST.ordinal())
+                .registerSubtype(DeviceTypeDeleteResponse.class, Action.DEVICE_TYPE_DELETE_RESPONSE.ordinal())
+
                 .registerSubtype(CountResponse.class, Action.COUNT_RESPONSE.ordinal());
 
         return new GsonBuilder()

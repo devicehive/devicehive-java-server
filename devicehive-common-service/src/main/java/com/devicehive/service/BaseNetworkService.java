@@ -26,9 +26,9 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
+import com.devicehive.model.rpc.NetworkDeleteRequest;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -55,6 +55,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
@@ -63,6 +64,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
@@ -144,17 +146,31 @@ public class BaseNetworkService {
     }
 
     @Transactional
-    public boolean delete(long id, boolean force) {
-        logger.trace("About to execute named query \"Network.deleteById\" for ");
+    public CompletableFuture<Response> delete(long id, boolean force) {
         NetworkWithUsersAndDevicesVO network = getWithDevices(id);
-        if (!force && network != null && !network.getDevices().isEmpty()) {
+        if (network == null) {
+            logger.warn("Network with id {} was not found", id);
+            throw new HiveException(String.format(Messages.NETWORK_NOT_FOUND, id), SC_NOT_FOUND);
+        }
+        if (!force && !network.getDevices().isEmpty()) {
             logger.warn("Failed to delete non-empty network with id {}", id);
             String deviceIds = network.getDevices().stream().map(DeviceVO::getDeviceId).collect(Collectors.joining(", "));
             throw new HiveException(String.format(Messages.NETWORK_DELETION_NOT_ALLOWED, deviceIds), SC_BAD_REQUEST);
         }
         int result = networkDao.deleteById(id);
         logger.debug("Deleted {} rows from Network table", result);
-        return result > 0;
+
+        NetworkDeleteRequest networkDeleteRequest = new NetworkDeleteRequest(id, network.getDevices());
+
+        Request request = Request.newBuilder()
+                .withBody(networkDeleteRequest)
+                .build();
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        rpcClient.call(request, new ResponseConsumer(future));
+
+        return future;
     }
 
     public CompletableFuture<List<NetworkVO>> list(String name,

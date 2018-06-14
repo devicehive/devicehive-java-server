@@ -574,11 +574,10 @@ public class FrontendSmokeTest extends AbstractResourceTest {
         final HivePrincipal principal = new HivePrincipal(user);
         SecurityContextHolder.getContext().setAuthentication(new HiveAuthentication(principal));
 
-        boolean deleted = networkService.delete(created.getId(), true);
-        assertTrue(deleted);
-
-        created = networkDao.find(created.getId());
-        assertThat(created, Matchers.nullValue());
+        networkService.delete(created.getId(), true).thenAccept(response -> {
+            NetworkVO deleted = networkDao.find(created.getId());
+            assertThat(deleted, Matchers.nullValue());
+        });
     }
 
     @Test
