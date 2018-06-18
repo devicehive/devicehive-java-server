@@ -26,6 +26,8 @@ import com.hazelcast.hibernate.local.TimestampsRegionCache;
 import com.hazelcast.hibernate.serialization.Expirable;
 import com.hazelcast.hibernate.serialization.Value;
 
+// Fix for issues described in https://github.com/hazelcast/hazelcast/issues/13271 and https://github.com/hazelcast/hazelcast-hibernate5/issues/33
+// Monitor when either of those are fixed, after that we should remove this and DhLocalCacheRegionFactory
 public class DhTimestampsRegionCache extends TimestampsRegionCache {
 
     public DhTimestampsRegionCache(String name, HazelcastInstance hazelcastInstance) {
@@ -41,7 +43,7 @@ public class DhTimestampsRegionCache extends TimestampsRegionCache {
             ts = new Timestamp(ts.getKey(), System.currentTimeMillis());
         }
 
-        for (; ; ) {
+        while (true) {
             final Expirable value = cache.get(key);
             final Long current = value != null ? (Long) value.getValue() : null;
             if (current != null) {

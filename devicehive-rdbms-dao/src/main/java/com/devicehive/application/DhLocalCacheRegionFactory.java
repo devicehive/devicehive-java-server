@@ -28,6 +28,8 @@ import org.hibernate.cache.spi.TimestampsRegion;
 
 import java.util.Properties;
 
+// Fix for issues described in https://github.com/hazelcast/hazelcast/issues/13271 and https://github.com/hazelcast/hazelcast-hibernate5/issues/33
+// Monitor when either of those are fixed, after that we should remove this and DhTimestampsRegionaCache
 public class DhLocalCacheRegionFactory extends HazelcastLocalCacheRegionFactory {
 
     @Override
