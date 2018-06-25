@@ -99,7 +99,7 @@ fi
 
 echo "Starting DeviceHive frontend"
 java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -jar \
--Dcom.devicehive.log.level="${DH_LOG_LEVEL:-WARN}" \
+-Dcom.devicehive.log.level="${DH_LOG_LEVEL:-INFO}" \
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \

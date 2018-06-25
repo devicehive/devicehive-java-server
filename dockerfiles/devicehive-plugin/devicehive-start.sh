@@ -99,7 +99,7 @@ fi
 
 echo "Starting DeviceHive plugin"
 java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -jar \
--Dcom.devicehive.log.level="${DH_LOG_LEVEL:-WARN}" \
+-Dcom.devicehive.log.level="${DH_LOG_LEVEL:-INFO}" \
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
