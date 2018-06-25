@@ -98,13 +98,13 @@ fi
 
 echo "Starting DeviceHive backend"
 java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -jar \
--Dcom.devicehive.log.level="${DH_LOG_LEVEL:-WARN}" \
+-Dcom.devicehive.log.level="${DH_LOG_LEVEL:-INFO}" \
 -Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
 -Dhazelcast.group.name="${HC_GROUP_NAME}" \
 -Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
 -Dproxy.connect="${DH_WS_PROXY:-localhost:3000}" \
 -Dproxy.worker.threads="${DH_WS_PROXY_BE_THREADS:-3}" \
--Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
+-Droot.log.level="${ROOT_LOG_LEVEL:-INFO}" \
 -Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT}/${DH_POSTGRES_DB}" \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
