@@ -180,6 +180,10 @@ public class BaseUserService {
         if (user.getAllDeviceTypesAvailable() == null) {
             user.setAllDeviceTypesAvailable(true);
         }
+
+        if (user.getAgreedToPersonalDataCollection() == null) {
+            user.setAgreedToPersonalDataCollection(false);
+        }
         userDao.persist(user);
         return user;
     }

@@ -168,6 +168,10 @@ public class UserService extends BaseUserService {
             existing.setIntroReviewed(userToUpdate.getIntroReviewed().get());
         }
 
+        if (userToUpdate.getAgreedToPersonalDataCollection().isPresent()) {
+            existing.setAgreedToPersonalDataCollection(userToUpdate.getAgreedToPersonalDataCollection().get());
+        }
+
         hiveValidator.validate(existing);
         return userDao.merge(existing);
     }
