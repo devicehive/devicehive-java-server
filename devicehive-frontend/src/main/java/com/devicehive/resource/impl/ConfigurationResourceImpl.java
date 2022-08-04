@@ -9,9 +9,9 @@ package com.devicehive.resource.impl;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,17 +23,15 @@ package com.devicehive.resource.impl;
 
 import com.devicehive.model.ErrorResponse;
 import com.devicehive.model.updates.ConfigurationUpdate;
+import com.devicehive.resource.ConfigurationResource;
 import com.devicehive.resource.util.ResponseFactory;
 import com.devicehive.service.configuration.ConfigurationService;
-import com.devicehive.resource.ConfigurationResource;
 import com.devicehive.util.HiveValidator;
 import com.devicehive.vo.ConfigurationVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
-
 import java.util.Optional;
 
 import static com.devicehive.configuration.Messages.CONFIG_NOT_FOUND;
@@ -46,9 +44,6 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
 
     private final ConfigurationService configurationService;
     private final HiveValidator hiveValidator;
-
-    @Value("${server.context-path}")
-    private String contextPath;
 
     @Autowired
     public ConfigurationResourceImpl(ConfigurationService configurationService, HiveValidator hiveValidator) {
@@ -69,7 +64,7 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
     @Override
     public Response updateProperty(String name, ConfigurationUpdate configurationUpdate) {
         hiveValidator.validate(configurationUpdate);
-        
+
         return ResponseFactory.response(OK, configurationService.save(name, configurationUpdate.getValue()));
     }
 
@@ -81,7 +76,7 @@ public class ConfigurationResourceImpl implements ConfigurationResource {
                     String.format(CONFIG_NOT_FOUND, name));
             return ResponseFactory.response(NOT_FOUND, errorResponseEntity);
         }
-        
+
         return ResponseFactory.response(NO_CONTENT);
     }
 

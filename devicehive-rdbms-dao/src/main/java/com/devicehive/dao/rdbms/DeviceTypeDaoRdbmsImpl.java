@@ -112,12 +112,12 @@ public class DeviceTypeDaoRdbmsImpl extends RdbmsGenericDao implements DeviceTyp
     }
 
     @Override
-    public List<DeviceTypeVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, Optional<HivePrincipal> principal) {
+    public List<DeviceTypeVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         CriteriaBuilder cb = criteriaBuilder();
         CriteriaQuery<DeviceType> criteria = cb.createQuery(DeviceType.class);
         Root<DeviceType> from = criteria.from(DeviceType.class);
 
-        Predicate[] nameAndPrincipalPredicates = CriteriaHelper.deviceTypeListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), principal);
+        Predicate[] nameAndPrincipalPredicates = CriteriaHelper.deviceTypeListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(principal));
         criteria.where(nameAndPrincipalPredicates);
 
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);
@@ -132,13 +132,13 @@ public class DeviceTypeDaoRdbmsImpl extends RdbmsGenericDao implements DeviceTyp
     }
 
     @Override
-    public long count(String name, String namePattern, Optional<HivePrincipal> principal) {
+    public long count(String name, String namePattern, HivePrincipal principal) {
         CriteriaBuilder cb = criteriaBuilder();
         CriteriaQuery<Long> criteria = cb.createQuery(Long.class);
         Root<DeviceType> from = criteria.from(DeviceType.class);
 
         Predicate[] nameAndPrincipalPredicates = CriteriaHelper.deviceTypeListPredicates(cb, from,
-                ofNullable(name), ofNullable(namePattern), principal);
+                ofNullable(name), ofNullable(namePattern), ofNullable(principal));
 
         criteria.where(nameAndPrincipalPredicates);
         criteria.select(cb.count(from));

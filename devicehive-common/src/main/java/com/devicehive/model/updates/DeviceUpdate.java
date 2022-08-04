@@ -30,7 +30,10 @@ import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.Size;
 import java.util.Optional;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
 
 public class DeviceUpdate implements HiveEntity {
 

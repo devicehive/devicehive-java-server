@@ -29,7 +29,12 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 public class NetworkVO implements HiveEntity {
     private static final long serialVersionUID = 5886552731360731804L;

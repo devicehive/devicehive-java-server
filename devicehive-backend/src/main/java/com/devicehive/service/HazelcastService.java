@@ -9,9 +9,9 @@ package com.devicehive.service;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,18 +24,24 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.HazelcastEntity;
 import com.devicehive.model.HazelcastEntityComparator;
+import com.devicehive.model.HiveEntity;
 import com.devicehive.service.helpers.HazelcastHelper;
+import com.hazelcast.config.IndexType;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.query.PagingPredicate;
+import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicate;
+import com.hazelcast.query.impl.predicates.PagingPredicateImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static com.devicehive.model.enums.SearchableField.LAST_UPDATED;
 import static com.devicehive.model.enums.SearchableField.TIMESTAMP;
@@ -51,7 +57,7 @@ public class HazelcastService {
 
     private final HazelcastHelper hazelcastHelper;
 
-    private Map<Class, IMap<String, HazelcastEntity>> mapsHolder = new HashMap<>(2);
+    private final Map<Class<? extends HiveEntity>, IMap<String, HazelcastEntity>> mapsHolder = new HashMap<>(2);
 
     @Autowired
     public HazelcastService(HazelcastInstance hazelcastClient, HazelcastHelper hazelcastHelper) {
@@ -62,12 +68,15 @@ public class HazelcastService {
     @PostConstruct
     protected void init() {
         final IMap<String, HazelcastEntity> notificationsMap = hazelcastClient.getMap(NOTIFICATIONS_MAP);
-        notificationsMap.addIndex(TIMESTAMP.getField(), true);
+        //notificationsMap.addIndex(TIMESTAMP.getField(), true);
+        notificationsMap.addIndex(IndexType.HASH, TIMESTAMP.getField());
 
         final IMap<String, HazelcastEntity> commandsMap = hazelcastClient.getMap(COMMANDS_MAP);
-        commandsMap.addIndex(TIMESTAMP.getField(), true);
-        commandsMap.addIndex(LAST_UPDATED.getField(), true);
-        
+        //commandsMap.addIndex(TIMESTAMP.getField(), true);
+        //commandsMap.addIndex(LAST_UPDATED.getField(), true);
+        commandsMap.addIndex(IndexType.HASH, TIMESTAMP.getField());
+        commandsMap.addIndex(IndexType.HASH, LAST_UPDATED.getField());
+
         mapsHolder.put(DeviceNotification.class, notificationsMap);
         mapsHolder.put(DeviceCommand.class, commandsMap);
     }
@@ -91,8 +100,8 @@ public class HazelcastService {
                                                           boolean returnUpdated,
                                                           String status,
                                                           Class<T> entityClass) {
-        final Predicate filters = hazelcastHelper.prepareFilters(deviceIds,  names, timestampSt, timestampEnd,
-               returnUpdated, status, entityClass);
+        final Predicate filters = hazelcastHelper.prepareFilters(deviceIds, names, timestampSt, timestampEnd,
+                returnUpdated, status, entityClass);
         return find(filters, take, entityClass);
     }
 
@@ -119,7 +128,7 @@ public class HazelcastService {
     @SuppressWarnings("unchecked")
     private <T extends HazelcastEntity> Collection<T> find(Predicate predicate, int pageSize, Class<T> tClass) {
         final Predicate pagingPredicate = (pageSize > 0)
-                ? new PagingPredicate(predicate, new HazelcastEntityComparator(), pageSize)
+                ? new PagingPredicateImpl(predicate, new HazelcastEntityComparator(), pageSize)
                 : predicate;
         return (Collection<T>) mapsHolder.get(tClass).values(pagingPredicate);
     }

@@ -21,7 +21,10 @@ package com.devicehive.websockets;
  */
 
 import com.devicehive.configuration.Messages;
-import com.devicehive.exceptions.*;
+import com.devicehive.exceptions.ActionNotAllowedException;
+import com.devicehive.exceptions.HiveException;
+import com.devicehive.exceptions.IllegalParametersException;
+import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.json.GsonFactory;
 import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.SubscriptionInfo;
@@ -42,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.TextMessage;
@@ -62,7 +64,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
-@Component
 public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(DeviceHiveWebSocketHandler.class);

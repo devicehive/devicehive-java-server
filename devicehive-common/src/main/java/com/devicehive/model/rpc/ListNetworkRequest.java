@@ -41,7 +41,7 @@ public class ListNetworkRequest extends Body {
     private String sortOrder;
     private Integer take;
     private Integer skip;
-    private Optional<HivePrincipal> principal;
+    private HivePrincipal principal;
 
     public ListNetworkRequest() {
         super(Action.LIST_NETWORK_REQUEST);
@@ -110,11 +110,11 @@ public class ListNetworkRequest extends Body {
         this.skip = skip;
     }
 
-    public Optional<HivePrincipal> getPrincipal() {
+    public HivePrincipal getPrincipal() {
         return principal;
     }
 
-    public void setPrincipal(Optional<HivePrincipal> principal) {
+    public void setPrincipal(HivePrincipal principal) {
         this.principal = principal;
     }
 }

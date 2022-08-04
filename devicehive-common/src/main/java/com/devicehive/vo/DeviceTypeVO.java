@@ -28,7 +28,12 @@ import io.swagger.annotations.ApiModelProperty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPES_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 public class DeviceTypeVO implements HiveEntity {
 

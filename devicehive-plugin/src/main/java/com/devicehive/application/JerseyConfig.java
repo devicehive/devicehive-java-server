@@ -21,27 +21,33 @@ package com.devicehive.application;
  */
 
 import com.devicehive.application.filter.ContentTypeFilter;
-import com.devicehive.resource.impl.*;
+import com.devicehive.resource.exceptions.AccessDeniedExceptionMapper;
+import com.devicehive.resource.exceptions.ActionNotAllowedExceptionMapper;
+import com.devicehive.resource.exceptions.AllExceptionMapper;
+import com.devicehive.resource.exceptions.BadCredentialsExceptionMapper;
+import com.devicehive.resource.exceptions.ConstraintViolationExceptionMapper;
+import com.devicehive.resource.exceptions.HibernateConstraintViolationsMapper;
+import com.devicehive.resource.exceptions.HiveExceptionMapper;
+import com.devicehive.resource.exceptions.IllegalParametersExceptionMapper;
+import com.devicehive.resource.exceptions.InvalidPrincipalExceptionMapper;
+import com.devicehive.resource.exceptions.JsonParseExceptionMapper;
+import com.devicehive.resource.exceptions.NoSuchElementExceptionMapper;
+import com.devicehive.resource.exceptions.OptimisticLockExceptionMapper;
+import com.devicehive.resource.exceptions.PersistenceExceptionMapper;
+import com.devicehive.resource.impl.PluginApiInfoResourceImpl;
+import com.devicehive.resource.impl.PluginResourceImpl;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.spring.scope.RequestContextFilter;
-import org.reflections.Reflections;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.ext.Provider;
-
 @Component
-@ApplicationPath(JerseyConfig.REST_PATH)
 public class JerseyConfig extends ResourceConfig {
-    public static final String REST_PATH = "/rest";
 
     public JerseyConfig() {
-        scan("com.devicehive.resource.converters",
-                "com.devicehive.resource.exceptions",
-                "com.devicehive.resource.filter");
-
         registerClasses(PluginApiInfoResourceImpl.class,
                 PluginResourceImpl.class);
 
@@ -51,14 +57,23 @@ public class JerseyConfig extends ResourceConfig {
         register(LoggingFeature.class);
         register(ContentTypeFilter.class);
 
-        register(io.swagger.jaxrs.listing.ApiListingResource.class);
-        register(io.swagger.jaxrs.listing.SwaggerSerializers.class);
-    }
+        registerClasses(
+                AccessDeniedExceptionMapper.class,
+                ActionNotAllowedExceptionMapper.class,
+                AllExceptionMapper.class,
+                BadCredentialsExceptionMapper.class,
+                ConstraintViolationExceptionMapper.class,
+                HibernateConstraintViolationsMapper.class,
+                HiveExceptionMapper.class,
+                IllegalParametersExceptionMapper.class,
+                InvalidPrincipalExceptionMapper.class,
+                JsonParseExceptionMapper.class,
+                NoSuchElementExceptionMapper.class,
+                OptimisticLockExceptionMapper.class,
+                PersistenceExceptionMapper.class
+        );
 
-    private void scan(String... packages) {
-        for (String pack : packages) {
-            Reflections reflections = new Reflections(pack);
-            reflections.getTypesAnnotatedWith(Provider.class).forEach(this::register);
-        }
+        register(ApiListingResource.class);
+        register(SwaggerSerializers.class);
     }
 }

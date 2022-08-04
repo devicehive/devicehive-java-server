@@ -1,8 +1,8 @@
-FROM openjdk:8u162-jre-slim
+FROM openjdk:17.0.2-slim
 
 MAINTAINER devicehive
 
-ENV DH_VERSION="3.5.0"
+ENV DH_VERSION="4.0.0"
 
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \

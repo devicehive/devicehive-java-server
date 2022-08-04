@@ -24,7 +24,6 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.service.HazelcastService;
-import com.devicehive.service.helpers.CommandResponseFilterAndSort;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -37,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import static com.devicehive.service.helpers.CommandResponseFilterAndSort.buildDeviceNotificationComparator;
 import static com.devicehive.service.helpers.CommandResponseFilterAndSort.getTotal;

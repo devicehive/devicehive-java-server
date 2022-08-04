@@ -20,7 +20,6 @@ package com.devicehive.application.filter;
  * #L%
  */
 
-import com.devicehive.application.JerseyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +46,9 @@ public class SwaggerFilter extends OncePerRequestFilter {
 
     @Value("${swagger.port:80}")
     private String swaggerPort;
+
+    @Value("${spring.jersey.application-path}")
+    private String jerseyContextPath;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -75,7 +77,7 @@ public class SwaggerFilter extends OncePerRequestFilter {
                 requestUrl.getHost(),
                 swaggerPort,
                 request.getContextPath(),
-                JerseyConfig.REST_PATH);
+                jerseyContextPath);
         String url = request.getContextPath() + "/swagger.html?url=" + swaggerJsonUrl;
 
         logger.debug("Request is being redirected to '{}'", url);

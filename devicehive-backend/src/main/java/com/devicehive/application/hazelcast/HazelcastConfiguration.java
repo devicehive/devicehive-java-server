@@ -9,9 +9,9 @@ package com.devicehive.application.hazelcast;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,9 +21,7 @@ package com.devicehive.application.hazelcast;
  */
 
 import com.devicehive.model.DevicePortableFactory;
-import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.core.HazelcastInstance;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,17 +43,13 @@ public class HazelcastConfiguration {
     private String eventThreadCount;
 
     @Bean
-    public HazelcastInstance hazelcast() throws Exception {
+    public ClientConfig hazelcastConfig() {
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getGroupConfig()
-                .setName(groupName)
-                .setPassword(groupPassword);
         clientConfig.getNetworkConfig()
-                .setAddresses(clusterMembers);
+                    .setAddresses(clusterMembers);
         clientConfig.getSerializationConfig()
-                .addPortableFactory(1, new DevicePortableFactory());
+                    .addPortableFactory(1, new DevicePortableFactory());
         clientConfig.setProperty("hazelcast.client.event.thread.count", eventThreadCount);
-
-        return HazelcastClient.newHazelcastClient(clientConfig);
+        return clientConfig;
     }
 }

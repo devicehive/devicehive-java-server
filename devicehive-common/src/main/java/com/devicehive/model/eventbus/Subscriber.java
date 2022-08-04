@@ -95,14 +95,14 @@ public class Subscriber implements Portable, Serializable {
     @Override
     public void writePortable(PortableWriter writer) throws IOException {
         writer.writeLong("id", id);
-        writer.writeUTF("replyTo", replyTo);
-        writer.writeUTF("correlationId", correlationId);
+        writer.writeString("replyTo", replyTo);
+        writer.writeString("correlationId", correlationId);
     }
 
     @Override
     public void readPortable(PortableReader reader) throws IOException {
         id = reader.readLong("id");
-        replyTo = reader.readUTF("replyTo");
-        correlationId = reader.readUTF("correlationId");
+        replyTo = reader.readString("replyTo");
+        correlationId = reader.readString("correlationId");
     }
 }

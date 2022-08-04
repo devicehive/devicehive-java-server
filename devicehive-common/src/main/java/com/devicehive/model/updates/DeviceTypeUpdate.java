@@ -28,7 +28,11 @@ import com.devicehive.vo.DeviceTypeVO;
 import javax.validation.constraints.Size;
 import java.util.Optional;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_SUBMITTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPES_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
 
 public class DeviceTypeUpdate implements HiveEntity {
 

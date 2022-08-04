@@ -1,8 +1,15 @@
-FROM hazelcast/hazelcast:3.8.9
+FROM hazelcast/hazelcast:5.1.2
+
+USER root
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache openjdk17
+
+USER hazelcast
 
 MAINTAINER devicehive
 
-ENV DH_VERSION="3.5.0"
+ENV DH_VERSION="4.0.0"
 
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \
@@ -12,7 +19,8 @@ LABEL org.label-schema.url="https://devicehive.com" \
 
 ADD devicehive-common/target/devicehive-common-${DH_VERSION}-shade.jar /opt/devicehive/
 ENV CLASSPATH=/opt/devicehive/devicehive-common-${DH_VERSION}-shade.jar:.
-# Custom config is added to the CLASSPATH and must be automaticaly loaded by Hazelcast
-ADD dockerfiles/devicehive-hazelcast/hazelcast.xml $HZ_HOME/
+
+ADD dockerfiles/devicehive-hazelcast/hazelcast.xml ${HZ_HOME}
+ENV JAVA_OPTS -Dhazelcast.config=${HZ_HOME}/hazelcast.xml
 
 EXPOSE 5701

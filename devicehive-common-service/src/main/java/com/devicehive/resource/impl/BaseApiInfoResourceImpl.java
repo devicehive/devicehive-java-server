@@ -46,7 +46,7 @@ public class BaseApiInfoResourceImpl implements BaseApiInfoResource {
 
     protected final TimestampService timestampService;
     
-    @Value("${server.context-path}")
+    @Value("${server.servlet.context-path}")
     protected String contextPath;
 
     @Value("${build.version}")

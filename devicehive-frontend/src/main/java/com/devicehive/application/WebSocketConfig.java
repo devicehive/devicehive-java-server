@@ -20,15 +20,16 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.configuration.Constants;
 import com.devicehive.websockets.DeviceHiveWebSocketHandler;
+import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-import org.springframework.web.socket.server.standard.ServletServerContainerFactoryBean;
+import org.springframework.web.socket.server.standard.UndertowRequestUpgradeStrategy;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 
 @Configuration
@@ -38,7 +39,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry
-                .addHandler(webSocketHandler(), "/websocket").setAllowedOrigins("*");
+                .addHandler(webSocketHandler(), "/websocket").setAllowedOrigins("*")
+                .setHandshakeHandler(handshakeHandler());
     }
 
     @Bean
@@ -47,12 +49,12 @@ public class WebSocketConfig implements WebSocketConfigurer {
     }
 
     @Bean
-    public ServletServerContainerFactoryBean createWebSocketContainer() {
-        ServletServerContainerFactoryBean container = new ServletServerContainerFactoryBean();
-        container.setMaxBinaryMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
-        container.setMaxTextMessageBufferSize(Constants.WEBSOCKET_MAX_BUFFER_SIZE);
-        container.setMaxSessionIdleTimeout(Constants.WEBSOCKET_TIMEOUT);
-        return container;
+    public UndertowServletWebServerFactory servletWebServerFactory() {
+        return new UndertowServletWebServerFactory();
     }
 
+    @Bean
+    public DefaultHandshakeHandler handshakeHandler() {
+        return new DefaultHandshakeHandler(new UndertowRequestUpgradeStrategy());
+    }
 }

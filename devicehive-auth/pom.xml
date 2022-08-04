@@ -2,17 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>3.5.0</version>
+        <version>4.0.0</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>devicehive-auth</artifactId>
     <packaging>jar</packaging>
     <name>DeviceHive Auth Logic</name>
 
-    <artifactId>devicehive-auth</artifactId>
-        
     <properties>
         <project.rootdir>${project.parent.basedir}</project.rootdir>
     </properties>
@@ -44,6 +45,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jersey</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -59,7 +66,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${springboot.version}</version>
                 <configuration>
                     <classifier>boot</classifier>
                     <layout>ZIP</layout>
@@ -72,13 +78,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.springframework</groupId>
-                        <artifactId>springloaded</artifactId>
-                        <version>${springloaded.version}</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
@@ -92,7 +91,7 @@
                             <goal>wget</goal>
                         </goals>
                         <configuration>
-                            <url>https://github.com/swagger-api/swagger-ui/archive/v2.1.0.tar.gz</url>
+                            <url>https://github.com/swagger-api/swagger-ui/archive/v2.2.8.tar.gz</url>
                             <unpack>true</unpack>
                             <outputDirectory>${project.build.directory}</outputDirectory>
                         </configuration>
@@ -101,7 +100,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resource-plugin.version}</version>
+                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -113,7 +112,7 @@
                             <outputDirectory>target/classes/public</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.build.directory}/swagger-ui-2.1.0/dist</directory>
+                                    <directory>${project.build.directory}/swagger-ui-2.2.8/dist</directory>
                                     <!--<filtering>true</filtering>-->
                                     <excludes>
                                         <exclude>index.html</exclude>

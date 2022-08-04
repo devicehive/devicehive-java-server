@@ -26,7 +26,6 @@ import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
 import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
-import com.devicehive.model.enums.SortOrder;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkResponse;
 import com.devicehive.service.helpers.ResponseConsumer;
@@ -164,8 +163,6 @@ public class BaseNetworkService {
                                                    Integer take,
                                                    Integer skip,
                                                    HivePrincipal principal) {
-        Optional<HivePrincipal> principalOpt = ofNullable(principal);
-
         ListNetworkRequest request = new ListNetworkRequest();
         request.setName(name);
         request.setNamePattern(namePattern);
@@ -173,7 +170,7 @@ public class BaseNetworkService {
         request.setSortOrder(sortOrder);
         request.setTake(take);
         request.setSkip(skip);
-        request.setPrincipal(principalOpt);
+        request.setPrincipal(principal);
 
         return list(request);
     }

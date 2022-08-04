@@ -38,7 +38,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USERS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.USER_SUBMITTED;
 
 /**
  * @author Nikolay Loboda

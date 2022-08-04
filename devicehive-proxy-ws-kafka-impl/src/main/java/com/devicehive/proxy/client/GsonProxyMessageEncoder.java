@@ -21,21 +21,18 @@ package com.devicehive.proxy.client;
  */
 
 import com.devicehive.proxy.api.ProxyMessage;
-import com.devicehive.proxy.api.payload.Payload;
-import com.devicehive.proxy.api.payload.TopicsPayload;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
-import java.util.List;
 
-class GsonProxyMessageEncoder implements Encoder.Text<ProxyMessage> {
+public class GsonProxyMessageEncoder implements Encoder.Text<ProxyMessage> {
 
     private static Gson gson = new Gson();
+
+    public GsonProxyMessageEncoder() {
+    }
 
     @Override
     public String encode(ProxyMessage message) throws EncodeException {

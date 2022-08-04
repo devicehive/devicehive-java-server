@@ -9,9 +9,9 @@ package com.devicehive.proxy.config;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,7 +27,15 @@ import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
-import com.lmax.disruptor.*;
+import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.BusySpinWaitStrategy;
+import com.lmax.disruptor.FatalExceptionHandler;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.SequenceBarrier;
+import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.WaitStrategy;
+import com.lmax.disruptor.WorkerPool;
+import com.lmax.disruptor.YieldingWaitStrategy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -35,12 +43,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PostConstruct;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,23 +60,10 @@ public class FrontendProxyClientConfig {
     @Value("${response.topic.perfix}")
     private String responseTopicPrefix;
 
+    //TODO: deprecated in Java 11. Need to replace
     @PostConstruct
     private void init() {
-        try {
-            NetworkInterface ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
-            String prefix = Optional.ofNullable(ni)
-                    .map(n -> {
-                        try {
-                            return n.getHardwareAddress();
-                        } catch (SocketException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
-            RESPONSE_TOPIC = responseTopicPrefix + prefix;
-        } catch (SocketException | UnknownHostException e) {
-            RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID().toString();
-        }
+        RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID();
     }
 
     @Bean

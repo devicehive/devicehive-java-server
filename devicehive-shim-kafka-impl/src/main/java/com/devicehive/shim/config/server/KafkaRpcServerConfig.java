@@ -20,21 +20,29 @@ package com.devicehive.shim.config.server;
  * #L%
  */
 
+import com.devicehive.model.ServerEvent;
 import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.devicehive.shim.api.server.RpcServer;
+import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.eventbus.DistributedRpcFilterRegistry;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.server.KafkaRpcServer;
-import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.server.RequestConsumer;
-import com.devicehive.model.ServerEvent;
 import com.devicehive.shim.kafka.server.ServerEventHandler;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.google.gson.Gson;
-import com.lmax.disruptor.*;
+import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.BusySpinWaitStrategy;
+import com.lmax.disruptor.FatalExceptionHandler;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.SequenceBarrier;
+import com.lmax.disruptor.SleepingWaitStrategy;
+import com.lmax.disruptor.WaitStrategy;
+import com.lmax.disruptor.WorkerPool;
+import com.lmax.disruptor.YieldingWaitStrategy;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -43,7 +51,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -79,6 +91,7 @@ public class KafkaRpcServerConfig {
     @Value("${lmax.wait.strategy:blocking}")
     private String waitStrategy;
 
+    //TODO: deprecated in Java 11. Need to replace
     @PostConstruct
     private void initializeTopics() {
         kafkaTopicService.createTopic(REQUEST_TOPIC);
