@@ -27,19 +27,18 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import java.lang.reflect.Modifier;
-import java.util.Optional;
 
 public class CountDeviceTypeRequest extends Body {
 
     private String name;
     private String namePattern;
-    private Optional<HivePrincipal> principal;
+    private HivePrincipal principal;
 
     public CountDeviceTypeRequest() {
         super(Action.COUNT_DEVICE_TYPE_REQUEST);
     }
 
-    public CountDeviceTypeRequest(String name, String namePattern, Optional<HivePrincipal> principal) {
+    public CountDeviceTypeRequest(String name, String namePattern, HivePrincipal principal) {
         super(Action.COUNT_DEVICE_TYPE_REQUEST);
         this.name = name;
         this.namePattern = namePattern;
@@ -47,12 +46,10 @@ public class CountDeviceTypeRequest extends Body {
     }
 
     public static CountDeviceTypeRequest createCountDeviceTypeRequest(JsonObject request) {
-        CountDeviceTypeRequest countDeviceTypeRequest = new GsonBuilder()
+        return new GsonBuilder()
                 .excludeFieldsWithModifiers(Modifier.PROTECTED)
                 .create()
                 .fromJson(request, CountDeviceTypeRequest.class);
-
-        return countDeviceTypeRequest;
     }
 
     public String getName() {
@@ -71,11 +68,11 @@ public class CountDeviceTypeRequest extends Body {
         this.namePattern = namePattern;
     }
 
-    public Optional<HivePrincipal> getPrincipal() {
+    public HivePrincipal getPrincipal() {
         return principal;
     }
 
-    public void setPrincipal(Optional<HivePrincipal> principal) {
+    public void setPrincipal(HivePrincipal principal) {
         this.principal = principal;
     }
 }

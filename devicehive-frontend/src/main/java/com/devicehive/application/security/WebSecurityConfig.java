@@ -50,6 +50,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private Gson gson = new GsonBuilder().create();
 
+    private final JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider;
+
+    public WebSecurityConfig(JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider) {
+        super();
+        this.jwtTokenAuthenticationProvider = jwtTokenAuthenticationProvider;
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -72,7 +79,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth
-                .authenticationProvider(jwtTokenAuthenticationProvider())
+                .authenticationProvider(jwtTokenAuthenticationProvider)
                 .authenticationProvider(anonymousAuthenticationProvider());
     }
 
@@ -80,11 +87,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
-    }
-
-    @Bean
-    public JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider() {
-        return new JwtTokenAuthenticationProvider();
     }
 
     @Bean

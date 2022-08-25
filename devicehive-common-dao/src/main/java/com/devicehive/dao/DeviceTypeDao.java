@@ -46,9 +46,9 @@ public interface DeviceTypeDao {
     void assignToDeviceType(DeviceTypeVO deviceType, UserVO user);
 
     List<DeviceTypeVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take,
-                         Integer skip, Optional<HivePrincipal> principal);
+                         Integer skip, HivePrincipal principal);
 
-    long count(String name, String namePattern, Optional<HivePrincipal> principal);
+    long count(String name, String namePattern, HivePrincipal principal);
 
     List<DeviceTypeVO> listAll();
 

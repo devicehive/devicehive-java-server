@@ -59,7 +59,7 @@ public class ApiInfoHandlers {
     private final Environment env;
     private final LocalContainerEntityManagerFactoryBean entityManagerFactory;
 
-    @Value("${server.context-path}")
+    @Value("${server.servlet.context-path}")
     private String contextPath;
     
     @Autowired

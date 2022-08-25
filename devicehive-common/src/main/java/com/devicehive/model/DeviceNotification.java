@@ -35,7 +35,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
 public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable {
     private static final long serialVersionUID = 1834383778016225837L;
@@ -193,24 +195,24 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
     @Override
     public void writePortable(PortableWriter portableWriter) throws IOException {
         portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
-        portableWriter.writeUTF("notification", notification);
-        portableWriter.writeUTF("deviceId", deviceId);
+        portableWriter.writeString("notification", notification);
+        portableWriter.writeString("deviceId", deviceId);
         portableWriter.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
         portableWriter.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
         portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
         boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
-        portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
+        portableWriter.writeString("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
     }
 
     @Override
     public void readPortable(PortableReader portableReader) throws IOException {
         id = portableReader.readLong("id");
-        notification = portableReader.readUTF("notification");
-        deviceId = portableReader.readUTF("deviceId");
+        notification = portableReader.readString("notification");
+        deviceId = portableReader.readString("deviceId");
         networkId = portableReader.readLong("networkId");
         deviceTypeId = portableReader.readLong("deviceTypeId");
         timestamp = new Date(portableReader.readLong("timestamp"));
-        String parametersString = portableReader.readUTF("parameters");
+        String parametersString = portableReader.readString("parameters");
         if (Objects.nonNull(parametersString)) {
             parameters = new JsonStringWrapper(parametersString);
         }

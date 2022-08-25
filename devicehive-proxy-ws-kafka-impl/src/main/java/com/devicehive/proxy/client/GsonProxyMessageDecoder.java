@@ -21,22 +21,31 @@ package com.devicehive.proxy.client;
  */
 
 import com.devicehive.proxy.api.ProxyMessage;
-import com.devicehive.proxy.api.payload.*;
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
+import com.devicehive.proxy.api.payload.HealthPayload;
+import com.devicehive.proxy.api.payload.MessagePayload;
+import com.devicehive.proxy.api.payload.SubscribePayload;
+import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
+public class GsonProxyMessageDecoder implements Decoder.Text<List<ProxyMessage>> {
 
     private static final JsonParser parser = new JsonParser();
     private static final Gson gson = new Gson();
+
+    public GsonProxyMessageDecoder() {
+    }
 
     @Override
     public List<ProxyMessage> decode(String s) throws DecodeException {

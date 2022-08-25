@@ -24,9 +24,10 @@ import com.devicehive.json.GsonFactory;
 import com.google.gson.Gson;
 import io.swagger.jaxrs.config.BeanConfig;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -57,18 +58,18 @@ public class DeviceHivePluginApplication extends SpringBootServletInitializer {
     public static void main(String... args) {
         ConfigurableApplicationContext context = new SpringApplicationBuilder()
                 .sources(DeviceHivePluginApplication.class)
-                .web(true)
+                .web(WebApplicationType.SERVLET)
                 .run(args);
 
         context.registerShutdownHook();
     }
 
     @Bean
-    @Lazy(false)
-    public BeanConfig swaggerConfig(@Value("${server.context-path}") String contextPath,
+    public BeanConfig swaggerConfig(@Value("${server.servlet.context-path}") String contextPath,
+                                    @Value("${spring.jersey.application-path}") String jerseyContextPath,
                                     @Value("${build.version}") String buildVersion) {
 
-        String basePath = contextPath.equals("/") ? JerseyConfig.REST_PATH : contextPath + JerseyConfig.REST_PATH;
+        String basePath = "/".equals(contextPath) ? jerseyContextPath : contextPath + jerseyContextPath;
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setTitle("Device Hive REST API");
         beanConfig.setVersion(buildVersion);

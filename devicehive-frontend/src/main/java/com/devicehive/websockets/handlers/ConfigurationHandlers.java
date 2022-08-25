@@ -9,9 +9,9 @@ package com.devicehive.websockets.handlers;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,6 @@ import com.google.gson.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
@@ -56,9 +55,6 @@ public class ConfigurationHandlers {
     private final Gson gson;
     private final WebSocketClientHandler clientHandler;
 
-    @Value("${server.context-path}")
-    private String contextPath;
-
     @Autowired
     public ConfigurationHandlers(ConfigurationService configurationService,
                                  Gson gson,
@@ -76,13 +72,13 @@ public class ConfigurationHandlers {
             logger.error("configuration/get proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
-        
+
         Optional<ConfigurationVO> configurationVO = configurationService.findByName(name);
         if (!configurationVO.isPresent()) {
             logger.error(String.format(CONFIG_NOT_FOUND, name));
             throw new HiveException(String.format(CONFIG_NOT_FOUND, name), SC_NOT_FOUND);
         }
-        
+
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO.get());
         clientHandler.sendMessage(request, response, session);
@@ -102,11 +98,11 @@ public class ConfigurationHandlers {
             logger.error("configuration/put proceed with error. " + errorMassage);
             throw new HiveException(errorMassage, SC_BAD_REQUEST);
         }
-        
+
         final String value = gson.fromJson(request.get(VALUE), String.class);
-        
+
         ConfigurationVO configurationVO = configurationService.save(name, value);
-        
+
         WebSocketResponse response = new WebSocketResponse();
         response.addValue(CONFIGURATION, configurationVO);
         clientHandler.sendMessage(request, response, session);
@@ -120,12 +116,12 @@ public class ConfigurationHandlers {
             logger.error("configuration/delete proceed with error. Name should be provided.");
             throw new HiveException(Messages.CONFIGURATION_NAME_REQUIRED, SC_BAD_REQUEST);
         }
-        
+
         int operationResult = configurationService.delete(name);
         if (operationResult == 0) {
             throw new HiveException(String.format(CONFIG_NOT_FOUND, name), SC_NOT_FOUND);
         }
-        
+
         clientHandler.sendMessage(request, new WebSocketResponse(), session);
     }
 }

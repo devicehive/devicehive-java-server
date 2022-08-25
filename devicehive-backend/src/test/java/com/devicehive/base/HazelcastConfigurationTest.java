@@ -44,9 +44,6 @@ public class HazelcastConfigurationTest {
     @Bean
     public HazelcastInstance hazelcast() throws Exception {
         Config config = new Config();
-        config.getGroupConfig()
-                .setName(groupName)
-                .setPassword(groupPassword);
         config.getSerializationConfig()
                 .addPortableFactory(1, new DevicePortableFactory());
 

@@ -34,7 +34,13 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Objects;
 
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_TO_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_FROM_DEVICE;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_UPDATE_TO_CLIENT;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.POST_COMMAND_TO_DEVICE;
 
 /**
  * Created by tmatvienko on 1/27/15.
@@ -296,39 +302,39 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     @Override
     public void writePortable(PortableWriter portableWriter) throws IOException {
         portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
-        portableWriter.writeUTF("command", command);
+        portableWriter.writeString("command", command);
         portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
         portableWriter.writeLong("lastUpdated", Objects.nonNull(lastUpdated) ? lastUpdated.getTime() :0);
         portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
-        portableWriter.writeUTF("deviceId", deviceId);
+        portableWriter.writeString("deviceId", deviceId);
         portableWriter.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
         portableWriter.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
         boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
-        portableWriter.writeUTF("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
+        portableWriter.writeString("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
         portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
-        portableWriter.writeUTF("status", status);
+        portableWriter.writeString("status", status);
         boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
-        portableWriter.writeUTF("result", resultIsNotNull ? result.getJsonString() : null);
+        portableWriter.writeString("result", resultIsNotNull ? result.getJsonString() : null);
         portableWriter.writeBoolean("isUpdated", Objects.nonNull(isUpdated)? isUpdated : false);
     }
 
     @Override
     public void readPortable(PortableReader portableReader) throws IOException {
         id = portableReader.readLong("id");
-        command = portableReader.readUTF("command");
+        command = portableReader.readString("command");
         timestamp = new Date(portableReader.readLong("timestamp"));
         lastUpdated = new Date(portableReader.readLong("lastUpdated"));
         userId = portableReader.readLong("userId");
-        deviceId = portableReader.readUTF("deviceId");
+        deviceId = portableReader.readString("deviceId");
         networkId = portableReader.readLong("networkId");
         deviceTypeId = portableReader.readLong("deviceTypeId");
-        String parametersString = portableReader.readUTF("parameters");
+        String parametersString = portableReader.readString("parameters");
         if (Objects.nonNull(parametersString)) {
             parameters = new JsonStringWrapper(parametersString);
         }
         lifetime = portableReader.readInt("lifetime");
-        status = portableReader.readUTF("status");
-        String resultString = portableReader.readUTF("result");
+        status = portableReader.readString("status");
+        String resultString = portableReader.readString("result");
         if (Objects.nonNull(resultString)) {
             result = new JsonStringWrapper(resultString);
         }

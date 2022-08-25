@@ -20,11 +20,11 @@ package com.devicehive.shim.config.client;
  * #L%
  */
 
+import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.shim.config.KafkaRpcConfig;
 import com.devicehive.shim.kafka.client.KafkaRpcClient;
-import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.shim.kafka.client.ServerResponseListener;
 import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
@@ -35,7 +35,12 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -64,6 +69,7 @@ public class KafkaRpcClientConfig {
     @Value("${response.topic.perfix}")
     private String responseTopicPrefix;
 
+    //TODO: deprecated in Java 11. Need to replace
     @PostConstruct
     private void initializeTopics() {
         try {

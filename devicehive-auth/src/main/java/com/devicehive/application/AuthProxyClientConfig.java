@@ -34,12 +34,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PostConstruct;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 
 import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
@@ -56,21 +50,7 @@ public class AuthProxyClientConfig {
 
     @PostConstruct
     private void init() {
-        try {
-            NetworkInterface ni = NetworkInterface.getByInetAddress(InetAddress.getLocalHost());
-            String prefix = Optional.ofNullable(ni)
-                    .map(n -> {
-                        try {
-                            return n.getHardwareAddress();
-                        } catch (SocketException e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .map(mac -> Base64.getEncoder().encodeToString(mac)).orElse(UUID.randomUUID().toString());
-            RESPONSE_TOPIC = responseTopicPrefix + prefix;
-        } catch (SocketException | UnknownHostException e) {
-            RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID().toString();
-        }
+        RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID();
     }
 
     @Bean

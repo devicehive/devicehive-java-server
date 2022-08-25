@@ -27,7 +27,11 @@ import com.devicehive.model.enums.UserRole;
 import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceTypeVO;
+import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.NetworkVO;
+import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +39,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -120,13 +123,13 @@ public class BaseFilterService {
                 } else {
                     if (networks == null) {
                         ListNetworkRequest listNetworkRequest = new ListNetworkRequest();
-                        listNetworkRequest.setPrincipal(Optional.of(principal));
+                        listNetworkRequest.setPrincipal(principal);
                         networks = networkService.list(listNetworkRequest).join()
                                 .stream().map(NetworkVO::getId).collect(Collectors.toSet());
                     }
                     if (deviceTypes == null) {
                         ListDeviceTypeRequest listDeviceTypeRequest = new ListDeviceTypeRequest();
-                        listDeviceTypeRequest.setPrincipal(Optional.of(principal));
+                        listDeviceTypeRequest.setPrincipal(principal);
                         deviceTypes = deviceTypeService.list(listDeviceTypeRequest).join()
                                 .stream().map(DeviceTypeVO::getId).collect(Collectors.toSet());
                     }

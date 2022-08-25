@@ -25,8 +25,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
 import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -36,6 +42,7 @@ import javax.persistence.SharedCacheMode;
 import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 @Configuration
@@ -59,14 +66,14 @@ public class RdbmsPersistenceConfig {
     private DataSource dataSource;
 
     @Autowired
-    private JpaProperties properties;
-
-    @Autowired
     private JpaVendorAdapter jpaVendorAdapter;
 
     @Bean
     @DependsOn(value = {"simpleApplicationContextHolder"})
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(
+            JpaProperties jpaProperties, HibernateProperties hibernateProperties
+    ) {
+        final Map<String, Object> properties = hibernateProperties.determineHibernateProperties(jpaProperties.getProperties(), new HibernateSettings());
         final LocalContainerEntityManagerFactoryBean factoryBean = new LocalContainerEntityManagerFactoryBean();
         factoryBean.setDataSource(dataSource);
         factoryBean.setSharedCacheMode(SharedCacheMode.ENABLE_SELECTIVE);
@@ -75,7 +82,8 @@ public class RdbmsPersistenceConfig {
         factoryBean.setPackagesToScan("com.devicehive.model");
 
         final Properties props = new Properties();
-        props.putAll(this.properties.getHibernateProperties(this.dataSource));
+        props.putAll(properties);
+
         if (useNativeClient) {
             props.put("hibernate.cache.hazelcast.native_client_group", groupName);
             props.put("hibernate.cache.hazelcast.native_client_password", groupPassword);

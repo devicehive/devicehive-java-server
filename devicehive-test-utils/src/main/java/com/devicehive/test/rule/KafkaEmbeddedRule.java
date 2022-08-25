@@ -24,7 +24,11 @@ import kafka.admin.AdminUtils;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.server.NotRunning;
-import kafka.utils.*;
+import kafka.utils.CoreUtils;
+import kafka.utils.SystemTime$;
+import kafka.utils.TestUtils;
+import kafka.utils.ZKStringSerializer$;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkInterruptedException;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -42,6 +46,7 @@ import java.util.Optional;
 import java.util.Properties;
 
 
+//TODO: migrate from JUnit4's ExternalResource to JUnit 5
 public class KafkaEmbeddedRule extends ExternalResource {
 
     private static final int KAFKA_DEFAULT_PORT = 9092;

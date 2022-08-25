@@ -20,7 +20,6 @@ package com.devicehive.websockets.handlers;
  * #L%
  */
 
-import com.devicehive.auth.HiveAuthentication;
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.auth.websockets.HiveWebsocketAuth;
 import com.devicehive.configuration.Messages;
@@ -29,7 +28,6 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.rpc.CountDeviceTypeRequest;
 import com.devicehive.model.rpc.ListDeviceTypeRequest;
 import com.devicehive.model.updates.DeviceTypeUpdate;
-import com.devicehive.service.BaseDeviceTypeService;
 import com.devicehive.service.DeviceTypeService;
 import com.devicehive.vo.DeviceTypeVO;
 import com.devicehive.vo.DeviceTypeWithUsersAndDevicesVO;
@@ -47,8 +45,15 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.configuration.Constants.COUNT;
+import static com.devicehive.configuration.Constants.DEVICE_TYPE;
+import static com.devicehive.configuration.Constants.DEVICE_TYPES;
+import static com.devicehive.configuration.Constants.FORCE;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPES_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.DEVICE_TYPE_SUBMITTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -72,7 +77,7 @@ public class DeviceTypeHandlers {
     public void processDeviceTypeList(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ListDeviceTypeRequest listDeviceTypeRequest = ListDeviceTypeRequest.createListDeviceTypeRequest(request);
-        listDeviceTypeRequest.setPrincipal(Optional.ofNullable(principal));
+        listDeviceTypeRequest.setPrincipal(principal);
 
         String sortField = Optional.ofNullable(listDeviceTypeRequest.getSortField()).map(String::toLowerCase).orElse(null);
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {

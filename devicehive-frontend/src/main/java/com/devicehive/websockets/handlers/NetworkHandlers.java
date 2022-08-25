@@ -28,7 +28,6 @@ import com.devicehive.messages.handler.WebSocketClientHandler;
 import com.devicehive.model.rpc.CountNetworkRequest;
 import com.devicehive.model.rpc.ListNetworkRequest;
 import com.devicehive.model.updates.NetworkUpdate;
-import com.devicehive.service.BaseNetworkService;
 import com.devicehive.service.NetworkService;
 import com.devicehive.vo.NetworkVO;
 import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
@@ -46,8 +45,15 @@ import org.springframework.web.socket.WebSocketSession;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.devicehive.configuration.Constants.*;
-import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
+import static com.devicehive.configuration.Constants.COUNT;
+import static com.devicehive.configuration.Constants.FORCE;
+import static com.devicehive.configuration.Constants.ID;
+import static com.devicehive.configuration.Constants.NAME;
+import static com.devicehive.configuration.Constants.NETWORK;
+import static com.devicehive.configuration.Constants.NETWORKS;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORKS_LISTED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_PUBLISHED;
+import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NETWORK_SUBMITTED;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
@@ -71,7 +77,7 @@ public class NetworkHandlers {
     public void processNetworkList(JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ListNetworkRequest listNetworkRequest = ListNetworkRequest.createListNetworkRequest(request);
-        listNetworkRequest.setPrincipal(Optional.ofNullable(principal));
+        listNetworkRequest.setPrincipal(principal);
 
         String sortField = Optional.ofNullable(listNetworkRequest.getSortField()).map(String::toLowerCase).orElse(null);
         if (sortField != null && !ID.equalsIgnoreCase(sortField) && !NAME.equalsIgnoreCase(sortField)) {

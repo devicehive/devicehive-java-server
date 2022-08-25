@@ -112,12 +112,12 @@ public class NetworkDaoRdbmsImpl extends RdbmsGenericDao implements NetworkDao {
     }
 
     @Override
-    public List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, Optional<HivePrincipal> principal) {
+    public List<NetworkVO> list(String name, String namePattern, String sortField, boolean sortOrderAsc, Integer take, Integer skip, HivePrincipal principal) {
         CriteriaBuilder cb = criteriaBuilder();
         CriteriaQuery<Network> criteria = cb.createQuery(Network.class);
         Root<Network> from = criteria.from(Network.class);
 
-        Predicate[] nameAndPrincipalPredicates = CriteriaHelper.networkListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), principal);
+        Predicate[] nameAndPrincipalPredicates = CriteriaHelper.networkListPredicates(cb, from, ofNullable(name), ofNullable(namePattern), ofNullable(principal));
         criteria.where(nameAndPrincipalPredicates);
 
         CriteriaHelper.order(cb, criteria, from, ofNullable(sortField), sortOrderAsc);
