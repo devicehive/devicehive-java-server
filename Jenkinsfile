@@ -10,7 +10,7 @@ def test_rpc = true
 stage('Build jars') {
   node('docker') {
     echo 'Building jars ...'
-    def maven = docker.image('maven:3.5.3-jdk-8')
+    def maven = docker.image('maven:3.8.3-openjdk-17')
     maven.pull()
     maven.inside {
       checkout scm
