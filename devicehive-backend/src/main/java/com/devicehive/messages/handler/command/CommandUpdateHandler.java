@@ -24,7 +24,7 @@ import com.devicehive.eventbus.EventBus;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandUpdateEvent;
 import com.devicehive.model.rpc.CommandUpdateRequest;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.command.CommandCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -34,12 +34,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommandUpdateHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
     private EventBus eventBus;
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setCommandCacheService(CommandCacheService commandCacheService) {
+        this.commandCacheService = commandCacheService;
     }
 
     @Autowired
@@ -50,7 +50,7 @@ public class CommandUpdateHandler implements RequestHandler {
     @Override
     public Response handle(Request request) {
         final DeviceCommand command = request.getBody().cast(CommandUpdateRequest.class).getDeviceCommand();
-        hazelcastService.store(command);
+        commandCacheService.store(command);
 
         eventBus.publish(new CommandUpdateEvent(command));
 

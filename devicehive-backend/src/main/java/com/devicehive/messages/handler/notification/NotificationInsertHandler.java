@@ -9,9 +9,9 @@ package com.devicehive.messages.handler.notification;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.eventbus.events.NotificationEvent;
 import com.devicehive.model.rpc.NotificationInsertRequest;
 import com.devicehive.model.rpc.NotificationInsertResponse;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.notification.NotificationCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationInsertHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private NotificationCacheService notificationCacheService;
     private EventBus eventBus;
 
     @Autowired
@@ -44,8 +44,8 @@ public class NotificationInsertHandler implements RequestHandler {
     }
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setNotificationCacheService(NotificationCacheService notificationCacheService) {
+        this.notificationCacheService = notificationCacheService;
     }
 
     @Override
@@ -54,11 +54,11 @@ public class NotificationInsertHandler implements RequestHandler {
         NotificationEvent notificationEvent = new NotificationEvent(notification);
 
         eventBus.publish(notificationEvent);
-        hazelcastService.store(notification);
+        notificationCacheService.store(notification);
 
         NotificationInsertResponse payload = new NotificationInsertResponse(notification);
         return Response.newBuilder()
-                .withBody(payload)
-                .buildSuccess();
+                       .withBody(payload)
+                       .buildSuccess();
     }
 }

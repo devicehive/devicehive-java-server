@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.devicehive</groupId>
         <artifactId>devicehive-server</artifactId>
-        <version>4.0.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>devicehive-common</artifactId>
@@ -81,10 +81,6 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

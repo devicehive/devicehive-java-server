@@ -26,7 +26,7 @@ import com.devicehive.model.eventbus.Filter;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.rpc.CommandSubscribeRequest;
 import com.devicehive.model.rpc.CommandSubscribeResponse;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.command.CommandCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -34,7 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
 
 import static com.devicehive.shim.api.Action.COMMANDS_UPDATE_EVENT;
 
@@ -42,7 +45,7 @@ import static com.devicehive.shim.api.Action.COMMANDS_UPDATE_EVENT;
 public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private EventBus eventBus;
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
 
     @Autowired
     public void setEventBus(EventBus eventBus) {
@@ -50,8 +53,8 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
     }
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setCommandCacheService(CommandCacheService cacheService) {
+        this.commandCacheService = cacheService;
     }
 
     @Override
@@ -85,10 +88,10 @@ public class CommandSubscribeRequestHandler implements RequestHandler {
 
     private Collection<DeviceCommand> findCommands(Filter filter, Collection<String> names, Date timestamp, boolean returnUpdated, Integer limit) {
         return Optional.ofNullable(timestamp)
-                .map(t -> hazelcastService.find(filter.getDeviceId(),
+                .map(t -> commandCacheService.find(filter.getDeviceId(),
                         Collections.singleton(filter.getNetworkId()),
                         Collections.singleton(filter.getDeviceTypeId()),
-                        names, limit, t, null, returnUpdated, null, DeviceCommand.class))
+                        names, limit, t, returnUpdated))
                 .orElse(Collections.emptyList());
     }
 }

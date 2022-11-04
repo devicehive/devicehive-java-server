@@ -46,13 +46,13 @@ to build and start project manually. Below you can find detailed instructions on
 Prerequisites
 -------------
 In order to use DeviceHive framework you must have the following components installed and configured:
-* [PostgreSQL 9.1](http://www.postgresql.org/download/) or above.
-* [Apache Kafka 0.10.0.0](http://kafka.apache.org/downloads.html) or above.
+* [PostgreSQL 14](http://www.postgresql.org/download/) or above.
+* [Apache Kafka 3.1](http://kafka.apache.org/downloads.html) or above.
 * [DeviceHive Websocket Proxy](https://github.com/devicehive/devicehive-ws-proxy) running (relies on Kafka, 
 so should be started only when Kafka is up and running).
-* [Hazelcast IMDG](https://hazelcast.com/use-cases/imdg/).
-* [Oracle JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 8](http://openjdk.java.net/).
-* [Maven](http://maven.apache.org/download.cgi).
+* [Redis 7.0](https://redis.io/docs/getting-started/).
+* [Oracle JDK 17](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or [OpenJDK 17](http://openjdk.java.net/).
+* [Maven 3.8](http://maven.apache.org/download.cgi).
 * [DeviceHiveJava source files](https://github.com/devicehive/devicehive-java-server). This is the main part of the [DeviceHive] framework.
 
 
@@ -79,56 +79,10 @@ Start Zookeeper and Apache Kafka brokers as explained at official documentation 
 If your Kafka brokers are installed on the different machines, please specify their hostname/ports at app.properties file.
 You need to update zookeeper.connect (zookeeper's contact point) and bootstrap.servers (list of brokers) properties.
 
-Running Hazelcast
+Running Redis
 -----------------------
-To start, download Hazelcast IMDG 3.8.1 from official site (`https://hazelcast.org/download/`), extract to local drive and create in Hazelcast bin folder file hzstart.sh with following contents:
-
-```bash
-export JAVA_OPTS="$JAVA_OPTS -cp /path/to/jar/from/devicehive-hazelcast/devicehive-common-<version>-shade.jar:/path/to/HAZELCAST_HOME/lib/hazelcast-all-3.8.1.jar"
-./start.sh
-
-```
-
-Replace
-
-```xml
-<serialization>
-   <portable-version>0</portable-version>
-</serialization>
-```
-
-with
-
-```xml
-<serialization>
-   <portable-version>0</portable-version>
-   <portable-factories>
-        <portable-factory factory-id="1">com.devicehive.model.DevicePortableFactory</portable-factory>
-   </portable-factories>
-</serialization>
-```
-
-in hazelcast.xml localted in bin folder of hazelcast. Also replace all the map and and multimap sections of hazelcast.xml with:
-
-```
-<map name="default">
-  <eviction-policy>LRU</eviction-policy>
-</map>
-<map name="NOTIFICATIONS-MAP">
-  <time-to-live-seconds>120</time-to-live-seconds>
-</map>
-<map name="COMMANDS-MAP">
-  <time-to-live-seconds>120</time-to-live-seconds>
-</map>
-<multimap name="default">
-  <backup-count>0</backup-count>
-  <async-backup-count>1</async-backup-count>
-  <value-collection-type>SET</value-collection-type>
-</multimap>
-```
-
-
-Run hzstart.sh.
+Start Redis is explained in official documentation (https://redis.io/docs/getting-started/). If your Redis instance is intalled
+on the different machines, please specify the host/port at `application.properties` file.
 
 Starting database
 ---------------------
@@ -143,13 +97,12 @@ Checking properties
 ---------------------
 
 Each microservice has its own `src/main/resources/application.properties` file which contains all application-level 
-configurations (db credentials, hazelcast address, kafka props etc.). Please check them before building application in 
+configurations (db credentials, redis address, kafka props etc.). Please check them before building application in 
 order to avoid problems at runtime.
 
 You can also override these values by passing them to JVM while running `java -Dapplication.property.name=application.property.name -jar`.
 For example: 
 ```
-java -Dhazelcast.cluster.members=0.0.0.1:5701 -jar ${devicehive-jar}.jar
 java -Dbootstrap.servers=0.0.0.1:9092 -jar ${devicehive-jar}.jar
 java -Dproxy.connect=0.0.0.1:3000 -jar ${devicehive-jar}.jar
 ```

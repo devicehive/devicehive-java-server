@@ -9,9 +9,9 @@ package com.devicehive.model.eventbus;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,18 +20,10 @@ package com.devicehive.model.eventbus;
  * #L%
  */
 
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
-
-import java.io.IOException;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-public class Filter implements Portable {
-
-    public static final int FACTORY_ID = 1;
-    public static final int CLASS_ID = 4;
+public class Filter {
 
     private Long networkId;
 
@@ -99,8 +91,8 @@ public class Filter implements Portable {
         StringJoiner joiner = new StringJoiner(",");
 
         joiner.add(networkId != null ? networkId.toString() : "*")
-                .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
-                .add(deviceId != null ? deviceId : "*");
+              .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
+              .add(deviceId != null ? deviceId : "*");
 
         return joiner.toString();
     }
@@ -109,8 +101,8 @@ public class Filter implements Portable {
         StringJoiner joiner = new StringJoiner(",");
 
         joiner.add(networkId != null ? networkId.toString() : "*")
-                .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
-                .add("*");
+              .add(deviceTypeId != null ? deviceTypeId.toString() : "*")
+              .add("*");
 
         return joiner.toString();
     }
@@ -119,7 +111,7 @@ public class Filter implements Portable {
         StringJoiner joiner = new StringJoiner(",");
 
         joiner.add(eventName != null ? eventName : "*")
-                .add(name != null ? name : "*");
+              .add(name != null ? name : "*");
 
         return joiner.toString();
     }
@@ -150,33 +142,5 @@ public class Filter implements Portable {
                 ", eventName=" + eventName +
                 ", name=" + name +
                 '}';
-    }
-
-    @Override
-    public int getFactoryId() {
-        return FACTORY_ID;
-    }
-
-    @Override
-    public int getClassId() {
-        return CLASS_ID;
-    }
-
-    @Override
-    public void writePortable(PortableWriter writer) throws IOException {
-        writer.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
-        writer.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
-        writer.writeUTF("deviceId", deviceId);
-        writer.writeUTF("eventName", eventName);
-        writer.writeUTF("name", name);
-    }
-
-    @Override
-    public void readPortable(PortableReader reader) throws IOException {
-        networkId = reader.readLong("networkId");
-        deviceTypeId = reader.readLong("deviceTypeId");
-        deviceId = reader.readUTF("deviceId");
-        eventName = reader.readUTF("eventName");
-        name = reader.readUTF("name");
     }
 }

@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.devicehive</groupId>
         <artifactId>devicehive-server</artifactId>
-        <version>4.0.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>devicehive-rdbms-dao</artifactId>
@@ -16,6 +16,7 @@
 
     <properties>
         <project.rootdir>${project.parent.basedir}</project.rootdir>
+        <redisson.version>3.17.7</redisson.version>
     </properties>
 
     <dependencies>
@@ -38,12 +39,22 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-hibernate53</artifactId>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>${redisson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-hibernate-53</artifactId>
+            <version>${redisson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.el</groupId>

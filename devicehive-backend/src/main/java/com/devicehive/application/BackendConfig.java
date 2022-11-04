@@ -20,13 +20,13 @@ package com.devicehive.application;
  * #L%
  */
 
-import com.devicehive.model.eventbus.FilterRegistry;
+import com.devicehive.eventbus.EventBus;
 import com.devicehive.json.GsonFactory;
+import com.devicehive.model.eventbus.FilterRegistry;
 import com.devicehive.shim.api.server.MessageDispatcher;
 import com.google.gson.Gson;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.devicehive.eventbus.EventBus;
 import org.springframework.context.annotation.DependsOn;
 
 @Configuration

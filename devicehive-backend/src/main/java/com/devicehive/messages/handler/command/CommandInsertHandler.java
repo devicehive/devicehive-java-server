@@ -25,7 +25,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.events.CommandEvent;
 import com.devicehive.model.rpc.CommandInsertRequest;
 import com.devicehive.model.rpc.CommandInsertResponse;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.command.CommandCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommandInsertHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
     private EventBus eventBus;
 
     @Autowired
@@ -44,8 +44,8 @@ public class CommandInsertHandler implements RequestHandler {
     }
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setCommandCacheService(CommandCacheService commandCacheService) {
+        this.commandCacheService = commandCacheService;
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CommandInsertHandler implements RequestHandler {
         CommandEvent commandEvent = new CommandEvent(deviceCommand);
 
         eventBus.publish(commandEvent);
-        hazelcastService.store(deviceCommand);
+        commandCacheService.store(deviceCommand);
 
         CommandInsertResponse payload = new CommandInsertResponse(deviceCommand);
         return Response.newBuilder()

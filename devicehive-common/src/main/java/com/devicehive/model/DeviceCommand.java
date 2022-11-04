@@ -9,9 +9,9 @@ package com.devicehive.model;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,19 +20,18 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.io.IOException;
+import java.io.Serial;
 import java.util.Date;
-import java.util.Objects;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_FROM_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.COMMAND_LISTED;
@@ -45,11 +44,10 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.POST_COMMAND_T
 /**
  * Created by tmatvienko on 1/27/15.
  */
-public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
+public class DeviceCommand implements HiveEntity, CacheEntity {
+
+    @Serial
     private static final long serialVersionUID = 4140545193474112756L;
-    private transient HazelcastInstance hazelcastInstance;
-    public static final int FACTORY_ID = 1;
-    public static final int CLASS_ID = 2;
 
     @SerializedName("id")
     @JsonPolicyDef({COMMAND_TO_CLIENT, COMMAND_TO_DEVICE, COMMAND_UPDATE_TO_CLIENT, POST_COMMAND_TO_DEVICE,
@@ -133,7 +131,6 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
         this.command = command;
     }
 
-    @Override
     public Date getTimestamp() {
         return timestamp;
     }
@@ -223,43 +220,45 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
 
-        DeviceCommand message = (DeviceCommand) o;
+        final DeviceCommand that = (DeviceCommand) o;
 
-        if (command != null ? !command.equals(message.command) : message.command != null) return false;
-        if (deviceId != null ? !deviceId.equals(message.deviceId) : message.deviceId != null) return false;
-        if (networkId != null ? !networkId.equals(message.networkId) : message.networkId != null) return false;
-        if (deviceTypeId != null ? !deviceTypeId.equals(message.deviceTypeId) : message.deviceTypeId != null) return false;
-        if (id != null ? !id.equals(message.id) : message.id != null) return false;
-        if (isUpdated != null ? !isUpdated.equals(message.isUpdated) : message.isUpdated != null) return false;
-        if (lifetime != null ? !lifetime.equals(message.lifetime) : message.lifetime != null) return false;
-        if (parameters != null ? !parameters.equals(message.parameters) : message.parameters != null) return false;
-        if (result != null ? !result.equals(message.result) : message.result != null) return false;
-        if (status != null ? !status.equals(message.status) : message.status != null) return false;
-        if (timestamp != null ? !timestamp.equals(message.timestamp) : message.timestamp != null) return false;
-        if (userId != null ? !userId.equals(message.userId) : message.userId != null) return false;
-
-        return true;
+        return new EqualsBuilder().append(getId(), that.getId())
+                                  .append(getCommand(), that.getCommand())
+                                  .append(getTimestamp(), that.getTimestamp())
+                                  .append(getLastUpdated(), that.getLastUpdated())
+                                  .append(getUserId(), that.getUserId())
+                                  .append(getDeviceId(), that.getDeviceId())
+                                  .append(getNetworkId(), that.getNetworkId())
+                                  .append(getDeviceTypeId(), that.getDeviceTypeId())
+                                  .append(getParameters(), that.getParameters())
+                                  .append(getLifetime(), that.getLifetime())
+                                  .append(getStatus(), that.getStatus())
+                                  .append(getResult(), that.getResult())
+                                  .append(getIsUpdated(), that.getIsUpdated())
+                                  .isEquals();
     }
 
     @Override
     public int hashCode() {
-        int result1 = id != null ? id.hashCode() : 0;
-        result1 = 31 * result1 + (command != null ? command.hashCode() : 0);
-        result1 = 31 * result1 + (timestamp != null ? timestamp.hashCode() : 0);
-        result1 = 31 * result1 + (userId != null ? userId.hashCode() : 0);
-        result1 = 31 * result1 + (deviceId != null ? deviceId.hashCode() : 0);
-        result1 = 31 * result1 + (networkId != null ? networkId.hashCode() : 0);
-        result1 = 31 * result1 + (deviceTypeId != null ? deviceTypeId.hashCode() : 0);
-        result1 = 31 * result1 + (parameters != null ? parameters.hashCode() : 0);
-        result1 = 31 * result1 + (lifetime != null ? lifetime.hashCode() : 0);
-        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (result != null ? result.hashCode() : 0);
-        result1 = 31 * result1 + (isUpdated != null ? isUpdated.hashCode() : 0);
-        return result1;
+        return new HashCodeBuilder(17, 37).append(getId())
+                                          .append(getCommand())
+                                          .append(getTimestamp())
+                                          .append(getLastUpdated())
+                                          .append(getUserId())
+                                          .append(getDeviceId())
+                                          .append(getNetworkId())
+                                          .append(getDeviceTypeId())
+                                          .append(getParameters())
+                                          .append(getLifetime())
+                                          .append(getStatus())
+                                          .append(getResult())
+                                          .append(getIsUpdated())
+                                          .toHashCode();
     }
 
     @Override
@@ -281,68 +280,9 @@ public class DeviceCommand implements HiveEntity, HazelcastEntity, Portable {
                 '}';
     }
 
+    @JsonIgnore
     @Override
-    @ApiModelProperty(hidden = true)
-    public String getHazelcastKey() {
-        return id+"-"+deviceId+"-"+timestamp;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
-    public int getFactoryId() {
-        return FACTORY_ID;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
-    public int getClassId() {
-        return CLASS_ID;
-    }
-
-    @Override
-    public void writePortable(PortableWriter portableWriter) throws IOException {
-        portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
-        portableWriter.writeString("command", command);
-        portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
-        portableWriter.writeLong("lastUpdated", Objects.nonNull(lastUpdated) ? lastUpdated.getTime() :0);
-        portableWriter.writeLong("userId", Objects.nonNull(userId) ? userId : 0);
-        portableWriter.writeString("deviceId", deviceId);
-        portableWriter.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
-        portableWriter.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
-        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
-        portableWriter.writeString("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
-        portableWriter.writeInt("lifetime", Objects.nonNull(lifetime) ? lifetime : 0);
-        portableWriter.writeString("status", status);
-        boolean resultIsNotNull = Objects.nonNull(result) && Objects.nonNull(result.getJsonString());
-        portableWriter.writeString("result", resultIsNotNull ? result.getJsonString() : null);
-        portableWriter.writeBoolean("isUpdated", Objects.nonNull(isUpdated)? isUpdated : false);
-    }
-
-    @Override
-    public void readPortable(PortableReader portableReader) throws IOException {
-        id = portableReader.readLong("id");
-        command = portableReader.readString("command");
-        timestamp = new Date(portableReader.readLong("timestamp"));
-        lastUpdated = new Date(portableReader.readLong("lastUpdated"));
-        userId = portableReader.readLong("userId");
-        deviceId = portableReader.readString("deviceId");
-        networkId = portableReader.readLong("networkId");
-        deviceTypeId = portableReader.readLong("deviceTypeId");
-        String parametersString = portableReader.readString("parameters");
-        if (Objects.nonNull(parametersString)) {
-            parameters = new JsonStringWrapper(parametersString);
-        }
-        lifetime = portableReader.readInt("lifetime");
-        status = portableReader.readString("status");
-        String resultString = portableReader.readString("result");
-        if (Objects.nonNull(resultString)) {
-            result = new JsonStringWrapper(resultString);
-        }
-        isUpdated = portableReader.readBoolean("isUpdated");
-    }
-
-    @Override
-    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
-        this.hazelcastInstance = hazelcastInstance;
+    public String getCacheKey() {
+        return String.format("%s_%s_%s", Constants.COMMANDS, deviceId, id);
     }
 }

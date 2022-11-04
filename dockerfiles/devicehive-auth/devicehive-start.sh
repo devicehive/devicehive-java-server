@@ -14,10 +14,7 @@ terminate() {
 if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_USERNAME" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
-    || [ -z "$DH_POSTGRES_DB" ] \
-    || [ -z "$HC_MEMBERS" ] \
-    || [ -z "$HC_GROUP_NAME" ] \
-    || [ -z "$HC_GROUP_PASSWORD" ]
+    || [ -z "$DH_POSTGRES_DB" ]
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
@@ -25,9 +22,6 @@ then
     echo "- DH_POSTGRES_USERNAME"
     echo "- DH_POSTGRES_PASSWORD"
     echo "- DH_POSTGRES_DB"
-    echo "- HC_MEMBERS"
-    echo "- HC_GROUP_NAME"
-    echo "- HC_GROUP_PASSWORD"
     exit 1
 fi
 
@@ -52,7 +46,7 @@ then
     fi
 fi
 
-# Check if Zookeper, Kafka, Postgres and Hazelcast are ready
+# Check if Zookeper, Kafka and Postgres are ready
 while true; do
     if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
     then
@@ -67,10 +61,8 @@ while true; do
     fi
     nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
     result_postgres=$?
-    nc -v -z -w1 "${HC_MEMBERS%%,*}" "${HC_PORT:=5701}"
-    result_hc=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_hc" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
         break
     fi
     sleep 3
@@ -84,9 +76,6 @@ fi
 echo "Starting DeviceHive auth"
 java -server -Xms128m -Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExplicitGC -XX:+HeapDumpOnOutOfMemoryError -XX:+ExitOnOutOfMemoryError -jar \
 -Dcom.devicehive.log.level="${DH_LOG_LEVEL:-WARN}" \
--Dhazelcast.cluster.members="${HC_MEMBERS}:${HC_PORT}" \
--Dhazelcast.group.name="${HC_GROUP_NAME}" \
--Dhazelcast.group.password="${HC_GROUP_PASSWORD}" \
 -Droot.log.level="${ROOT_LOG_LEVEL:-WARN}" \
 -Dserver.servlet.context-path=/auth \
 -Dserver.port=8090 \

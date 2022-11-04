@@ -23,7 +23,7 @@ package com.devicehive.messages.handler.notification;
 import com.devicehive.model.DeviceNotification;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.rpc.NotificationSearchResponse;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.notification.NotificationCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -44,11 +44,11 @@ import static com.devicehive.service.helpers.CommandResponseFilterAndSort.orderA
 @Component
 public class NotificationSearchHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private NotificationCacheService notificationCacheService;
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setNotificationCacheService(NotificationCacheService notificationCacheService) {
+        this.notificationCacheService = notificationCacheService;
     }
 
     @Override
@@ -66,15 +66,12 @@ public class NotificationSearchHandler implements RequestHandler {
 
     private NotificationSearchResponse searchMultipleNotifications(NotificationSearchRequest searchRequest) {
         //TODO [rafa] has response is quite bad, instead we should separate command and reply into two separate collections.
-        final Collection<DeviceNotification> notifications = hazelcastService.find(
+        final Collection<DeviceNotification> notifications = notificationCacheService.find(
                 searchRequest.getDeviceIds(),
                 searchRequest.getNames(),
                 getTotal(searchRequest.getSkip(), searchRequest.getTake()),
                 searchRequest.getTimestampStart(),
-                searchRequest.getTimestampEnd(),
-                false,
-                null,
-                DeviceNotification.class);
+                searchRequest.getTimestampEnd());
 
         final Comparator<DeviceNotification> comparator = buildDeviceNotificationComparator(searchRequest.getSortField());
         String sortOrder = searchRequest.getSortOrder();
@@ -87,9 +84,9 @@ public class NotificationSearchHandler implements RequestHandler {
     }
 
     private NotificationSearchResponse searchSingleNotificationByDeviceAndId(long id, String deviceId) {
-        final List<DeviceNotification> notifications = hazelcastService.find(id, deviceId, DeviceNotification.class)
-                .map(Collections::singletonList)
-                .orElse(Collections.emptyList());
+        final List<DeviceNotification> notifications = notificationCacheService.find(id, deviceId)
+                                                                               .map(Collections::singletonList)
+                                                                               .orElse(Collections.emptyList());
         return new NotificationSearchResponse(notifications);
     }
 }

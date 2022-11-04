@@ -50,7 +50,8 @@ import com.devicehive.model.rpc.NotificationInsertResponse;
 import com.devicehive.model.rpc.NotificationSearchRequest;
 import com.devicehive.model.rpc.NotificationSearchResponse;
 import com.devicehive.model.rpc.NotificationSubscribeRequest;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.command.CommandCacheService;
+import com.devicehive.service.cache.notification.NotificationCacheService;
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
@@ -93,7 +94,9 @@ import static org.mockito.Mockito.verify;
 public class BackendSmokeTest extends AbstractSpringTest {
 
     @Autowired
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
+    @Autowired
+    private NotificationCacheService notificationCacheService;
 
     @Autowired
     private RpcClient client;
@@ -115,18 +118,18 @@ public class BackendSmokeTest extends AbstractSpringTest {
 
         commandInsertHandler = new CommandInsertHandler();
         commandInsertHandler.setEventBus(eventBus);
-        commandInsertHandler.setHazelcastService(hazelcastService);
+        commandInsertHandler.setCommandCacheService(commandCacheService);
 
         commandSearchHandler = new CommandSearchHandler();
-        commandSearchHandler.setHazelcastService(hazelcastService);
+        commandSearchHandler.setCommandCacheService(commandCacheService);
 
         notificationInsertHandler = new NotificationInsertHandler();
         notificationInsertHandler.setEventBus(eventBus);
-        notificationInsertHandler.setHazelcastService(hazelcastService);
+        notificationInsertHandler.setNotificationCacheService(notificationCacheService);
 
         notificationSubscribeRequestHandler = new NotificationSubscribeRequestHandler();
         notificationSubscribeRequestHandler.setEventBus(eventBus);
-        notificationSubscribeRequestHandler.setHazelcastService(hazelcastService);
+        notificationSubscribeRequestHandler.setNotificationCacheService(notificationCacheService);
     }
 
     @Test
@@ -286,7 +289,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
         CommandInsertResponse body = (CommandInsertResponse) response.getBody();
         assertEquals(body.getDeviceCommand(), command);
 
-        Optional<DeviceCommand> cmd = hazelcastService.find(command.getId(), command.getDeviceId(), DeviceCommand.class);
+        Optional<DeviceCommand> cmd = commandCacheService.find(command.getId(), command.getDeviceId());
         assertTrue(cmd.isPresent());
         assertEquals(cmd.get(), command);
 
@@ -341,7 +344,7 @@ public class BackendSmokeTest extends AbstractSpringTest {
                         .build()
         );
 
-        assertTrue(hazelcastService.find(id, deviceId, DeviceNotification.class)
+        assertTrue(notificationCacheService.find(id, deviceId)
                 .filter(notification -> notification.equals(originalNotification))
                 .isPresent());
 

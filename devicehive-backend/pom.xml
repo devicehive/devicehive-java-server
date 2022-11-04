@@ -7,7 +7,7 @@
     <parent>
         <artifactId>devicehive-server</artifactId>
         <groupId>com.devicehive</groupId>
-        <version>4.0.0</version>
+        <version>4.1.0</version>
     </parent>
 
     <artifactId>devicehive-backend</artifactId>
@@ -32,10 +32,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast</artifactId>
         </dependency>
         <dependency>
             <groupId>com.devicehive</groupId>
