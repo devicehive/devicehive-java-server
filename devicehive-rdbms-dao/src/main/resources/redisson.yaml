@@ -1,0 +1,2 @@
+singleServerConfig:
+  address: "redis://${REDIS_MASTER_HOST:-localhost}:${REDIS_MASTER_PORT:-6379}"

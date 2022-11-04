@@ -7,7 +7,7 @@
     <groupId>com.devicehive</groupId>
     <artifactId>devicehive-server</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
     <name>DeviceHive Java Server</name>
 
     <licenses>
@@ -34,10 +34,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <springboot.version>2.7.1</springboot.version>
-        <hazelcast.version>5.1.2</hazelcast.version>
-        <hazelcast-client.version>3.12.12</hazelcast-client.version>
-        <hazelcast-hibernate.version>2.2.1</hazelcast-hibernate.version>
+        <springboot.version>2.7.5</springboot.version>
         <zookeeper.version>3.8.0</zookeeper.version>
         <swagger.version>1.6.6</swagger.version>
 
@@ -235,26 +232,6 @@
                 <scope>runtime</scope>
             </dependency>
 
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-client</artifactId>
-                <version>${hazelcast-client.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-spring</artifactId>
-                <version>${hazelcast.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.hazelcast</groupId>
-                <artifactId>hazelcast-hibernate53</artifactId>
-                <version>${hazelcast-hibernate.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.lmax</groupId>
                 <artifactId>disruptor</artifactId>

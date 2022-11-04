@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 @ActiveProfiles("test")
 @RunWith(SpringJUnit4ClassRunner.class)
 @DirtiesContext
-@SpringBootTest(classes = {DeviceHiveBackendApplication.class, HazelcastConfigurationTest.class})
+@SpringBootTest(classes = {DeviceHiveBackendApplication.class})
 @TestPropertySource(locations={"classpath:application-test.properties", "classpath:application-test-configuration.properties"})
 public abstract class AbstractSpringTest {
 

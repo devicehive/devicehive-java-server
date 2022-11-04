@@ -33,7 +33,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import javax.annotation.PostConstruct;
 import java.util.UUID;
 
 import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
@@ -43,14 +42,10 @@ import static com.devicehive.configuration.Constants.REQUEST_TOPIC;
 @ComponentScan({"com.devicehive.proxy.config", "com.devicehive.proxy.client"})
 public class AuthProxyClientConfig {
 
-    private static String RESPONSE_TOPIC;
+    private final String responseTopic;
 
-    @Value("${response.topic.perfix}")
-    private String responseTopicPrefix;
-
-    @PostConstruct
-    private void init() {
-        RESPONSE_TOPIC = responseTopicPrefix + UUID.randomUUID();
+    public AuthProxyClientConfig(@Value("${response.topic.perfix}") final String responseTopicPrefix) {
+        this.responseTopic = responseTopicPrefix + UUID.randomUUID();
     }
 
     @Bean
@@ -60,14 +55,14 @@ public class AuthProxyClientConfig {
 
     @Bean
     public NotificationHandler notificationHandler(Gson gson, RequestResponseMatcher requestResponseMatcher, WebSocketKafkaProxyConfig proxyConfig) {
-        return new ProxyResponseHandler(gson, REQUEST_TOPIC, RESPONSE_TOPIC, proxyConfig, requestResponseMatcher);
+        return new ProxyResponseHandler(gson, REQUEST_TOPIC, responseTopic, proxyConfig, requestResponseMatcher);
     }
 
     @Bean
     public AuthProxyClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson) {
         WebSocketKafkaProxyClient proxyClient = new WebSocketKafkaProxyClient(notificationHandler);
         proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
-        AuthProxyClient client = new AuthProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyClient, requestResponseMatcher, gson);
+        AuthProxyClient client = new AuthProxyClient(REQUEST_TOPIC, responseTopic, proxyClient, requestResponseMatcher, gson);
         client.start();
         return client;
     }

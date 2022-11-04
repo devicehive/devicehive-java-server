@@ -9,9 +9,9 @@ package com.devicehive.auth;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,16 +23,9 @@ package com.devicehive.auth;
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.vo.PluginVO;
 import com.devicehive.vo.UserVO;
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
 
-import java.io.IOException;
 import java.security.Principal;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Implements authentication principal for a permission-based security system.
@@ -43,10 +36,7 @@ import java.util.stream.Collectors;
  * Device types - if present, represents the set of the device types that the principal has permission to access
  * Devices - if present, represents the set of the devices that the principal has permission to access
  */
-public class HivePrincipal implements Principal, Portable {
-
-    public static final int FACTORY_ID = 1;
-    public static final int CLASS_ID = 3;
+public class HivePrincipal implements Principal {
 
     private UserVO user;
     private Set<HiveAction> actions;
@@ -182,33 +172,5 @@ public class HivePrincipal implements Principal, Portable {
         return "HivePrincipal{" +
                 "name=" + getName() +
                 '}';
-    }
-
-    @Override
-    public int getFactoryId() {
-        return FACTORY_ID;
-    }
-
-    @Override
-    public int getClassId() {
-        return CLASS_ID;
-    }
-
-    @Override
-    public void writePortable(PortableWriter writer) throws IOException {
-        // write only required fields for com.devicehive.model.eventbus.Filter
-        writer.writeBoolean("allNetworksAvailable", allNetworksAvailable);
-        writer.writeBoolean("allDeviceTypesAvailable", allDeviceTypesAvailable);
-        writer.writeLongArray("networkIds", networkIds != null ? networkIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
-        writer.writeLongArray("deviceTypeIds", deviceTypeIds != null ? deviceTypeIds.stream().mapToLong(Long::longValue).toArray() : new long[0]);
-    }
-
-    @Override
-    public void readPortable(PortableReader reader) throws IOException {
-        // read only required fields for com.devicehive.model.eventbus.Filter
-        allNetworksAvailable = reader.readBoolean("allNetworksAvailable");
-        allNetworksAvailable = reader.readBoolean("allDeviceTypesAvailable");
-        networkIds = Arrays.stream(reader.readLongArray("networkIds")).boxed().collect(Collectors.toSet());
-        deviceTypeIds = Arrays.stream(reader.readLongArray("deviceTypeIds")).boxed().collect(Collectors.toSet());
     }
 }

@@ -9,9 +9,9 @@ package com.devicehive.messages.handler.command;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,8 +23,7 @@ package com.devicehive.messages.handler.command;
 import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.rpc.CommandSearchRequest;
 import com.devicehive.model.rpc.CommandSearchResponse;
-import com.devicehive.service.HazelcastService;
-import com.devicehive.service.helpers.CommandResponseFilterAndSort;
+import com.devicehive.service.cache.command.CommandCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -37,7 +36,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import static com.devicehive.service.helpers.CommandResponseFilterAndSort.buildDeviceCommandComparator;
 import static com.devicehive.service.helpers.CommandResponseFilterAndSort.getTotal;
@@ -46,11 +44,11 @@ import static com.devicehive.service.helpers.CommandResponseFilterAndSort.orderA
 @Component
 public class CommandSearchHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setCommandCacheService(CommandCacheService commandCacheService) {
+        this.commandCacheService = commandCacheService;
     }
 
     @Override
@@ -68,9 +66,9 @@ public class CommandSearchHandler implements RequestHandler {
 
     private CommandSearchResponse searchSingleCommandByDeviceAndId(long id, String deviceId, boolean returnUpdated) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
-        final List<DeviceCommand> commands = hazelcastService.find(id, deviceId, returnUpdated, DeviceCommand.class)
-                .map(Collections::singletonList)
-                .orElse(Collections.emptyList());
+        final List<DeviceCommand> commands = commandCacheService.find(id, deviceId, returnUpdated)
+                                                                .map(Collections::singletonList)
+                                                                .orElse(Collections.emptyList());
 
         commandSearchResponse.setCommands(commands);
         return commandSearchResponse;
@@ -78,26 +76,25 @@ public class CommandSearchHandler implements RequestHandler {
 
     private CommandSearchResponse searchMultipleCommands(CommandSearchRequest searchRequest) {
         final CommandSearchResponse commandSearchResponse = new CommandSearchResponse();
-        final Collection<DeviceCommand> commands = hazelcastService.find(
+        final Collection<DeviceCommand> commands = commandCacheService.find(
                 searchRequest.getDeviceIds(),
                 searchRequest.getNames(),
                 getTotal(searchRequest.getSkip(), searchRequest.getTake()),
                 searchRequest.getTimestampStart(),
                 searchRequest.getTimestampEnd(),
                 searchRequest.isReturnUpdated(),
-                searchRequest.getStatus(),
-                DeviceCommand.class);
-        
+                searchRequest.getStatus());
+
         final Comparator<DeviceCommand> comparator = buildDeviceCommandComparator(searchRequest.getSortField());
-        
+
         String sortOrder = searchRequest.getSortOrder();
         final Boolean reverse = sortOrder == null ? null : "desc".equalsIgnoreCase(sortOrder);
 
         final List<DeviceCommand> sortedDeviceCommands = orderAndLimit(new ArrayList<>(commands),
                         comparator, reverse, searchRequest.getSkip(), searchRequest.getTake());
-        
+
         commandSearchResponse.setCommands(new ArrayList<>(sortedDeviceCommands));
         return commandSearchResponse;
     }
-    
+
 }

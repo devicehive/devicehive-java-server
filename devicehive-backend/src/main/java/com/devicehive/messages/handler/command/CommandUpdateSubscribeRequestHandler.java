@@ -25,7 +25,7 @@ import com.devicehive.model.DeviceCommand;
 import com.devicehive.model.eventbus.Subscriber;
 import com.devicehive.model.rpc.CommandUpdateSubscribeRequest;
 import com.devicehive.model.rpc.CommandUpdateSubscribeResponse;
-import com.devicehive.service.HazelcastService;
+import com.devicehive.service.cache.command.CommandCacheService;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.server.RequestHandler;
@@ -35,12 +35,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
 
-    private HazelcastService hazelcastService;
+    private CommandCacheService commandCacheService;
     private EventBus eventBus;
 
     @Autowired
-    public void setHazelcastService(HazelcastService hazelcastService) {
-        this.hazelcastService = hazelcastService;
+    public void setCommandCacheService(CommandCacheService commandCacheService) {
+        this.commandCacheService = commandCacheService;
     }
 
     @Autowired
@@ -56,8 +56,8 @@ public class CommandUpdateSubscribeRequestHandler implements RequestHandler {
 
         eventBus.subscribe(body.getFilter(), subscriber);
 
-        final DeviceCommand deviceCommand = hazelcastService
-                .find(body.getCommandId(), body.getDeviceId(), DeviceCommand.class)
+        final DeviceCommand deviceCommand = commandCacheService
+                .find(body.getCommandId(), body.getDeviceId())
                 .orElse(null);
 
         return Response.newBuilder()

@@ -37,7 +37,6 @@ stage('Build and publish Docker images in CI repository') {
     def plugin = docker.build("devicehiveci/devicehive-plugin:${BRANCH_NAME}", '-f dockerfiles/devicehive-plugin.Dockerfile .')
     def frontend = docker.build("devicehiveci/devicehive-frontend:${BRANCH_NAME}", '-f dockerfiles/devicehive-frontend.Dockerfile .')
     def backend = docker.build("devicehiveci/devicehive-backend:${BRANCH_NAME}", '-f dockerfiles/devicehive-backend.Dockerfile .')
-    def hazelcast = docker.build("devicehiveci/devicehive-hazelcast:${BRANCH_NAME}", '--pull -f dockerfiles/devicehive-hazelcast.Dockerfile .')
 
     echo 'Pushing images to CI repository ...'
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
@@ -45,7 +44,6 @@ stage('Build and publish Docker images in CI repository') {
       plugin.push()
       frontend.push()
       backend.push()
-      hazelcast.push()
     }
   }
 }
@@ -120,13 +118,11 @@ if (publish_branches.contains(env.BRANCH_NAME)) {
           docker tag devicehiveci/devicehive-auth:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-frontend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
-          docker tag devicehiveci/devicehive-hazelcast:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-plugin:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
-          docker push registry.hub.docker.com/devicehive/devicehive-hazelcast:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-plugin:${IMAGE_TAG}
         """
       }
@@ -218,13 +214,12 @@ def archive_container_logs(flavour) {
     sudo docker logs ${flavour}_dh_frontend_1 > ${logsdir}/${flavour}_frontend.log 2>&1
     sudo docker logs ${flavour}_dh_plugin_1 > ${logsdir}/${flavour}_plugin.log 2>&1
     sudo docker logs ${flavour}_dh_proxy_1 > ${logsdir}/${flavour}_proxy.log 2>&1
-    sudo docker logs ${flavour}_hazelcast_1 > ${logsdir}/${flavour}_hazelcast.log 2>&1
     sudo docker logs ${flavour}_kafka_1 > ${logsdir}/${flavour}_kafka.log 2>&1
     sudo docker logs ${flavour}_wsproxy_1 > ${logsdir}/${flavour}_wsproxy.log 2>&1
     sudo docker logs ${flavour}_postgres_1 > ${logsdir}/${flavour}_postgres.log 2>&1
     sudo docker logs ${flavour}_zookeeper_1 > ${logsdir}/${flavour}_zookeeper.log 2>&1
   """
-  def logs = "${logsdir}/${flavour}_auth.log, ${logsdir}/${flavour}_backend.log, ${logsdir}/${flavour}_frontend.log, ${logsdir}/${flavour}_plugin.log, ${logsdir}/${flavour}_proxy.log, ${logsdir}/${flavour}_hazelcast.log, ${logsdir}/${flavour}_kafka.log, ${logsdir}/${flavour}_wsproxy.log, ${logsdir}/${flavour}_postgres.log, ${logsdir}/${flavour}_zookeeper.log"
+  def logs = "${logsdir}/${flavour}_auth.log, ${logsdir}/${flavour}_backend.log, ${logsdir}/${flavour}_frontend.log, ${logsdir}/${flavour}_plugin.log, ${logsdir}/${flavour}_proxy.log, ${logsdir}/${flavour}_kafka.log, ${logsdir}/${flavour}_wsproxy.log, ${logsdir}/${flavour}_postgres.log, ${logsdir}/${flavour}_zookeeper.log"
   archiveArtifacts artifacts: logs, fingerprint: true
 }
 

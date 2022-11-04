@@ -9,9 +9,9 @@ package com.devicehive.model;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,31 +20,28 @@ package com.devicehive.model;
  * #L%
  */
 
+import com.devicehive.configuration.Constants;
 import com.devicehive.json.strategies.JsonPolicyDef;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.nio.serialization.Portable;
-import com.hazelcast.nio.serialization.PortableReader;
-import com.hazelcast.nio.serialization.PortableWriter;
-import io.swagger.annotations.ApiModelProperty;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.io.IOException;
+import java.io.Serial;
 import java.util.Date;
-import java.util.Objects;
 
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_FROM_DEVICE;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_CLIENT;
 import static com.devicehive.json.strategies.JsonPolicyDef.Policy.NOTIFICATION_TO_DEVICE;
 
-public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable {
+public class DeviceNotification implements HiveEntity, CacheEntity {
+
+    @Serial
     private static final long serialVersionUID = 1834383778016225837L;
-    private transient HazelcastInstance hazelcastInstance;
-    public static final int FACTORY_ID = 1;
-    public static final int CLASS_ID = 1;
-    
+
     @SerializedName("id")
     @JsonPolicyDef({NOTIFICATION_TO_CLIENT, NOTIFICATION_TO_DEVICE})
     private Long id;
@@ -131,34 +128,33 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
 
-        DeviceNotification message = (DeviceNotification) o;
+        final DeviceNotification that = (DeviceNotification) o;
 
-        if (deviceId != null ? !deviceId.equals(message.deviceId) : message.deviceId != null) return false;
-        if (networkId != null ? !networkId.equals(message.networkId) : message.networkId != null) return false;
-        if (deviceTypeId != null ? !deviceTypeId.equals(message.deviceTypeId) : message.deviceTypeId != null) return false;
-        if (id != null ? !id.equals(message.id) : message.id != null) return false;
-        if (notification != null ? !notification.equals(message.notification) : message.notification != null)
-            return false;
-        if (parameters != null ? !parameters.equals(message.parameters) : message.parameters != null) return false;
-        if (timestamp != null ? !timestamp.equals(message.timestamp) : message.timestamp != null) return false;
-
-        return true;
+        return new EqualsBuilder().append(getId(), that.getId())
+                                  .append(getNotification(), that.getNotification())
+                                  .append(getDeviceId(), that.getDeviceId())
+                                  .append(getNetworkId(), that.getNetworkId())
+                                  .append(getDeviceTypeId(), that.getDeviceTypeId())
+                                  .append(getTimestamp(), that.getTimestamp())
+                                  .append(getParameters(), that.getParameters())
+                                  .isEquals();
     }
 
     @Override
     public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (notification != null ? notification.hashCode() : 0);
-        result = 31 * result + (deviceId != null ? deviceId.hashCode() : 0);
-        result = 31 * result + (networkId != null ? networkId.hashCode() : 0);
-        result = 31 * result + (deviceTypeId != null ? deviceTypeId.hashCode() : 0);
-        result = 31 * result + (timestamp != null ? timestamp.hashCode() : 0);
-        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
-        return result;
+        return new HashCodeBuilder(17, 37).append(getId())
+                                          .append(getNotification())
+                                          .append(getDeviceId())
+                                          .append(getNetworkId())
+                                          .append(getDeviceTypeId())
+                                          .append(getTimestamp())
+                                          .append(getParameters())
+                                          .toHashCode();
     }
 
     @Override
@@ -174,52 +170,9 @@ public class DeviceNotification implements HiveEntity, HazelcastEntity, Portable
                 '}';
     }
 
+    @JsonIgnore
     @Override
-    @ApiModelProperty(hidden = true)
-    public String getHazelcastKey() {
-        return id+"-"+deviceId+"-"+timestamp;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
-    public int getFactoryId() {
-        return FACTORY_ID;
-    }
-
-    @Override
-    @ApiModelProperty(hidden = true)
-    public int getClassId() {
-        return CLASS_ID;
-    }
-
-    @Override
-    public void writePortable(PortableWriter portableWriter) throws IOException {
-        portableWriter.writeLong("id", Objects.nonNull(id) ? id : 0);
-        portableWriter.writeString("notification", notification);
-        portableWriter.writeString("deviceId", deviceId);
-        portableWriter.writeLong("networkId", Objects.nonNull(networkId) ? networkId : 0);
-        portableWriter.writeLong("deviceTypeId", Objects.nonNull(deviceTypeId) ? deviceTypeId : 0);
-        portableWriter.writeLong("timestamp", Objects.nonNull(timestamp) ? timestamp.getTime() :0);
-        boolean parametersIsNotNull = Objects.nonNull(parameters) && Objects.nonNull(parameters.getJsonString());
-        portableWriter.writeString("parameters", parametersIsNotNull ? parameters.getJsonString() : null);
-    }
-
-    @Override
-    public void readPortable(PortableReader portableReader) throws IOException {
-        id = portableReader.readLong("id");
-        notification = portableReader.readString("notification");
-        deviceId = portableReader.readString("deviceId");
-        networkId = portableReader.readLong("networkId");
-        deviceTypeId = portableReader.readLong("deviceTypeId");
-        timestamp = new Date(portableReader.readLong("timestamp"));
-        String parametersString = portableReader.readString("parameters");
-        if (Objects.nonNull(parametersString)) {
-            parameters = new JsonStringWrapper(parametersString);
-        }
-    }
-
-    @Override
-    public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
-        this.hazelcastInstance = hazelcastInstance;
+    public String getCacheKey() {
+        return String.format("%s_%s_%s", Constants.NOTIFICATIONS, deviceId, id);
     }
 }
