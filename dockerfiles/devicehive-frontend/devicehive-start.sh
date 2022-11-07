@@ -16,6 +16,8 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
     || [ -z "$DH_ZK_ADDRESS" ] \
+    || [ -z "$REDIS_MASTER_HOST" ] \
+    || [ -z "$REDIS_MASTER_PORT" ] \
     || [ -z "$DH_AUTH_URL" ] \
     || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
 then
@@ -26,6 +28,8 @@ then
     echo "- DH_POSTGRES_PASSWORD"
     echo "- DH_POSTGRES_DB"
     echo "- DH_ZK_ADDRESS"
+    echo "- REDIS_MASTER_HOST"
+    echo "- REDIS_MASTER_PORT"
     echo "- DH_AUTH_URL"
     echo "And one of variants of Kafka bootstrap parameters:"
     echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
