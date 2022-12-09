@@ -9,9 +9,9 @@ package com.devicehive.application;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,19 +21,6 @@ package com.devicehive.application;
  */
 
 import com.devicehive.application.filter.ContentTypeFilter;
-import com.devicehive.resource.exceptions.AccessDeniedExceptionMapper;
-import com.devicehive.resource.exceptions.ActionNotAllowedExceptionMapper;
-import com.devicehive.resource.exceptions.AllExceptionMapper;
-import com.devicehive.resource.exceptions.BadCredentialsExceptionMapper;
-import com.devicehive.resource.exceptions.ConstraintViolationExceptionMapper;
-import com.devicehive.resource.exceptions.HibernateConstraintViolationsMapper;
-import com.devicehive.resource.exceptions.HiveExceptionMapper;
-import com.devicehive.resource.exceptions.IllegalParametersExceptionMapper;
-import com.devicehive.resource.exceptions.InvalidPrincipalExceptionMapper;
-import com.devicehive.resource.exceptions.JsonParseExceptionMapper;
-import com.devicehive.resource.exceptions.NoSuchElementExceptionMapper;
-import com.devicehive.resource.exceptions.OptimisticLockExceptionMapper;
-import com.devicehive.resource.exceptions.PersistenceExceptionMapper;
 import com.devicehive.resource.impl.ApiInfoResourceImpl;
 import com.devicehive.resource.impl.ConfigurationResourceImpl;
 import com.devicehive.resource.impl.DeviceCommandResourceImpl;
@@ -55,7 +42,8 @@ import org.springframework.stereotype.Component;
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
-        registerClasses(ApiInfoResourceImpl.class,
+        registerClasses(
+                ApiInfoResourceImpl.class,
                 ConfigurationResourceImpl.class,
                 DeviceCommandResourceImpl.class,
                 DeviceNotificationResourceImpl.class,
@@ -63,29 +51,20 @@ public class JerseyConfig extends ResourceConfig {
                 NetworkResourceImpl.class,
                 DeviceTypeResourceImpl.class,
                 WelcomeResourceImpl.class,
-                UserResourceImpl.class);
+                UserResourceImpl.class
+        );
+
+        packages(
+                "com.devicehive.resource.exceptions",
+                "com.devicehive.resource.filter",
+                "com.devicehive.resource.converters"
+        );
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 
         register(RequestContextFilter.class);
         register(LoggingFeature.class);
         register(ContentTypeFilter.class);
-
-        registerClasses(
-                AccessDeniedExceptionMapper.class,
-                ActionNotAllowedExceptionMapper.class,
-                AllExceptionMapper.class,
-                BadCredentialsExceptionMapper.class,
-                ConstraintViolationExceptionMapper.class,
-                HibernateConstraintViolationsMapper.class,
-                HiveExceptionMapper.class,
-                IllegalParametersExceptionMapper.class,
-                InvalidPrincipalExceptionMapper.class,
-                JsonParseExceptionMapper.class,
-                NoSuchElementExceptionMapper.class,
-                OptimisticLockExceptionMapper.class,
-                PersistenceExceptionMapper.class
-        );
 
         register(ApiListingResource.class);
         register(SwaggerSerializers.class);

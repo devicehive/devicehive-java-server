@@ -58,7 +58,6 @@
         <commons-net.version>3.3</commons-net.version>
         <commons-codec.version>1.9</commons-codec.version>
         <guava.version>23.0</guava.version>
-        <gson.version>2.7</gson.version>
         <joda-time.version>2.5</joda-time.version>
         <jquery.version>1.11.1</jquery.version>
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>

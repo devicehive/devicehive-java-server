@@ -21,23 +21,6 @@ package com.devicehive.application;
  */
 
 import com.devicehive.application.filter.ContentTypeFilter;
-import com.devicehive.resource.converters.CollectionProvider;
-import com.devicehive.resource.converters.HiveEntityProvider;
-import com.devicehive.resource.converters.JsonRawProvider;
-import com.devicehive.resource.exceptions.AccessDeniedExceptionMapper;
-import com.devicehive.resource.exceptions.ActionNotAllowedExceptionMapper;
-import com.devicehive.resource.exceptions.AllExceptionMapper;
-import com.devicehive.resource.exceptions.BadCredentialsExceptionMapper;
-import com.devicehive.resource.exceptions.ConstraintViolationExceptionMapper;
-import com.devicehive.resource.exceptions.HibernateConstraintViolationsMapper;
-import com.devicehive.resource.exceptions.HiveExceptionMapper;
-import com.devicehive.resource.exceptions.IllegalParametersExceptionMapper;
-import com.devicehive.resource.exceptions.InvalidPrincipalExceptionMapper;
-import com.devicehive.resource.exceptions.JsonParseExceptionMapper;
-import com.devicehive.resource.exceptions.NoSuchElementExceptionMapper;
-import com.devicehive.resource.exceptions.OptimisticLockExceptionMapper;
-import com.devicehive.resource.exceptions.PersistenceExceptionMapper;
-import com.devicehive.resource.filter.ReplacePostMethodFilter;
 import com.devicehive.resource.impl.AuthApiInfoResourceImpl;
 import com.devicehive.resource.impl.JwtTokenResourceImpl;
 import io.swagger.jaxrs.listing.ApiListingResource;
@@ -52,35 +35,22 @@ import org.springframework.stereotype.Component;
 public class JerseyConfig extends ResourceConfig {
 
     public JerseyConfig() {
-        registerClasses(AuthApiInfoResourceImpl.class,
-                JwtTokenResourceImpl.class);
+        registerClasses(
+                AuthApiInfoResourceImpl.class,
+                JwtTokenResourceImpl.class
+        );
+
+        packages(
+                "com.devicehive.resource.exceptions",
+                "com.devicehive.resource.filter",
+                "com.devicehive.resource.converters"
+        );
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
 
         register(RequestContextFilter.class);
         register(LoggingFeature.class);
         register(ContentTypeFilter.class);
-
-        register(CollectionProvider.class);
-        register(HiveEntityProvider.class);
-        register(JsonRawProvider.class);
-        register(ReplacePostMethodFilter.class);
-
-        registerClasses(
-                AccessDeniedExceptionMapper.class,
-                ActionNotAllowedExceptionMapper.class,
-                AllExceptionMapper.class,
-                BadCredentialsExceptionMapper.class,
-                ConstraintViolationExceptionMapper.class,
-                HibernateConstraintViolationsMapper.class,
-                HiveExceptionMapper.class,
-                IllegalParametersExceptionMapper.class,
-                InvalidPrincipalExceptionMapper.class,
-                JsonParseExceptionMapper.class,
-                NoSuchElementExceptionMapper.class,
-                OptimisticLockExceptionMapper.class,
-                PersistenceExceptionMapper.class
-        );
 
         register(ApiListingResource.class);
         register(SwaggerSerializers.class);
