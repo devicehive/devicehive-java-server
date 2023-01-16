@@ -89,6 +89,12 @@
                     <classifier>boot</classifier>
                     <layout>ZIP</layout>
                     <addResources>false</addResources>
+                    <requiresUnpack>
+                        <dependency>
+                            <groupId>com.devicehive</groupId>
+                            <artifactId>devicehive-common-service</artifactId>
+                        </dependency>
+                    </requiresUnpack>
                 </configuration>
                 <executions>
                     <execution>

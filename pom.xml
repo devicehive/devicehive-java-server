@@ -38,7 +38,6 @@
         <zookeeper.version>3.8.0</zookeeper.version>
         <swagger.version>1.6.6</swagger.version>
 
-        <jersey.version>2.26</jersey.version>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <javax.websocket.version>1.1</javax.websocket.version>
         <javax.el.version>2.2.4</javax.el.version>
@@ -51,13 +50,13 @@
         <hsqldb.version>2.3.2</hsqldb.version>
         <postgresql.version>9.4-1201-jdbc4</postgresql.version>
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
-        <httpclient.version>4.5.3</httpclient.version>
+        <httpclient.version>4.5.14</httpclient.version>
         <zkclient.version>0.8</zkclient.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <curator.version>2.8.0</curator.version>
         <commons-net.version>3.3</commons-net.version>
         <commons-codec.version>1.9</commons-codec.version>
-        <guava.version>23.0</guava.version>
+        <guava.version>31.1-jre</guava.version>
         <joda-time.version>2.5</joda-time.version>
         <jquery.version>1.11.1</jquery.version>
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
