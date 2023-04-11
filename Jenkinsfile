@@ -37,6 +37,7 @@ stage('Build and publish Docker images in CI repository') {
     def plugin = docker.build("devicehiveci/devicehive-plugin:${BRANCH_NAME}", '-f dockerfiles/devicehive-plugin.Dockerfile .')
     def frontend = docker.build("devicehiveci/devicehive-frontend:${BRANCH_NAME}", '-f dockerfiles/devicehive-frontend.Dockerfile .')
     def backend = docker.build("devicehiveci/devicehive-backend:${BRANCH_NAME}", '-f dockerfiles/devicehive-backend.Dockerfile .')
+    def kafka = docker.build("devicehiveci/devicehive-kafka:${BRANCH_NAME}", '-f dockerfiles/devicehive-kafka.Dockerfile .')
 
     echo 'Pushing images to CI repository ...'
     docker.withRegistry('https://registry.hub.docker.com', 'devicehiveci_dockerhub'){
@@ -44,6 +45,7 @@ stage('Build and publish Docker images in CI repository') {
       plugin.push()
       frontend.push()
       backend.push()
+      kafka.push()
     }
   }
 }
@@ -119,11 +121,13 @@ if (publish_branches.contains(env.BRANCH_NAME)) {
           docker tag devicehiveci/devicehive-frontend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-plugin:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin:${IMAGE_TAG}
+          docker tag devicehiveci/devicehive-plugin:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-kafka:${IMAGE_TAG}
 
           docker push registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-plugin:${IMAGE_TAG}
+          docker push registry.hub.docker.com/devicehive/devicehive-kafka:${IMAGE_TAG}
         """
       }
     }
