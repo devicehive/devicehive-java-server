@@ -121,8 +121,8 @@ if (publish_branches.contains(env.BRANCH_NAME)) {
           docker tag devicehiveci/devicehive-frontend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-backend:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
           docker tag devicehiveci/devicehive-plugin:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-plugin:${IMAGE_TAG}
-          docker tag devicehiveci/devicehive-plugin:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-kafka:${IMAGE_TAG}
-
+          docker tag devicehiveci/devicehive-kafka:${BRANCH_NAME} registry.hub.docker.com/devicehive/devicehive-kafka:${IMAGE_TAG}
+ 
           docker push registry.hub.docker.com/devicehive/devicehive-auth:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-frontend:${IMAGE_TAG}
           docker push registry.hub.docker.com/devicehive/devicehive-backend:${IMAGE_TAG}
