@@ -2,6 +2,8 @@ FROM docker.io/bitnami/kafka:3.1
 
 MAINTAINER devicehive
 
+ENV DH_VERSION="4.1.0"
+
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \
       org.label-schema.vcs-url="https://github.com/devicehive/devicehive-ws-proxy" \
