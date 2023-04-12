@@ -6,3 +6,5 @@ target/
 .project
 *.DS_Store
 *.log
+/start_own.bat
+/start.bat
