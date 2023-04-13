@@ -18,11 +18,14 @@
 -- #L%
 ---
 
-DROP TABLE configuration;
+--DROP TABLE configuration;
+--
+--CREATE TABLE configuration (
+--	id serial PRIMARY KEY,
+--	name VARCHAR ( 32 ) UNIQUE NOT NULL,
+--	value VARCHAR ( 128 ) NOT NULL,
+--	entity_version bigint
+--);
 
-CREATE TABLE configuration (
-	id serial PRIMARY KEY,
-	name VARCHAR ( 32 ) UNIQUE NOT NULL,
-	value VARCHAR ( 128 ) NOT NULL,
-	entity_version bigint
-);
+ALTER TABLE configuration DROP CONSTRAINT configuration_pk;
+ALTER TABLE configuration ADD COLUMN id serial PRIMARY KEY;
