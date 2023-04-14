@@ -55,13 +55,17 @@ public class Configuration implements HiveEntity {
 
 
     @Id
-    @Column(unique = true)
-    @NotNull(message = "name field cannot be null.")
-    @SerializedName("name")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") 
+    private Long id;
+
+    @Column
+    @NotNull(message = "value field cannot be null.")
     @Size(min = 1, max = 32, message = "Field cannot be empty. The length of name should not be more than " +
-                                       "32 symbols.")
+            "32 symbols.")
     @JsonProperty
     private String name;
+  
     @Column
     @NotNull(message = "value field cannot be null.")
     @Size(min = 1, max = 128, message = "Field cannot be empty. The length of value should not be more than " +
@@ -100,6 +104,14 @@ public class Configuration implements HiveEntity {
         }
         return result;
 
+    }
+    
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public long getEntityVersion() {
@@ -166,6 +178,7 @@ public class Configuration implements HiveEntity {
     public static Configuration convert(ConfigurationVO vo) {
         if (vo != null) {
             Configuration result = new Configuration();
+            result.setId(vo.getId());
             result.setName(vo.getName());
             result.setValue(vo.getValue());
             result.setEntityVersion(vo.getEntityVersion());
@@ -178,6 +191,7 @@ public class Configuration implements HiveEntity {
     public static ConfigurationVO convert(Configuration configuration) {
         if (configuration != null) {
             ConfigurationVO vo = new ConfigurationVO();
+            vo.setId(configuration.getId());
             vo.setName(configuration.getName());
             vo.setValue(configuration.getValue());
             vo.setEntityVersion(configuration.getEntityVersion());

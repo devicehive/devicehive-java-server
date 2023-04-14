@@ -67,6 +67,7 @@ public class ConfigurationService {
         configuration.setValue(str);
         hiveValidator.validate(configuration);
         configurationDao.persist(configuration);
+//        configurationDao.merge(configuration);
 
         return configuration;
     }

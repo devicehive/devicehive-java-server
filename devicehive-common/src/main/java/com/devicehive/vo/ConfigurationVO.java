@@ -26,12 +26,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 public class ConfigurationVO implements HiveEntity {
     private static final long serialVersionUID = 4259314407271953931L;
+   
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id") 
+    private Long id;
     
     @JsonProperty
     private String name;
@@ -49,9 +57,18 @@ public class ConfigurationVO implements HiveEntity {
     public ConfigurationVO() {
     }
 
-    public ConfigurationVO(String name, String value) {
+    public ConfigurationVO(Long id, String name, String value) {
+        this.id = id;
         this.name = name;
         this.value = value;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
