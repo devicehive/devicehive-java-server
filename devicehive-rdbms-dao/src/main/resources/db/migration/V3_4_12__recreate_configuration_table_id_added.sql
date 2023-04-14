@@ -27,5 +27,6 @@
 --	entity_version bigint
 --);
 
+
 ALTER TABLE configuration DROP CONSTRAINT configuration_pk;
 ALTER TABLE configuration ADD COLUMN id serial PRIMARY KEY;
