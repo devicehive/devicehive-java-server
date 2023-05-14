@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=flat-square)](LICENSE) [![Project Dashboard](https://sourcespy.com/shield.svg)](https://sourcespy.com/github/devicehivedevicehivejavaserver/)
 
 DeviceHive Java server
 ======================
