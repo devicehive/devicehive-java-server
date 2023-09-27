@@ -16,8 +16,11 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
     || [ -z "$DH_ZK_ADDRESS" ] \
+    || [ -z "$DH_BACKEND_ADDRESS" ] \
+    || [ -z "$DH_BACKEND_PORT" ] \
     || [ -z "$REDIS_MASTER_HOST" ] \
     || [ -z "$REDIS_MASTER_PORT" ] \
+    || [ -z "$REDIS_MASTER_PASSWORD" ] \
     || [ -z "$DH_AUTH_URL" ] \
     || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
 then
@@ -28,8 +31,11 @@ then
     echo "- DH_POSTGRES_PASSWORD"
     echo "- DH_POSTGRES_DB"
     echo "- DH_ZK_ADDRESS"
+    echo "- DH_BACKEND_ADDRESS"
+    echo "- DH_BACKEND_PORT"
     echo "- REDIS_MASTER_HOST"
     echo "- REDIS_MASTER_PORT"
+    echo "- REDIS_MASTER_PASSWORD"
     echo "- DH_AUTH_URL"
     echo "And one of variants of Kafka bootstrap parameters:"
     echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
@@ -43,7 +49,7 @@ then
     DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
-# Check if Zookeper, Kafka and Postgres are ready
+# Check if Zookeper, Kafka, Backend and Postgres are ready
 while true; do
     nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
     result_zk=$?
@@ -52,8 +58,9 @@ while true; do
     result_kafka=$?
     nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
     result_postgres=$?
-
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
+    nc -v -z -w1 "$DH_BACKEND_ADDRESS" "${DH_BACKEND_PORT:=8000}"
+    result_backend=$?
+    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_backend" -eq 0 ]; then
         break
     fi
     sleep 3
