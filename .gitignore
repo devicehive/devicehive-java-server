@@ -6,3 +6,4 @@ target/
 .project
 *.DS_Store
 *.log
+devicehive-common/dependency-reduced-pom.xml
