@@ -149,4 +149,8 @@ public class KafkaRpcConfig {
     public int getHandlerThreads() {
         return handlerThreads;
     }
+
+    public String getBootstrapServers() {
+        return bootstrapServers;
+    }
 }
