@@ -15,7 +15,6 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_USERNAME" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
-    || [ -z "$DH_ZK_ADDRESS" ] \
     || [ -z "$DH_BACKEND_ADDRESS" ] \
     || [ -z "$DH_BACKEND_PORT" ] \
     || [ -z "$REDIS_MASTER_HOST" ] \
@@ -30,7 +29,6 @@ then
     echo "- DH_POSTGRES_USERNAME"
     echo "- DH_POSTGRES_PASSWORD"
     echo "- DH_POSTGRES_DB"
-    echo "- DH_ZK_ADDRESS"
     echo "- DH_BACKEND_ADDRESS"
     echo "- DH_BACKEND_PORT"
     echo "- REDIS_MASTER_HOST"
@@ -49,10 +47,8 @@ then
     DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
-# Check if Zookeper, Kafka, Backend and Postgres are ready
+# Check if Kafka, Backend and Postgres are ready
 while true; do
-    nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
-    result_zk=$?
     FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
     nc -v -z -w1 "${FIRST_KAFKA_SERVER%%:*}" $(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')
     result_kafka=$?
@@ -60,7 +56,7 @@ while true; do
     result_postgres=$?
     nc -v -z -w1 "$DH_BACKEND_ADDRESS" "${DH_BACKEND_PORT:=8000}"
     result_backend=$?
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ] && [ "$result_backend" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_backend" -eq 0 ]; then
         break
     fi
     sleep 3
@@ -87,9 +83,6 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT:-5432}/${DH_POSTGRES_DB}" \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
--Dzookeeper.connect="${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181}" \
--Dzookeeper.connectionTimeout="${DH_ZK_CONNECTIONTIMEOUT:-8000}" \
--Dzookeeper.sessionTimeout="${DH_ZK_SESSIONTIMEOUT:-10000}" \
 "./devicehive-frontend-${DH_VERSION}-boot.jar" &
 PID=$!
 wait "$PID"
