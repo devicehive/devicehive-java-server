@@ -53,9 +53,7 @@ import org.springframework.web.socket.WebSocketSession;
 import javax.ws.rs.ServiceUnavailableException;
 import java.io.IOException;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 @Component
 public class CommonHandlers {

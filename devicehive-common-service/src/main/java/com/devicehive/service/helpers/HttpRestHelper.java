@@ -25,6 +25,7 @@ import com.devicehive.exceptions.HiveException;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import jakarta.annotation.PostConstruct;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -39,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

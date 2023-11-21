@@ -9,9 +9,9 @@ package com.devicehive.websockets.handlers;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,7 +36,8 @@ import com.devicehive.resource.util.JsonTypes;
 import com.devicehive.service.BaseFilterService;
 import com.devicehive.service.DeviceCommandService;
 import com.devicehive.service.DeviceService;
-import com.devicehive.vo.*;
+import com.devicehive.vo.DeviceVO;
+import com.devicehive.vo.UserVO;
 import com.devicehive.websockets.converters.WebSocketResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -61,10 +62,7 @@ import static com.devicehive.json.strategies.JsonPolicyDef.Policy.*;
 import static com.devicehive.model.rpc.CommandSearchRequest.createCommandSearchRequest;
 import static com.devicehive.shim.api.Action.COMMAND_EVENT;
 import static com.devicehive.util.ServerResponsesFactory.createCommandMessage;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 @Component
 public class CommandHandlers {
@@ -154,7 +152,7 @@ public class CommandHandlers {
         if (subscriptionId != null && !sessionSubIds.contains(subscriptionId)) {
             throw new HiveException(String.format(Messages.SUBSCRIPTION_NOT_FOUND, subscriptionId), SC_NOT_FOUND);
         }
-        
+
         CompletableFuture<Set<Long>> future;
         if (subscriptionId == null) {
             future = commandService.sendUnsubscribeRequest(sessionSubIds);
@@ -163,10 +161,10 @@ public class CommandHandlers {
             future = commandService.sendUnsubscribeRequest(Collections.singleton(subscriptionId));
             sessionSubscriptions.remove(new SubscriptionInfo(subscriptionId));
         }
-        
+
         future.thenAccept(collection -> {
             logger.debug("command/unsubscribe completed for session {}", session.getId());
-            clientHandler.sendMessage(request, new WebSocketResponse(), session);    
+            clientHandler.sendMessage(request, new WebSocketResponse(), session);
         });
     }
 
@@ -174,7 +172,7 @@ public class CommandHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'CREATE_DEVICE_COMMAND')")
     public void processCommandInsert(String deviceId, JsonObject request, WebSocketSession session) {
         HivePrincipal principal = (HivePrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-                
+
         final DeviceCommandWrapper deviceCommand = gson
                 .fromJson(request.getAsJsonObject(COMMAND), DeviceCommandWrapper.class);
 
@@ -188,7 +186,7 @@ public class CommandHandlers {
         if (deviceVO == null) {
             throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
-        
+
         if (deviceCommand == null) {
             throw new HiveException(Messages.EMPTY_COMMAND, SC_BAD_REQUEST);
         }
@@ -242,12 +240,12 @@ public class CommandHandlers {
 
     @HiveWebsocketAuth
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
-    public void processCommandGet(String deviceId, JsonObject request, WebSocketSession session)  {
+    public void processCommandGet(String deviceId, JsonObject request, WebSocketSession session) {
         if (deviceId == null) {
             logger.error("command/get proceed with error. Device ID should be provided.");
             throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-         
+
         Long commandId = gson.fromJson(request.get(COMMAND_ID), Long.class);
         if (commandId == null) {
             logger.error("command/get proceed with error. Command ID should be provided.");
@@ -260,7 +258,7 @@ public class CommandHandlers {
             logger.error("command/get proceed with error. No Device with Device ID = {} found.", deviceId);
             throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
-        
+
         WebSocketResponse webSocketResponse = commandService.findOne(commandId, deviceId)
                 .thenApply(command -> command
                         .map(c -> {
@@ -273,7 +271,7 @@ public class CommandHandlers {
                     logger.error("Unable to get command.", ex);
                     throw new HiveException(Messages.INTERNAL_SERVER_ERROR, SC_INTERNAL_SERVER_ERROR);
                 }).join();
-        
+
         if (webSocketResponse == null) {
             logger.error(String.format(COMMAND_NOT_FOUND, commandId));
             throw new HiveException(String.format(COMMAND_NOT_FOUND, commandId), SC_NOT_FOUND);
@@ -286,12 +284,12 @@ public class CommandHandlers {
     @PreAuthorize("isAuthenticated() and hasPermission(#deviceId, 'GET_DEVICE_COMMAND')")
     public void processCommandList(String deviceId, JsonObject request, WebSocketSession session) {
         CommandSearchRequest commandSearchRequest = createCommandSearchRequest(request);
-        
+
         if (deviceId == null) {
             logger.error("command/list proceed with error. Device ID should be provided.");
             throw new HiveException(DEVICE_ID_REQUIRED, SC_BAD_REQUEST);
         }
-        
+
         logger.debug("Device command query requested for device {}", deviceId);
 
         DeviceVO device = deviceService.findById(deviceId);
@@ -299,9 +297,9 @@ public class CommandHandlers {
             logger.error("command/list proceed with error. No Device with Device ID = {} found.", deviceId);
             throw new HiveException(String.format(DEVICE_NOT_FOUND, deviceId), SC_NOT_FOUND);
         }
-        
+
         WebSocketResponse response = new WebSocketResponse();
-        
+
         commandService.find(commandSearchRequest)
                 .thenAccept(sortedDeviceCommands -> {
                     response.addValue(COMMANDS, sortedDeviceCommands, COMMAND_LISTED);

@@ -34,7 +34,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <springboot.version>2.7.5</springboot.version>
+        <springboot.version>3.1.5</springboot.version>
         <zookeeper.version>3.8.0</zookeeper.version>
         <swagger.version>1.6.6</swagger.version>
 
@@ -42,13 +42,23 @@
         <javax.websocket.version>1.1</javax.websocket.version>
         <javax.el.version>2.2.4</javax.el.version>
         <kafka.version>0.10.0.1</kafka.version>
+        <spring-boot-starter-security.version>3.1.5</spring-boot-starter-security.version>
         <scala-binaries.version>2.10</scala-binaries.version>
         <slf4j.version>1.7.5</slf4j.version>
-        <logback.version>1.1.3</logback.version>
+        <snakeyaml.version>2.0</snakeyaml.version>
+        <jackson-databind.version>2.16.0</jackson-databind.version>
+        <spring-security-web.version>5.7.7</spring-security-web.version>
+        <spring-security-config.version>6.1.5</spring-security-config.version>
+        <logback.version>1.2.9</logback.version>
+        <spring-security-core.version>6.1.2</spring-security-core.version>
+        <jackson.version>2.15.4</jackson.version>
+        <netty-handler.version>4.1.94.Final</netty-handler.version>
+        <jackson-databind.version>2.15.2</jackson-databind.version>
+        <undertow-core>2.3.7.Final</undertow-core>
         <junit.version>4.11</junit.version>
         <mockito-core.version>2.12.0</mockito-core.version>
         <hsqldb.version>2.3.2</hsqldb.version>
-        <postgresql.version>9.4-1201-jdbc4</postgresql.version>
+        <postgresql.version>42.3.8</postgresql.version>
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
         <httpclient.version>4.5.14</httpclient.version>
         <zkclient.version>0.8</zkclient.version>
@@ -56,7 +66,7 @@
         <curator.version>2.8.0</curator.version>
         <commons-net.version>3.3</commons-net.version>
         <commons-codec.version>1.9</commons-codec.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.1.1-jre</guava.version>
         <joda-time.version>2.5</joda-time.version>
         <jquery.version>1.11.1</jquery.version>
         <lmax-disruptor.version>3.3.6</lmax-disruptor.version>
@@ -133,6 +143,26 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+                <version>${spring-boot-starter-security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson-databind.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring-security-web.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring-security-config.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka-clients</artifactId>
@@ -235,7 +265,11 @@
                 <artifactId>disruptor</artifactId>
                 <version>${lmax-disruptor.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>${spring-security-core.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-annotations</artifactId>
@@ -246,7 +280,11 @@
                 <artifactId>swagger-jersey2-jaxrs</artifactId>
                 <version>${swagger.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>

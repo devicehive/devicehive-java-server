@@ -43,8 +43,8 @@ import static com.devicehive.configuration.Constants.CONFIGURATION;
 import static com.devicehive.configuration.Constants.NAME;
 import static com.devicehive.configuration.Constants.VALUE;
 import static com.devicehive.configuration.Messages.CONFIG_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class ConfigurationHandlers {

@@ -20,6 +20,8 @@ package com.devicehive.application;
  * #L%
  */
 
+import jakarta.persistence.SharedCacheMode;
+import jakarta.persistence.ValidationMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -36,8 +38,6 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import javax.persistence.SharedCacheMode;
-import javax.persistence.ValidationMode;
 import javax.sql.DataSource;
 import java.util.Map;
 import java.util.Properties;

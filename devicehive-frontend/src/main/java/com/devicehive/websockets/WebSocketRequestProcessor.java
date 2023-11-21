@@ -27,11 +27,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static com.devicehive.configuration.Constants.DEVICE_ID;

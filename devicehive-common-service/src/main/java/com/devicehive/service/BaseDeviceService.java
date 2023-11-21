@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static com.devicehive.configuration.Messages.ACCESS_DENIED;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 

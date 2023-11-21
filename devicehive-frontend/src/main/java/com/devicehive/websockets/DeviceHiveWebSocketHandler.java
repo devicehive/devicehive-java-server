@@ -39,6 +39,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,6 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import javax.persistence.OptimisticLockException;
 import javax.persistence.PersistenceException;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
@@ -184,7 +184,7 @@ public class DeviceHiveWebSocketHandler extends TextWebSocketHandler {
 
         sessionMonitor.removeSession(session.getId());
 
-        if(session.isOpen()) {
+        if (session.isOpen()) {
             session.close();
         }
         logger.info("Websocket Connection Closed: session id {}, close status is {} ", session.getId(), status);
