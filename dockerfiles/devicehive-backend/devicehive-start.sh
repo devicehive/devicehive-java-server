@@ -17,6 +17,7 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
     || [ -z "$REDIS_MASTER_HOST" ] \
     || [ -z "$REDIS_MASTER_PORT" ] \
+    || [ -z "$DH_ZK_ADDRESS" ] \
     || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
 then
     echo "Some of required environment variables are not set or empty."
@@ -27,6 +28,7 @@ then
     echo "- DH_POSTGRES_DB"
     echo "- REDIS_MASTER_HOST"
     echo "- REDIS_MASTER_PORT"
+    echo "- DH_ZK_ADDRESS"
     echo "And one of variants of Kafka bootstrap parameters:"
     echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
     echo "or"
@@ -39,15 +41,17 @@ then
     DH_KAFKA_BOOTSTRAP_SERVERS="${DH_KAFKA_ADDRESS}:${DH_KAFKA_PORT:-9092}"
 fi
 
-# Check Kafka and Postgres are ready
+# Check if Zookeper, Kafka and Postgres are ready
 while true; do
+    nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
+    result_zk=$?
     FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
     nc -v -z -w1 "${FIRST_KAFKA_SERVER%%:*}" $(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')
     result_kafka=$?
     nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
     result_postgres=$?
 
-    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
         break
     fi
     sleep 3
@@ -72,6 +76,9 @@ java -server -Xms1g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:+DisableExpl
 -Dspring.datasource.url="jdbc:postgresql://${DH_POSTGRES_ADDRESS}:${DH_POSTGRES_PORT}/${DH_POSTGRES_DB}" \
 -Dspring.datasource.username="${DH_POSTGRES_USERNAME}" \
 -Dspring.datasource.password="${DH_POSTGRES_PASSWORD}" \
+-Dzookeeper.connect="${DH_ZK_ADDRESS}:${DH_ZK_PORT}" \
+-Dzookeeper.connectionTimeout="${DH_ZK_CONNECTIONTIMEOUT:-8000}" \
+-Dzookeeper.sessionTimeout="${DH_ZK_SESSIONTIMEOUT:-10000}" \
 "./devicehive-backend-${DH_VERSION}-boot.jar" &
 PID=$!
 wait $PID

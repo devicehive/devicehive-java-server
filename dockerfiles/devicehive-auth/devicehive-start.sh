@@ -33,10 +33,12 @@ fi
 
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
 then
-    if [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ]
+    if [ -z "$DH_ZK_ADDRESS" ] \
+    || ( [ -z "$DH_KAFKA_BOOTSTRAP_SERVERS" ] && [ -z "$DH_KAFKA_ADDRESS" ] )
     then
         echo "Some of required environment variables are not set or empty."
         echo "Please check following vars are passed to container:"
+        echo "- DH_ZK_ADDRESS"
         echo "And one of variants of Kafka bootstrap parameters:"
         echo "- DH_KAFKA_BOOTSTRAP_SERVERS for multiple servers"
         echo "or"
@@ -50,20 +52,23 @@ then
     fi
 fi
 
-# Check Kafka and Postgres are ready
+# Check if Zookeper, Kafka and Postgres are ready
 while true; do
     if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
     then
+        nc -v -z -w1 "$DH_ZK_ADDRESS" "${DH_ZK_PORT:=2181}"
+        result_zk=$?
         FIRST_KAFKA_SERVER="${DH_KAFKA_BOOTSTRAP_SERVERS%%,*}"
         nc -v -z -w1 "${FIRST_KAFKA_SERVER%%:*}" $(expr $FIRST_KAFKA_SERVER : '.*:\([0-9]*\)')
         result_kafka=$?
     else
+        result_zk=0
         result_kafka=0
     fi
     nc -v -z -w1 "$DH_POSTGRES_ADDRESS" "${DH_POSTGRES_PORT:=5432}"
     result_postgres=$?
 
-if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ]; then
+    if [ "$result_kafka" -eq 0 ] && [ "$result_postgres" -eq 0 ] && [ "$result_zk" -eq 0 ]; then
         break
     fi
     sleep 3
@@ -71,7 +76,7 @@ done
 KAFKA_PARAMETERS=""
 if [ "$SPRING_PROFILES_ACTIVE" = "rpc-client" ]
 then
-    KAFKA_PARAMETERS="-Dbootstrap.servers=${DH_KAFKA_BOOTSTRAP_SERVERS}"
+    KAFKA_PARAMETERS="-Dbootstrap.servers=${DH_KAFKA_BOOTSTRAP_SERVERS} -Dzookeeper.connect=${DH_ZK_ADDRESS}:${DH_ZK_PORT:-2181} -Dzookeeper.connectionTimeout=${DH_ZK_CONNECTIONTIMEOUT:-8000} -Dzookeeper.sessionTimeout=${DH_ZK_SESSIONTIMEOUT:-10000}"
 fi
 
 echo "Starting DeviceHive auth"
