@@ -82,10 +82,10 @@ public class AuthProxyClient implements RpcClient {
     @Override
     public void start() {
         client.start();
+        pingServer();
         createTopic(Arrays.asList(requestTopic, replyToTopic));
         subscribeToTopic(replyToTopic);
 
-        pingServer();
     }
 
     public void createTopic(List<String> topics) {
