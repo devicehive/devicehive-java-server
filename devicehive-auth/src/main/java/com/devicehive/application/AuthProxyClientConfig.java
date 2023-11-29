@@ -21,7 +21,7 @@ package com.devicehive.application;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
-import com.devicehive.proxy.AuthProxyClient;
+import com.devicehive.proxy.AuthRpcClient;
 import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
@@ -59,10 +59,10 @@ public class AuthProxyClientConfig {
     }
 
     @Bean
-    public AuthProxyClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public AuthRpcClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson) {
         WebSocketKafkaProxyClient proxyClient = new WebSocketKafkaProxyClient(notificationHandler);
         proxyClient.setWebSocketKafkaProxyConfig(proxyConfig);
-        AuthProxyClient client = new AuthProxyClient(REQUEST_TOPIC, responseTopic, proxyClient, requestResponseMatcher, gson);
+        AuthRpcClient client = new AuthRpcClient(REQUEST_TOPIC, responseTopic, proxyClient, requestResponseMatcher, gson);
         client.start();
         return client;
     }
