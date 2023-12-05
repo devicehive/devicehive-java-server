@@ -20,23 +20,19 @@ package com.devicehive.application;
  * #L%
  */
 
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.boot.context.event.SpringApplicationEvent;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 
-@Component
-public class AppContextEventListener {
-
-    @EventListener
-    public void handleContextRefreshed(ContextRefreshedEvent event) {
-        printActiveProperties((ConfigurableEnvironment) event.getApplicationContext().getEnvironment());
-    }
+public class AppContextEventListener implements ApplicationListener<ApplicationEvent> {
 
     private void printActiveProperties(ConfigurableEnvironment env) {
 
@@ -63,5 +59,12 @@ public class AppContextEventListener {
                     }
                 });
         System.out.println("******************************************************************************");
+    }
+
+    @Override
+    public void onApplicationEvent(ApplicationEvent event) {
+        if(event instanceof ApplicationPreparedEvent) {
+            printActiveProperties((ConfigurableEnvironment)  ((ApplicationPreparedEvent) event).getApplicationContext().getEnvironment());
+        }
     }
 }
