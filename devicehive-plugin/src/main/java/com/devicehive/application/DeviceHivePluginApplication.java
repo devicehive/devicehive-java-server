@@ -91,7 +91,7 @@ public class DeviceHivePluginApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public Validator localValidator() {
+    public LocalValidatorFactoryBean localValidator() {
         return new LocalValidatorFactoryBean();
     }
 }

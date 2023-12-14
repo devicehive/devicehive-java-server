@@ -43,6 +43,7 @@ import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.WaitStrategy;
 import com.lmax.disruptor.WorkerPool;
 import com.lmax.disruptor.YieldingWaitStrategy;
+import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -58,7 +59,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.util.stream.IntStream;
 
 import static com.devicehive.configuration.Constants.REQUEST_TOPIC;

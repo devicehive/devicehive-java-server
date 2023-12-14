@@ -92,7 +92,7 @@ public class DeviceHiveAuthApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public Validator localValidator() {
+    public LocalValidatorFactoryBean localValidator() {
         return new LocalValidatorFactoryBean();
     }
 }

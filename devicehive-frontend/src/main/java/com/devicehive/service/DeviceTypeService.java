@@ -54,8 +54,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static java.util.Optional.ofNullable;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 @Component
 public class DeviceTypeService extends BaseDeviceTypeService {

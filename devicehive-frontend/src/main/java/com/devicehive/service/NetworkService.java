@@ -19,42 +19,35 @@ package com.devicehive.service;
  * limitations under the License.
  * #L%
  */
+
 import com.devicehive.auth.HivePrincipal;
 import com.devicehive.configuration.Messages;
 import com.devicehive.dao.NetworkDao;
 import com.devicehive.exceptions.ActionNotAllowedException;
-import com.devicehive.exceptions.HiveException;
 import com.devicehive.exceptions.IllegalParametersException;
 import com.devicehive.model.response.EntityCountResponse;
-import com.devicehive.model.rpc.*;
+import com.devicehive.model.rpc.CountNetworkRequest;
+import com.devicehive.model.rpc.CountResponse;
 import com.devicehive.model.updates.NetworkUpdate;
 import com.devicehive.service.helpers.ResponseConsumer;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.devicehive.util.HiveValidator;
-import com.devicehive.vo.DeviceVO;
 import com.devicehive.vo.NetworkVO;
-import com.devicehive.vo.NetworkWithUsersAndDevicesVO;
-import com.devicehive.vo.UserVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
-import java.util.*;
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
-import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
-import static java.util.Optional.*;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import static java.util.Optional.ofNullable;
 
 @Component
 public class NetworkService extends BaseNetworkService {

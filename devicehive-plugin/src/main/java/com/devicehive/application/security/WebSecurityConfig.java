@@ -27,6 +27,7 @@ import com.devicehive.auth.rest.providers.JwtTokenAuthenticationProvider;
 import com.devicehive.model.ErrorResponse;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -36,63 +37,58 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import javax.servlet.http.HttpServletResponse;
+
 
 @Configuration
 @EnableWebSecurity
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig {
 
-    private Gson gson = new GsonBuilder().create();
+    private final Gson gson = new GsonBuilder().create();
 
+    private final SimpleCORSFilter simpleCORSFilter;
     private final JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider;
 
-    public WebSecurityConfig(JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider) {
-        super();
+    public WebSecurityConfig(JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider,
+                             SimpleCORSFilter simpleCORSFilter) {
+        this.simpleCORSFilter = simpleCORSFilter;
         this.jwtTokenAuthenticationProvider = jwtTokenAuthenticationProvider;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers("/css/**", "/server/**", "/scripts/**", "/webjars/**", "/templates/**").permitAll()
-                .antMatchers("/*/swagger.json", "/*/swagger.yaml").permitAll()
-                .and()
-                .anonymous().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(unauthorizedEntryPoint());
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/css/**", "/server/**", "/scripts/**",
+                                "/webjars/**", "/templates/**", "/*/swagger.json", "/*/swagger.yaml").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedEntryPoint())
+                );
 
         http
-                .addFilterBefore(new SimpleCORSFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new HttpAuthenticationFilter(authenticationManager()), SimpleCORSFilter.class);
-    }
+                .addFilterBefore(simpleCORSFilter, BasicAuthenticationFilter.class)
+                .addFilterAfter(new HttpAuthenticationFilter(http.getSharedObject(AuthenticationManager.class)), SimpleCORSFilter.class);
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth
-                .authenticationProvider(jwtTokenAuthenticationProvider)
-                .authenticationProvider(anonymousAuthenticationProvider());
+        return http.build();
     }
 
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public AuthenticationManager authenticationManagerBuilder(AuthenticationManagerBuilder auth) throws Exception {
+        auth
+                .authenticationProvider(jwtTokenAuthenticationProvider)
+                .authenticationProvider(anonymousAuthenticationProvider());
+        return auth.build();
     }
-
-    //@Bean
-    //public JwtTokenAuthenticationProvider jwtTokenAuthenticationProvider() {
-    //    return new JwtTokenAuthenticationProvider();
-    //}
 
     @Bean
     public HiveAnonymousAuthenticationProvider anonymousAuthenticationProvider() {

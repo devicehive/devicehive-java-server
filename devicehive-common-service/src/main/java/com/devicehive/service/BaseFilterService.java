@@ -46,8 +46,8 @@ import java.util.stream.Stream;
 import static com.devicehive.configuration.Messages.ACCESS_DENIED;
 import static com.devicehive.configuration.Messages.DEVICE_TYPES_NOT_FOUND;
 import static com.devicehive.configuration.Messages.NETWORKS_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Component
 public class BaseFilterService {

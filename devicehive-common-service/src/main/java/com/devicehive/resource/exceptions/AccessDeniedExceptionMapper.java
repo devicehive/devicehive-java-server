@@ -21,9 +21,9 @@ package com.devicehive.resource.exceptions;
  */
 
 import com.devicehive.model.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
