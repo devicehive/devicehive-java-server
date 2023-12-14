@@ -70,7 +70,7 @@ public class KafkaRpcClientServerCommunicationTest {
     private static final String RESPONSE_TOPIC = "response_topic";
 
     @ClassRule
-    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 1, REQUEST_TOPIC, RESPONSE_TOPIC);
+    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule();
 
     @Rule
     public Timeout testTimeout = new Timeout(180000, TimeUnit.MILLISECONDS); // 180k ms = 3 minutes
@@ -93,8 +93,8 @@ public class KafkaRpcClientServerCommunicationTest {
                 .create();
 
         server = new ServerBuilder()
-                .withConsumerProps(kafkaRule.getConsumerProperties())
-                .withProducerProps(kafkaRule.getProducerProperties())
+//                .withConsumerProps(kafkaRule.getConsumerProperties())
+//                .withProducerProps(kafkaRule.getProducerProperties())
                 .withConsumerValueDeserializer(new RequestSerializer(gson))
                 .withProducerValueSerializer(new ResponseSerializer(gson))
                 .withConsumerThreads(1)
@@ -104,8 +104,8 @@ public class KafkaRpcClientServerCommunicationTest {
         server.start();
 
         client = new ClientBuilder()
-                .withProducerProps(kafkaRule.getProducerProperties())
-                .withConsumerProps(kafkaRule.getConsumerProperties())
+//                .withProducerProps(kafkaRule.getProducerProperties())
+//                .withConsumerProps(kafkaRule.getConsumerProperties())
                 .withProducerValueSerializer(new RequestSerializer(gson))
                 .withConsumerValueDeserializer(new ResponseSerializer(gson))
                 .withReplyTopic(RESPONSE_TOPIC)

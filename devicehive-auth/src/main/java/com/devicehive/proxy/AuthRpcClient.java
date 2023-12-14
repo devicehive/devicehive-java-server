@@ -4,14 +4,14 @@ package com.devicehive.proxy;
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 - 2017 DataArt
+ * Copyright (C) 2016 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,51 +21,44 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
-import com.devicehive.model.ServerEvent;
-import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyClient;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
-import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
-import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
-import com.lmax.disruptor.RingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
-import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
-public class FrontendProxyClient implements RpcClient {
-    private static final Logger logger = LoggerFactory.getLogger(FrontendProxyClient.class);
+@Profile("ws-kafka-proxy")
+public class AuthRpcClient implements RpcClient {
+    private static final Logger logger = LoggerFactory.getLogger(AuthRpcClient.class);
 
     private final String requestTopic;
     private final String replyToTopic;
-    private final WebSocketKafkaProxyClient client;
-    private final WebSocketKafkaProxyConfig proxyConfig;
-    private final NotificationHandler notificationHandler;
+    private final ProxyClient client;
     private final RequestResponseMatcher requestResponseMatcher;
     private final Gson gson;
-    private final RingBuffer<ServerEvent> ringBuffer;
 
-    public FrontendProxyClient(String requestTopic, String replyToTopic, WebSocketKafkaProxyConfig proxyConfig, NotificationHandler notificationHandler, RequestResponseMatcher requestResponseMatcher, Gson gson, RingBuffer<ServerEvent> ringBuffer) {
+    public AuthRpcClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
-        this.proxyConfig = proxyConfig;
-        this.notificationHandler = notificationHandler;
+        this.client = client;
         this.requestResponseMatcher = requestResponseMatcher;
         this.gson = gson;
-        this.ringBuffer = ringBuffer;
-        this.client = new WebSocketKafkaProxyClient((message, client) -> {});
-        client.setWebSocketKafkaProxyConfig(proxyConfig);
     }
 
     @Override
@@ -73,7 +66,7 @@ public class FrontendProxyClient implements RpcClient {
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
         logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-        ringBuffer.publishEvent((serverEvent, sequence, response) -> serverEvent.set(response), request);
+        push(request);
     }
 
     @Override
@@ -83,32 +76,24 @@ public class FrontendProxyClient implements RpcClient {
         }
         request.setReplyTo(replyToTopic);
 
-        client.push(ProxyMessageBuilder.notification(
-                new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
+        client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
     }
 
     @Override
     public void start() {
         client.start();
-        client.push(ProxyMessageBuilder.create(new TopicsPayload(Arrays.asList(requestTopic, replyToTopic)))).join();
-
-        UUID uuid = UUID.randomUUID();
-        Executor executionPool = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
-        for (int i = 0; i < proxyConfig.getWorkerThreads(); i++) {
-            executionPool.execute(() -> {
-                WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
-                client.setWebSocketKafkaProxyConfig(proxyConfig);
-                client.start();
-                client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic, uuid.toString()))).join();
-            });
-        }
-
+        createTopic(Arrays.asList(requestTopic, replyToTopic));
+        subscribeToTopic(replyToTopic);
         pingServer();
+
     }
 
-    @Override
-    public void shutdown() {
-        client.shutdown();
+    public void createTopic(List<String> topics) {
+        client.push(ProxyMessageBuilder.create(new TopicsPayload(topics))).join();
+    }
+
+    public void subscribeToTopic(String topic) {
+        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(topic))).join();
     }
 
     private void pingServer() {
@@ -118,7 +103,7 @@ public class FrontendProxyClient implements RpcClient {
         boolean connected = false;
         int attempts = 10;
         for (int i = 0; i < attempts; i++) {
-            logger.info("Ping WebSocket Proxy attempt {}", i);
+            logger.info("Ping WebSocket Proxy Server attempt {}", i);
 
             CompletableFuture<Response> pingFuture = new CompletableFuture<>();
 
@@ -132,9 +117,9 @@ public class FrontendProxyClient implements RpcClient {
             try {
                 response = pingFuture.get(3000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException | ExecutionException e) {
-                logger.error("Exception occured while trying to ping Backend Server ", e);
+                logger.error("Exception occured while trying to ping WebSocket Proxy Server ", e);
             } catch (TimeoutException e) {
-                logger.warn("Backend Server didn't respond to ping request");
+                logger.warn("WebSocket Proxy Server didn't respond to ping request");
                 continue;
             } finally {
                 requestResponseMatcher.removeRequestCallback(request.getCorrelationId());
@@ -147,10 +132,15 @@ public class FrontendProxyClient implements RpcClient {
             }
         }
         if (connected) {
-            logger.info("Successfully connected to Backend Server");
+            logger.info("Successfully connected to WebSocket Proxy Server");
         } else {
-            logger.error("Unable to reach out Backend Server in {} attempts", attempts);
-            throw new RuntimeException("Backend Server is not reachable");
+            logger.error("Unable to reach out WebSocket Proxy Server in {} attempts", attempts);
+            throw new RuntimeException("WebSocket Proxy Server is not reachable");
         }
+    }
+
+    @Override
+    public void shutdown() {
+        client.shutdown();
     }
 }

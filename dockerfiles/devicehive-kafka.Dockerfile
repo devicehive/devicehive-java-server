@@ -1,8 +1,8 @@
-FROM docker.io/bitnami/kafka:3.1
+FROM docker.io/bitnami/kafka:3.2.0
 
 MAINTAINER devicehive
 
-ENV DH_VERSION="4.1.0"
+ENV DH_VERSION="5.0.1"
 
 LABEL org.label-schema.url="https://devicehive.com" \
       org.label-schema.vendor="DeviceHive" \
