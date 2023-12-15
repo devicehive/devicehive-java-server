@@ -16,7 +16,8 @@ if [ -z "$DH_POSTGRES_ADDRESS" ] \
     || [ -z "$DH_POSTGRES_PASSWORD" ] \
     || [ -z "$DH_POSTGRES_DB" ] \
     || [ -z "$REDIS_MASTER_HOST" ] \
-    || [ -z "$REDIS_MASTER_PORT" ]
+    || [ -z "$REDIS_MASTER_PORT" ] \
+    || [ -z "$REDIS_MASTER_PASSWORD" ]
 then
     echo "Some of required environment variables are not set or empty."
     echo "Please check following vars are passed to container:"
@@ -26,6 +27,7 @@ then
     echo "- DH_POSTGRES_DB"
     echo "- REDIS_MASTER_HOST"
     echo "- REDIS_MASTER_PORT"
+    echo "- REDIS_MASTER_PASSWORD"
     exit 1
 fi
 

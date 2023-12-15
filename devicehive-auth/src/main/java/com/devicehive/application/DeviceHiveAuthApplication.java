@@ -57,6 +57,7 @@ public class DeviceHiveAuthApplication extends SpringBootServletInitializer {
 
     public static void main(String... args) {
         ConfigurableApplicationContext context = new SpringApplicationBuilder()
+                .listeners(new AppContextEventListener())
                 .sources(DeviceHiveAuthApplication.class)
                 .web(WebApplicationType.SERVLET)
                 .run(args);

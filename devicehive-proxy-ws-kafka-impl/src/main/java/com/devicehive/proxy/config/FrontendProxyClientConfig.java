@@ -22,7 +22,7 @@ package com.devicehive.proxy.config;
 
 import com.devicehive.api.RequestResponseMatcher;
 import com.devicehive.model.ServerEvent;
-import com.devicehive.proxy.FrontendProxyClient;
+import com.devicehive.proxy.FrontendRpcClient;
 import com.devicehive.proxy.ProxyResponseHandler;
 import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.shim.api.client.RpcClient;
@@ -97,7 +97,7 @@ public class FrontendProxyClientConfig {
     public RpcClient rpcClient(NotificationHandler notificationHandler, WebSocketKafkaProxyConfig proxyConfig, RequestResponseMatcher requestResponseMatcher, Gson gson, WorkerPool<ServerEvent> workerPool) {
         final ExecutorService execService = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
         RingBuffer<ServerEvent> ringBuffer = workerPool.start(execService);
-        RpcClient client = new FrontendProxyClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyConfig, notificationHandler, requestResponseMatcher, gson, ringBuffer);
+        RpcClient client = new FrontendRpcClient(REQUEST_TOPIC, RESPONSE_TOPIC, proxyConfig, notificationHandler, requestResponseMatcher, gson, ringBuffer);
         client.start();
         return client;
     }

@@ -4,14 +4,14 @@ package com.devicehive.proxy;
  * #%L
  * DeviceHive Frontend Logic
  * %%
- * Copyright (C) 2016 DataArt
+ * Copyright (C) 2016 - 2017 DataArt
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,44 +21,50 @@ package com.devicehive.proxy;
  */
 
 import com.devicehive.api.RequestResponseMatcher;
-import com.devicehive.proxy.api.ProxyClient;
+import com.devicehive.model.ServerEvent;
+import com.devicehive.proxy.api.NotificationHandler;
 import com.devicehive.proxy.api.ProxyMessageBuilder;
 import com.devicehive.proxy.api.payload.NotificationCreatePayload;
 import com.devicehive.proxy.api.payload.SubscribePayload;
 import com.devicehive.proxy.api.payload.TopicsPayload;
+import com.devicehive.proxy.client.WebSocketKafkaProxyClient;
+import com.devicehive.proxy.config.WebSocketKafkaProxyConfig;
 import com.devicehive.shim.api.Request;
 import com.devicehive.shim.api.RequestType;
 import com.devicehive.shim.api.Response;
 import com.devicehive.shim.api.client.RpcClient;
 import com.google.gson.Gson;
+import com.lmax.disruptor.RingBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.UUID;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-@Profile("ws-kafka-proxy")
-public class AuthProxyClient implements RpcClient {
-    private static final Logger logger = LoggerFactory.getLogger(AuthProxyClient.class);
+public class FrontendRpcClient implements RpcClient {
+    private static final Logger logger = LoggerFactory.getLogger(FrontendRpcClient.class);
 
     private final String requestTopic;
     private final String replyToTopic;
-    private final ProxyClient client;
+    private final WebSocketKafkaProxyClient client;
+    private final WebSocketKafkaProxyConfig proxyConfig;
+    private final NotificationHandler notificationHandler;
     private final RequestResponseMatcher requestResponseMatcher;
     private final Gson gson;
+    private final RingBuffer<ServerEvent> ringBuffer;
 
-    public AuthProxyClient(String requestTopic, String replyToTopic, ProxyClient client, RequestResponseMatcher requestResponseMatcher, Gson gson) {
+    public FrontendRpcClient(String requestTopic, String replyToTopic, WebSocketKafkaProxyConfig proxyConfig, NotificationHandler notificationHandler, RequestResponseMatcher requestResponseMatcher, Gson gson, RingBuffer<ServerEvent> ringBuffer) {
         this.requestTopic = requestTopic;
         this.replyToTopic = replyToTopic;
-        this.client = client;
+        this.proxyConfig = proxyConfig;
+        this.notificationHandler = notificationHandler;
         this.requestResponseMatcher = requestResponseMatcher;
         this.gson = gson;
+        this.ringBuffer = ringBuffer;
+        this.client = new WebSocketKafkaProxyClient((message, client) -> {});
+        client.setWebSocketKafkaProxyConfig(proxyConfig);
     }
 
     @Override
@@ -66,7 +72,7 @@ public class AuthProxyClient implements RpcClient {
         requestResponseMatcher.addRequestCallback(request.getCorrelationId(), callback);
         logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-        push(request);
+        ringBuffer.publishEvent((serverEvent, sequence, response) -> serverEvent.set(response), request);
     }
 
     @Override
@@ -76,24 +82,32 @@ public class AuthProxyClient implements RpcClient {
         }
         request.setReplyTo(replyToTopic);
 
-        client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+        client.push(ProxyMessageBuilder.notification(
+                new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
     }
 
     @Override
     public void start() {
         client.start();
-        createTopic(Arrays.asList(requestTopic, replyToTopic));
-        subscribeToTopic(replyToTopic);
+        client.push(ProxyMessageBuilder.create(new TopicsPayload(Arrays.asList(requestTopic, replyToTopic)))).join();
+
+        UUID uuid = UUID.randomUUID();
+        Executor executionPool = Executors.newFixedThreadPool(proxyConfig.getWorkerThreads());
+        for (int i = 0; i < proxyConfig.getWorkerThreads(); i++) {
+            executionPool.execute(() -> {
+                WebSocketKafkaProxyClient client = new WebSocketKafkaProxyClient(notificationHandler);
+                client.setWebSocketKafkaProxyConfig(proxyConfig);
+                client.start();
+                client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(replyToTopic, uuid.toString()))).join();
+            });
+        }
 
         pingServer();
     }
 
-    public void createTopic(List<String> topics) {
-        client.push(ProxyMessageBuilder.create(new TopicsPayload(topics))).join();
-    }
-
-    public void subscribeToTopic(String topic) {
-        client.push(ProxyMessageBuilder.subscribe(new SubscribePayload(topic))).join();
+    @Override
+    public void shutdown() {
+        client.shutdown();
     }
 
     private void pingServer() {
@@ -110,7 +124,8 @@ public class AuthProxyClient implements RpcClient {
             requestResponseMatcher.addRequestCallback(request.getCorrelationId(), pingFuture::complete);
             logger.debug("Request callback added for request: {}, correlationId: {}", request.getBody(), request.getCorrelationId());
 
-            client.push(ProxyMessageBuilder.notification(new NotificationCreatePayload(requestTopic, gson.toJson(request)))); // toDo: use request partition key
+            client.push(ProxyMessageBuilder.notification(
+                    new NotificationCreatePayload(requestTopic, gson.toJson(request), request.getPartitionKey())));
 
             Response response = null;
             try {
@@ -136,10 +151,5 @@ public class AuthProxyClient implements RpcClient {
             logger.error("Unable to reach out WebSocket Proxy Server in {} attempts", attempts);
             throw new RuntimeException("WebSocket Proxy Server is not reachable");
         }
-    }
-
-    @Override
-    public void shutdown() {
-        client.shutdown();
     }
 }

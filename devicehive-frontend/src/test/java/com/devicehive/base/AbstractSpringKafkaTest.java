@@ -50,7 +50,7 @@ public abstract class AbstractSpringKafkaTest {
     }
 
     @ClassRule
-    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule(true, 5, REQUEST_TOPIC, RESPONSE_TOPIC);
+    public static KafkaEmbeddedRule kafkaRule = new KafkaEmbeddedRule();
 
     @Rule
     public Timeout testTimeout = new Timeout(180000, TimeUnit.MILLISECONDS); // 180k ms = 3 minutes
