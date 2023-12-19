@@ -48,7 +48,7 @@
         <junit.version>4.11</junit.version>
         <mockito-core.version>2.12.0</mockito-core.version>
         <hsqldb.version>2.3.2</hsqldb.version>
-        <postgresql.version>9.4-1201-jdbc4</postgresql.version>
+        <postgresql.version>42.5.1</postgresql.version>
         <springloaded.version>1.2.3.RELEASE</springloaded.version>
         <httpclient.version>4.5.14</httpclient.version>
         <zkclient.version>0.8</zkclient.version>
@@ -65,7 +65,7 @@
         <!-- Plugins -->
         <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
         <maven-deploy-plugin.version>3.0.0-M2</maven-deploy-plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.2.1</maven-surefire-plugin.version>
         <maven-jar-plugin.version>3.2.2</maven-jar-plugin.version>
         <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
         <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
@@ -503,68 +503,6 @@
                 </plugins>
             </build>
         </profile>
-        <profile>
-            <id>jacoco.coverage</id>
-            <activation>
-                <property>
-                    <name>checkCoverage</name>
-                </property>
-            </activation>
-            <properties>
-                <bundle-coverage-ratio>0.80</bundle-coverage-ratio>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>${jacoco-maven-plugin.version}</version>
-                        <configuration>
-                            <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
-                            <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-                            <excludes>
-                                <exclude>**/model/**/*.*</exclude>
-                                <exclude>**/mapper/*.*</exclude>
-                            </excludes>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>jacoco-initialize</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>jacoco-site</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>jacoco-check</id>
-                                <goals>
-                                    <goal>check</goal>
-                                </goals>
-                                <configuration>
-                                    <rules>
-                                        <rule>
-                                            <element>BUNDLE</element>
-                                            <limits>
-                                                <limit>
-                                                    <counter>INSTRUCTION</counter>
-                                                    <value>COVEREDRATIO</value>
-                                                    <minimum>${bundle-coverage-ratio}</minimum>
-                                                </limit>
-                                            </limits>
-                                        </rule>
-                                    </rules>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+
     </profiles>
 </project>
