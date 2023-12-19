@@ -34,7 +34,7 @@
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <springboot.version>2.7.5</springboot.version>
+        <springboot.version>2.7.18</springboot.version>
         <zookeeper.version>3.8.0</zookeeper.version>
         <swagger.version>1.6.6</swagger.version>
 
