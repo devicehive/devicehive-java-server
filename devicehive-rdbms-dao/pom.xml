@@ -16,7 +16,7 @@
 
     <properties>
         <project.rootdir>${project.parent.basedir}</project.rootdir>
-        <redisson.version>3.17.7</redisson.version>
+        <redisson.version>3.23.5</redisson.version>
     </properties>
 
     <dependencies>
