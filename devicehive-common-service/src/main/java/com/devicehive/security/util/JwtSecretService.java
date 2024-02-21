@@ -22,11 +22,11 @@ package com.devicehive.security.util;
 
 import com.devicehive.configuration.Constants;
 import com.devicehive.service.configuration.ConfigurationService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 

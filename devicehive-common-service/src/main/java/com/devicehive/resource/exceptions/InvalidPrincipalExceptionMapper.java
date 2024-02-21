@@ -22,8 +22,8 @@ package com.devicehive.resource.exceptions;
 
 import com.devicehive.exceptions.InvalidPrincipalException;
 import com.devicehive.model.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;

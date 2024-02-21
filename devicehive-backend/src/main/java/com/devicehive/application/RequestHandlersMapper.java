@@ -35,10 +35,10 @@ import com.devicehive.messages.handler.notification.NotificationUnsubscribeReque
 import com.devicehive.shim.api.Action;
 import com.devicehive.shim.api.server.RequestHandler;
 import com.google.common.collect.ImmutableMap;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Map;
 
 @Component

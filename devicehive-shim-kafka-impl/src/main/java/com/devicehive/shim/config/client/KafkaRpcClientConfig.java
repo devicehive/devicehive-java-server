@@ -30,6 +30,7 @@ import com.devicehive.shim.kafka.serializer.RequestSerializer;
 import com.devicehive.shim.kafka.serializer.ResponseSerializer;
 import com.devicehive.shim.kafka.topic.KafkaTopicService;
 import com.google.gson.Gson;
+import jakarta.annotation.PostConstruct;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -43,7 +44,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
-import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
